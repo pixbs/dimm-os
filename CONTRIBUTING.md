@@ -18,7 +18,7 @@ Above roughly 800 hand-written lines, the issue is split.
 | `conventions` | No tool attribution in the title, the description, the branch name or any commit's message, author or committer. No bot as author. A Conventional Commit title. A linked issue. |
 | `ci` | Format, lint, types, generated files up to date, the dependency audit, migrations, tests and the production build. |
 | CodeQL | No alert at high or above. |
-| Preview deployment | The build, with its migrations, succeeds against the preview database. |
+| `Vercel` | The preview deployment: the build, with its migrations, succeeds against the preview database. |
 
 `main` takes squash merges of up-to-date branches only, and nobody bypasses that.
 

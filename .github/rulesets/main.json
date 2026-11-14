@@ -30,14 +30,9 @@
         "do_not_enforce_on_create": false,
         "required_status_checks": [
           { "context": "ci", "integration_id": 15368 },
-          { "context": "conventions", "integration_id": 15368 }
+          { "context": "conventions", "integration_id": 15368 },
+          { "context": "Vercel", "integration_id": 8329 }
         ]
-      }
-    },
-    {
-      "type": "required_deployments",
-      "parameters": {
-        "required_deployment_environments": ["Preview"]
       }
     },
     {
