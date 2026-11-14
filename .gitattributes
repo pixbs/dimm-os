@@ -1,0 +1,2 @@
+# One line ending everywhere, so the shell scripts run on every machine.
+* text=auto eol=lf

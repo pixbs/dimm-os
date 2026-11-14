@@ -1,0 +1,12 @@
+# Secrets. Nothing that starts with .env is committed, except the example.
+.env*
+!.env.example
+
+# Local tool state
+.claude/settings.local.json
+.claude/worktrees/
+.vercel/
+
+# Dependencies and build output
+node_modules/
+.next/

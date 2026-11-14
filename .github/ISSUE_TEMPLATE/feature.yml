@@ -1,0 +1,32 @@
+name: Feature
+description: A step of the roadmap. One issue, one pull request.
+labels: [feature]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: Goal
+      description: One to three sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: A checklist of what is built. Nothing outside it is built.
+      value: '- [ ] '
+    validations:
+      required: true
+  - type: textarea
+    id: frames
+    attributes:
+      label: Frames
+      description: The names of the frames in the handoff, or the design in words where the handoff has none.
+    validations:
+      required: true
+  - type: textarea
+    id: done-when
+    attributes:
+      label: Done when
+    validations:
+      required: true

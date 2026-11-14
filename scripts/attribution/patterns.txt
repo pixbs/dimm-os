@@ -1,0 +1,22 @@
+# What counts as tool attribution. One JavaScript regular expression per line, case ignored.
+# A plain line is matched against text, line by line: commit messages, pull request titles
+# and descriptions, issue and comment bodies, the commands an agent runs.
+# "identity" lines are matched against an author or committer written as "Name <email>".
+# "branch" lines are matched against a branch name.
+# Read by scripts/attribution/check.mjs and .claude/hooks/guard.js.
+co-authored-by:.*(claude|anthropic|copilot|codex|openai|chatgpt|cursor|gemini|jules|devin|kimi|\bbot\b|\bai\b|assistant|agent|llm)
+(generated|made|written|authored|created|produced|assisted|powered)[ -](with|by)[ -](\[|an? )?(claude|anthropic|copilot|codex|openai|chatgpt|cursor|gemini|jules|devin|kimi|ai\b|llm\b)
+claude-session
+claude\.ai/code
+claude\.com/claude-code
+chatgpt\.com/codex
+app\.devin\.ai/sessions
+noreply@anthropic\.com
+🤖
+identity @anthropic\.com
+identity @openai\.com
+identity @cursor\.com
+identity \[bot\]
+identity [<+](claude|codex|cursor|copilot|gemini|jules|devin|kimi|chatgpt)[^@]*@
+identity ^(claude|codex|cursor|copilot|gemini|jules|devin|kimi|chatgpt|anthropic|openai)\b
+branch ^(claude|codex|cursor|copilot|gemini|jules|devin|kimi|chatgpt)[/-]

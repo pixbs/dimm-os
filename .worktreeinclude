@@ -1,0 +1,4 @@
+# Git-ignored files that a new worktree needs: the local settings, which hold the path of the
+# design handoff, and the local environment of the application.
+.claude/settings.local.json
+.env

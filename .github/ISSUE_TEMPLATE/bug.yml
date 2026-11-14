@@ -1,0 +1,23 @@
+name: Bug
+description: Something does not work as specified.
+labels: [bug]
+body:
+  - type: textarea
+    id: what-happens
+    attributes:
+      label: What happens
+    validations:
+      required: true
+  - type: textarea
+    id: what-should
+    attributes:
+      label: What should happen
+    validations:
+      required: true
+  - type: textarea
+    id: where
+    attributes:
+      label: Where
+      description: The address, the window, the size of the screen, the language, the browser.
+    validations:
+      required: true
