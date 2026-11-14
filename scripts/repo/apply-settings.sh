@@ -112,8 +112,15 @@ compare() { # <command that prints JSON> | compare <label> <wanted json>
 # Prints the API's answer, or nothing when it refuses.
 get() {
   local answer
-  if answer="$(gh api "$@" 2>/dev/null)"; then printf '%s
-' "$answer"; fi
+  if answer="$(gh api "$@" 2>/dev/null)"; then printf '%s\n' "$answer"; fi
+}
+# Sends a change, and shows the API's answer only when it refuses.
+send() {
+  local answer
+  if ! answer="$(gh api "$@" 2>&1)"; then
+    echo "$answer" >&2
+    return 1
+  fi
 }
 ruleset_id() { get "repos/$repo/rulesets" --jq '.[] | select(.name == "main") | .id'; }
 signed_in_to_vercel() { [[ -z "${GITHUB_ACTIONS:-}" ]] && npx --yes vercel@latest whoami >/dev/null 2>&1; }
@@ -121,35 +128,35 @@ vercel_api() { npx --yes vercel@latest api "$@" --scope "$vercel_team" --raw 2>/
 
 if $apply; then
   echo "Setting $repo"
-  gh api -X PATCH "repos/$repo" --input - <<<"$repository" >/dev/null
-  gh api -X PATCH "repos/$repo" --input - <<<"$merging" >/dev/null
-  gh api -X PATCH "repos/$repo" --input - <<<"{ \"security_and_analysis\": $security }" >/dev/null
-  gh api -X PUT "repos/$repo/topics" --input - <<<"$topics" >/dev/null
-  gh api -X PUT "repos/$repo/actions/permissions" --input - <<<"$actions"
-  gh api -X PUT "repos/$repo/actions/permissions/workflow" --input - <<<"$workflow_token"
-  gh api -X PUT "repos/$repo/private-vulnerability-reporting"
+  send -X PATCH "repos/$repo" --input - <<<"$repository"
+  send -X PATCH "repos/$repo" --input - <<<"$merging"
+  send -X PATCH "repos/$repo" --input - <<<"{ \"security_and_analysis\": $security }"
+  send -X PUT "repos/$repo/topics" --input - <<<"$topics"
+  send -X PUT "repos/$repo/actions/permissions" --input - <<<"$actions"
+  send -X PUT "repos/$repo/actions/permissions/workflow" --input - <<<"$workflow_token"
+  send -X PUT "repos/$repo/private-vulnerability-reporting"
   # Security updates exist only while alerts are on, so they go off before the alerts do.
-  [[ "$dependabot_alerts" == on ]] && gh api -X PUT "repos/$repo/vulnerability-alerts"
-  if [[ "$(get "repos/$repo/automated-security-fixes" --jq .enabled)" == true ]]; then gh api -X DELETE "repos/$repo/automated-security-fixes"; fi
-  [[ "$dependabot_alerts" == on ]] || gh api -X DELETE "repos/$repo/vulnerability-alerts"
+  [[ "$dependabot_alerts" == on ]] && send -X PUT "repos/$repo/vulnerability-alerts"
+  if [[ "$(get "repos/$repo/automated-security-fixes" --jq .enabled)" == true ]]; then send -X DELETE "repos/$repo/automated-security-fixes"; fi
+  [[ "$dependabot_alerts" == on ]] || send -X DELETE "repos/$repo/vulnerability-alerts"
   if [[ "$(get "repos/$repo/code-scanning/default-setup" --jq .state)" != configured ]]; then
-    gh api -X PATCH "repos/$repo/code-scanning/default-setup" --input - <<<"$code_scanning" >/dev/null
+    send -X PATCH "repos/$repo/code-scanning/default-setup" --input - <<<"$code_scanning"
   fi
 
   wanted_names="$(cut -d'|' -f1 <<<"$labels")"
   while IFS= read -r name; do
-    if [[ -n "$name" ]] && ! grep -qxF "$name" <<<"$wanted_names"; then gh api -X DELETE "repos/$repo/labels/${name// /%20}"; fi
-  done < <(gh api "repos/$repo/labels" --paginate --jq '.[].name')
+    if [[ -n "$name" ]] && ! grep -qxF "$name" <<<"$wanted_names"; then send -X DELETE "repos/$repo/labels/${name// /%20}"; fi
+  done < <(get "repos/$repo/labels" --paginate --jq '.[].name')
   while IFS='|' read -r name color description; do
-    gh api -X PATCH "repos/$repo/labels/$name" -f color="$color" -f description="$description" >/dev/null 2>&1 ||
-      gh api -X POST "repos/$repo/labels" -f name="$name" -f color="$color" -f description="$description" >/dev/null
+    send -X PATCH "repos/$repo/labels/$name" -f color="$color" -f description="$description" 2>/dev/null ||
+      send -X POST "repos/$repo/labels" -f name="$name" -f color="$color" -f description="$description"
   done <<<"$labels"
 
   id="$(ruleset_id)"
   if [[ -n "$id" ]]; then
-    gh api -X PUT "repos/$repo/rulesets/$id" --input - <"$ruleset" >/dev/null
+    send -X PUT "repos/$repo/rulesets/$id" --input - <"$ruleset"
   else
-    gh api -X POST "repos/$repo/rulesets" --input - <"$ruleset" >/dev/null
+    send -X POST "repos/$repo/rulesets" --input - <"$ruleset"
   fi
 
   if signed_in_to_vercel; then
