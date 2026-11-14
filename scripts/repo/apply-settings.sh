@@ -25,7 +25,10 @@ repository='{
   "has_wiki": false,
   "has_projects": false,
   "has_discussions": false,
-  "pull_request_creation_policy": "collaborators_only",
+  "pull_request_creation_policy": "collaborators_only"
+}'
+# Squash only: the commit takes the pull request's title and a blank body.
+merging='{
   "allow_squash_merge": true,
   "allow_merge_commit": false,
   "allow_rebase_merge": false,
@@ -33,6 +36,16 @@ repository='{
   "delete_branch_on_merge": true,
   "squash_merge_commit_title": "PR_TITLE",
   "squash_merge_commit_message": "BLANK"
+}'
+# The same seven, as GraphQL names them: only GraphQL shows them to a read-only token.
+merging_read='{
+  "squashMergeAllowed": true,
+  "mergeCommitAllowed": false,
+  "rebaseMergeAllowed": false,
+  "autoMergeAllowed": true,
+  "deleteBranchOnMerge": true,
+  "squashMergeCommitTitle": "PR_TITLE",
+  "squashMergeCommitMessage": "BLANK"
 }'
 security='{
   "secret_scanning": { "status": "enabled" },
@@ -96,7 +109,12 @@ compare() { # <command that prints JSON> | compare <label> <wanted json>
   fi
 }
 
-get() { gh api "$@" 2>/dev/null || true; }
+# Prints the API's answer, or nothing when it refuses.
+get() {
+  local answer
+  if answer="$(gh api "$@" 2>/dev/null)"; then printf '%s
+' "$answer"; fi
+}
 ruleset_id() { get "repos/$repo/rulesets" --jq '.[] | select(.name == "main") | .id'; }
 signed_in_to_vercel() { [[ -z "${GITHUB_ACTIONS:-}" ]] && npx --yes vercel@latest whoami >/dev/null 2>&1; }
 vercel_api() { npx --yes vercel@latest api "$@" --scope "$vercel_team" --raw 2>/dev/null || true; }
@@ -104,6 +122,7 @@ vercel_api() { npx --yes vercel@latest api "$@" --scope "$vercel_team" --raw 2>/
 if $apply; then
   echo "Setting $repo"
   gh api -X PATCH "repos/$repo" --input - <<<"$repository" >/dev/null
+  gh api -X PATCH "repos/$repo" --input - <<<"$merging" >/dev/null
   gh api -X PATCH "repos/$repo" --input - <<<"{ \"security_and_analysis\": $security }" >/dev/null
   gh api -X PUT "repos/$repo/topics" --input - <<<"$topics" >/dev/null
   gh api -X PUT "repos/$repo/actions/permissions" --input - <<<"$actions"
@@ -138,6 +157,13 @@ fi
 
 echo "Reading back $repo"
 get "repos/$repo" | compare "repository" "$repository" required
+get graphql -f owner="${repo%/*}" -f name="${repo#*/}" --jq .data.repository -f query='
+  query($owner: String!, $name: String!) {
+    repository(owner: $owner, name: $name) {
+      squashMergeAllowed mergeCommitAllowed rebaseMergeAllowed autoMergeAllowed
+      deleteBranchOnMerge squashMergeCommitTitle squashMergeCommitMessage
+    }
+  }' | compare "merging" "$merging_read" required
 get "repos/$repo" --jq '.security_and_analysis // empty' | compare "secret scanning" "$security"
 get "repos/$repo/topics" | compare "topics" "$topics"
 get "repos/$repo/labels" --jq '{ names: [.[].name] }' | compare "labels" "{ \"names\": [\"$(cut -d'|' -f1 <<<"$labels" | paste -sd, | sed 's/,/","/g')\"] }"
