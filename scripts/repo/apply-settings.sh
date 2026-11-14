@@ -128,8 +128,10 @@ if $apply; then
   gh api -X PUT "repos/$repo/actions/permissions" --input - <<<"$actions"
   gh api -X PUT "repos/$repo/actions/permissions/workflow" --input - <<<"$workflow_token"
   gh api -X PUT "repos/$repo/private-vulnerability-reporting"
-  gh api -X DELETE "repos/$repo/automated-security-fixes"
-  if [[ "$dependabot_alerts" == on ]]; then gh api -X PUT "repos/$repo/vulnerability-alerts"; else gh api -X DELETE "repos/$repo/vulnerability-alerts"; fi
+  # Security updates exist only while alerts are on, so they go off before the alerts do.
+  [[ "$dependabot_alerts" == on ]] && gh api -X PUT "repos/$repo/vulnerability-alerts"
+  if [[ "$(get "repos/$repo/automated-security-fixes" --jq .enabled)" == true ]]; then gh api -X DELETE "repos/$repo/automated-security-fixes"; fi
+  [[ "$dependabot_alerts" == on ]] || gh api -X DELETE "repos/$repo/vulnerability-alerts"
   if [[ "$(get "repos/$repo/code-scanning/default-setup" --jq .state)" != configured ]]; then
     gh api -X PATCH "repos/$repo/code-scanning/default-setup" --input - <<<"$code_scanning" >/dev/null
   fi
