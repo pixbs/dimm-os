@@ -147,9 +147,9 @@ if $apply; then
 
   id="$(ruleset_id)"
   if [[ -n "$id" ]]; then
-    gh api -X PUT "repos/$repo/rulesets/$id" --input "$ruleset" >/dev/null
+    gh api -X PUT "repos/$repo/rulesets/$id" --input - <"$ruleset" >/dev/null
   else
-    gh api -X POST "repos/$repo/rulesets" --input "$ruleset" >/dev/null
+    gh api -X POST "repos/$repo/rulesets" --input - <"$ruleset" >/dev/null
   fi
 
   if signed_in_to_vercel; then
