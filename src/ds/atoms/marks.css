@@ -1,0 +1,197 @@
+/* What is made of tokens alone: the text styles, the window width, and the small marks. */
+:root {
+  /* the styles and the layout in use: wide by default, a compact window steps them down */
+  --t-hero: var(--f-hero);
+  --t-display: var(--f-display);
+  --t-title: var(--f-title);
+  --tk-hero: var(--k-3);
+  --tk-display: var(--k-3);
+  --tk-title: var(--k-2);
+  --tk-heading: var(--k-2);
+  --tk-lead: var(--k-1);
+  --inset: var(--s-12);
+  --gutter: var(--s-8);
+  --sect: var(--s-12);
+
+  font: var(--f-body);
+  letter-spacing: var(--k-wide);
+  word-spacing: var(--ws-wide);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+/* A text style carries no margin: what it sits in sets the distance. */
+.t-hero,
+.t-display,
+.t-title,
+.t-heading,
+.t-lead,
+.t-body,
+.t-small,
+.t-mono {
+  margin: 0;
+}
+.t-hero {
+  font: var(--t-hero);
+  letter-spacing: calc(var(--tk-hero) + var(--k-wide));
+}
+.t-display {
+  font: var(--t-display);
+  letter-spacing: calc(var(--tk-display) + var(--k-wide));
+}
+.t-title {
+  font: var(--t-title);
+  letter-spacing: calc(var(--tk-title) + var(--k-wide));
+}
+.t-heading {
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+}
+.t-lead {
+  font: var(--f-lead);
+  letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+}
+.t-body {
+  font: var(--f-body);
+}
+.t-small {
+  font: var(--f-small);
+}
+.t-mono {
+  font: var(--f-mono);
+}
+.t-medium {
+  font-weight: var(--w-medium);
+}
+.c-muted {
+  color: var(--muted);
+}
+
+/* Layout answers to the width of the window, not of the screen. Compact first. */
+.cq {
+  container-type: inline-size;
+}
+.cq > * {
+  --inset: var(--s-4);
+  --gutter: var(--s-4);
+  --sect: var(--s-6);
+  --t-hero: var(--f-display);
+  --t-display: var(--f-title);
+  --t-title: var(--f-heading);
+  --tk-display: var(--k-2);
+}
+@container (min-width: 600px) {
+  .cq > * {
+    --inset: var(--s-8);
+    --gutter: var(--s-6);
+    --sect: var(--s-8);
+    --t-hero: var(--f-hero);
+    --t-display: var(--f-display);
+    --t-title: var(--f-title);
+    --tk-display: var(--k-3);
+  }
+}
+@container (min-width: 960px) {
+  .cq > * {
+    --inset: var(--s-12);
+    --gutter: var(--s-8);
+    --sect: var(--s-12);
+  }
+}
+
+/* One drawing serves both sizes, and its stroke stays the same. */
+.icon {
+  flex: none;
+  width: var(--g-m);
+  height: var(--g-m);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--stroke);
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+
+  & * {
+    vector-effect: non-scaling-stroke;
+  }
+  & .f {
+    fill: currentColor;
+    stroke: none;
+  }
+  &[data-size='s'] {
+    width: var(--g-s);
+    height: var(--g-s);
+  }
+}
+
+/* Round: it counts, shows position and signals. */
+.dot {
+  flex: none;
+  display: inline-block;
+  width: var(--dot);
+  height: var(--dot);
+  border-radius: var(--r-full);
+  background-color: var(--fg);
+
+  &[data-tone='off'] {
+    background-color: var(--line);
+  }
+  &[data-tone='signal'] {
+    background-color: var(--signal);
+  }
+}
+
+/* Square, so it is never taken for the dot: it says whose a thing is. A surface on it colours it. */
+.mark {
+  flex: none;
+  display: inline-block;
+  width: var(--dot);
+  height: var(--dot);
+  background-color: var(--fg);
+
+  &[data-surface] {
+    background-color: var(--bg);
+  }
+  &[data-tone='off'] {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 var(--b-1) var(--faint);
+  }
+}
+
+/* The strip of bars before the code of a record. */
+.barcode {
+  flex: none;
+  display: inline-block;
+  width: calc(var(--s-12) - var(--s-1));
+  height: var(--s-3);
+  background-color: var(--fg);
+  mask-image: var(--bars);
+}
+
+/* A texture of dots on the pitch: it marks what can be gripped. */
+.dotted {
+  background-image: radial-gradient(
+    circle,
+    var(--faint) calc(var(--pitch-dot) / 2),
+    transparent calc(var(--pitch-dot) / 2 + var(--pitch-edge))
+  );
+  background-size: var(--pitch) var(--pitch);
+}
+
+/* A circle drawn in dots on the pitch. */
+.dotring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: calc(var(--pitch-dot) + var(--pitch-edge));
+  stroke-linecap: round;
+  stroke-dasharray: 0 var(--pitch);
+}
