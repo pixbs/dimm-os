@@ -1,0 +1,29 @@
+/* What the motion vocabulary asks of every part, and the two parts it draws itself. */
+
+/* With reduced motion a transition changes colour and strength only: what would move is there at once. */
+[data-motion='reduce'] *,
+[data-motion='reduce'] *::before,
+[data-motion='reduce'] *::after {
+  transition-property: var(--m-fades) !important;
+}
+
+/* The real text and what flickers over it share one place. */
+.decipher {
+  display: inline-grid;
+
+  & > * {
+    grid-area: 1 / 1;
+  }
+  /* While it deciphers the real text is clipped away, not hidden: assistive technology still reads it. */
+  & > :not(:empty) + * {
+    clip-path: inset(100%);
+  }
+}
+
+/* A picture of the dot engine: its ink is the text colour, the dots it strings on lines are the dot of a ring. */
+.liquid {
+  display: block;
+  max-width: 100%;
+  stroke-width: calc(var(--pitch-dot) + var(--pitch-edge));
+  touch-action: pan-y;
+}

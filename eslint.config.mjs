@@ -1,6 +1,14 @@
 import nextCoreWebVitals from 'eslint-config-next/core-web-vitals'
 import nextTypescript from 'eslint-config-next/typescript'
 
+// Motion is loaded lazily: an import of the whole of it would bring it back before first paint.
+const whole = 'Motion is loaded lazily: use the m components of motion/react-m.'
+const motion = [
+  { name: 'motion/react', importNames: ['motion'], message: whole },
+  { name: 'motion/react-client', message: whole },
+  { name: 'framer-motion', message: whole },
+]
+
 const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
@@ -21,6 +29,7 @@ const eslintConfig = [
           caughtErrorsIgnorePattern: '^(_|ignore)',
         },
       ],
+      'no-restricted-imports': ['error', { paths: motion }],
     },
   },
   {
@@ -31,6 +40,7 @@ const eslintConfig = [
         'error',
         {
           paths: [
+            ...motion,
             { name: 'next/link', message: 'The desk owns navigation: use a plain link.' },
             {
               name: 'next/form',

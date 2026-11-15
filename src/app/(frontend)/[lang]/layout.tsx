@@ -3,6 +3,7 @@ import '@/ds/atoms/index.css'
 import { Inter_Tight, JetBrains_Mono } from 'next/font/google'
 
 import { apply } from '@/ds/atoms/settings'
+import { Motion } from '@/ds/motion/Motion'
 
 const sans = Inter_Tight({
   subsets: ['latin'],
@@ -30,7 +31,9 @@ export default async function RootLayout({ children, params }: LayoutProps<'/[la
       <head>
         <script dangerouslySetInnerHTML={{ __html: `(${apply})()` }} />
       </head>
-      <body data-surface="desktop">{children}</body>
+      <body data-surface="desktop">
+        <Motion>{children}</Motion>
+      </body>
     </html>
   )
 }

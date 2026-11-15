@@ -1,6 +1,6 @@
 import { expect, test } from './test'
 
-const pages = ['', '/colour', '/type', '/space', '/icons']
+const pages = ['', '/colour', '/type', '/space', '/icons', '/motion']
 
 // Everything the catalogue draws, held against the tokens the page itself declares.
 function audit(): string[] {
@@ -48,6 +48,14 @@ function audit(): string[] {
     probe.style.letterSpacing = `var(${name.replace('--f-', '--tk-')}, normal)`
     return style(getComputedStyle(probe))
   })
+  // A token that is not a time or a curve resolves to the property's own start, which moves nothing.
+  const timings = (property: 'transitionDuration' | 'transitionTimingFunction') =>
+    named('--m-').map((name) => {
+      probe.style[property] = `var(${name})`
+      return getComputedStyle(probe)[property]
+    })
+  const times = timings('transitionDuration')
+  const curves = timings('transitionTimingFunction')
   probe.remove()
 
   const off: string[] = []
@@ -100,6 +108,19 @@ function audit(): string[] {
     length('space', computed.padding, spaces)
     length('space', computed.margin, spaces)
     length('space', computed.gap, spaces)
+
+    // A transition is timed by tokens, and only colour, strength and transform change over time.
+    const durations = computed.transitionDuration.split(', ')
+    for (const time of durations) if (!times.includes(time)) report('duration', time)
+    for (const curve of computed.transitionTimingFunction.split(/, (?=[a-z])/)) {
+      if (!curves.includes(curve)) report('curve', curve)
+    }
+    computed.transitionProperty.split(', ').forEach((property, at) => {
+      const moves = durations[at % durations.length] !== '0s'
+      if (moves && !/color|shadow|^(fill|stroke|opacity|transform)$/.test(property)) {
+        report('transition of', property)
+      }
+    })
   }
   return off
 }

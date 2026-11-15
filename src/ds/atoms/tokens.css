@@ -89,13 +89,27 @@
   --e-popover: 0 8px 24px color-mix(in srgb, var(--ink-1) 48%, transparent);
   --scrim: color-mix(in srgb, var(--ink-1) var(--a-muted), transparent);
 
-  /* motion: two durations on one curve, and one long move with two curves of its own */
+  /* motion: three durations, and what leaves takes half the time it took to arrive */
   --m-fast: 160ms;
   --m-slow: 320ms;
   --m-long: 960ms;
-  --m-ease: cubic-bezier(0.2, 0, 0, 1);
+  --m-fast-exit: calc(var(--m-fast) / 2);
+  --m-slow-exit: calc(var(--m-slow) / 2);
+  /* the delays across what comes as many, from its first to its last */
+  --m-spread: 220ms;
+  /* curves: a move that stays on screen, what arrives, what leaves, and the two of the long move */
+  --m-standard: cubic-bezier(0.2, 0, 0, 1);
+  --m-enter: cubic-bezier(0, 0, 0, 1);
+  --m-exit: cubic-bezier(0.3, 0, 1, 1);
   --m-swing: cubic-bezier(0.3, 1.5, 0.55, 1);
   --m-drop: cubic-bezier(0.55, 0, 1, 0.45);
+  /* the size a part opens from at its own place */
+  --m-start: 0.96;
+  /* what animates on the page itself, and what may still change over time with reduced motion */
+  --m-moves: transform, opacity;
+  --m-fades:
+    color, background-color, border-color, outline-color, text-decoration-color, fill, stroke,
+    box-shadow, opacity;
 }
 
 /* more contrast: every strength below full steps up by one */
@@ -109,6 +123,11 @@
 [data-spacing='wide'] {
   --k-wide: 0.12em;
   --ws-wide: 0.16em;
+}
+
+/* reduced motion: what comes as many comes at once */
+[data-motion='reduce'] {
+  --m-spread: 0ms;
 }
 
 /* the pitch, the rows of a handle and the dots of a grip, declared wherever a pitch is set so the dot follows it */
