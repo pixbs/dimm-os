@@ -161,12 +161,11 @@ test.describe('Tokens', () => {
     await expect(page.locator('html')).toHaveAttribute('data-pitch', '8')
   })
 
-  test('changes the theme in one crossfade and the pitch at once, and keeps both', async ({
+  test('changes the theme in one crossfade and the pitch at once, keeps both, and resets in one crossfade', async ({
     page,
   }) => {
     await page.emulateMedia({ colorScheme: 'dark' })
-    await page.goto('/catalogue/icons')
-    await page.evaluate(() => {
+    await page.addInitScript(() => {
       const transition = document.startViewTransition.bind(document)
       Object.assign(window, { fades: 0 })
       document.startViewTransition = (update) => {
@@ -174,6 +173,7 @@ test.describe('Tokens', () => {
         return transition(update as ViewTransitionUpdateCallback)
       }
     })
+    await page.goto('/catalogue/icons')
 
     await page.getByRole('button', { name: 'light' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
@@ -184,6 +184,11 @@ test.describe('Tokens', () => {
     await page.reload()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     await expect(page.locator('html')).toHaveAttribute('data-pitch', '12')
+
+    await page.getByRole('button', { name: 'Reset' }).click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark')
+    await expect(page.locator('html')).toHaveAttribute('data-pitch', '8')
+    expect(await page.evaluate(() => Reflect.get(window, 'fades'))).toBe(1)
   })
 
   test('steps the largest type down in a window narrower than 600 px', async ({ page }) => {

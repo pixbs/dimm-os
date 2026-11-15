@@ -31,17 +31,21 @@ export function apply() {
   }
 }
 
-// A value is written only when the visitor changes it; null hands the setting back to the device.
-export function change(name: string, value: string | null) {
+// A value is written only when the visitor changes it, null hands it back to the device, and a reset crossfades once.
+export function change(values: Record<string, string | null>) {
   try {
-    if (value === null) localStorage.removeItem(name)
-    else localStorage.setItem(name, value)
+    for (const [name, value] of Object.entries(values)) {
+      if (value === null) localStorage.removeItem(name)
+      else localStorage.setItem(name, value)
+    }
   } catch {
     // A tab without storage keeps what the device asks for.
     return
   }
 
-  const crossfades = ['theme', 'contrast', 'hand'].includes(name)
+  const crossfades = Object.keys(values).some((name) =>
+    ['theme', 'contrast', 'hand'].includes(name),
+  )
   if (crossfades && document.startViewTransition) document.startViewTransition(apply)
   else apply()
 }

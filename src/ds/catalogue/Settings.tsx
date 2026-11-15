@@ -17,14 +17,14 @@ export function Settings({ reset }: { reset: string }) {
         <span key={name}>
           {name}
           {values.map((value) => (
-            <button key={value} onClick={() => change(name, value)} type="button">
+            <button key={value} onClick={() => change({ [name]: value })} type="button">
               {value}
             </button>
           ))}
         </span>
       ))}
       <button
-        onClick={() => Object.keys(choices).forEach((name) => change(name, null))}
+        onClick={() => change(Object.fromEntries(Object.keys(choices).map((name) => [name, null])))}
         type="button"
       >
         {reset}
