@@ -198,6 +198,8 @@
   height: var(--h-regular);
   padding: 0 var(--s-3);
   font: var(--f-mono);
+  /* A fill is named by its token, which German hyphenation would break into three lines. */
+  white-space: nowrap;
 }
 .measure {
   flex: none;
