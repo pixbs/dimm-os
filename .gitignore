@@ -10,3 +10,20 @@
 # Dependencies and build output
 node_modules/
 .next/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local uploads (preview and production keep theirs in Vercel Blob)
+/media/
+
+# Test output
+/coverage/
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# System and debug files
+.DS_Store
+*.pem
+npm-debug.log*

@@ -1,0 +1,14 @@
+# Dependencies allowed to run install scripts; any other one fails the install.
+allowBuilds:
+  esbuild: true
+  sharp: true
+  unrs-resolver: true
+# Refuse a version whose publishing trust dropped. Nothing younger than a day is pnpm's default.
+trustPolicy: no-downgrade
+trustPolicyExclude:
+  # A v3 backport from the same maintainer, published without provenance after 4.x had it;
+  # eslint-config-next asks for ^3.
+  - eslint-import-resolver-typescript@3.10.1
+overrides:
+  # monaco-editor, under @payloadcms/ui, pins a version with a critical advisory.
+  dompurify@<3.4.17: 3.4.17
