@@ -7,6 +7,8 @@ const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
 const nextConfig: NextConfig = {
+  // AGENTS.md points at the docs Next.js ships instead of carrying a copy of its notes.
+  agentRules: false,
   images: {
     localPatterns: [
       {

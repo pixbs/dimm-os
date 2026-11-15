@@ -32,7 +32,7 @@ The owner's name, address, tax number and phone, and every legal text, are conte
 - Only `src/data` calls Payload.
 - The desk owns navigation: plain links and `fetch`. Never the Next.js router or a Server Action where the desk lives; lint enforces it.
 - Reuse first. Taken from Payload, never written again: the slug field, the hierarchy and its tree, drag-and-drop order, drafts with autosave and live preview, localisation with "copy to locale", uploads with focal point, relationship and join fields, tabs and conditions, blocks, the form builder, access queries, the jobs queue, per-collection instructions for agents, the MCP plugin, Lexical and its HTML converter.
-- Payload's own agent skill and the agent notes Next.js ships are the reference for both. They are not copied here.
+- Read before writing code for either: Payload's agent skill at `node_modules/payload/skills/payload/SKILL.md`, and the docs Next.js ships at `node_modules/next/dist/docs/`. They are not copied here; `agentRules: false` keeps `next dev` from writing them in.
 
 ## Smallest diff that passes
 
