@@ -15,7 +15,7 @@ export const keyNames = {
   },
 } satisfies Record<Language, Record<Device, Record<string, string>>>
 
-export type Device = 'apple' | 'other'
+type Device = 'apple' | 'other'
 
 export type Key = keyof typeof keyNames.en.apple
 

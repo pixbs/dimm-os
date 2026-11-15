@@ -1,7 +1,6 @@
 /* Molecules / Actions: whatever a visitor presses, built from the atoms alone. */
 
-/* One state model: hover lays 8 % of the text colour over a thing, pressed 16 %, focus rings it 2 px out, disabled
-   drops it to 48 %. Each changes over fast, in colour only. data-state shows a state at rest, for the catalogue. */
+/* One state model for whatever is pressed, changing over fast in colour only; data-state shows one at rest. */
 .btn,
 .link,
 .wdot {
@@ -104,7 +103,7 @@
   white-space: nowrap;
 }
 
-/* Button group: buttons that share their edges. In a compact window a group of actions stacks. */
+/* Button group: buttons that share their edges, and actions that stack in a compact window. */
 .btngroup {
   display: flex;
   min-width: 0;
@@ -186,7 +185,7 @@
   }
 }
 
-/* Key: outlined where a tag is filled, with the heavier lower edge of a key. Keys pressed together stand 4 apart. */
+/* Key: outlined where a tag is filled, since a key is pressed, and heavier at its lower edge as a key is. */
 .kbd {
   flex: none;
   display: inline-flex;
@@ -208,7 +207,7 @@
   align-items: center;
   gap: var(--s-1);
 }
-/* A name that differs by device: the page holds both, and the nearest setting, the root's or a specimen's, shows one. */
+/* A name that differs by device: the page holds both, and the nearest setting shows one. */
 [data-keys='apple'] {
   --keys-apple: inline;
   --keys-other: none;
@@ -259,8 +258,7 @@
   pointer-events: none;
 }
 
-/* Window controls: both hands are in the markup, dots at the start of a bar and squares at its end, and the nearest
-   setting shows one. Dots say what they do as the pointer comes near; at the size of a finger they always say it. */
+/* Window controls: both hands are in the markup, and the nearest setting, the root's or a specimen's, shows one. */
 [data-hand='dots'] {
   --hand-dots: inline-flex;
   --hand-squares: none;
