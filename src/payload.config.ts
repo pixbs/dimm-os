@@ -44,8 +44,12 @@ export default buildConfig({
     fallback: true,
     defaultLocale: 'en',
   },
-  // Loaded when Payload starts, so the CLI, which runs without the server-only condition, never imports it.
-  onInit: async (payload) => (await import('./data/first-admin')).createFirstAdmin(payload),
+  // Only the Next.js server loads src/data: the CLI runs onInit too, without the server-only condition.
+  onInit: async (payload) => {
+    if (!process.env.NEXT_RUNTIME) return
+    const { createFirstAdmin } = await import('./data/first-admin')
+    await createFirstAdmin(payload)
+  },
   plugins: [mcpPlugin({})],
   upload: {
     transformers: [sharpTransformer()],

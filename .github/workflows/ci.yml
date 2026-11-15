@@ -1,5 +1,5 @@
 # The required check "ci": everything a pull request must pass before it merges, so a failure
-# stops here and never reaches the preview or production database.
+# never reaches production. Vercel builds and migrates the preview without waiting for it.
 name: ci
 
 on:
