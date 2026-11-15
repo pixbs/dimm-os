@@ -47,10 +47,13 @@ export function Entry({ text, children }: { text: string[]; children: ReactNode 
   )
 }
 
-export function Cap({ label, children }: { label: string; children: ReactNode }) {
+// A caption with an id names the specimen under it.
+export function Cap({ id, label, children }: { id?: string; label: string; children: ReactNode }) {
   return (
     <div className="cap">
-      <p className="cap__label">{label}</p>
+      <p className="cap__label" id={id}>
+        {label}
+      </p>
       {children}
     </div>
   )
@@ -98,6 +101,8 @@ export const width = {
   popover: 'var(--w-popover)',
   dialog: 'var(--w-dialog)',
   measure: 'var(--measure)',
+  // The narrowest regular window, where a label stands beside its value.
+  regular: u(80),
   narrow: 'calc(var(--s-12) * 4)',
 }
 
