@@ -24,6 +24,8 @@ type Props = {
   size?: 'compact'
   // A link; without one, a row that is pressed, current, opens or can be disabled is a button.
   href?: string
+  // A row that holds a toggle is its label, so pressing anywhere on it presses the toggle.
+  toggles?: boolean
   expanded?: boolean
   pressed?: boolean
   current?: boolean
@@ -43,7 +45,7 @@ export function Row(props: Props) {
   const { index, icon, media, lead, side, title, text, label, value, meta, trail, end } = props
   const { href, expanded, pressed, current, disabled } = props
   const button = !href && [expanded, pressed, current, disabled].some((set) => set !== undefined)
-  const Element = href ? 'a' : button ? 'button' : 'div'
+  const Element = href ? 'a' : button ? 'button' : props.toggles ? 'label' : 'div'
   // Opening in place shows the text and turns the plus to a minus.
   const sign = expanded === undefined ? end : expanded ? 'minus' : 'plus'
 

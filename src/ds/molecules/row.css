@@ -34,7 +34,7 @@
   &[data-surface] {
     background-color: var(--bg);
   }
-  &:is(a, button) {
+  &:is(a, button, label) {
     cursor: pointer;
   }
   &:is(a, button):hover,

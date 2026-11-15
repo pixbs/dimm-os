@@ -1,0 +1,543 @@
+/* Molecules / Inputs: whatever a visitor types into or sets, built from the atoms alone. */
+
+/* Field: a row you can fill, whose line is stronger than a list's and is the focus mark. */
+.row[data-kind='field'] {
+  --row-line: transparent;
+  --field-line: var(--faint);
+  --field-rule: var(--b-1);
+
+  /* The line is a shadow, so its colour and weight change over time together. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset-inline: var(--s-4);
+    bottom: 0;
+    height: var(--b-2);
+    box-shadow: inset 0 calc(var(--field-rule) * -1) 0 var(--field-line);
+    transition: box-shadow var(--m-fast) var(--m-standard);
+  }
+  &:focus-within,
+  &[data-state='focus'] {
+    --field-line: var(--fg);
+    --field-rule: var(--b-2);
+
+    outline-color: transparent;
+  }
+  /* Locked: filled in for the visitor, so it lies on a fill and keeps its thin line when focused. */
+  &[data-locked] {
+    --state: var(--hover);
+
+    &:focus-within {
+      --field-rule: var(--b-1);
+    }
+  }
+  &:has(.input:user-invalid, .input[aria-invalid='true']) {
+    --field-line: var(--signal);
+    --field-rule: var(--b-2);
+  }
+  &[aria-disabled='true'] {
+    opacity: var(--a-faint);
+    pointer-events: none;
+  }
+  & > .row__label {
+    display: flex;
+    align-items: center;
+    gap: var(--s-2);
+    min-height: var(--row-lh);
+  }
+}
+@container (width < 600px) {
+  .row[data-kind='field'] {
+    flex-wrap: wrap;
+    row-gap: 0;
+
+    & > .row__label {
+      flex: 0 0 100%;
+    }
+  }
+}
+
+/* Help under the value; what is wrong takes its place once the field is in error, and fades in. */
+.row__help {
+  display: block;
+  font: var(--f-small);
+  color: var(--muted);
+
+  &[data-error],
+  .row:has(.input:user-invalid, .input[aria-invalid='true']) > .row__value > & {
+    display: none;
+  }
+}
+/* The signal dot before the label pops, the only part that overshoots. */
+.row__label > .dot {
+  display: none;
+}
+.row:has(.input:user-invalid, .input[aria-invalid='true']) {
+  & > .row__label > .dot {
+    display: block;
+    transition-property: var(--m-moves);
+    transition-duration: var(--m-fast);
+    transition-timing-function: var(--m-swing);
+  }
+  & > .row__value > .row__help[data-error] {
+    display: block;
+    transition: opacity var(--m-fast) var(--m-enter);
+  }
+}
+.row:has(.input:user-invalid) {
+  & > .row__label > .dot {
+    @starting-style {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+  & > .row__value > .row__help[data-error] {
+    @starting-style {
+      opacity: 0;
+    }
+  }
+}
+
+/* A control row: the control stands under its label, and what it means now under the control. */
+.row[data-kind='control'] {
+  flex-wrap: wrap;
+  row-gap: var(--s-2);
+
+  & > .row__label {
+    flex: 0 0 100%;
+  }
+  & > .row__value {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-2);
+  }
+}
+/* A row whose lead is taller than a line, a dial: what it says stands at its middle. */
+.row:has(> .row__lead > .dial) {
+  align-items: center;
+}
+
+/* What is typed: the same size as every value, 16, so a phone does not zoom. */
+.input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  min-height: var(--lh-body);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-0);
+  background: none;
+  color: var(--fg);
+  font: var(--f-body);
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  outline: none;
+  appearance: none;
+  resize: none;
+
+  /* Placeholders and empty values are drawn at the strength of muted text. */
+  &::placeholder,
+  &[data-empty],
+  &:has(> option[value='']:checked) {
+    color: var(--muted);
+    opacity: 100%;
+  }
+  &::-webkit-inner-spin-button {
+    appearance: none;
+  }
+  /* What has a mark at the row's end reaches under it, so the mark presses what it stands for. */
+  &:is(select, [type='date']) {
+    position: relative;
+    width: calc(100% + var(--g-s) + var(--s-4));
+    margin-inline-end: calc((var(--g-s) + var(--s-4)) * -1);
+    cursor: pointer;
+
+    .row__value:has(> &) ~ .row__trail {
+      pointer-events: none;
+    }
+  }
+  &:is(select) {
+    padding-inline-end: calc(var(--g-s) + var(--s-4));
+  }
+  &::-webkit-datetime-edit,
+  &::-webkit-datetime-edit-fields-wrapper {
+    padding: 0;
+  }
+  &::-webkit-calendar-picker-indicator {
+    width: var(--g-s);
+    height: var(--g-s);
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  &:is(textarea) {
+    min-height: calc(var(--lh-body) * 4);
+    field-sizing: content;
+  }
+  /* A line under every line of writing, as on a slip of paper. */
+  &[data-ruled] {
+    background: repeating-linear-gradient(
+        transparent 0 calc(var(--lh-body) - var(--b-1)),
+        var(--line) 0 var(--lh-body)
+      )
+      local;
+  }
+}
+/* The file input is kept for keys and assistive technology; its button is drawn by the system. */
+.upload {
+  position: absolute;
+  width: var(--b-1);
+  height: var(--b-1);
+  opacity: 0;
+  pointer-events: none;
+}
+.btn:has(> .upload:focus-visible) {
+  outline-color: var(--ring);
+}
+
+/* Checkbox, radio, switch: three glyphs of one size, on a real input that covers them. */
+.toggle {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--g-m);
+  height: var(--g-m);
+  border: var(--b-1) solid var(--faint);
+  border-radius: var(--r-0);
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  color: transparent;
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  & > input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  &:hover,
+  label:hover &,
+  &[data-state='hover'] {
+    border-color: var(--fg);
+  }
+  &:has(> input:focus-visible),
+  &[data-state='focus'] {
+    outline-color: var(--ring);
+  }
+  &:has(> input:checked) {
+    border-color: var(--fg);
+    background-color: var(--fg);
+  }
+  &[data-kind='check']:has(> input:checked) {
+    color: var(--bg);
+  }
+  &:has(> input:disabled) {
+    opacity: var(--a-faint);
+    pointer-events: none;
+  }
+
+  &[data-kind='radio'] {
+    border-radius: var(--r-full);
+
+    &::after {
+      content: '';
+      width: var(--dot);
+      height: var(--dot);
+      border-radius: var(--r-full);
+      background-color: transparent;
+      transition: background-color var(--m-fast) var(--m-standard);
+    }
+    &:has(> input:checked) {
+      background-color: transparent;
+
+      &::after {
+        background-color: var(--fg);
+      }
+    }
+  }
+  &[data-kind='switch'] {
+    justify-content: flex-start;
+    width: var(--h-regular);
+    border-radius: var(--r-full);
+
+    &::after {
+      content: '';
+      width: var(--g-s);
+      height: var(--g-s);
+      border-radius: var(--r-full);
+      background-color: var(--muted);
+      /* The knob stands 4 in from the outer edge, inside the line. */
+      transform: translateX(calc(var(--s-1) - var(--b-1)));
+      transition-property: var(--m-shifts);
+      transition-duration: var(--m-fast);
+      transition-timing-function: var(--m-standard);
+    }
+    &:has(> input:checked)::after {
+      background-color: var(--bg);
+      transform: translateX(calc(var(--h-regular) - var(--g-s) - var(--s-1) - var(--b-1)));
+    }
+  }
+}
+/* A choice of a field: its glyph and its words, pressed anywhere. */
+.choice {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  min-height: var(--h-regular);
+  padding: var(--s-3) 0;
+  cursor: pointer;
+
+  & + & {
+    margin-top: calc(var(--s-3) * -1);
+  }
+}
+.choices {
+  display: flex;
+  flex-direction: column;
+}
+/* From a regular window on, choices stand in two columns, and the first stands on the line of the label. */
+@container (width >= 600px) {
+  .choices[data-columns='2'] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--s-6);
+
+    & > .choice:nth-child(2) {
+      margin-top: 0;
+    }
+  }
+  .row__value > .choices {
+    margin-block: calc(var(--s-3) * -1);
+  }
+}
+
+/* Slide: a choice of two to five, its block the foreground of the surface, lying on the position in force. */
+.slide {
+  --n: 3;
+  --at: 0;
+
+  position: relative;
+  flex: none;
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(var(--h-regular), 1fr);
+  max-width: 100%;
+  height: var(--h-regular);
+  padding: var(--s-1);
+  border: var(--b-1) solid var(--faint);
+
+  &[data-width='fill'] {
+    display: grid;
+  }
+  &[data-positions='2'] {
+    --n: 2;
+  }
+  &[data-positions='4'] {
+    --n: 4;
+  }
+  &[data-positions='5'] {
+    --n: 5;
+  }
+  &:has(> :nth-child(3) > :checked) {
+    --at: 1;
+  }
+  &:has(> :nth-child(4) > :checked) {
+    --at: 2;
+  }
+  &:has(> :nth-child(5) > :checked) {
+    --at: 3;
+  }
+  &:has(> :nth-child(6) > :checked) {
+    --at: 4;
+  }
+}
+/* The block carries two lines of grip at its leading edge. */
+.slide__block {
+  position: absolute;
+  inset-inline-start: var(--s-1);
+  top: var(--s-1);
+  bottom: var(--s-1);
+  width: calc((100% - var(--s-1) * 2) / var(--n));
+  background-image: linear-gradient(
+    90deg,
+    transparent var(--s-2),
+    var(--line) 0 calc(var(--s-2) + var(--b-1)),
+    transparent 0 var(--s-3),
+    var(--line) 0 calc(var(--s-3) + var(--b-1)),
+    transparent 0
+  );
+  transform: translateX(calc(100% * var(--at)));
+  transition: transform var(--m-fast) var(--m-standard);
+}
+.slide__pos {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 var(--s-4);
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  color: var(--muted);
+  font: var(--f-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  & > input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  &:hover {
+    color: var(--fg);
+  }
+  &:has(> input:focus-visible) {
+    outline-color: var(--ring);
+  }
+  &:has(> input:checked) {
+    color: var(--bg);
+    font-weight: var(--w-medium);
+  }
+}
+
+/* DIP switches: small switches on an accent, numbered; up is on. */
+.dip {
+  flex: none;
+  display: inline-flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-1);
+  font: var(--f-mono);
+}
+.dip__cap {
+  padding: 0 var(--s-2);
+}
+.dip__row {
+  display: flex;
+}
+.dip__sw {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-1);
+  padding: 0 var(--s-2);
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  cursor: pointer;
+  transition: outline-color var(--m-fast) var(--m-standard);
+
+  & > input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  &:has(> input:focus-visible) {
+    outline-color: var(--ring);
+  }
+}
+.dip__slot {
+  position: relative;
+  display: block;
+  width: var(--h-compact);
+  height: calc(var(--h-compact) * 2);
+}
+.dip__knob {
+  position: absolute;
+  inset-inline: var(--s-1);
+  bottom: var(--s-1);
+  height: calc(50% - var(--s-1));
+  background-color: var(--paper-1);
+  transition: transform var(--m-fast) var(--m-standard);
+
+  .dip__sw:has(> input:checked) & {
+    transform: translateY(-100%);
+  }
+}
+/* What each number does, in order, under the block. */
+.dip__said {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: var(--s-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font: var(--f-small);
+  color: var(--muted);
+}
+
+/* Dial: a knob whose scale is a ring of dots on the pitch and whose pointer is the signal dot. */
+.dial {
+  position: relative;
+  flex: none;
+  width: calc(var(--h-regular) * 2 + var(--s-6));
+  height: calc(var(--h-regular) * 2 + var(--s-6));
+  border-radius: var(--r-full);
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  cursor: grab;
+  touch-action: none;
+  transition: outline-color var(--m-fast) var(--m-standard);
+
+  &:active {
+    cursor: grabbing;
+  }
+  &:focus-visible {
+    outline-color: var(--ring);
+  }
+}
+.dial__scale {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  color: var(--faint);
+}
+.dial__knob {
+  position: absolute;
+  inset: var(--s-4);
+  border: var(--b-1) solid var(--faint);
+  border-radius: var(--r-full);
+  transition: border-color var(--m-fast) var(--m-standard);
+
+  .dial:is(:hover, :focus-visible) > & {
+    border-color: var(--fg);
+  }
+}
+/* The hand turns with the value; while it is dragged it follows the finger at once. */
+.dial__hand {
+  position: absolute;
+  inset: 0;
+  transform: rotate(calc(var(--turn) * 1turn));
+  transition: transform var(--m-fast) var(--m-standard);
+
+  .dial[data-turning] & {
+    transition: none;
+  }
+  & > .dot {
+    position: absolute;
+    inset-inline-start: calc(50% - var(--dot) / 2);
+    top: var(--s-2);
+  }
+}

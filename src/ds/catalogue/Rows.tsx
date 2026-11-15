@@ -3,12 +3,12 @@ import type { ReactNode } from 'react'
 import type { Language } from '@/i18n/address'
 import { named } from '@/i18n/keys'
 
-import { Icon } from '../atoms/Icon'
 import { Button } from '../molecules/Button'
 import { ForDevice } from '../molecules/Key'
 import { Link } from '../molecules/Link'
 import { Row } from '../molecules/Row'
 import { Tag } from '../molecules/Tag'
+import { Toggle } from '../molecules/Toggle'
 import type { Copy } from './copy/en'
 import { Cap, Doc, Entry, Specs, Stage, type Surface, width } from './parts'
 
@@ -22,13 +22,6 @@ function List(props: { surface?: Surface; width?: string; children: ReactNode })
     </Stage>
   )
 }
-
-// Stand-ins for the toggles of the inputs, drawn only to fill the slot of a row.
-const toggle = (kind: 'check' | 'radio' | 'switch') => (
-  <span className="standin" data-kind={kind}>
-    {kind === 'check' && <Icon name="check" size="s" />}
-  </span>
-)
 
 export function Rows({ t, language }: Props) {
   const { caps } = t
@@ -104,8 +97,8 @@ export function Rows({ t, language }: Props) {
             <Row icon="folder" title={t.title} />
             <Row media={null} text={t.text} title={t.title} />
             <Row lead={<span className="dot" data-tone="signal" />} title={t.title} />
-            <Row lead={toggle('check')} title={t.title} />
-            <Row lead={toggle('radio')} title={t.title} />
+            <Row lead={<Toggle defaultChecked kind="check" />} title={t.title} toggles />
+            <Row lead={<Toggle defaultChecked kind="radio" />} title={t.title} toggles />
           </List>
         </Cap>
         <Cap label={caps[4]}>
@@ -114,7 +107,12 @@ export function Rows({ t, language }: Props) {
             <Row end="arrow-right" href="#" title={t.title} />
             <Row end="arrow-up-right" href="#" meta={t.meta} title={t.title} />
             <Row title={t.title} trail={<Tag>{t.tag}</Tag>} />
-            <Row text={t.text} title={t.title} trail={toggle('switch')} />
+            <Row
+              text={t.text}
+              title={t.title}
+              toggles
+              trail={<Toggle defaultChecked kind="switch" />}
+            />
             <Row end="chevron-down" href="#" title={t.title} />
           </List>
         </Cap>
