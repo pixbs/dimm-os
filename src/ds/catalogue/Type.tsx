@@ -36,9 +36,9 @@ export function Type({ t }: { t: Copy['type'] }) {
         <Table columns="20 1.4fr 20 1fr" head={t.compactHead}>
           {steps.map(([style, compact]) => (
             <Fragment key={style}>
-              <p className="t-mono">{t.styles[style][0]}</p>
+              <p className="t-mono c-muted">{t.styles[style][0]}</p>
               <p className={`sample t-${style}`}>Aa 09</p>
-              <p className="t-mono">{t.styles[compact][0]}</p>
+              <p className="t-mono c-muted">{t.styles[compact][0]}</p>
               {/* The same style in a cell that is a compact window: it steps down by itself. */}
               <div className="cq">
                 <p className={`sample t-${style}`}>Aa 09</p>

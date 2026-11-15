@@ -89,7 +89,7 @@ export function Colour({ t }: { t: Copy['colour'] }) {
         <Table columns="8 12 1fr 8 8 8" head={t.strengthHead}>
           {strengths.map(([strength, role, token], index) => (
             <Fragment key={strength}>
-              <p className="t-mono">{strength}</p>
+              <p className="t-mono c-muted">{strength}</p>
               <p className="t-medium">{role}</p>
               <p className="c-muted">{t.strengthUses[index]}</p>
               {['window', 'paper', 'orange'].map((surface) => (

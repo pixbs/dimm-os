@@ -14,7 +14,7 @@ export function Icons({ t }: { t: Copy['icons'] }) {
           {names.map((name) => (
             <div className="iconcell" key={name}>
               <Icon name={name} />
-              <span>{name}</span>
+              <span className="t-mono c-muted">{name}</span>
             </div>
           ))}
         </Grid>

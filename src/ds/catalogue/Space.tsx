@@ -6,7 +6,7 @@ import { Cap, Doc, Entry, Table, u } from './parts'
 const steps = [1, 2, 3, 4, 6, 8, 12]
 const plate = { width: u(24), height: u(12) }
 const outline = '0 0 0 var(--b-1) var(--line)'
-const text = ['t-medium', 't-mono', 'c-muted']
+const text = ['t-medium', 't-mono c-muted', 'c-muted']
 
 export function Space({ t }: { t: Copy['space'] }) {
   return (
@@ -15,8 +15,8 @@ export function Space({ t }: { t: Copy['space'] }) {
         <Table columns="6 8 8 1fr">
           {steps.map((step, index) => (
             <Fragment key={step}>
-              <p className="t-mono">{step * 4}</p>
-              <p className="t-mono">{`s-${step}`}</p>
+              <p className="t-mono c-muted">{step * 4}</p>
+              <p className="t-mono c-muted">{`s-${step}`}</p>
               <div>
                 <span className="measure" style={{ width: `var(--s-${step})` }} />
               </div>
