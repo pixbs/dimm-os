@@ -1,4 +1,5 @@
 import '@/ds/atoms/index.css'
+import '@/ds/molecules/index.css'
 
 import { Inter_Tight, JetBrains_Mono } from 'next/font/google'
 

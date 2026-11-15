@@ -11,6 +11,8 @@ type Props = {
   // What opened the part, when that is an element.
   opener?: Element | null
   speed: 'fast' | 'slow'
+  // A part that opens inside text, such as the tooltip of a button.
+  inline?: boolean
   className?: string
   children: ReactNode
 }
@@ -29,8 +31,9 @@ function centre(opener?: Element | null) {
 
 // A part grows out of the centre of what opened it and closes back into it; with no opener on
 // screen it opens from just under its size at its own place, and with reduced motion it fades.
-export function Origin({ open, opener, speed, className, children }: Props) {
-  const part = useRef<HTMLDivElement>(null)
+export function Origin({ open, opener, speed, inline, className, children }: Props) {
+  const part = useRef<HTMLDivElement & HTMLSpanElement>(null)
+  const Part = inline ? m.span : m.div
   const painted = usePainted()
 
   // The point the part scales about is measured as it opens and again as it closes, wherever both are by then.
@@ -62,7 +65,7 @@ export function Origin({ open, opener, speed, className, children }: Props) {
   return (
     <AnimatePresence initial={!painted}>
       {open && (
-        <m.div
+        <Part
           animate="open"
           className={className}
           exit="closed"
@@ -72,7 +75,7 @@ export function Origin({ open, opener, speed, className, children }: Props) {
           variants={painted ? undefined : variants}
         >
           {children}
-        </m.div>
+        </Part>
       )}
     </AnimatePresence>
   )

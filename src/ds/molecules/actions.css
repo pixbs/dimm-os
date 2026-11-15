@@ -1,0 +1,340 @@
+/* Molecules / Actions: whatever a visitor presses, built from the atoms alone. */
+
+/* One state model for whatever is pressed, changing over fast in colour only; data-state shows one at rest. */
+.btn,
+.link,
+.wdot {
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  &:focus-visible,
+  &[data-state='focus'] {
+    outline-color: var(--ring);
+  }
+  &:disabled {
+    opacity: var(--a-faint);
+    pointer-events: none;
+  }
+}
+
+/* Button: the label starts at the leading edge, and the end slot goes to the far edge of a stretched button. */
+.btn {
+  /* An inset shadow deep enough to cover any button lays the state over its fill, and can change over time. */
+  --state: transparent;
+
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: 100%;
+  min-height: var(--h-regular);
+  margin: 0;
+  padding: var(--s-2) var(--s-4);
+  border: var(--b-1) solid transparent;
+  border-radius: var(--r-0);
+  background-color: transparent;
+  box-shadow: inset 0 0 0 calc(var(--h-regular) * 4) var(--state);
+  color: var(--fg);
+  font: var(--f-body);
+  font-weight: var(--w-medium);
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+
+  &[data-surface] {
+    background-color: var(--bg);
+  }
+  &[data-tone='outline'] {
+    border-color: var(--faint);
+  }
+  &:hover,
+  &[data-state='hover'] {
+    --state: var(--hover);
+  }
+  &:active,
+  &[data-state='pressed'] {
+    --state: var(--pressed);
+  }
+  &[aria-busy='true'] {
+    pointer-events: none;
+  }
+  &[data-size='compact'] {
+    min-height: var(--h-compact);
+    padding: var(--s-1) var(--s-3);
+    font: var(--f-small);
+    font-weight: var(--w-medium);
+  }
+  &[data-icon] {
+    justify-content: center;
+    width: var(--h-regular);
+    padding: 0;
+  }
+  &[data-icon][data-size='compact'] {
+    width: var(--h-compact);
+  }
+  &[data-width='fill'] {
+    display: flex;
+    flex: 1 1 auto;
+    width: 100%;
+  }
+}
+/* A label wraps; it is never cut. */
+.btn__label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.btn__end {
+  display: inline-flex;
+  align-items: center;
+  padding-inline-start: var(--s-2);
+}
+/* On an accent nothing is muted, so there a key hint is drawn at full strength. */
+.btn__key {
+  font: var(--f-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+/* Button group: buttons that share their edges, and actions that stack in a compact window. */
+.btngroup {
+  display: flex;
+  min-width: 0;
+
+  & > .btn {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  & > .btn + .btn {
+    border-inline-start-style: none;
+  }
+  & > :is(:focus-visible, [data-state='focus'], [aria-pressed='true']) {
+    z-index: var(--z-above);
+  }
+  &[data-width='hug'] {
+    display: inline-flex;
+    max-width: 100%;
+
+    & > .btn {
+      flex: 0 1 auto;
+    }
+  }
+}
+@container (width < 600px) {
+  .btngroup:not([data-width='hug']) {
+    flex-direction: column;
+
+    & > .btn {
+      flex: none;
+      width: 100%;
+    }
+    & > .btn + .btn {
+      border-inline-start-style: solid;
+      border-block-start-style: none;
+    }
+  }
+}
+
+/* Link: underlined text in the size and colour around it, faint until the pointer comes. */
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-decoration-thickness: var(--b-1);
+  text-decoration-color: var(--faint);
+  text-underline-offset: var(--s-1);
+  cursor: pointer;
+
+  &:hover,
+  &[data-state='hover'] {
+    text-decoration-color: currentColor;
+  }
+  &:active,
+  &[data-state='pressed'] {
+    color: var(--muted);
+  }
+  & .icon {
+    margin-inline-start: var(--s-1);
+    vertical-align: text-bottom;
+  }
+}
+
+/* Tag: a small system label in mono, filled with a line, or with the surface it is given. */
+.tag {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: 100%;
+  min-height: var(--g-m);
+  padding: 0 var(--s-2);
+  background-color: var(--line);
+  color: var(--fg);
+  font: var(--f-mono);
+  overflow-wrap: break-word;
+  hyphens: auto;
+
+  &[data-surface] {
+    background-color: var(--bg);
+  }
+}
+
+/* Key: outlined where a tag is filled, since a key is pressed, and heavier at its lower edge as a key is. */
+.kbd {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: var(--g-m);
+  height: var(--g-m);
+  margin: 0;
+  padding: 0 var(--s-1);
+  border: var(--b-1) solid var(--faint);
+  border-bottom-width: var(--b-2);
+  color: var(--fg);
+  font: var(--f-mono);
+  white-space: nowrap;
+}
+.keys {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+/* A name that differs by device: the page holds both, and the nearest setting shows one. */
+[data-keys='apple'] {
+  --keys-apple: inline;
+  --keys-other: none;
+}
+[data-keys='other'] {
+  --keys-apple: none;
+  --keys-other: inline;
+}
+[data-device='apple'] {
+  display: var(--keys-apple, none);
+}
+[data-device='other'] {
+  display: var(--keys-other, inline);
+}
+
+/* Dots: a row that counts. */
+.dots {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+/* Tooltip: it hangs under the end of what it names, and wraps at the width of a popover. */
+.tip {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-2);
+  max-width: var(--w-popover);
+  padding: var(--s-1) var(--s-2);
+  outline: var(--b-1) solid var(--line);
+  box-shadow: var(--e-popover);
+  font: var(--f-small);
+  overflow-wrap: break-word;
+  hyphens: auto;
+  pointer-events: auto;
+}
+/* Room for a popover's width before the end of what it names; only the tooltip in it takes the pointer. */
+.tip-at {
+  position: absolute;
+  top: 100%;
+  inset-inline: calc(var(--w-popover) * -1) 0;
+  z-index: var(--z-above);
+  display: flex;
+  justify-content: flex-end;
+  /* Padding, not a margin: the pointer crosses to the tooltip without leaving what it names. */
+  padding-top: var(--s-1);
+  pointer-events: none;
+}
+
+/* Window controls: both hands are in the markup, and the nearest setting, the root's or a specimen's, shows one. */
+[data-hand='dots'] {
+  --hand-dots: inline-flex;
+  --hand-squares: none;
+}
+[data-hand='squares'] {
+  --hand-dots: none;
+  --hand-squares: inline-flex;
+}
+.wctl {
+  flex: none;
+  display: var(--hand-squares, inline-flex);
+  align-self: stretch;
+  align-items: center;
+
+  &[data-shape='dots'] {
+    display: var(--hand-dots, none);
+    padding: 0 var(--s-1) 0 var(--s-2);
+  }
+}
+.wdot {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  width: calc(var(--s-4) + var(--s-1));
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-0);
+  background-color: transparent;
+  cursor: pointer;
+}
+.wdot__dot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--s-3);
+  height: var(--s-3);
+  border-radius: var(--r-full);
+  background-color: var(--fg);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+}
+.wdot__sign {
+  width: var(--dot);
+  height: var(--dot);
+  fill: none;
+  stroke: var(--bg);
+  stroke-width: var(--b-2);
+  opacity: 0;
+  transition: opacity var(--m-fast) var(--m-standard);
+
+  & * {
+    vector-effect: non-scaling-stroke;
+  }
+}
+.wctl:is(:hover, :focus-within, [data-size='regular']) .wdot__sign {
+  opacity: 100%;
+}
+.wdot[data-close]:hover .wdot__dot {
+  background-color: var(--signal);
+}
+/* A control the window does not allow stays in its place, hollow. */
+.wdot:disabled .wdot__dot {
+  background-color: transparent;
+  box-shadow: inset 0 0 0 var(--b-1) var(--fg);
+}
+.wdot:disabled .wdot__sign {
+  display: none;
+}
+.wctl[data-size='regular'] .wdot {
+  width: var(--h-compact);
+}
+.wctl[data-size='regular'] .wdot__dot {
+  width: calc(var(--s-4) + var(--s-1));
+  height: calc(var(--s-4) + var(--s-1));
+}

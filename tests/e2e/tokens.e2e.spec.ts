@@ -1,6 +1,6 @@
 import { expect, test } from './test'
 
-const pages = ['', '/colour', '/type', '/space', '/icons', '/motion']
+const pages = ['', '/colour', '/type', '/space', '/icons', '/motion', '/actions']
 
 // Everything the catalogue draws, held against the tokens the page itself declares.
 function audit(): string[] {

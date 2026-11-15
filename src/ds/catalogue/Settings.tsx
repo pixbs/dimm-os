@@ -7,6 +7,7 @@ const choices = {
   theme: ['dark', 'light'],
   contrast: ['standard', 'more'],
   pitch: ['5', '6', '8', '10', '12'],
+  hand: ['dots', 'squares'],
   spacing: ['standard', 'wide'],
   motion: ['full', 'reduce'],
   pause: ['off', 'on'],
