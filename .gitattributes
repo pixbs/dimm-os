@@ -1,2 +1,7 @@
 # One line ending everywhere, so the shell scripts run on every machine.
 * text=auto eol=lf
+
+# Written by Payload, not by hand: collapsed in pull requests and left out of the statistics.
+src/migrations/*.json linguist-generated
+src/payload-types.ts linguist-generated
+src/app/(payload)/admin/importMap.js linguist-generated

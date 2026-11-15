@@ -1,0 +1,105 @@
+# The required check "ci": everything a pull request must pass before it merges, so a failure
+# never reaches production. Vercel builds and migrates the preview without waiting for it.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: dimm_os
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    # Throwaway values for the empty database of this job; the real ones live in Vercel.
+    env:
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/dimm_os
+      DATABASE_URL_UNPOOLED: postgres://postgres:postgres@localhost:5432/dimm_os
+      PAYLOAD_SECRET: ci-only-payload-secret
+      CRON_SECRET: ci-only-cron-secret
+      ADMIN_EMAIL: admin@example.com
+      ADMIN_PASSWORD: ci-only-admin-password
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@73e46992e05b19abd31f2f3c20e0e7370d762115 # v6.1.1
+
+      - name: Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Format
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Types
+        run: pnpm typecheck
+
+      - name: Generated files are up to date
+        run: |
+          pnpm generate:types
+          pnpm generate:importmap
+          if [ -n "$(git status --porcelain)" ]; then
+            git status --short
+            echo "::error::Generated files are out of date: run pnpm generate:types and pnpm generate:importmap, then commit."
+            exit 1
+          fi
+
+      - name: Audit production dependencies
+        run: pnpm audit --prod --audit-level high
+
+      - name: Migrations apply to an empty database
+        run: pnpm payload migrate
+
+      - name: No migration is missing
+        run: |
+          pnpm payload migrate:create --skip-empty
+          if [ -n "$(git status --porcelain src/migrations)" ]; then
+            git status --short src/migrations
+            echo "::error::The schema changed without a migration: run pnpm payload migrate:create <name> and commit it."
+            exit 1
+          fi
+
+      - name: Unit and integration tests
+        run: |
+          pnpm test:unit
+          pnpm test:int
+
+      - name: Build
+        run: pnpm build
+
+      - name: Install the browser
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: pnpm test:e2e
