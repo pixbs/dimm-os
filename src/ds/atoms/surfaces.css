@@ -21,6 +21,8 @@
   --line: color-mix(in srgb, var(--fg) var(--a-line), transparent);
   --hover: color-mix(in srgb, var(--fg) var(--a-hover), transparent);
   --pressed: var(--line);
+  /* the dot grid of an empty box */
+  --pattern: radial-gradient(var(--line) var(--b-1), transparent 0);
   /* A ring is drawn outside its thing, so it is the foreground of the surface under it. */
   --ring: var(--on-surface);
   --signal: var(--orange);

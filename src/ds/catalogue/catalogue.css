@@ -1,0 +1,254 @@
+/* How the catalogue lays out its specimens. Not part of the system: it uses nothing but the atoms. */
+.doc {
+  /* The pages are drawn at the width of their frames. */
+  width: calc(var(--s-12) * 32);
+  padding: var(--s-12);
+
+  &:lang(de) {
+    hyphens: auto;
+    overflow-wrap: break-word;
+  }
+}
+.doc__nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2) var(--s-6);
+  padding-bottom: var(--s-6);
+  font: var(--f-mono);
+  color: var(--muted);
+
+  & :is(a, button) {
+    all: unset;
+    cursor: pointer;
+    text-decoration: underline;
+    text-decoration-color: var(--faint);
+    text-underline-offset: var(--s-1);
+  }
+  & :is(a, button):hover,
+  & [aria-current] {
+    color: var(--fg);
+  }
+  & :focus-visible {
+    outline: var(--b-2) solid var(--ring);
+    outline-offset: var(--b-2);
+  }
+}
+.doc__set {
+  display: flex;
+  gap: var(--s-2);
+}
+.doc__head {
+  padding-bottom: var(--s-12);
+}
+.doc__title {
+  margin: 0;
+  font: var(--f-title);
+  letter-spacing: var(--k-2);
+}
+.doc__intro {
+  max-width: calc(var(--measure) + var(--h-regular) * 4);
+  margin: var(--s-4) 0 0;
+  font: var(--f-lead);
+  letter-spacing: var(--k-1);
+  color: var(--muted);
+  text-wrap: pretty;
+}
+
+/* Only the half that belongs to the theme in force is shown. */
+:root[data-theme='light'] [data-in='dark'],
+:root:not([data-theme='light']) [data-in='light'] {
+  display: none;
+}
+
+.entry {
+  display: grid;
+  grid-template-columns: calc(var(--h-regular) * 6) minmax(0, 1fr);
+  column-gap: var(--s-12);
+  padding: var(--s-8) 0 var(--s-12);
+  border-top: var(--b-1) solid var(--line);
+}
+.entry__name {
+  margin: 0;
+  font: var(--f-body);
+  font-weight: var(--w-medium);
+}
+.entry__props {
+  display: flex;
+  flex-direction: column;
+  margin: var(--s-3) 0 0;
+  padding: 0;
+  list-style: none;
+  font: var(--f-mono);
+  color: var(--muted);
+
+  & b {
+    font-weight: var(--w-regular);
+    color: var(--fg);
+  }
+}
+.entry__note {
+  margin: var(--s-3) 0 0;
+  font: var(--f-small);
+  color: var(--muted);
+  text-wrap: pretty;
+}
+.specs {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-8);
+  min-width: 0;
+}
+.spec {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--s-6);
+  min-width: 0;
+}
+.cap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-2);
+  min-width: 0;
+}
+.cap__label {
+  margin: 0;
+  font: var(--f-mono);
+  color: var(--muted);
+}
+.stage {
+  min-width: 0;
+  padding: var(--s-6);
+}
+.box {
+  box-shadow: inset 0 0 0 var(--b-1) var(--faint);
+}
+.grid {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.sw {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-1);
+  min-width: 0;
+}
+.sw__chip {
+  height: calc(var(--h-regular) * 2);
+  margin-bottom: var(--s-2);
+  box-shadow: inset 0 0 0 var(--b-1) var(--line);
+}
+.dl {
+  display: grid;
+  min-width: 0;
+
+  & > * {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    min-height: var(--h-regular);
+    margin: 0;
+    padding: var(--s-3) var(--s-6) var(--s-3) 0;
+    border-bottom: var(--b-1) solid var(--line);
+  }
+  & > .dl__h {
+    font: var(--f-mono);
+    color: var(--muted);
+    border-bottom-color: var(--faint);
+  }
+  & .t-mono {
+    color: var(--muted);
+  }
+}
+.chip {
+  display: block;
+  width: var(--h-regular);
+  height: var(--g-m);
+}
+.chipbox {
+  display: flex;
+  padding: var(--s-2);
+}
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  min-width: 0;
+
+  & > p {
+    margin: 0;
+  }
+}
+.panel__rule {
+  height: var(--b-1);
+  margin: var(--s-2) 0;
+  background-color: var(--line);
+}
+.panel__fills {
+  display: flex;
+  gap: var(--s-2);
+}
+.panel__fill {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  height: var(--h-regular);
+  padding: 0 var(--s-3);
+  font: var(--f-mono);
+}
+.measure {
+  flex: none;
+  height: var(--g-m);
+  background-color: var(--fg);
+}
+.sample {
+  margin: 0;
+  overflow: hidden;
+  white-space: nowrap;
+
+  &[data-wrap] {
+    max-width: var(--measure);
+    white-space: normal;
+  }
+}
+.iconcell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  box-shadow: inset 0 0 0 var(--b-1) var(--line);
+  font: var(--f-mono);
+  color: var(--muted);
+
+  & > .icon {
+    color: var(--fg);
+  }
+}
+.mini {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.mini__win {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  gap: var(--s-1);
+  height: calc(var(--h-regular) * 3);
+  padding: var(--s-2);
+  box-shadow: inset 0 0 0 var(--b-1) var(--faint);
+
+  & > * {
+    background-color: var(--line);
+  }
+}
+.swatchtext {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--h-regular);
+  height: var(--h-regular);
+}
