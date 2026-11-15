@@ -12,9 +12,9 @@ const choices = {
 
 export function Settings({ reset }: { reset: string }) {
   return (
-    <>
+    <div className="doc__sets">
       {Object.entries(choices).map(([name, values]) => (
-        <span className="doc__set" key={name}>
+        <span key={name}>
           {name}
           {values.map((value) => (
             <button key={value} onClick={() => change(name, value)} type="button">
@@ -29,6 +29,6 @@ export function Settings({ reset }: { reset: string }) {
       >
         {reset}
       </button>
-    </>
+    </div>
   )
 }

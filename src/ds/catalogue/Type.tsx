@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import type { Copy } from './copy/en'
 import { Cap, Doc, Entry, Table, u } from './parts'
 
@@ -32,21 +34,17 @@ export function Type({ t }: { t: Copy['type'] }) {
       ))}
       <Entry text={t.compact}>
         <Table columns="20 1.4fr 20 1fr" head={t.compactHead}>
-          {steps.flatMap(([style, compact]) => [
-            <p className="t-mono" key={style}>
-              {t.styles[style][0]}
-            </p>,
-            <p className={`sample t-${style}`} key="wide">
-              Aa 09
-            </p>,
-            <p className="t-mono" key={compact}>
-              {t.styles[compact][0]}
-            </p>,
-            // The same style in a cell that is a compact window: it steps down by itself.
-            <div className="cq" key="compact">
+          {steps.map(([style, compact]) => (
+            <Fragment key={style}>
+              <p className="t-mono">{t.styles[style][0]}</p>
               <p className={`sample t-${style}`}>Aa 09</p>
-            </div>,
-          ])}
+              <p className="t-mono">{t.styles[compact][0]}</p>
+              {/* The same style in a cell that is a compact window: it steps down by itself. */}
+              <div className="cq">
+                <p className={`sample t-${style}`}>Aa 09</p>
+              </div>
+            </Fragment>
+          ))}
         </Table>
       </Entry>
       <Entry text={t.rules}>

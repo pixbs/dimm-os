@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import type { Copy } from './copy/en'
 import { Cap, Doc, Entry, Table, u } from './parts'
 
@@ -11,20 +13,16 @@ export function Space({ t }: { t: Copy['space'] }) {
     <Doc text={t.doc}>
       <Entry text={t.space}>
         <Table columns="6 8 8 1fr">
-          {steps.flatMap((step, index) => [
-            <p className="t-mono" key={step}>
-              {step * 4}
-            </p>,
-            <p className="t-mono" key="name">
-              s-{step}
-            </p>,
-            <div key="bar">
-              <span className="measure" style={{ width: `var(--s-${step})` }} />
-            </div>,
-            <p className="c-muted" key="use">
-              {t.spaceUses[index]}
-            </p>,
-          ])}
+          {steps.map((step, index) => (
+            <Fragment key={step}>
+              <p className="t-mono">{step * 4}</p>
+              <p className="t-mono">{`s-${step}`}</p>
+              <div>
+                <span className="measure" style={{ width: `var(--s-${step})` }} />
+              </div>
+              <p className="c-muted">{t.spaceUses[index]}</p>
+            </Fragment>
+          ))}
         </Table>
       </Entry>
       <Entry text={t.size}>

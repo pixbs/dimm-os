@@ -1,3 +1,5 @@
+import { Fragment } from 'react'
+
 import type { Copy } from './copy/en'
 import { Cap, Doc, Entry, Grid, Table, u } from './parts'
 
@@ -85,24 +87,20 @@ export function Colour({ t }: { t: Copy['colour'] }) {
       </Entry>
       <Entry text={t.strength}>
         <Table columns="8 12 1fr 8 8 8" head={t.strengthHead}>
-          {strengths.flatMap(([strength, role, token], index) => [
-            <p className="t-mono" key={strength}>
-              {strength}
-            </p>,
-            <p className="t-medium" key={role}>
-              {role}
-            </p>,
-            <p className="c-muted" key="use">
-              {t.strengthUses[index]}
-            </p>,
-            ...['window', 'paper', 'orange'].map((surface) => (
-              <div key={surface + strength}>
-                <span className="chipbox" data-surface={surface}>
-                  <span className="chip" style={{ backgroundColor: `var(--${token})` }} />
-                </span>
-              </div>
-            )),
-          ])}
+          {strengths.map(([strength, role, token], index) => (
+            <Fragment key={strength}>
+              <p className="t-mono">{strength}</p>
+              <p className="t-medium">{role}</p>
+              <p className="c-muted">{t.strengthUses[index]}</p>
+              {['window', 'paper', 'orange'].map((surface) => (
+                <div key={surface}>
+                  <span className="chipbox" data-surface={surface}>
+                    <span className="chip" style={{ backgroundColor: `var(--${token})` }} />
+                  </span>
+                </div>
+              ))}
+            </Fragment>
+          ))}
         </Table>
       </Entry>
       <Entry text={t.surface}>
@@ -117,22 +115,19 @@ export function Colour({ t }: { t: Copy['colour'] }) {
               {[
                 ['dark', bg, fg],
                 ['light', reverse(bg), reverse(fg)],
-              ].flatMap(([theme, back, text]) => [
-                <p className="t-mono c-muted" data-in={theme} key={theme}>
-                  {back} + {text}
-                </p>,
-                <p
-                  className="t-heading"
-                  data-in={theme}
-                  key={theme + 1}
-                  style={{ marginTop: 'var(--s-4)' }}
-                >
-                  {t.text} {contrast(text, back)}
-                </p>,
-                <p className="t-body c-muted" data-in={theme} key={theme + 2}>
-                  {t.muted} {contrast(text, back, 0.64)}
-                </p>,
-              ])}
+              ].map(([theme, back, text]) => (
+                <Fragment key={theme}>
+                  <p className="t-mono c-muted" data-in={theme}>
+                    {back} + {text}
+                  </p>
+                  <p className="t-heading" data-in={theme} style={{ marginTop: 'var(--s-4)' }}>
+                    {t.text} {contrast(text, back)}
+                  </p>
+                  <p className="t-body c-muted" data-in={theme}>
+                    {t.muted} {contrast(text, back, 0.64)}
+                  </p>
+                </Fragment>
+              ))}
               <Fills />
             </div>
           ))}

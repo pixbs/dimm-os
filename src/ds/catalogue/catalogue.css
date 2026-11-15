@@ -33,9 +33,16 @@
     outline-offset: var(--b-2);
   }
 }
-.doc__set {
+/* The settings stand in a row of their own, each with its values. */
+.doc__sets {
+  flex-basis: 100%;
   display: flex;
-  gap: var(--s-2);
+  gap: var(--s-6);
+
+  & > span {
+    display: flex;
+    gap: var(--s-2);
+  }
 }
 .doc__head {
   padding-bottom: var(--s-12);

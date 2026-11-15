@@ -134,7 +134,7 @@ const en = {
     accent: 'Muted and faint are raised to full strength on an accent.',
     signal: [
       'Signal, focus, selection, scrim, texture',
-      'signal: orange | focus: foreground, 2 px | scrim: ink-1, 64 % | texture: dot grid',
+      'signal: orange, darker on a light surface | focus: foreground, 2 px | scrim: ink-1, 64 % | texture: dot grid',
       'Orange as a dot means look here: an open window, an error, something new. It is the only colour with a meaning. Focus is never orange, it is the foreground of the surface.',
     ],
     signalCaps: [
@@ -144,7 +144,7 @@ const en = {
       'text selection',
       'scrim: ink-1 at 64 %, over what is behind a drawer',
       'dot grid: 16 % dots, 8 px apart',
-      'signal dot on paper: darker',
+      'signal dot on paper',
     ],
     selected: 'Selected text',
   },
