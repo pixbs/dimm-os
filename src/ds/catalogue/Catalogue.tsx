@@ -1,7 +1,9 @@
 import './catalogue.css'
 
 import { type Language, languages, toAddress } from '@/i18n/address'
+import { getDictionary } from '@/i18n/dictionaries'
 
+import { Actions } from './Actions'
 import { Colour } from './Colour'
 import { Icons } from './Icons'
 import { Index } from './Index'
@@ -15,7 +17,7 @@ const copy = {
   de: () => import('./copy/de').then((module) => module.default),
 }
 
-export const pages = ['index', 'colour', 'type', 'space', 'icons', 'motion'] as const
+export const pages = ['index', 'colour', 'type', 'space', 'icons', 'motion', 'actions'] as const
 
 type Name = (typeof pages)[number]
 
@@ -55,6 +57,9 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'space' && <Space t={t.space} />}
       {name === 'icons' && <Icons t={t.icons} />}
       {name === 'motion' && <Motion t={t.motion} />}
+      {name === 'actions' && (
+        <Actions language={language} t={t.actions} words={await getDictionary(language)} />
+      )}
     </main>
   )
 }

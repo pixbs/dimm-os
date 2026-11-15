@@ -1,7 +1,10 @@
 const en = {
   close: 'Close',
+  fullScreen: 'Full screen',
+  minimise: 'Minimise',
   next: 'Next',
   previous: 'Previous',
+  window: 'Window',
   windows: 'Windows',
 }
 

@@ -88,6 +88,8 @@
   --e-window: 0 24px 64px color-mix(in srgb, var(--ink-1) 64%, transparent);
   --e-popover: 0 8px 24px color-mix(in srgb, var(--ink-1) 48%, transparent);
   --scrim: color-mix(in srgb, var(--ink-1) var(--a-muted), transparent);
+  /* the order of what overlaps: a part that rises over its neighbours */
+  --z-above: 1;
 
   /* motion: three durations, and what leaves takes half the time it took to arrive */
   --m-fast: 160ms;
