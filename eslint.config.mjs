@@ -33,8 +33,12 @@ const eslintConfig = [
           paths: [
             { name: 'next/link', message: 'The desk owns navigation: use a plain link.' },
             {
+              name: 'next/form',
+              message: 'The desk owns navigation: write with fetch to a route handler.',
+            },
+            {
               name: 'next/navigation',
-              importNames: ['useRouter', 'redirect'],
+              importNames: ['useRouter', 'redirect', 'permanentRedirect'],
               message: 'The desk owns navigation: use a plain link or the History API.',
             },
             {

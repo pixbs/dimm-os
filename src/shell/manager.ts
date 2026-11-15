@@ -1,13 +1,13 @@
 import type { WindowView } from '@/data/views'
 
-export type Windows = {
+type Windows = {
   // In the order they opened, which is their order in the page: coming forward moves no element.
   open: WindowView[]
   // Their paths, back to front.
   z: string[]
 }
 
-export type Action =
+type Action =
   | { type: 'open'; window: WindowView }
   | { type: 'focus'; path: string }
   | { type: 'close'; path: string }
