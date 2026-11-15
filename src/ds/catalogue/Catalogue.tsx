@@ -5,6 +5,7 @@ import { type Language, languages, toAddress } from '@/i18n/address'
 import { Colour } from './Colour'
 import { Icons } from './Icons'
 import { Index } from './Index'
+import { Motion } from './Motion'
 import { Settings } from './Settings'
 import { Space } from './Space'
 import { Type } from './Type'
@@ -14,7 +15,7 @@ const copy = {
   de: () => import('./copy/de').then((module) => module.default),
 }
 
-export const pages = ['index', 'colour', 'type', 'space', 'icons'] as const
+export const pages = ['index', 'colour', 'type', 'space', 'icons', 'motion'] as const
 
 type Name = (typeof pages)[number]
 
@@ -53,6 +54,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'type' && <Type t={t.type} />}
       {name === 'space' && <Space t={t.space} />}
       {name === 'icons' && <Icons t={t.icons} />}
+      {name === 'motion' && <Motion t={t.motion} />}
     </main>
   )
 }

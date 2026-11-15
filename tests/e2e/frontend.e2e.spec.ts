@@ -129,21 +129,27 @@ test.describe('Frontend', () => {
     expect(view.headers()['cache-control']).toContain('no-store')
   })
 
-  test('keeps the script sent for / under 300 KiB', async ({ page }) => {
+  test('keeps the script sent for / under 300 KiB, most of Motion fetched after first paint', async ({
+    page,
+  }) => {
     test.skip(!process.env.CI, 'The budget holds for the production build, which CI serves.')
 
-    const sizes: Promise<number>[] = []
+    const scripts: Promise<[string, number]>[] = []
     page.on('response', (response) => {
       const request = response.request()
       if (request.resourceType() === 'script') {
-        sizes.push(request.sizes().then((size) => size.responseBodySize))
+        const path = new URL(request.url()).pathname
+        scripts.push(request.sizes().then((size) => [path, size.responseBodySize]))
       }
     })
-    await page.goto('/', { waitUntil: 'networkidle' })
+    const html = await (await page.goto('/', { waitUntil: 'networkidle' }))!.text()
 
-    const sent = (await Promise.all(sizes)).reduce((sum, size) => sum + size, 0)
-    expect(sent).toBeGreaterThan(0)
-    expect(sent).toBeLessThan(300 * 1024)
+    const sent = await Promise.all(scripts)
+    const size = (some: [string, number][]) => some.reduce((sum, [, size]) => sum + size, 0)
+    expect(size(sent)).toBeGreaterThan(0)
+    expect(size(sent)).toBeLessThan(300 * 1024)
+    // The page names the script it starts with: the features of Motion are fetched once it runs.
+    expect(size(sent.filter(([path]) => !html.includes(path)))).toBeGreaterThan(30 * 1024)
   })
 })
 

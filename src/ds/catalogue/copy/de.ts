@@ -290,7 +290,7 @@ const de: Copy = {
       [
         'curve',
         '.2, 0, 0, 1',
-        'Eine Kurve für beide. Bei reduzierter Bewegung wechselt alles sofort.',
+        'Eine Kurve für beide. Was kommt und was geht, hat eigene: siehe Atome / Bewegung.',
       ],
       [
         'long',
@@ -343,7 +343,11 @@ const de: Copy = {
         '+0,12 em · +0,16 em',
         'Zwischen Buchstaben und zwischen Wörtern (k-wide, ws-wide).',
       ],
-      ['Bewegung reduzieren', '0 ms', 'Alles wechselt sofort, und nichts bewegt sich von selbst.'],
+      [
+        'Bewegung reduzieren',
+        'blendet',
+        'Was sich bewegen würde, blendet an seinem Platz, und nichts bewegt sich von selbst.',
+      ],
       [
         'Fenstersteuerung',
         'dots · squares',
@@ -397,6 +401,101 @@ const de: Copy = {
       'Das Zeichen eines Dokuments: Papier, das etwas festhält, trägt es vor seinem Code. Immer derselbe Streifen aus Strichen. Er sagt, was für ein Ding das ist, und verschlüsselt nichts.',
     ],
     barcodeCaps: ['auf Papier, vor einem Code', 'auf dem Fenster'],
+  },
+  motion: {
+    play: 'Abspielen',
+    change: 'Ändern',
+    doc: [
+      'Atome / Bewegung',
+      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+    ],
+    duration: [
+      'Dauer',
+      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte',
+      'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat.',
+    ],
+    durationRows: [
+      ['160 ms', 'Menüs, Tooltips, Schalter, Zeilen, Farbe.'],
+      ['320 ms', 'Fenster, Schubladen, Dialoge, Inhalt, der in einem Fenster ersetzt wird.'],
+      ['960 ms', 'Die Übergabe beim Start; was schwingt oder fällt.'],
+      ['80 ms', 'Was mit fast gekommen ist und geht.'],
+      ['160 ms', 'Was mit slow gekommen ist und geht.'],
+    ],
+    curve: [
+      'Kurve',
+      'im Bild: standard | kommt: enter | geht: exit | long: swing · drop',
+      'Was kommt, bremst ab; was endgültig geht, beschleunigt. Nur Orange schwingt über, also ist der Signalpunkt das Einzige, das aufspringt.',
+    ],
+    curveRows: [
+      ['.2, 0, 0, 1', 'Bewegungen, die im Bild beginnen und enden.'],
+      ['0, 0, 0, 1', 'Was kommt.'],
+      ['.3, 0, 1, 1', 'Was endgültig geht.'],
+      ['.3, 1.5, .55, 1', 'Das Schild: Es schwingt vorbei und kommt zur Ruhe.'],
+      ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
+    ],
+    spread: [
+      'Streuung',
+      'spread: 220 ms',
+      'Die Verzögerungen über alles, was als Vieles kommt: Punkte, Buchstaben, Zeilen, Lampen. Es bewegt sich als ein Durchlauf auf dem Punktraster, vom Ersten zum Letzten, wie viele es auch sind.',
+    ],
+    spring: [
+      'Feder',
+      'kommt zur Ruhe in: fast · slow | Nachfedern: keines',
+      'Für Bewegungen, die man unterbrechen kann: Im Flug erneut gedrückt, kehrt sie um, wo immer sie gerade ist.',
+    ],
+    origin: [
+      'Öffnen und Schließen',
+      'aus: der Mitte des Auslösers | ohne ihn: 96 % am eigenen Platz',
+      'Ein Teil wächst aus der Mitte dessen, was es geöffnet hat, und schließt sich dorthin zurück. Das Schließen ist das Öffnen rückwärts, von dort, wo es gerade ist, in der halben Zeit.',
+    ],
+    originCaps: ['Aus seinem Auslöser, fast', 'Aus seinem Auslöser, slow', 'Ohne Auslöser im Bild'],
+    originPart: 'Ein Teil, das sich öffnet und schließt.',
+    decipher: [
+      'Entziffern',
+      'in: slow | Text: nur Mono',
+      'Mono-Text entziffert sich einmal, wenn er erscheint oder sich ändert, aus den Zeichen seiner eigenen Zeichenkette, und rastet vom Anfang zum Ende ein. Sans-Überschriften tun das nicht. Der echte Text bleibt für Hilfstechnologien in der Seite.',
+    ],
+    decipherTexts: ['system/sagt · 12 Einträge · 2026-11-10', 'arbeit/grow.case · 3 von 12 · ⌘K'],
+    decipherHeading: 'Eine Sans-Überschrift bleibt, wie sie ist',
+    dots: [
+      'Punktmaschine',
+      'Bilder: ein Raster · Punkte auf Linien | Takt: 60 Schritte je Sekunde',
+      'Eine Maschine für alles Gepunktete, das sich bewegt. Der Zeiger rührt das Bild um, ein Druck lässt es spritzen, und in Ruhe gelassen finden die Punkte in einem Durchlauf nach Hause. Sie läuft in einem festen Takt, also auf jedem Bildschirm gleich.',
+    ],
+    dotsCaps: [
+      'ein Raster: Die Punkte bleiben, ihre Größe ändert sich',
+      'Punkte auf einer Linie: Die Punkte selbst bewegen sich',
+    ],
+    settings: [
+      'Bewegung reduzieren, generierte Bilder anhalten',
+      'motion: full · reduce | pause: off · on',
+      'Zwei Einstellungen der Barrierefreiheit, an der Wurzel gelesen. Oben gesetzt, zeigt jedes Teil dieser Seite seine reduzierte und seine angehaltene Form.',
+    ],
+    settingsHead: ['Teil', 'Bewegung reduzieren', 'Generierte Bilder anhalten'],
+    settingsRows: [
+      ['Was kommt, geht oder wandert', 'blendet an seinem Platz', 'unverändert'],
+      ['Entziffern', 'sofort der fertige Text', 'unverändert'],
+      ['Alles, was die Punktmaschine zeichnet', 'steht still', 'steht still'],
+      ['Hover, Drücken, Fokus', 'nur Farbe', 'unverändert'],
+    ],
+    rules: ['Regeln'],
+    rulesHead: ['', 'Regel'],
+    rulesRows: [
+      'Was berührt wurde, antwortet innerhalb von 100 ms, dann das, was es öffnet.',
+      'Erst die Hülle, dann der Inhalt, dann die Aktionen.',
+      'Ein Abgang spielt vor einem Auftritt.',
+      'Es wandert immer nur eines; der Rest blendet.',
+      'Das Schließen ist das Öffnen rückwärts, von dort, wo es gerade ist.',
+      'Was oft geschieht, bewegt sich kaum.',
+      'Nichts hängt am Scrollen, und was durch Scrollen ins Bild kommt, spielt einmal.',
+      'Nichts, was der Server gezeichnet hat, wird eingeblendet.',
+      'Was als Vieles kommt, bewegt sich als Durchlauf auf dem Punktraster.',
+      'Dokumente werden gedruckt.',
+      'Nur Orange schwingt über, also ist der Signalpunkt das Einzige, das aufspringt.',
+      'Hover, Drücken und Fokus sind CSS-Übergänge auf den Tokens. Motion bewegt, was kommt, geht oder wandert.',
+      'Auf der Seite selbst animieren nur transform und opacity.',
+      'Nichts läuft, wenn der Tab verborgen ist, wenn sein Element außerhalb des Bildes oder verdeckt ist, oder unter den zwei Einstellungen.',
+    ],
   },
 }
 

@@ -8,6 +8,8 @@ const choices = {
   contrast: ['standard', 'more'],
   pitch: ['5', '6', '8', '10', '12'],
   spacing: ['standard', 'wide'],
+  motion: ['full', 'reduce'],
+  pause: ['off', 'on'],
 }
 
 export function Settings({ reset }: { reset: string }) {

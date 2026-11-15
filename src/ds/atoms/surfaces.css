@@ -10,7 +10,7 @@
 ::view-transition-old(root),
 ::view-transition-new(root) {
   animation-duration: var(--m-slow);
-  animation-timing-function: var(--m-ease);
+  animation-timing-function: var(--m-standard);
 }
 
 [data-surface] {

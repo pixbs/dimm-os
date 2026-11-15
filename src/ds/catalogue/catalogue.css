@@ -16,19 +16,25 @@
   padding-bottom: var(--s-6);
   font: var(--f-mono);
   color: var(--muted);
+}
+/* What the catalogue can be pressed on. Hover and focus are transitions on the tokens. */
+.doc__nav :is(a, button),
+.play {
+  all: unset;
+  font: var(--f-mono);
+  color: var(--muted);
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: var(--faint);
+  text-underline-offset: var(--s-1);
+  transition: color var(--m-fast) var(--m-standard);
 
-  & :is(a, button) {
-    all: unset;
-    cursor: pointer;
-    text-decoration: underline;
-    text-decoration-color: var(--faint);
-    text-underline-offset: var(--s-1);
-  }
-  & :is(a, button):hover,
-  & [aria-current] {
+  &:hover,
+  &[aria-current],
+  &[aria-pressed='true'] {
     color: var(--fg);
   }
-  & :focus-visible {
+  &:focus-visible {
     outline: var(--b-2) solid var(--ring);
     outline-offset: var(--b-2);
   }
@@ -248,4 +254,81 @@
   justify-content: center;
   width: var(--h-regular);
   height: var(--h-regular);
+}
+
+/* A specimen that plays: its button, then what the button plays. */
+.played {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s-4);
+  min-width: 0;
+
+  & > .dl {
+    align-self: stretch;
+  }
+  & > .run {
+    width: calc(var(--h-regular) * 5);
+  }
+}
+/* A track: a dot crosses it when its entry plays, and its twin waits at the far end. */
+.run {
+  position: relative;
+  width: 100%;
+  border-bottom: var(--b-1) solid var(--line);
+
+  & > * {
+    display: flex;
+    align-items: center;
+    width: calc(100% - var(--dot));
+    height: var(--g-m);
+    transition-property: var(--m-moves);
+  }
+  & > :last-child {
+    position: absolute;
+    top: 0;
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+[data-on] .run > :first-child {
+  transform: translateX(100%);
+}
+/* With reduced motion the dot does not cross: it fades out where it was and in where it is. */
+[data-motion='reduce'] [data-on] .run > * {
+  transform: none;
+  opacity: 0;
+}
+[data-motion='reduce'] [data-on] .run > :last-child {
+  transform: translateX(100%);
+  opacity: 100%;
+}
+/* Columns of dots on the pitch, each arriving later than the one before. */
+.sweep {
+  display: flex;
+
+  & > * {
+    width: var(--pitch);
+    height: calc(var(--pitch) * 6);
+    opacity: 0;
+    transition: opacity var(--m-fast-exit) var(--m-exit);
+  }
+}
+[data-on] .sweep > * {
+  opacity: 100%;
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-enter);
+}
+/* The buttons that open a part, and the part beside them. */
+.opens {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: calc(var(--h-regular) * 4);
+}
+.opens__part > * {
+  width: var(--w-popover);
+  margin: 0;
+  padding: var(--s-6);
+  box-shadow: var(--e-popover);
 }

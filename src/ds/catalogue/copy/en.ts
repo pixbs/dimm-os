@@ -287,7 +287,11 @@ const en = {
     motionRows: [
       ['fast', '160 ms', 'A state changes: hover, press, toggle, focus.'],
       ['slow', '320 ms', 'Something arrives or leaves: a window, a menu, a notice.'],
-      ['curve', '.2, 0, 0, 1', 'One curve for both. With reduced motion set, changes are instant.'],
+      [
+        'curve',
+        '.2, 0, 0, 1',
+        'One curve for both. What arrives and what leaves have their own: see Atoms / Motion.',
+      ],
       [
         'long',
         '960 ms',
@@ -335,7 +339,7 @@ const en = {
         '+0.12 em · +0.16 em',
         'Between letters and between words (k-wide, ws-wide).',
       ],
-      ['Reduce motion', '0 ms', 'Changes are instant, and nothing moves by itself.'],
+      ['Reduce motion', 'fades', 'What would move fades in place, and nothing moves by itself.'],
       [
         'Window controls',
         'dots · squares',
@@ -385,6 +389,101 @@ const en = {
       'The mark of a record: paper that keeps something on record carries it before its code. Always the same strip of bars, it says what kind of thing this is and encodes nothing.',
     ],
     barcodeCaps: ['on paper, before a code', 'on the window'],
+  },
+  motion: {
+    play: 'Play',
+    change: 'Change',
+    doc: [
+      'Atoms / Motion',
+      'One vocabulary: three durations, five curves, one spread and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
+    ],
+    duration: [
+      'Duration',
+      'fast: 160 | slow: 320 | long: 960 | exit: half',
+      'What leaves takes half the time it took to arrive.',
+    ],
+    durationRows: [
+      ['160 ms', 'Menus, tooltips, switches, rows, colour.'],
+      ['320 ms', 'Windows, drawers, dialogs, content replaced in a window.'],
+      ['960 ms', 'The start hand-over; what swings or falls.'],
+      ['80 ms', 'What took fast to arrive, leaving.'],
+      ['160 ms', 'What took slow to arrive, leaving.'],
+    ],
+    curve: [
+      'Curve',
+      'on screen: standard | arrives: enter | leaves: exit | long: swing · drop',
+      'What arrives decelerates; what leaves for good accelerates. Only orange overshoots, so the signal dot is the one thing that pops.',
+    ],
+    curveRows: [
+      ['.2, 0, 0, 1', 'Moves that start and end on screen.'],
+      ['0, 0, 0, 1', 'What arrives.'],
+      ['.3, 0, 1, 1', 'What leaves for good.'],
+      ['.3, 1.5, .55, 1', 'The plate: it swings past and settles.'],
+      ['.55, 0, 1, .45', 'The postmark landing: it speeds up as it drops.'],
+    ],
+    spread: [
+      'Spread',
+      'spread: 220 ms',
+      'The delays across anything that comes as many: dots, letters, rows, lamps. It moves as one sweep on the dot pitch, from its first to its last, however many there are.',
+    ],
+    spring: [
+      'Spring',
+      'settles within: fast · slow | bounce: none',
+      'For moves the visitor can interrupt: pressed again in flight, it turns round from wherever it is.',
+    ],
+    origin: [
+      'Open and close',
+      'from: the centre of the opener | without one: 96 % at its own place',
+      'A part grows out of the centre of what opened it and closes back into it. Closing is the opening played backwards from wherever it is, in half the time.',
+    ],
+    originCaps: ['From its opener, fast', 'From its opener, slow', 'With no opener on screen'],
+    originPart: 'A part that opens and closes.',
+    decipher: [
+      'Decipher',
+      'within: slow | text: mono only',
+      'Mono text deciphers once when it appears or changes, from characters of its own string, locking from start to end. Sans headings do not. The real text stays in the page for assistive technology.',
+    ],
+    decipherTexts: ['system/says · 12 items · 2026-11-10', 'work/grow.case · 3 of 12 · ⌘K'],
+    decipherHeading: 'A sans heading stays as it is',
+    dots: [
+      'Dot engine',
+      'pictures: a grid · dots on lines | clock: 60 steps a second',
+      'One engine for everything dotted that moves. The pointer stirs the picture, a press splashes it, and left alone the dots find their way home in one sweep. It steps on a fixed clock, so it runs alike on every screen.',
+    ],
+    dotsCaps: [
+      'a grid: the dots stay, their size changes',
+      'dots on a line: the dots themselves move',
+    ],
+    settings: [
+      'Reduce motion, pause generated visuals',
+      'motion: full · reduce | pause: off · on',
+      'Two settings of Accessibility, read from the root. Set them above to see every part on this page in its reduced and its paused form.',
+    ],
+    settingsHead: ['Part', 'Reduce motion', 'Pause generated visuals'],
+    settingsRows: [
+      ['What enters, leaves or travels', 'fades in place', 'unchanged'],
+      ['Decipher', 'the final text at once', 'unchanged'],
+      ['Everything the dot engine draws', 'still', 'still'],
+      ['Hover, press, focus', 'colour only', 'unchanged'],
+    ],
+    rules: ['Rules'],
+    rulesHead: ['', 'Rule'],
+    rulesRows: [
+      'What was touched answers within 100 ms, then what it opens.',
+      'Shell first, then content, then actions.',
+      'An exit plays before an entrance.',
+      'One thing travels at a time; the rest fades.',
+      'Closing is the opening played backwards from wherever it is.',
+      'What happens often barely moves.',
+      'Nothing is scrubbed by scroll, and what enters by scroll plays once.',
+      'Nothing the server painted animates in.',
+      'What comes as many moves as a sweep on the dot pitch.',
+      'Records print.',
+      'Only orange overshoots, so the signal dot is the one thing that pops.',
+      'Hover, press and focus are CSS transitions on the tokens. Motion drives what enters, leaves or travels.',
+      'Only transform and opacity animate on the page itself.',
+      'Nothing runs when the tab is hidden, when its element is off screen or covered, or under the two settings.',
+    ],
   },
 }
 
