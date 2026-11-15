@@ -15,8 +15,7 @@ const curves = [
 ]
 const columns = Array.from({ length: 40 }, (_, column) => column)
 
-// A dot that crosses its track in the time and on the curve named, when its entry plays; its twin
-// waits at the far end for the reduced form. Only orange overshoots.
+// A dot crosses its track in the time and on the curve named, orange only where it overshoots, with a twin at the far end for the reduced form.
 function Run({ time, curve }: { time: string; curve: string }) {
   const style = {
     transitionDuration: `var(--m-${time})`,
@@ -55,7 +54,7 @@ export function Motion({ t }: { t: Copy['motion'] }) {
       </Entry>
       <Entry text={t.curve}>
         <Played label={t.play}>
-          <Table columns="12 16 1fr 30">
+          <Table columns="12 20 1fr 30">
             {curves.map(([curve, time], index) => (
               <Fragment key={curve}>
                 <p className="t-medium">{curve}</p>

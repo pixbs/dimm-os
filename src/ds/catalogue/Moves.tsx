@@ -1,5 +1,6 @@
 'use client'
 
+import type { Transition } from 'motion/react'
 import * as m from 'motion/react-m'
 import { type ReactNode, useState } from 'react'
 
@@ -27,13 +28,14 @@ export function Played({ label, children }: { label: string; children: ReactNode
 // A dot Motion carries across its track on a spring: pressed again in flight, it turns round where it is.
 export function Springs({ label }: { label: string }) {
   const [on, setOn] = useState(false)
-  const [move, setMove] = useState<{ x: string; transition?: ReturnType<typeof spring> }>({
-    x: '0%',
-  })
+  const [move, setMove] = useState<{ x: string; transition?: Transition }>({ x: '0%' })
 
   function press() {
-    // With reduced motion the dot stays, and the track fades it out here and in there.
-    setMove({ x: on || reduced() ? '0%' : '100%', transition: spring('slow') })
+    // With reduced motion the dot does not travel, even back from across, and the track fades it out here and in there.
+    setMove({
+      x: on || reduced() ? '0%' : '100%',
+      transition: reduced() ? { duration: 0 } : spring('slow'),
+    })
     setOn(!on)
   }
 

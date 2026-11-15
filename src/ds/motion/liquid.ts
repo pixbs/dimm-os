@@ -1,8 +1,6 @@
 import { duration, still } from './vocabulary'
 
-// A picture in dots, counted in cells of the pitch. A grid keeps a dot in every cell and changes its
-// size: cover is the ink of each cell, 0 to 100. Dots strung on lines move themselves: points says
-// where each one lives.
+// A picture in cells of the pitch: a grid gives the ink of each cell from 0 to 100, dots on lines where each dot lives.
 export type Picture = { step: number; cols: number; rows: number } & (
   | { cover: ArrayLike<number> }
   | { points: [number, number][] }
@@ -11,8 +9,7 @@ export type Picture = { step: number; cols: number; rows: number } & (
 // The reference counts in frames of a 60 Hz screen: the engine steps on that clock on every screen.
 const TICK = 1000 / 60
 
-// Draws the picture on the canvas and lets the pointer stir it: a thick flow carries the dots off, and
-// left alone each is pulled home, sweeping from the start to the end. Returns what stops it.
+// Draws the picture and lets the pointer stir it until left alone, and returns what stops it.
 export function pour(canvas: HTMLCanvasElement, picture: Picture) {
   const { step, cols, rows } = picture
   const width = cols * step
@@ -26,8 +23,7 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
   const context = canvas.getContext('2d')!
   context.scale(ratio, ratio)
 
-  // Each particle remembers its home, carries ink, and waits its turn in the sweep home.
-  const spread = duration('spread') * 1000
+  // Each particle remembers its home, carries ink, and has its place in the sweep home.
   const particle = (hx: number, hy: number, ink: number) => ({
     hx,
     hy,
@@ -36,7 +32,8 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
     vx: 0,
     vy: 0,
     ink,
-    wait: (hx / cols) * spread + Math.random() * 30,
+    order: hx / cols,
+    jitter: Math.random() * 30,
   })
   const particles =
     'points' in picture
@@ -59,6 +56,8 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
   let before: number | undefined
   let owed = 0
   let last: [number, number] | null = null
+  // Read again whenever a setting changes, since reduced motion sets it to nothing.
+  let spread = duration('spread') * 1000
 
   // The cell under a point, and how far the point is into it.
   function cellAt(x: number, y: number) {
@@ -124,7 +123,7 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
     context.fill()
   }
 
-  // One tick of the clock. Says whether anything still moves.
+  // One tick of the clock, which says whether anything still moves.
   function tick() {
     time += TICK
     // A thick flow: every cell takes on its neighbours, and all of it dies down.
@@ -143,7 +142,7 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
     let away = 0
     for (const p of particles) {
       // The flow drags the particle, and its own speed carries it on.
-      const homing = idle - 380 - p.wait
+      const homing = idle - 380 - p.order * spread - p.jitter
       const drag = homing > 0 ? 0.12 : 0.35
       p.vx += (flowAt(fx, p.x, p.y) - p.vx) * drag
       p.vy += (flowAt(fy, p.x, p.y) - p.vy) * drag
@@ -280,7 +279,10 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
     wake()
   })
   // The settings and the theme are attributes of the root; what covers a part makes it inert.
-  const settings = new MutationObserver(wake)
+  const settings = new MutationObserver(() => {
+    spread = duration('spread') * 1000
+    wake()
+  })
 
   draw()
   watcher.observe(canvas)

@@ -1,20 +1,21 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 
 import { duration, reduced, usePainted } from './vocabulary'
 
-// Mono text deciphers once as it appears or changes: its letters flicker through others of the
-// same string and lock from the first to the last. The real text stays in the page throughout.
+// Mono text deciphers once as it appears or changes, while the real text stays in the page throughout.
 export function Decipher({ children: text }: { children: string }) {
   const cipher = useRef<HTMLSpanElement>(null)
   // The text the server painted, which does not animate in.
   const painted = useRef(usePainted() ? text : null)
 
-  useEffect(() => {
+  // Before paint, so the new text is covered before it is ever seen.
+  useLayoutEffect(() => {
     const shown = cipher.current!
-    if (painted.current === text || reduced()) return
+    if (painted.current === text) return
     painted.current = null
+    if (reduced()) return
 
     const letters = [...text]
     // A space stays a space, so the words keep their shape.
@@ -23,9 +24,8 @@ export function Decipher({ children: text }: { children: string }) {
     let frame = 0
     let start = 0
 
-    function tick(now: number) {
-      start ||= now
-      const locked = ((now - start) / total) * letters.length
+    // Letters before the locked count are themselves, and past the last the cipher empties.
+    function show(locked: number) {
       shown.textContent =
         locked < letters.length
           ? letters
@@ -36,8 +36,15 @@ export function Decipher({ children: text }: { children: string }) {
               )
               .join('')
           : ''
+    }
+
+    function tick(now: number) {
+      start ||= now
+      show(((now - start) / total) * letters.length)
       if (shown.textContent) frame = requestAnimationFrame(tick)
     }
+
+    show(0)
 
     // Off screen nothing runs: it deciphers when it is first seen.
     const watcher = new IntersectionObserver(([entry]) => {

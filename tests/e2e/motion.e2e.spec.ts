@@ -194,6 +194,29 @@ test.describe('Motion', () => {
     await expect(dots.first()).toHaveCSS('opacity', '0')
     await expect(dots.first()).toHaveCSS('transform', 'none')
     await expect(dots.last()).toHaveCSS('opacity', '1')
+
+    // A dot that crossed with full motion does not travel back once motion is reduced.
+    const spring = page.getByRole('button', { name: 'Play' }).nth(3)
+    const across = () =>
+      dots.first().evaluate((dot) => new DOMMatrix(getComputedStyle(dot).transform).e)
+    await setting(page, 'motion', 'full')
+    await spring.click()
+    await spring.click()
+    await expect.poll(across).toBeGreaterThan(100)
+    const far = await across()
+    await setting(page, 'motion', 'reduce')
+    await dots.first().evaluate((dot) => {
+      const travel: number[] = []
+      Object.assign(window, { travel })
+      requestAnimationFrame(function look() {
+        travel.push(new DOMMatrix(getComputedStyle(dot).transform).e)
+        requestAnimationFrame(look)
+      })
+    })
+    await spring.click()
+    await expect.poll(across).toBe(0)
+    const travel = await page.evaluate(() => Reflect.get(window, 'travel') as number[])
+    expect(travel.filter((x) => x > 0 && x < far - 1)).toEqual([])
   })
 
   test('runs no canvas while the tab is hidden, the picture is off screen or covered, or under either setting', async ({

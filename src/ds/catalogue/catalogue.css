@@ -17,7 +17,7 @@
   font: var(--f-mono);
   color: var(--muted);
 }
-/* What the catalogue can be pressed on. Hover and focus are transitions on the tokens. */
+/* What the catalogue can be pressed on, its hover and focus transitions on the tokens. */
 .doc__nav :is(a, button),
 .play {
   all: unset;
@@ -276,6 +276,9 @@
   position: relative;
   width: 100%;
   border-bottom: var(--b-1) solid var(--line);
+  /* What carries a dot reaches past the track, which would widen the page: only an overshoot shows. */
+  overflow: clip;
+  overflow-clip-margin: var(--s-6);
 
   & > * {
     display: flex;
@@ -295,6 +298,9 @@
   transform: translateX(100%);
 }
 /* With reduced motion the dot does not cross: it fades out where it was and in where it is. */
+[data-motion='reduce'] .run > * {
+  transition-duration: var(--m-slow);
+}
 [data-motion='reduce'] [data-on] .run > * {
   transform: none;
   opacity: 0;

@@ -25,7 +25,7 @@ export function Liquid({ picture }: { picture: (pitch: number, width: number) =>
     const sized = new ResizeObserver(fill)
     sized.observe(host)
     const set = new MutationObserver(fill)
-    set.observe(document.documentElement, { attributeFilter: ['data-pitch'] })
+    set.observe(document.documentElement, { attributeFilter: ['data-pitch'], subtree: true })
 
     return () => {
       sized.disconnect()
