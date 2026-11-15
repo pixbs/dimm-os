@@ -64,12 +64,8 @@
   --w-dialog: 480px;
   --measure: 560px;
 
-  /* the pitch: the distance between two dots of anything dotted, the rows of a handle, the dots of a grip */
-  --pitch: 8px;
-  --pitch-dot: calc(var(--pitch) * 0.36);
+  /* the soft edge of a dot drawn on the pitch */
   --pitch-edge: 0.6px;
-  --pitch-rows: 2;
-  --pitch-grip: 3;
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,
@@ -115,6 +111,14 @@
   --ws-wide: 0.16em;
 }
 
+/* the pitch, the rows of a handle and the dots of a grip, declared wherever a pitch is set so the dot follows it */
+:root,
+[data-pitch] {
+  --pitch: 8px;
+  --pitch-dot: calc(var(--pitch) * 0.36);
+  --pitch-rows: 2;
+  --pitch-grip: 3;
+}
 /* a small dot stands in more rows, a large one in a smaller grip */
 [data-pitch='5'] {
   --pitch: 5px;
