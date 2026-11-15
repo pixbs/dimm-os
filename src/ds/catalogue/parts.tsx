@@ -34,7 +34,8 @@ export function Entry({ text, children }: { text: string[]; children: ReactNode 
           <ul className="entry__props">
             {props.split(' | ').map((prop) => (
               <li key={prop}>
-                <b>{prop.split(': ')[0]}</b> {prop.split(': ').slice(1).join(': ')}
+                <b>{prop.split(': ')[0]}</b>
+                {` ${prop.split(': ').slice(1).join(': ')}`}
               </li>
             ))}
           </ul>

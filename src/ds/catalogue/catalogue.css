@@ -53,7 +53,8 @@
   letter-spacing: var(--k-2);
 }
 .doc__intro {
-  max-width: calc(var(--measure) + var(--h-regular) * 4);
+  /* As wide as the frames draw it, which is wider than the measure of running text. */
+  max-width: calc(var(--w-dialog) + var(--w-popover) + var(--s-8));
   margin: var(--s-4) 0 0;
   font: var(--f-lead);
   letter-spacing: var(--k-1);

@@ -14,10 +14,14 @@
   --sect: var(--s-12);
 
   font: var(--f-body);
-  letter-spacing: var(--k-wide);
-  word-spacing: var(--ws-wide);
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+}
+
+/* Wider text spacing opens letters and words; the styles with a tracking of their own add it to theirs. */
+[data-spacing='wide'] {
+  letter-spacing: var(--k-wide);
+  word-spacing: var(--ws-wide);
 }
 
 *,
