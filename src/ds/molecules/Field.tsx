@@ -33,9 +33,11 @@ type Props = {
 export function Field(props: Props) {
   const { label, kind, name, value, placeholder, options, help, error, required } = props
   const id = useId()
-  const described = [help && `${id}-help`, error && `${id}-error`].filter(Boolean).join(' ')
+  // An error is read only while the field is invalid, so it describes the field only when the server says so.
+  const described = props.invalid ? error && `${id}-error` : help && `${id}-help`
   const shared = {
     'aria-describedby': described || undefined,
+    'aria-errormessage': error ? `${id}-error` : undefined,
     'aria-invalid': props.invalid || undefined,
     className: 'input',
     disabled: props.disabled,

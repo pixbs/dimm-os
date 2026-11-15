@@ -38,11 +38,14 @@ test.describe('Inputs', () => {
 
     await expect(dot).toBeHidden()
     await expect(message).toBeHidden()
+    // Valid, the field is not described by what would be wrong with it.
+    await expect(email.locator('input')).toHaveAccessibleDescription('')
     await email.locator('input').fill('name')
     await email.locator('input').blur()
 
     await expect(dot).toBeVisible()
     await expect(message).toBeVisible()
+    await expect(email.locator('input')).toHaveAccessibleErrorMessage(await message.innerText())
     await expect(dot).toHaveCSS('transition-duration', '0.16s')
     await expect(dot).toHaveCSS('transition-timing-function', 'cubic-bezier(0.3, 1.5, 0.55, 1)')
     await expect(message).toHaveCSS('transition-duration', '0.16s')
@@ -186,7 +189,7 @@ test.describe('Inputs', () => {
     await (
       await chooser
     ).setFiles({ name: 'cv.pdf', mimeType: 'application/pdf', buffer: Buffer.from('') })
-    await expect(upload.locator('.input')).toHaveText('cv.pdf')
+    await expect(upload.locator('span.input')).toHaveText('cv.pdf')
   })
 
   test('gives every input a visible label that wraps, and takes paste', async ({

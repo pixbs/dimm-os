@@ -27,7 +27,7 @@ export function Upload({ choose, empty, input, children }: Props) {
           <input
             {...input}
             aria-describedby={[status, input['aria-describedby']].filter(Boolean).join(' ')}
-            className="upload"
+            className={`${input.className} upload`}
             onChange={(event) =>
               setChosen([...(event.target.files ?? [])].map((file) => file.name).join(', '))
             }

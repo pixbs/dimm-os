@@ -284,7 +284,7 @@
     }
     &:has(> input:checked)::after {
       background-color: var(--bg);
-      transform: translateX(calc(var(--g-m) + var(--s-1) - var(--b-1)));
+      transform: translateX(calc(var(--h-regular) - var(--g-s) - var(--s-1) - var(--b-1)));
     }
   }
 }
