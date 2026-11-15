@@ -19,7 +19,8 @@ const colon = 12
 
 // A time such as 16:44 in a display of 25 × 7 round lamps on the pitch: lit, dark, or none between the digits.
 export function Lamps({ time }: { time: string }) {
-  const digits = time.replace(':', '')
+  // An hour of one digit is read with a leading zero, and what is not a digit stays dark.
+  const digits = time.replace(':', '').padStart(4, '0')
 
   return (
     <div aria-label={time} className="lamps" role="img">
@@ -29,7 +30,7 @@ export function Lamps({ time }: { time: string }) {
         const digit = starts.findIndex((start) => col >= start && col < start + 5)
         const lamp =
           digit >= 0
-            ? font[Number(digits[digit])][row][col - starts[digit]] === '1'
+            ? font[Number(digits[digit])]?.[row][col - starts[digit]] === '1'
               ? 'on'
               : undefined
             : col === colon && (row === 2 || row === 4)

@@ -198,10 +198,11 @@ test.describe('Content', () => {
     expect(await delay(24)).toBe(`${(0.22 * 24) / 25}s`)
     await expect(lamps.locator('i').nth(24)).toHaveCSS('transition-property', 'background-color')
 
+    // The top lamp of the last digit's first column: dark in a 4, lit in a 5.
+    await expect(lamps.locator('i').nth(20)).not.toHaveAttribute('data-lamp', 'on')
     await entry(page, 'Lamps').getByRole('button', { name: 'Change' }).click()
     await expect(lamps).toHaveAttribute('aria-label', '16:45')
-    // The last column of the last digit: lit in a 4, dark in a 5.
-    await expect(lamps.locator('i').nth(24 + 25)).not.toHaveAttribute('data-lamp', 'on')
+    await expect(lamps.locator('i').nth(20)).toHaveAttribute('data-lamp', 'on')
 
     await page
       .locator('.doc__sets span', { hasText: 'motion' })
