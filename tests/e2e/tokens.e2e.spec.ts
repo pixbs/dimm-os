@@ -10,6 +10,7 @@ const pages = [
   '/actions',
   '/rows',
   '/inputs',
+  '/content',
 ]
 
 // Everything the catalogue draws, held against the tokens the page itself declares.

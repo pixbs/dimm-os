@@ -113,7 +113,7 @@ test.describe('Inputs', () => {
     // A press three quarters of the way round sets three quarters of the range.
     await page.mouse.click(on(0.75).x, on(0.75).y)
     expect(await value(dial)).toBe(775)
-    await expect(page.locator('.standin-stat')).toContainText(
+    await expect(page.locator('.row .stat')).toContainText(
       (await dial.getAttribute('aria-valuenow'))!,
     )
 

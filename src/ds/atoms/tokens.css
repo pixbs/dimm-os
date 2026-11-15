@@ -66,6 +66,15 @@
 
   /* the soft edge of a dot drawn on the pitch */
   --pitch-edge: 0.6px;
+  /* a lamp of a dot display fills two thirds of its cell */
+  --pitch-lamp: 66%;
+  /* a halftone, in grey so the cut bends no colour: a cell light in its middle, a full and an empty tone, how the two meet, and the cut */
+  --ht-light: #fff;
+  --ht-dark: #000;
+  --ht-none: #7a7a7a;
+  --ht-cell: radial-gradient(circle, var(--ht-light) 0%, var(--ht-dark) 122%);
+  --ht-blend: multiply;
+  --ht-cut: contrast(14);
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,

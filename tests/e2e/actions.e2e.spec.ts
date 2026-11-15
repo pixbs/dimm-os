@@ -18,7 +18,7 @@ test.describe('Actions', () => {
     await device(page, 'MacIntel')
     await page.goto('/catalogue/actions')
     // The last bar shows no hand of its own; the others each show the one their caption names.
-    const free = page.locator('.stage:not([data-hand]) .strip')
+    const free = page.locator('.stage:not([data-hand]) .bar')
     await expect(free.locator('.wctl[data-shape="dots"]')).toBeVisible()
     await expect(free.locator('.wctl[data-shape="squares"]')).toBeHidden()
     await expect(

@@ -3,7 +3,7 @@ import type { ReactNode } from 'react'
 // A small system label in mono: filled with a line, or with the surface it is given; a dot may lead it.
 export function Tag(props: {
   dot?: 'on' | 'signal'
-  surface?: 'inverted' | 'orange'
+  surface?: 'inverted' | 'orange' | 'window'
   children: ReactNode
 }) {
   return (
