@@ -38,6 +38,12 @@ function store(paths: string[]) {
   }
 }
 
+// The prototype's methods leave out the Next.js router: it wraps the history's own, and would
+// fetch a page and remount the desk when Back crosses a reload.
+function write(method: 'pushState' | 'replaceState', address?: string) {
+  History.prototype[method].call(history, null, '', address)
+}
+
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {
   const { language } = view
   // The first render takes its window from the view alone, so it matches the server's HTML at any address.
@@ -47,15 +53,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // Picking a window writes its address as a new history entry.
   function show(path: string) {
     const address = toAddress(language, path)
-    if (location.pathname !== address) history.pushState(null, '', address)
+    if (location.pathname !== address) write('pushState', address)
   }
 
   function close(path: string) {
     dispatch({ type: 'close', path })
     // The address follows the window that comes forward.
-    if (front(desk) === path) {
-      history.replaceState(null, '', toAddress(language, desk.z.at(-2) ?? '/'))
-    }
+    if (front(desk) === path) write('replaceState', toAddress(language, desk.z.at(-2) ?? '/'))
   }
 
   // A plain link to a window opens it here; any other link, and a view that cannot be fetched, is the browser's.
@@ -93,6 +97,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   // The server knows the window of the address alone: the others come back from this tab's session.
   useEffect(() => {
+    // The router keeps its page in the entry a document loads in: emptied, that entry is the desk's as well.
+    write('replaceState')
+
     const paths = stored().filter((path) => path !== view.window?.path)
     void Promise.all(paths.map((path) => fetchWindow(language, path))).then((found) => {
       restored.current = true

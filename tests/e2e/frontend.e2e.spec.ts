@@ -22,6 +22,11 @@ test.describe('Frontend', () => {
   test('opens windows without a page load, and back, forward and reload keep them and the address', async ({
     page,
   }) => {
+    // What the Next.js router fetches: it serves the first load and nothing after it.
+    const routed: string[] = []
+    page.on('request', (request) => {
+      if (request.headers().rsc) routed.push(request.url())
+    })
     await page.goto('/')
     await mark(page)
 
@@ -57,17 +62,30 @@ test.describe('Frontend', () => {
     await expect(front(page)).toHaveText('Grow')
     await expect(windows(page)).toHaveText(['Grow', 'Work'])
 
-    await closeFront(page)
+    // Back now reaches the entries written before the reload, and the desk stays as it stands.
+    await page.goBack()
     await expect(page).toHaveURL('/work')
     await expect(front(page)).toHaveText('Work')
+    await expect(windows(page)).toHaveText(['Grow', 'Work'])
+
+    await page.goBack()
+    await expect(page).toHaveURL('/')
+    await expect(windows(page)).toHaveText(['Grow', 'Work'])
+
+    await page.goForward()
+    await expect(page).toHaveURL('/work')
+    await closeFront(page)
+    await expect(page).toHaveURL('/work/grow')
+    await expect(front(page)).toHaveText('Grow')
 
     await closeFront(page)
     await expect(page).toHaveURL('/')
     await expect(windows(page)).toHaveCount(0)
 
-    await page.goBack()
-    await expect(page).toHaveURL('/work')
-    await expect(front(page)).toHaveText('Work')
+    await page.goForward()
+    await expect(page).toHaveURL('/work/grow')
+    await expect(front(page)).toHaveText('Grow')
+    expect(routed).toEqual([])
   })
 
   test('opens a window of the German desk at its German address', async ({ page }) => {
