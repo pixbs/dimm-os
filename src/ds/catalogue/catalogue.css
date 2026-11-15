@@ -359,7 +359,7 @@
   align-items: center;
   gap: var(--s-2);
 }
-/* Stand-ins for a bar and a row of the system, drawn only to hold the parts that sit in them. */
+/* A stand-in for a bar of the system, drawn only to hold the parts that sit in one. */
 .strip {
   display: flex;
   align-items: center;
@@ -394,12 +394,42 @@
   height: calc(var(--pitch) * var(--pitch-rows));
   margin: 0 var(--s-2);
 }
-.trail {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--s-4);
-  min-height: var(--h-regular);
-  padding: var(--s-3) var(--s-4);
-  background: linear-gradient(var(--line), var(--line)) no-repeat var(--s-4) 100% /
-    calc(100% - var(--s-8)) var(--b-1);
+/* Stand-ins for the toggles of the inputs, each on, drawn only to fill the slot of a row. */
+.standin {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--g-m);
+  height: var(--g-m);
+  background-color: var(--fg);
+  color: var(--bg);
+
+  &[data-kind='radio'] {
+    border: var(--b-1) solid var(--fg);
+    border-radius: var(--r-full);
+    background-color: transparent;
+
+    &::after {
+      content: '';
+      width: var(--dot);
+      height: var(--dot);
+      border-radius: var(--r-full);
+      background-color: var(--fg);
+    }
+  }
+  &[data-kind='switch'] {
+    justify-content: flex-end;
+    width: var(--h-regular);
+    padding: 0 var(--s-1);
+    border-radius: var(--r-full);
+
+    &::after {
+      content: '';
+      width: var(--g-s);
+      height: var(--g-s);
+      border-radius: var(--r-full);
+      background-color: var(--bg);
+    }
+  }
 }

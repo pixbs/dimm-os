@@ -1,0 +1,199 @@
+/* Molecules / Row: a few slots on a hairline, for every list, set of facts, menu and table. */
+.row {
+  /* The height of the first line, which every slot lines up on, and the line and fill the states change. */
+  --row-lh: var(--lh-body);
+  --row-line: var(--line);
+  --state: transparent;
+
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-4);
+  width: 100%;
+  min-height: var(--h-regular);
+  margin: 0;
+  padding: var(--s-3) var(--s-4);
+  border: 0;
+  border-radius: var(--r-0);
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  /* The hairline keeps to the keyline at both ends; the fill does not, so it has room around the text. */
+  background: linear-gradient(var(--row-line), var(--row-line)) no-repeat var(--s-4) 100% /
+    calc(100% - var(--s-4) * 2) var(--b-1);
+  box-shadow: inset 0 0 0 calc(var(--h-regular) * 8) var(--state);
+  color: var(--fg);
+  font: var(--f-body);
+  letter-spacing: inherit;
+  word-spacing: inherit;
+  text-align: start;
+  text-decoration: none;
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  &[data-surface] {
+    background-color: var(--bg);
+  }
+  &:is(a, button) {
+    cursor: pointer;
+  }
+  &:is(a, button):hover,
+  &[data-state='hover'] {
+    --state: var(--hover);
+  }
+  &:is(a, button):active,
+  &[data-state='pressed'] {
+    --state: var(--pressed);
+  }
+  &:focus-visible,
+  &[data-state='focus'] {
+    outline-color: var(--ring);
+  }
+  &:disabled {
+    opacity: var(--a-faint);
+    pointer-events: none;
+  }
+  /* Selected is the row inverted, which needs no line under it. */
+  &[aria-pressed='true'] {
+    --row-line: transparent;
+  }
+  /* Current is the pressed fill, held, and a dot in the inset before the text, so it is not told by a tint alone. */
+  &[aria-current]:not([aria-current='false']) {
+    --state: var(--pressed);
+
+    &::before {
+      content: '';
+      position: absolute;
+      inset-inline-start: calc((var(--s-4) - var(--dot)) / 2);
+      top: calc(var(--s-3) + (var(--row-lh) - var(--dot)) / 2);
+      width: var(--dot);
+      height: var(--dot);
+      border-radius: var(--r-full);
+      background-color: var(--fg);
+    }
+  }
+
+  &[data-scale='heading'] {
+    --row-lh: var(--lh-heading);
+
+    padding-block: var(--s-4);
+
+    &[aria-current]:not([aria-current='false'])::before {
+      top: calc(var(--s-4) + (var(--row-lh) - var(--dot)) / 2);
+    }
+  }
+  /* Chrome density, for menus and pointer-only bars: no line, and the slots stand at the middle. */
+  &[data-size='compact'] {
+    --row-lh: var(--lh-small);
+    --row-line: transparent;
+
+    align-items: center;
+    min-height: var(--h-compact);
+    padding: var(--s-1) var(--s-3);
+    font: var(--f-small);
+
+    &[aria-current]:not([aria-current='false'])::before {
+      inset-inline-start: calc((var(--s-3) - var(--dot)) / 2);
+      top: calc(50% - var(--dot) / 2);
+    }
+  }
+  /* A label above its value, for a column too narrow to hold the two side by side. */
+  &[data-layout='above'] {
+    flex-wrap: wrap;
+    row-gap: 0;
+
+    & > .row__label {
+      flex: 0 0 100%;
+    }
+  }
+}
+
+.row__lead,
+.row__meta,
+.row__trail {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: var(--row-lh);
+}
+.row__lead,
+.row__meta,
+.row__label,
+.row__text,
+.row__side > .row__index {
+  color: var(--muted);
+}
+.row__index {
+  min-width: var(--g-m);
+  font: var(--f-mono);
+}
+.row__meta {
+  font: var(--f-mono);
+}
+.row__main,
+.row__value {
+  flex: 1 1 0;
+}
+/* A label and a side take a third of the row, less their share of the gaps. */
+.row__label,
+.row__side {
+  flex: 0 0 calc(100% / 3 - var(--s-4) * 2 / 3);
+}
+/* Labels and values wrap; nothing is cut. */
+.row__main,
+.row__value,
+.row__label,
+.row__side {
+  min-width: 0;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.row__title,
+.row__text,
+.row__side > .row__index {
+  display: block;
+}
+.row[data-scale='heading'] > .row__main > .row__title {
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+}
+/* A picture as the lead: as high as a regular row, an empty one shows the dot grid. */
+.row__media {
+  flex: none;
+  width: var(--h-regular);
+  height: var(--h-regular);
+  background-color: var(--hover);
+  background-image: var(--pattern);
+  background-size: var(--s-2) var(--s-2);
+
+  & + .row__main {
+    align-self: center;
+  }
+}
+/* A compact button in a slot keeps the row at its height. */
+:is(.row__lead, .row__trail) > .btn[data-size='compact'] {
+  margin-block: calc(var(--s-1) * -1);
+}
+
+/* In a compact window the side becomes the first line, with the trail at its end, and the rest follows under it. */
+@container (width < 600px) {
+  .row[data-layout='split'] {
+    flex-wrap: wrap;
+    row-gap: var(--s-2);
+
+    & > .row__side {
+      flex: 1 1 0;
+      display: flex;
+      flex-wrap: wrap;
+      column-gap: var(--s-2);
+    }
+    & > :is(.row__meta, .row__trail) {
+      order: 1;
+    }
+    & > .row__main {
+      order: 2;
+      flex: 0 0 100%;
+    }
+  }
+}

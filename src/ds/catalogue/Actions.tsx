@@ -1,4 +1,4 @@
-import { Children, Fragment, type ReactNode } from 'react'
+import { Fragment, type ReactNode } from 'react'
 
 import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
@@ -8,54 +8,17 @@ import { Button, ButtonGroup } from '../molecules/Button'
 import { Dots } from '../molecules/Dots'
 import { ForDevice, Key, Keys } from '../molecules/Key'
 import { Link } from '../molecules/Link'
+import { Row } from '../molecules/Row'
 import { Tag } from '../molecules/Tag'
 import { Tooltip } from '../molecules/Tooltip'
 import { WindowControls } from '../molecules/WindowControls'
 import type { Copy } from './copy/en'
-import { Cap, Doc, Entry, Table } from './parts'
+import { Cap, Doc, Entry, Specs, Stage, type Surface, Table, width } from './parts'
 
 type Props = { t: Copy['actions']; language: Language; words: Dictionary }
-type Surface = 'window' | 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
-
 const tones = ['solid', 'outline', 'ghost'] as const
 const states = [undefined, 'hover', 'pressed', 'focus', 'disabled'] as const
 const surfaces = ['window', 'raised', 'paper', 'orange', 'blue', 'mint'] as const
-const width = {
-  popover: 'var(--w-popover)',
-  dialog: 'var(--w-dialog)',
-  narrow: 'calc(var(--s-12) * 4)',
-}
-
-function Stage(props: { surface?: Surface; flush?: boolean; width?: string; children: ReactNode }) {
-  const style = { width: props.width, padding: props.flush ? 0 : undefined }
-
-  return (
-    <div className="stage" data-surface={props.surface ?? 'window'} style={style}>
-      {props.children}
-    </div>
-  )
-}
-
-// Specimens side by side, each under its caption.
-function Specs({
-  caps,
-  tight,
-  children,
-}: {
-  caps: string[]
-  tight?: boolean
-  children: ReactNode
-}) {
-  return (
-    <div className="spec" style={tight ? { gap: 'var(--s-4)' } : undefined}>
-      {Children.toArray(children).map((child, index) => (
-        <Cap key={index} label={caps[index]}>
-          {child}
-        </Cap>
-      ))}
-    </div>
-  )
-}
 
 // Every tone in every state, at one size.
 function Matrix({ label, size }: { label: string; size?: 'compact' }) {
@@ -388,10 +351,7 @@ function Keyboard({ t, language }: Props) {
           <Keys names={[key('mod'), 'K']} />
         </Stage>
         <Stage flush width={width.popover}>
-          <div className="trail">
-            <span>{t.label}</span>
-            <Keys names={[key('shift'), arrows]} />
-          </div>
+          <Row title={t.label} trail={<Keys names={[key('shift'), arrows]} />} />
         </Stage>
         <Stage flush>
           <Strip size="compact">

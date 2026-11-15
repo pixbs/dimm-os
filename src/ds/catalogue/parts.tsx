@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { Children, type ReactNode } from 'react'
 
 // A size of the catalogue's own layout, in steps of 8.
 export const u = (steps: number) => `calc(var(--s-2) * ${steps})`
@@ -87,6 +87,52 @@ export function Grid(props: { columns: number; gap?: string; children: ReactNode
   return (
     <div className="grid" style={style}>
       {props.children}
+    </div>
+  )
+}
+
+export type Surface = 'window' | 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
+
+// The widths the frames give a specimen.
+export const width = {
+  popover: 'var(--w-popover)',
+  dialog: 'var(--w-dialog)',
+  measure: 'var(--measure)',
+  narrow: 'calc(var(--s-12) * 4)',
+}
+
+export function Stage(props: {
+  surface?: Surface
+  flush?: boolean
+  width?: string
+  children: ReactNode
+}) {
+  const style = { width: props.width, padding: props.flush ? 0 : undefined }
+
+  return (
+    <div className="stage" data-surface={props.surface ?? 'window'} style={style}>
+      {props.children}
+    </div>
+  )
+}
+
+// Specimens side by side, each under its caption.
+export function Specs({
+  caps,
+  tight,
+  children,
+}: {
+  caps: string[]
+  tight?: boolean
+  children: ReactNode
+}) {
+  return (
+    <div className="spec" style={tight ? { gap: 'var(--s-4)' } : undefined}>
+      {Children.toArray(children).map((child, index) => (
+        <Cap key={index} label={caps[index]}>
+          {child}
+        </Cap>
+      ))}
     </div>
   )
 }
