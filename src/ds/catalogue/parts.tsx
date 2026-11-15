@@ -101,6 +101,8 @@ export const width = {
   popover: 'var(--w-popover)',
   dialog: 'var(--w-dialog)',
   measure: 'var(--measure)',
+  // The widest specimen of the frames: their measure, which is wider than the measure of prose here.
+  wide: 'calc(var(--w-popover) * 2)',
   // The narrowest regular window, where a label stands beside its value.
   regular: u(80),
   narrow: 'calc(var(--s-12) * 4)',

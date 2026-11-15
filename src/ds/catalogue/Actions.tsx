@@ -1,13 +1,15 @@
-import { Fragment, type ReactNode } from 'react'
+import { Fragment } from 'react'
 
 import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { type Key as KeyName, keyNames, named } from '@/i18n/keys'
 
+import { Bar, BarGrip, BarText } from '../molecules/Bar'
 import { Button, ButtonGroup } from '../molecules/Button'
 import { Dots } from '../molecules/Dots'
 import { ForDevice, Key, Keys } from '../molecules/Key'
 import { Link } from '../molecules/Link'
+import { Path } from '../molecules/Path'
 import { Row } from '../molecules/Row'
 import { Tag } from '../molecules/Tag'
 import { Tooltip } from '../molecules/Tooltip'
@@ -327,15 +329,6 @@ function Tooltips({ t, language }: Props) {
   )
 }
 
-// A bar of the shell, drawn here only to hold what sits in one.
-function Strip(props: { size?: 'compact'; children: ReactNode }) {
-  return (
-    <div className="strip" data-size={props.size}>
-      {props.children}
-    </div>
-  )
-}
-
 function Keyboard({ t, language }: Props) {
   const key = (name: KeyName) => named(language, [name])
   const keys = Object.keys(keyNames[language].apple) as KeyName[]
@@ -354,16 +347,16 @@ function Keyboard({ t, language }: Props) {
           <Row title={t.label} trail={<Keys names={[key('shift'), arrows]} />} />
         </Stage>
         <Stage flush>
-          <Strip size="compact">
-            <span className="strip__text">
+          <Bar size="compact">
+            <BarText>
               <Keys names={[key('up'), key('down')]} />
               {move}
-            </span>
-            <span className="strip__text">
+            </BarText>
+            <BarText>
               <Key name={key('enter')} />
               {open}
-            </span>
-          </Strip>
+            </BarText>
+          </Bar>
         </Stage>
         <div className="stage" data-keys="other" data-surface="paper">
           <Keys names={[key('mod'), 'K']} />
@@ -426,14 +419,14 @@ function Controls({ t, words }: Props) {
                 key={index}
                 style={{ width: width.dialog, padding: 0 }}
               >
-                <Strip size={size === 'compact' ? size : undefined}>
+                <Bar line="below" size={size === 'compact' ? size : undefined}>
                   {controls('dots')}
-                  <span className="strip__text" data-here="">
-                    {t.name}
-                  </span>
-                  <span className="strip__grip dotted" />
+                  <BarText>
+                    <Path segments={[t.name]} />
+                  </BarText>
+                  <BarGrip />
                   {controls('squares')}
-                </Strip>
+                </Bar>
               </div>
             )
           })}

@@ -199,3 +199,23 @@ body {
   stroke-linecap: round;
   stroke-dasharray: 0 var(--pitch);
 }
+
+/* A halftone: dots on the pitch as large as the tone of --tone under them, laid over what is beneath or as a mask over a fill; it never moves. */
+.halftone {
+  /* The cell repeats on the pitch over the form, which spans the field. */
+  --ht-layers: var(--ht-cell), var(--tone);
+  --ht-sizes: var(--pitch) var(--pitch), auto;
+
+  position: absolute;
+  inset: calc(var(--s-3) * -1);
+  background-image: var(--ht-layers);
+  background-size: var(--ht-sizes);
+  background-blend-mode: var(--ht-blend);
+  filter: var(--ht-cut);
+  mix-blend-mode: screen;
+  pointer-events: none;
+
+  &[data-mask] {
+    mix-blend-mode: var(--ht-blend);
+  }
+}

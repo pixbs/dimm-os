@@ -116,7 +116,7 @@ export function Deciphers(props: { label: string; texts: string[]; heading: stri
 }
 
 // A halftone: dots that get smaller over a circle.
-function disc(pitch: number, width: number): Picture {
+export function disc(pitch: number, width: number): Picture {
   const cols = Math.floor(width / pitch)
   const cover = Array.from({ length: cols * cols }, (_, cell) => {
     const far = Math.hypot((cell % cols) + 0.5 - cols / 2, Math.floor(cell / cols) + 0.5 - cols / 2)

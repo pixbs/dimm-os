@@ -5,6 +5,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 
 import { Actions } from './Actions'
 import { Colour } from './Colour'
+import { Content } from './Content'
 import { Icons } from './Icons'
 import { Index } from './Index'
 import { Inputs } from './Inputs'
@@ -29,6 +30,7 @@ export const pages = [
   'actions',
   'rows',
   'inputs',
+  'content',
 ] as const
 
 type Name = (typeof pages)[number]
@@ -74,6 +76,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       )}
       {name === 'rows' && <Rows language={language} t={t.rows} />}
       {name === 'inputs' && <Inputs t={t.inputs} />}
+      {name === 'content' && <Content t={t.content} words={await getDictionary(language)} />}
     </main>
   )
 }

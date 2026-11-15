@@ -10,6 +10,10 @@ const nextConfig: NextConfig = {
   // AGENTS.md points at the docs Next.js ships instead of carrying a copy of its notes.
   agentRules: false,
   images: {
+    // A picture is made at these widths alone and kept 31 days: the plan makes 5,000 sizes a month and then stops.
+    deviceSizes: [640, 960, 1280, 1920],
+    imageSizes: [],
+    minimumCacheTTL: 2678400,
     localPatterns: [
       {
         pathname: '/api/media/file/**',

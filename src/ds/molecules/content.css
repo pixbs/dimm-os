@@ -1,0 +1,375 @@
+/* Molecules / Content: the parts that carry what the admin writes and uploads, built from the atoms alone. */
+
+/* Heading group: an eyebrow in mono, one title in one weight, and the text under it, styled by the level. */
+.hgroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  max-width: var(--measure);
+  margin: 0;
+
+  &[data-level='heading'] {
+    gap: var(--s-2);
+  }
+  &[data-level='lead'] {
+    gap: var(--s-1);
+  }
+}
+.hgroup__eyebrow {
+  margin: 0;
+  font: var(--f-mono);
+  color: var(--muted);
+}
+.hgroup__title {
+  margin: 0;
+  font: var(--t-title);
+  letter-spacing: calc(var(--tk-title) + var(--k-wide));
+
+  [data-level='hero'] > & {
+    font: var(--t-hero);
+    letter-spacing: calc(var(--tk-hero) + var(--k-wide));
+  }
+  [data-level='display'] > & {
+    font: var(--t-display);
+    letter-spacing: calc(var(--tk-display) + var(--k-wide));
+  }
+  [data-level='heading'] > & {
+    font: var(--f-heading);
+    letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+  }
+  [data-level='lead'] > & {
+    font: var(--f-lead);
+    font-weight: var(--w-medium);
+    letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+  }
+}
+/* Lead under a display or title, Body under a heading or lead. */
+.hgroup__text {
+  margin: 0;
+  font: var(--f-lead);
+  letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+  color: var(--muted);
+  text-wrap: pretty;
+
+  [data-level='heading'] > &,
+  [data-level='lead'] > & {
+    font: var(--f-body);
+    letter-spacing: inherit;
+  }
+}
+
+/* Media: a box of a fixed ratio that its content fills, showing the dot grid while empty. */
+.media {
+  display: block;
+  min-width: 0;
+  margin: 0;
+}
+.media__box {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  background-color: var(--hover);
+  background-image: var(--pattern);
+  background-size: var(--s-2) var(--s-2);
+
+  [data-ratio='4:3'] > & {
+    aspect-ratio: 4 / 3;
+  }
+  [data-ratio='1:1'] > & {
+    aspect-ratio: 1;
+  }
+  [data-ratio='3:1'] > & {
+    aspect-ratio: 3;
+  }
+  /* What draws itself, a cover or a live picture, has no fill of its own. */
+  [data-live] > & {
+    background-color: transparent;
+    background-image: none;
+  }
+}
+.media__label {
+  position: absolute;
+  inset-inline-start: var(--s-3);
+  bottom: var(--s-3);
+  display: flex;
+}
+.media__play {
+  position: absolute;
+  inset-inline-start: var(--s-3);
+  top: var(--s-3);
+}
+.media__caption {
+  margin: var(--s-2) 0 0;
+  font: var(--f-small);
+  color: var(--muted);
+}
+/* A cover that is drawn, not uploaded: an accent under a halftone form, which lets it through in its dots. */
+.media__fill {
+  position: absolute;
+  inset: 0;
+}
+.media__form {
+  --tone: radial-gradient(circle closest-side at 68% 50%, var(--ht-light) 0%, var(--ht-none) 100%);
+}
+
+/* A picture that arrives after the page waits on the dot grid, resolves in dots and fades in under them, then the dots leave. */
+.media__picture {
+  position: absolute;
+  inset: 0;
+
+  & > img {
+    object-fit: cover;
+    transition: opacity var(--m-slow) var(--m-enter);
+  }
+  &[data-picture='wait'] > img {
+    opacity: 0;
+    transition: none;
+  }
+  /* A live picture draws itself over the still it was before script ran. */
+  &[data-live] > img {
+    opacity: 0;
+    transition: opacity var(--m-fast-exit) var(--m-exit);
+  }
+}
+.media__dots {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  pointer-events: none;
+  transition: opacity var(--m-slow-exit) var(--m-exit) var(--m-slow);
+
+  [data-picture='shown'] > & {
+    opacity: 0;
+  }
+}
+.media__live {
+  position: absolute;
+  inset: 0;
+}
+
+/* Avatar: the box at a control size, or twice the regular one, named on a surface of its own when it has no picture. */
+.avatar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--h-regular);
+  height: var(--h-regular);
+  background-color: var(--hover);
+  background-image: var(--pattern);
+  background-size: var(--s-2) var(--s-2);
+  color: var(--fg);
+  font: var(--f-body);
+  font-weight: var(--w-medium);
+
+  &[data-size='compact'] {
+    width: var(--h-compact);
+    height: var(--h-compact);
+    font: var(--f-small);
+    font-weight: var(--w-medium);
+  }
+  &[data-size='large'] {
+    width: calc(var(--h-regular) * 2);
+    height: calc(var(--h-regular) * 2);
+    font: var(--f-heading);
+    letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+  }
+  &[data-named] {
+    background-color: var(--bg);
+    background-image: none;
+    box-shadow: inset 0 0 0 var(--b-1) var(--line);
+  }
+}
+
+/* Stat: a figure and what it counts, in one style, so the label is never smaller than its value. */
+.stat {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+}
+.stat__label {
+  color: var(--muted);
+}
+
+/* App icon: an icon on a tile with its name under it; the states lie over the tile, and selected inverts the name. */
+.app {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s-2);
+  width: calc(var(--h-regular) * 2);
+  padding: var(--s-2) 0;
+  outline: var(--b-2) solid transparent;
+  outline-offset: var(--b-2);
+  color: var(--fg);
+  font: var(--f-small);
+  text-align: center;
+  text-decoration: none;
+  transition: outline-color var(--m-fast) var(--m-standard);
+
+  &:focus-visible,
+  &[data-state='focus'] {
+    outline-color: var(--ring);
+  }
+  &[data-size='compact'] {
+    width: auto;
+    padding: 0;
+  }
+}
+/* The tile reads hover and pressed in its own foreground, so a coloured tile darkens. */
+.app__tile {
+  --state: transparent;
+  /* Its outline, and the state laid over the whole tile. */
+  --app-tile: inset 0 0 0 var(--b-1) var(--line), inset 0 0 0 var(--h-regular) var(--state);
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--h-regular);
+  height: var(--h-regular);
+  box-shadow: var(--app-tile);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  .app:is(:hover, [data-state='hover']) > & {
+    --state: var(--hover);
+  }
+  .app:is(:active, [data-state='pressed']) > & {
+    --state: var(--pressed);
+  }
+  [data-size='compact'] > & {
+    width: var(--h-compact);
+    height: var(--h-compact);
+  }
+}
+.app__name {
+  max-width: 100%;
+  padding: 0 var(--s-1);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+}
+/* Open: the signal dot pops onto the corner of the tile, the one part that overshoots, unless the server painted it. */
+.app__open {
+  position: absolute;
+  top: calc(var(--s-1) * -1);
+  inset-inline-end: calc(var(--s-1) * -1);
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-swing);
+
+  &[data-pops] {
+    @starting-style {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+}
+
+/* Path: where a window is, in mono; the last segment is in the text colour. */
+.path {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+  margin: 0;
+  font: var(--f-mono);
+  color: var(--muted);
+}
+/* A segment holds its text alone, so what deciphers over it adds nothing to the height of the line. */
+.path > span {
+  display: inline-flex;
+}
+.path__here {
+  color: var(--fg);
+}
+
+/* Lamps: round lamps on the pitch, lit in the foreground or dark at a line's strength, that change along the spread column by column. */
+.lamps {
+  flex: none;
+  display: grid;
+  grid-template-columns: repeat(25, var(--pitch));
+  grid-auto-rows: var(--pitch);
+
+  & > i {
+    place-self: center;
+    width: var(--pitch-lamp);
+    height: var(--pitch-lamp);
+    border-radius: var(--r-full);
+    background-color: var(--line);
+    transition: background-color var(--m-fast) var(--m-standard);
+    transition-delay: calc(var(--m-spread) * var(--col) / 25);
+  }
+  & > [data-lamp='on'] {
+    background-color: var(--fg);
+  }
+  & > [data-lamp='none'] {
+    background-color: transparent;
+  }
+}
+
+/* Bar: every strip of chrome, its content on a keyline of 16 at both sizes. */
+.bar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: var(--h-regular);
+  padding: 0 var(--s-1);
+
+  &[data-size='compact'] {
+    height: var(--h-compact);
+  }
+  &[data-line='below'] {
+    border-bottom: var(--b-1) solid var(--line);
+  }
+  &[data-line='above'] {
+    border-top: var(--b-1) solid var(--line);
+  }
+  /* A compact button at the end of a regular bar keeps the same distance from the edge as from the top. */
+  &:not([data-size='compact']) > .btn[data-size='compact'] {
+    &:first-child {
+      margin-inline-start: var(--s-1);
+    }
+    &:last-child {
+      margin-inline-end: var(--s-1);
+    }
+  }
+}
+.bar__title {
+  overflow: hidden;
+  padding: 0 var(--s-3);
+  font: var(--f-body);
+  font-weight: var(--w-medium);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+
+  [data-size='compact'] > & {
+    font: var(--f-small);
+    font-weight: var(--w-medium);
+  }
+}
+.bar__text {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 0 var(--s-3);
+  font: var(--f-mono);
+  color: var(--muted);
+  white-space: nowrap;
+}
+.bar__space {
+  flex: 1 1 0;
+  min-width: 0;
+}
+/* The handle of a window: the empty part of its title bar, in rows of dots on the pitch. */
+.bar__grip {
+  flex: 1 1 0;
+  min-width: var(--s-3);
+  height: calc(var(--pitch) * var(--pitch-rows));
+  margin: 0 var(--s-2);
+}
