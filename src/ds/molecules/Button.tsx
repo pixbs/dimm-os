@@ -31,7 +31,7 @@ export function Button(props: Props) {
       <ForDevice text={hint} />
     </span>
   )
-  const trail = busy ?? (end ? <Icon name={end} size="s" /> : key)
+  const trail = busy || (end ? <Icon name={end} size="s" /> : key)
 
   return (
     <button

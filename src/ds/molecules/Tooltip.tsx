@@ -31,7 +31,13 @@ export function Tip(props: { label: string; hint?: Named }) {
     const listeners = {
       pointerenter: () => setOpen(true),
       pointerleave: () => setOpen(false),
-      pointerdown: () => setOpen(false),
+      pointerdown: (event: Event) => !at.current!.contains(event.target as Node) && setOpen(false),
+      // The tooltip can be pointed at, but a press on it does not press what it names.
+      click: (event: Event) => {
+        if (!at.current!.contains(event.target as Node)) return
+        event.preventDefault()
+        event.stopPropagation()
+      },
       focusin: () => setOpen(host.matches(':focus-visible')),
       focusout: () => setOpen(false),
       keydown: (event: Event) => (event as KeyboardEvent).key === 'Escape' && setOpen(false),

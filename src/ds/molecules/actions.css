@@ -127,7 +127,7 @@
     }
   }
 }
-@container (max-width: 599px) {
+@container (width < 600px) {
   .btngroup:not([data-width='hug']) {
     flex-direction: column;
 
@@ -320,7 +320,7 @@
 .wctl:is(:hover, :focus-within, [data-size='regular']) .wdot__sign {
   opacity: 100%;
 }
-.wdot:is([data-close]:hover, [data-close][data-state='hover']) .wdot__dot {
+.wdot[data-close]:hover .wdot__dot {
   background-color: var(--signal);
 }
 /* A control the window does not allow stays in its place, hollow. */

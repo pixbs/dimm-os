@@ -95,6 +95,18 @@ test.describe('Actions', () => {
     await expect(tip).toBeVisible()
     await page.keyboard.press('Escape')
     await expect(tip).toHaveCount(0)
+
+    // It can be pointed at and pressed, and that does not press the button.
+    await page.evaluate(() => {
+      Object.assign(window, { presses: 0 })
+      document.addEventListener('click', () =>
+        Object.assign(window, { presses: 1 + Reflect.get(window, 'presses') }),
+      )
+    })
+    await button.hover()
+    await tip.click()
+    await expect(tip).toBeVisible()
+    expect(await page.evaluate(() => Reflect.get(window, 'presses'))).toBe(0)
   })
 
   test('fades a tooltip in place with reduced motion', async ({ page }) => {
