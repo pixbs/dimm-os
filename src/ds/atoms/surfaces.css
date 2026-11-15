@@ -1,0 +1,83 @@
+/* A surface is a background and one foreground; everything on it is that foreground at a strength. */
+:root {
+  color-scheme: dark;
+}
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* A change of theme, contrast or hand is one crossfade of the whole screen. */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--m-slow);
+  animation-timing-function: var(--m-ease);
+}
+
+[data-surface] {
+  --bg: var(--surface);
+  --fg: var(--on-surface);
+  --muted: color-mix(in srgb, var(--fg) var(--a-muted), transparent);
+  --faint: color-mix(in srgb, var(--fg) var(--a-faint), transparent);
+  --line: color-mix(in srgb, var(--fg) var(--a-line), transparent);
+  --hover: color-mix(in srgb, var(--fg) var(--a-hover), transparent);
+  --pressed: var(--line);
+  /* the dot grid of an empty box */
+  --pattern: radial-gradient(var(--line) var(--b-1), transparent 0);
+  /* A ring is drawn outside its thing, so it is the foreground of the surface under it. */
+  --ring: var(--on-surface);
+  --signal: var(--orange);
+  background-color: var(--bg);
+  color: var(--fg);
+}
+
+/* Light is the reverse of dark: the inks become papers and paper becomes ink. */
+[data-surface='desktop'] {
+  --surface: light-dark(var(--paper-1), var(--ink-1));
+}
+[data-surface='window'] {
+  --surface: light-dark(var(--paper-2), var(--ink-2));
+}
+[data-surface='raised'] {
+  --surface: light-dark(var(--paper-3), var(--ink-3));
+}
+[data-surface='desktop'],
+[data-surface='window'],
+[data-surface='raised'] {
+  --on-surface: light-dark(var(--ink-1), var(--paper-1));
+  /* On a light surface the signal is darker, so a state reaches 3:1. */
+  --signal: light-dark(var(--orange-dark), var(--orange));
+}
+[data-surface='paper'] {
+  --surface: light-dark(var(--ink-1), var(--paper-1));
+  --on-surface: light-dark(var(--paper-1), var(--ink-1));
+  --signal: light-dark(var(--orange), var(--orange-dark));
+}
+
+/* An accent stays as it is in both themes, and is loud: nothing on it is muted or faint. */
+[data-surface='orange'] {
+  --surface: var(--orange);
+}
+[data-surface='blue'] {
+  --surface: var(--blue);
+}
+[data-surface='mint'] {
+  --surface: var(--mint);
+}
+[data-surface='orange'],
+[data-surface='blue'],
+[data-surface='mint'] {
+  --on-surface: var(--ink-1);
+  --muted: var(--fg);
+  --faint: var(--fg);
+}
+
+/* Inverted swaps the two of the surface it stands on: a solid button, a selected row. */
+[data-surface='inverted'] {
+  --bg: var(--on-surface);
+  --fg: var(--surface);
+}
+
+::selection {
+  background-color: var(--orange);
+  color: var(--ink-1);
+}

@@ -1,0 +1,138 @@
+/* The only file that holds raw values. Everything else refers to these by name. */
+:root {
+  /* colour: three inks, three papers, three accents, and the orange that signals on a light surface */
+  --ink-1: #0e0e10;
+  --ink-2: #141416;
+  --ink-3: #1c1c1f;
+  --paper-1: #edebe6;
+  --paper-2: #f3f1ed;
+  --paper-3: #f9f8f5;
+  --orange: #ff5b1f;
+  --orange-dark: #eb541d;
+  --blue: #7c8cff;
+  --mint: #a8f0c6;
+  /* strength: the foreground of a surface at four steps below full */
+  --a-hover: 8%;
+  --a-line: 16%;
+  --a-faint: 48%;
+  --a-muted: 64%;
+
+  /* type: two families, two weights, eight styles */
+  --font-sans: var(--font-inter-tight), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --w-regular: 400;
+  --w-medium: 500;
+  --lh-hero: 80px;
+  --lh-display: 56px;
+  --lh-title: 44px;
+  --lh-heading: 32px;
+  --lh-lead: 28px;
+  --lh-body: 24px;
+  --lh-small: 20px;
+  --f-hero: 500 80px / var(--lh-hero) var(--font-sans);
+  --f-display: 500 56px / var(--lh-display) var(--font-sans);
+  --f-title: 500 40px / var(--lh-title) var(--font-sans);
+  --f-heading: 500 28px / var(--lh-heading) var(--font-sans);
+  --f-lead: 400 20px / var(--lh-lead) var(--font-sans);
+  --f-body: 400 16px / var(--lh-body) var(--font-sans);
+  --f-small: 400 13px / var(--lh-small) var(--font-sans);
+  --f-mono: 400 13px / var(--lh-small) var(--font-mono);
+  --k-1: -0.01em;
+  --k-2: -0.02em;
+  --k-3: -0.03em;
+  /* what wider text spacing adds between letters and between words: nothing until it is set */
+  --k-wide: 0em;
+  --ws-wide: 0em;
+
+  /* space: seven steps on a base of 4 */
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-6: 24px;
+  --s-8: 32px;
+  --s-12: 48px;
+
+  /* size: two control heights, two glyph sizes, one dot, three fixed widths */
+  --h-compact: 32px;
+  --h-regular: 48px;
+  --g-s: 16px;
+  --g-m: 24px;
+  --dot: 8px;
+  --stroke: 1.5px;
+  --w-popover: 320px;
+  --w-dialog: 480px;
+  --measure: 560px;
+
+  /* the soft edge of a dot drawn on the pitch */
+  --pitch-edge: 0.6px;
+  /* the strip of bars that marks a record */
+  --bars: repeating-linear-gradient(
+    90deg,
+    #000 0 2px,
+    #0000 2px 3px,
+    #000 3px 4px,
+    #0000 4px 7px,
+    #000 7px 10px,
+    #0000 10px 11px
+  );
+
+  /* corners and line weights */
+  --r-0: 0px;
+  --r-full: 999px;
+  --b-1: 1px;
+  --b-2: 2px;
+  --b-6: 6px;
+
+  /* depth: the shadow of what floats, and the scrim behind a drawer */
+  --e-window: 0 24px 64px color-mix(in srgb, var(--ink-1) 64%, transparent);
+  --e-popover: 0 8px 24px color-mix(in srgb, var(--ink-1) 48%, transparent);
+  --scrim: color-mix(in srgb, var(--ink-1) var(--a-muted), transparent);
+
+  /* motion: two durations on one curve, and one long move with two curves of its own */
+  --m-fast: 160ms;
+  --m-slow: 320ms;
+  --m-long: 960ms;
+  --m-ease: cubic-bezier(0.2, 0, 0, 1);
+  --m-swing: cubic-bezier(0.3, 1.5, 0.55, 1);
+  --m-drop: cubic-bezier(0.55, 0, 1, 0.45);
+}
+
+/* more contrast: every strength below full steps up by one */
+[data-contrast='more'] {
+  --a-hover: 16%;
+  --a-line: 32%;
+  --a-faint: 64%;
+  --a-muted: 80%;
+}
+
+[data-spacing='wide'] {
+  --k-wide: 0.12em;
+  --ws-wide: 0.16em;
+}
+
+/* the pitch, the rows of a handle and the dots of a grip, declared wherever a pitch is set so the dot follows it */
+:root,
+[data-pitch] {
+  --pitch: 8px;
+  --pitch-dot: calc(var(--pitch) * 0.36);
+  --pitch-rows: 2;
+  --pitch-grip: 3;
+}
+/* a small dot stands in more rows, a large one in a smaller grip */
+[data-pitch='5'] {
+  --pitch: 5px;
+  --pitch-rows: 4;
+}
+[data-pitch='6'] {
+  --pitch: 6px;
+  --pitch-rows: 3;
+}
+[data-pitch='10'] {
+  --pitch: 10px;
+  --pitch-grip: 2;
+}
+[data-pitch='12'] {
+  --pitch: 12px;
+  --pitch-grip: 2;
+}
