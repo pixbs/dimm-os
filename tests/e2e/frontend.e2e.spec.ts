@@ -8,7 +8,7 @@ const closeFront = (page: Page) =>
   page.locator('article[data-front]').getByRole('button', { name: 'Close' }).click()
 
 // A mark on the document tells a page load from a window the desk opened: only a load removes it.
-const mark = (page: Page) => page.evaluate(() => Object.assign(window, { marked: true }))
+const mark = (page: Page) => page.evaluate(() => void Object.assign(window, { marked: true }))
 const marked = (page: Page) => page.evaluate(() => 'marked' in window)
 
 test.describe('Frontend', () => {
@@ -68,6 +68,16 @@ test.describe('Frontend', () => {
     await page.goBack()
     await expect(page).toHaveURL('/work')
     await expect(front(page)).toHaveText('Work')
+  })
+
+  test('opens a window of the German desk at its German address', async ({ page }) => {
+    await page.goto('/de')
+    await mark(page)
+
+    await page.getByRole('link', { name: 'Arbeit' }).click()
+    await expect(page).toHaveURL('/de/work')
+    await expect(front(page)).toHaveText('Arbeit')
+    expect(await marked(page)).toBe(true)
   })
 
   test('leaves a link to the browser when its view cannot be fetched', async ({ page }) => {
