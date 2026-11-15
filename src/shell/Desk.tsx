@@ -67,6 +67,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const anchor = (event.target as Element).closest('a')
     if (!anchor || anchor.origin !== location.origin || anchor.target || event.button !== 0) return
     if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return
+    if (anchor.hash || anchor.search || anchor.hasAttribute('download')) return
 
     const { language: theirs, path } = fromAddress(anchor.pathname)
     if (theirs !== language || path === '/') return
@@ -126,7 +127,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         <article
           data-front={path === front(desk) ? '' : undefined}
           key={path}
-          onPointerDown={() => {
+          onPointerDown={(event) => {
+            // Only a press of the main button picks a window: a context menu or a middle click leaves history alone.
+            if (event.button !== 0) return
             dispatch({ type: 'focus', path })
             show(path)
           }}
