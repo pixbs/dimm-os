@@ -18,19 +18,20 @@ describe('a content user', () => {
   })
 
   it('edits windows and Site, and reaches no other user', async () => {
-    const [user] = await Promise.all(
-      emails.map((email, index) =>
-        payload.create({
-          collection: 'users',
-          data: { email, password: 'a-local-password', role: index ? 'admin' : 'content' },
-          depth: 0,
-          draft: false,
-          fallbackLocale: false,
-          locale: 'en',
-          overrideAccess: true,
-        }),
-      ),
-    )
+    const create = (email: string, role: 'admin' | 'content') =>
+      payload.create({
+        collection: 'users',
+        data: { email, password: 'a-local-password', role },
+        depth: 0,
+        draft: false,
+        fallbackLocale: false,
+        locale: 'en',
+        overrideAccess: true,
+      })
+    // The admin first, since the first user of an empty database is always the admin.
+    await create(emails[1], 'admin')
+    const user = await create(emails[0], 'content')
+    expect(user.role).toBe('content')
     const as = {
       depth: 0,
       fallbackLocale: false,
