@@ -6,7 +6,7 @@ import { revalidateChange, revalidateDelete, revalidateGlobal } from '@/hooks/re
 vi.mock('@/data/views', () => ({ revalidateViews: vi.fn() }))
 
 type Args = Parameters<typeof revalidateChange>[0]
-const change = (doc: object, previousDoc?: object) => revalidateChange({ doc, previousDoc } as Args)
+const change = (context: object) => revalidateChange({ context, doc: {} } as Args)
 
 describe('a content change', () => {
   // The hooks act only inside the Next.js server.
@@ -14,13 +14,12 @@ describe('a content change', () => {
   afterAll(() => vi.unstubAllEnvs())
 
   it.each([
-    ['publishes a window', { _status: 'published' }, undefined, 1],
-    ['unpublishes a window', { _status: 'draft' }, { _status: 'published' }, 1],
-    ['saves a window never published', { _status: 'draft' }, { _status: 'draft' }, 0],
-    ['saves a file', {}, {}, 1],
-  ])('revalidates every view when it %s', async (_, doc, previousDoc, times) => {
+    ['publishes or unpublishes a window', { draft: false }, 1],
+    ['saves a draft', { draft: true }, 0],
+    ['saves a file', {}, 1],
+  ])('revalidates every view when it %s', async (_, context, times) => {
     vi.mocked(revalidateViews).mockClear()
-    await change(doc, previousDoc)
+    await change(context)
     expect(revalidateViews).toHaveBeenCalledTimes(times)
   })
 

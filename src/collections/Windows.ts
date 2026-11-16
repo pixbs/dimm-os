@@ -11,7 +11,7 @@ import { signedIn } from '@/access'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
 import { facts } from '@/fields/facts'
-import { revalidateChange, revalidateDelete } from '@/hooks/revalidate'
+import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 import { languages } from '@/i18n/address'
 import { systemKeys } from '@/i18n/keys'
 
@@ -34,9 +34,9 @@ const systemLetters: string[] = Object.values(systemKeys).flatMap((keys) =>
 const onItem: Condition = (data) => Boolean(data?.parent)
 const onWindow: Condition = (data) => !data?.parent
 
-// Unpublishing is a save that asks for a draft without saving one, in one language or in all of them.
+// Unpublishing is a save that asks for a draft without saving one, in one language or in all of them, or the
+// restore of a draft that is not restored as one.
 const keepLegalPublished: CollectionBeforeOperationHook = async ({ args, operation, req }) => {
-  if (operation !== 'update') return args
   const { data, draft, id, unpublishAllLocales, where } = args as {
     data?: { _status?: string }
     draft?: boolean
@@ -44,15 +44,33 @@ const keepLegalPublished: CollectionBeforeOperationHook = async ({ args, operati
     unpublishAllLocales?: boolean
     where?: Where
   }
-  if (!unpublishAllLocales && (data?._status !== 'draft' || draft)) return args
+  let target: Where | undefined
+  if (operation === 'update' && (unpublishAllLocales || (data?._status === 'draft' && !draft)))
+    target = id ? { id: { equals: id } } : (where ?? {})
+  if (operation === 'restoreVersion' && id && !draft) {
+    const { parent, version } = await req.payload.findVersionByID({
+      collection: 'windows',
+      id: String(id),
+      depth: 0,
+      fallbackLocale: false,
+      locale: 'all',
+      overrideAccess: true,
+      req,
+    })
+    // With the status localised, all languages are restored together.
+    const status: unknown = version._status
+    const statuses = status && typeof status === 'object' ? Object.values(status) : [status]
+    if (statuses.includes('draft')) target = { id: { equals: parent } }
+  }
+  if (!target) return args
 
   const { totalDocs } = await req.payload.count({
     collection: 'windows',
-    // Slugs and the tree are shared by both languages.
-    locale: 'en',
+    // A bulk unpublish asks in the language it was chosen in.
+    locale: req.locale && req.locale !== 'all' ? req.locale : 'en',
     overrideAccess: true,
     req,
-    where: { and: [id ? { id: { equals: id } } : (where ?? {}), { slug: { in: legal } }] },
+    where: { and: [target, { slug: { in: legal } }] },
   })
   if (totalDocs)
     throw new APIError('The imprint and the privacy policy stay published.', 403, null, true)
@@ -250,6 +268,10 @@ export const Windows: CollectionConfig = {
       name: 'slug',
       type: 'slug',
       useAsSlug: 'title',
+      // The system links to the fixed windows by these names.
+      access: {
+        update: ({ doc }) => !fixed.includes((doc as { slug?: string } | undefined)?.slug ?? ''),
+      },
       validate: (value: null | string | undefined) =>
         !value || !reserved.includes(value) || 'This name belongs to the system.',
     },
@@ -302,7 +324,7 @@ export const Windows: CollectionConfig = {
   hooks: {
     afterChange: [revalidateChange],
     afterDelete: [revalidateDelete],
-    beforeOperation: [keepLegalPublished],
+    beforeOperation: [keepLegalPublished, noteDraft],
   },
   orderable: true,
   versions: { drafts: { autosave: true }, maxPerDoc: 100 },

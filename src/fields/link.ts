@@ -7,6 +7,12 @@ const label: TextFieldSingleValidation = (value, options) =>
     ? text(value, options)
     : options.req.t('validation:required')
 
+// A script in a link would run with the rights of whoever presses it.
+const address: TextFieldSingleValidation = (value, options) =>
+  value && !/^(https?:|mailto:|tel:|\/)/i.test(value)
+    ? 'An address starts with https://, mailto:, tel: or /.'
+    : text(value, options)
+
 const to =
   (type: string): Condition =>
   (_, siblingData) =>
@@ -57,6 +63,7 @@ export function buttons(name: string): ArrayField {
             type: 'text',
             label: 'Address',
             required: true,
+            validate: address,
             admin: { condition: to('address'), width: '50%' },
           },
           {

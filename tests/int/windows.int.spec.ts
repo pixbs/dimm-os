@@ -1,8 +1,11 @@
 import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 
+import { revalidateViews } from '@/data/views'
 import type { User, Window } from '@/payload-types'
+
+vi.mock('@/data/views', () => ({ revalidateViews: vi.fn() }))
 
 let payload: Payload
 
@@ -15,6 +18,9 @@ const slugs = [
   'parent',
   'item',
   'other',
+  'withdrawn',
+  'imprint-old',
+  'addressed',
 ]
 const signedIn: User = {
   id: 0,
@@ -128,6 +134,23 @@ describe('a window', () => {
     await expect(create({ title: slug })).rejects.toThrow('Slug')
   })
 
+  it('takes no address that would run a script', async () => {
+    const button = (url: string) => ({ type: 'address' as const, url, label: 'Go' })
+
+    await expect(
+      create({ title: 'Scripted', actions: [button('javascript:alert(1)')] }),
+    ).rejects.toThrow('Address')
+    const { id } = await create({ title: 'Addressed', actions: [button('https://example.com')] })
+    await payload.delete({
+      collection: 'windows',
+      id,
+      depth: 0,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+    })
+  })
+
   it('is a window or the item of one, no deeper', async () => {
     const parent = await create({ title: 'Parent' })
     const item = await create({ title: 'Item', parent: parent.id })
@@ -189,6 +212,78 @@ describe('the two legal windows', () => {
     },
   )
 
+  // A legal window, made once: they cannot be deleted.
+  const legal = async (slug: string) => {
+    const { docs } = await payload.find({
+      collection: 'windows',
+      depth: 0,
+      draft: false,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+      where: { slug: { equals: slug } },
+    })
+    return docs[0] ?? (await create({ title: slug, slug }))
+  }
+
+  it('keep the names the system links to', async () => {
+    const { id } = await legal('imprint')
+    await payload.update({
+      collection: 'windows',
+      id,
+      data: { slug: 'imprint-old' },
+      depth: 0,
+      draft: false,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: false,
+      user: signedIn,
+    })
+
+    expect((await read(id, 'en', false)).slug).toBe('imprint')
+    await expect(remove(id)).rejects.toThrow()
+  })
+
+  it('are not unpublished by restoring a draft of theirs', async () => {
+    const { id } = await legal('privacy-policy')
+    await payload.update({
+      collection: 'windows',
+      id,
+      data: { title: 'Privacy, a draft' },
+      depth: 0,
+      draft: true,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+    })
+    const { docs } = await payload.findVersions({
+      collection: 'windows',
+      depth: 0,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+      sort: '-updatedAt',
+      where: { parent: { equals: id } },
+    })
+    const draft = docs.find((one) => one.version._status === 'draft')!
+    const restore = (asDraft: boolean) =>
+      payload.restoreVersion({
+        collection: 'windows',
+        id: draft.id,
+        depth: 0,
+        draft: asDraft,
+        fallbackLocale: false,
+        locale: 'en',
+        overrideAccess: false,
+        user: signedIn,
+      })
+
+    await expect(restore(false)).rejects.toThrow('stay published')
+    expect((await read(id, 'en', false))._status).toBe('published')
+    await restore(true)
+    expect((await read(id, 'en', false))._status).toBe('published')
+  })
+
   it('leave an ordinary window free to be hidden, unpublished and deleted', async () => {
     const { id } = await create({ title: 'Ordinary' })
 
@@ -196,5 +291,34 @@ describe('the two legal windows', () => {
     expect(await change(id, { _status: 'draft' })).toMatchObject({ _status: 'draft' })
     await remove(id)
     await expect(read(id, 'en', true)).rejects.toThrow()
+  })
+})
+
+describe('a window that leaves the site', () => {
+  // The hooks act only inside the Next.js server.
+  beforeAll(() => vi.stubEnv('NEXT_RUNTIME', 'nodejs'))
+  afterAll(() => vi.unstubAllEnvs())
+
+  it('revalidates every view when unpublished with a draft pending, and not for the draft', async () => {
+    const { id } = await create({ title: 'Withdrawn' })
+    const save = (data: Data, draft: boolean) =>
+      payload.update({
+        collection: 'windows',
+        id,
+        data,
+        depth: 0,
+        draft,
+        fallbackLocale: false,
+        locale: 'en',
+        overrideAccess: true,
+      })
+
+    await save({ title: 'Withdrawn, edited' }, true)
+    vi.mocked(revalidateViews).mockClear()
+    await save({ title: 'Withdrawn, edited again' }, true)
+    expect(revalidateViews).not.toHaveBeenCalled()
+
+    await save({ _status: 'draft' }, false)
+    expect(revalidateViews).toHaveBeenCalled()
   })
 })
