@@ -12,16 +12,18 @@ import {
 
 import type { View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
-import { Bar, BarSpace } from '@/ds/molecules/Bar'
+import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonLink } from '@/ds/molecules/Button'
+import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import { MenuBar } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
-import { named } from '@/i18n/keys'
+import { named, systemKeys } from '@/i18n/keys'
 
 import { Clock } from './Clock'
+import { keyAction } from './keys'
 import { type Action, front, manager, phone, stack, start } from './manager'
 import { menus } from './menus'
 import { idOf, OnDesk, tasksOf } from './OnDesk'
@@ -106,6 +108,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The first render takes its window from the view alone, so it matches the server's HTML at any address.
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
+  const header = useRef<HTMLElement>(null)
   const top = front(desk)
   // On a phone the menus that are open are drawers in front of the windows.
   const [unfolded, setMenus] = useState(0)
@@ -174,6 +177,27 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (restored.current) store(desk.z)
   }, [desk.z])
 
+  // The keys act from wherever the focus is; the switch on the root is read at each press. A key opens its window
+  // as the menu's link to it does.
+  const keyDown = useEffectEvent((event: KeyboardEvent) => {
+    const single = document.documentElement.dataset.shortcuts !== 'off'
+    const action = keyAction(event, view.keys, single, desk)
+    if (!action) return
+    event.preventDefault()
+    if (action === 'search') {
+      // Until the palette arrives, the key finds the button that will open it.
+      ;[...header.current!.querySelectorAll<HTMLElement>('[aria-keyshortcuts]')]
+        .find((button) => button.checkVisibility())
+        ?.focus()
+    } else if (action.type === 'open') {
+      void open(act, action.path, null, () => location.replace(toAddress(language, action.path)))
+    } else act(action)
+  })
+  useEffect(() => {
+    addEventListener('keydown', keyDown)
+    return () => removeEventListener('keydown', keyDown)
+  }, [])
+
   // In the taskbar a window goes by the name its bar shows, in the dock by its title.
   const tasks = tasksOf(desk)
   const pick = (index: number, opener: Element) =>
@@ -188,10 +212,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     ] as const
   ).map(([path, label]) => ({ href: toAddress(language, path), label }))
   const preferences = { href: toAddress(language, '/preferences'), label: dictionary.preferences }
+  const [before, after] = dictionary.hotkeyHint.split('{key}')
 
   return (
     <Screen fill onClick={follow}>
-      <header data-surface="desktop">
+      <header data-surface="desktop" ref={header}>
         {top && <Skip label={dictionary.skip} to={idOf(top)} />}
         <MenuBar
           drawer={phone(desk)}
@@ -203,14 +228,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         >
           <BarSpace />
           <Button
+            aria-keyshortcuts="Meta+K Control+K"
             data-for="pointer"
-            hint={named(language, ['mod', 'K'])}
+            hint={named(language, systemKeys.search)}
             icon="search"
             keyed
             name={dictionary.search}
             size="chrome"
           />
-          <Button data-for="touch" icon="search" name={dictionary.search} size="chrome" />
+          <Button
+            aria-keyshortcuts="Meta+K Control+K"
+            data-for="touch"
+            icon="search"
+            name={dictionary.search}
+            size="chrome"
+          />
           <Button
             data-for="desk pointer"
             icon="contrast"
@@ -266,6 +298,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       </div>
       <footer data-for="desk" data-surface="desktop">
         <Taskbar onPick={pick} size="chrome" tasks={tasks}>
+          <BarText data-for="wide pointer keys">
+            {before}
+            <Key name={named(language, systemKeys.hotkeys)} />
+            {after}
+          </BarText>
           {[...legal, preferences].map((link) => (
             <ButtonLink key={link.href} {...link} size="chrome" />
           ))}

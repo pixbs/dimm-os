@@ -27,7 +27,8 @@
     }
   }
 }
-/* What only one kind of screen shows: a desk or a phone by its width, a pointer or a finger by the device. */
+/* What only one kind of screen shows: a phone, a desk or a wide one by its width, a pointer or a finger by the
+   device. */
 @container screen (width < 600px) {
   .screen[data-fill] > .wallpaper {
     --wallpaper-at: var(--wallpaper-phone);
@@ -41,6 +42,11 @@
     display: none;
   }
 }
+@container screen (width < 960px) {
+  [data-for~='wide'] {
+    display: none;
+  }
+}
 @media (pointer: fine) {
   .screen [data-for~='touch'] {
     display: none;
@@ -50,6 +56,10 @@
   .screen [data-for~='pointer'] {
     display: none;
   }
+}
+/* With single-key shortcuts off, nothing points to one. */
+:root[data-shortcuts='off'] .screen [data-for~='keys'] {
+  display: none;
 }
 
 /* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */

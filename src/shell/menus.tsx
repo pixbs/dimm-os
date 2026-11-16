@@ -2,7 +2,7 @@ import { change } from '@/ds/atoms/settings'
 import type { Item, Top } from '@/ds/organisms/Menu'
 import { type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
-import { named } from '@/i18n/keys'
+import { named, systemKeys } from '@/i18n/keys'
 
 import { type Action, compact, front, phone, type Windows } from './manager'
 import { tasksOf } from './OnDesk'
@@ -20,8 +20,8 @@ export function menus(props: {
   act: (action: Action) => void
 }): Top[] {
   const { t, language, desk, act } = props
-  const key = (...keys: Parameters<typeof named>[1]) => named(language, keys)
-  const link = (path: string, label: string, hint?: string) => ({
+  const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
+  const link = (path: string, label: string, hint?: keyof typeof systemKeys) => ({
     label,
     href: toAddress(language, path),
     hint: hint && key(hint),
@@ -31,7 +31,7 @@ export function menus(props: {
   const oneSize = !!shown?.view?.frame.oneSize
   const onDesk = desk.open.filter((entry) => entry.mode !== 'min').length
   const about = link('/about', t.about.replace('{name}', props.name))
-  const hotkeys = link('/hotkeys', phone(desk) ? t.gestures : t.hotkeys, '?')
+  const hotkeys = link('/hotkeys', phone(desk) ? t.gestures : t.hotkeys, 'hotkeys')
   const legal = [
     link('/imprint', t.imprint),
     link('/privacy-policy', t.privacy),
@@ -46,10 +46,10 @@ export function menus(props: {
 
   const file: Item[] = [
     // Search arrives with the palette.
-    { label: t.searchCommand, hint: key('mod', 'K'), disabled: true },
+    { label: t.searchCommand, hint: key('search'), disabled: true },
     {
       label: t.closeWindow,
-      hint: key('esc'),
+      hint: key('close'),
       act: () => act({ type: 'close', path: top! }),
       disabled: !top,
     },
@@ -57,7 +57,7 @@ export function menus(props: {
   const view: Item[] = [
     {
       label: t.fullScreen,
-      hint: key('F'),
+      hint: key('fullScreen'),
       act: () => act({ type: 'full' }),
       disabled: !top || compact(desk) || oneSize,
     },
@@ -80,11 +80,16 @@ export function menus(props: {
   const window: Item[] = [
     {
       label: t.minimise,
-      hint: key('M'),
+      hint: key('minimise'),
       act: () => act({ type: 'minimise' }),
       disabled: !desk.open.length,
     },
-    { label: t.nextWindow, hint: key('N'), act: () => act({ type: 'next' }), disabled: onDesk < 2 },
+    {
+      label: t.nextWindow,
+      hint: key('nextWindow'),
+      act: () => act({ type: 'next' }),
+      disabled: onDesk < 2,
+    },
     {
       label: t.moveResize,
       items: [
@@ -111,7 +116,7 @@ export function menus(props: {
   ]
   const system: Item[] = [
     about,
-    link('/preferences', t.preferences, ','),
+    link('/preferences', t.preferences, 'preferences'),
     link('/accessibility', t.accessibility),
     hotkeys,
     'rule',

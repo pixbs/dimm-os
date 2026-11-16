@@ -19,11 +19,22 @@ type Device = 'apple' | 'other'
 
 export type Key = keyof typeof keyNames.en.apple
 
+// The keys of the system: the menus show them beside their commands, and the shell's key map answers to them.
+export const systemKeys = {
+  hotkeys: ['?'],
+  search: ['mod', 'K'],
+  preferences: [','],
+  close: ['esc'],
+  minimise: ['M'],
+  fullScreen: ['F'],
+  nextWindow: ['N'],
+} as const
+
 // One name where the devices agree, else one for each: the page holds both and shows the device's.
 export type Named = string | Record<Device, string>
 
 // What keys pressed together are called: written together on an Apple device, apart elsewhere.
-export function named(language: Language, keys: (Key | (string & {}))[]): Named {
+export function named(language: Language, keys: readonly (Key | (string & {}))[]): Named {
   const [apple, other] = (['apple', 'other'] as const).map((device) =>
     keys
       .map((key) => keyNames[language][device][key as Key] ?? key)
