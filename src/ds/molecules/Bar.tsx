@@ -22,8 +22,8 @@ export function BarTitle({ children }: { children: ReactNode }) {
 }
 
 // What the system says in a bar, in mono.
-export function BarText({ children }: { children: ReactNode }) {
-  return <span className="bar__text">{children}</span>
+export function BarText(props: HTMLAttributes<HTMLSpanElement>) {
+  return <span {...props} className="bar__text" />
 }
 
 export function BarSpace() {

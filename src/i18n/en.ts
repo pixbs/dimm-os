@@ -15,6 +15,7 @@ const en = {
   guest: 'Guest',
   handle: '{window}: its bar. Arrows move the window, Shift and arrows resize it.',
   help: 'Help',
+  hotkeyHint: 'Press {key} for hotkeys',
   hotkeys: 'Hotkeys',
   imprint: 'Imprint',
   language: 'Language: English',

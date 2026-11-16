@@ -6,6 +6,7 @@ import { cookies } from 'next/headers'
 
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
+import type { AppKey } from '@/shell/keys'
 
 import { site, visitor, windows } from './fixture'
 import { VISITOR_COOKIE } from './viewer'
@@ -27,6 +28,7 @@ export type View = {
   language: Language
   site: typeof site
   shortcuts: Shortcut[]
+  keys: AppKey[]
   window: WindowView | null
 }
 
@@ -65,7 +67,8 @@ export async function getWindowView(
         ]
       : [],
   )
-  if (path === '/') return { language, site, shortcuts, window: null }
+  const keys = visible.flatMap(({ key, path }) => (key ? [{ key, path }] : []))
+  if (path === '/') return { language, site, shortcuts, keys, window: null }
 
   const found = visible.find((window) => window.path === path)
   if (!found) return null
@@ -82,6 +85,7 @@ export async function getWindowView(
     language,
     site,
     shortcuts,
+    keys,
     window: {
       path,
       frame: { title: found.title[language], kind: found.kind, tile: app?.tile ?? null },
@@ -101,9 +105,10 @@ export async function getWindowView(
   }
 }
 
+// Keyed by deployment, as the cache outlives one: a deployment that changes what a view holds never reads an older view.
 const getGuestView = unstable_cache(
   (path: string, language: Language) => getWindowView(path, language, null),
-  ['view'],
+  ['view', process.env.VERCEL_DEPLOYMENT_ID ?? ''],
   { tags: [TAG] },
 )
 

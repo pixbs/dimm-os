@@ -20,6 +20,8 @@ type Window = {
   kind: string | null
   tile: Tile | null
   icon: IconName | null
+  // The letter that opens it.
+  key?: string
   title: Record<Language, string>
   body: ReturnType<typeof text>
 }
@@ -33,6 +35,7 @@ export const windows: Window[] = [
     kind: null,
     tile: 'orange',
     icon: 'grid',
+    key: 'W',
     title: { en: 'Work', de: 'Arbeit' },
     body: {
       en: buildDefaultEditorState({ text: 'A fixture window that lists its items.' }),
@@ -94,13 +97,14 @@ export const windows: Window[] = [
     title: { en: 'Contact', de: 'Kontakt' },
     body: text('A fixture window for a form.', 'Ein Beispielfenster für ein Formular.'),
   },
-  // The windows the tray and the phone's home link to, until the system and the admin bring theirs.
+  // The windows the menus, the tray and the phone's home link to, until the system and the admin bring theirs.
   ...(
     [
       ['/imprint', 'txt', 'Imprint', 'Impressum'],
       ['/privacy-policy', 'txt', 'Privacy', 'Datenschutz'],
       ['/cookies', 'sys', 'Cookies', 'Cookies'],
       ['/preferences', 'sys', 'Preferences', 'Einstellungen'],
+      ['/hotkeys', 'sys', 'Hotkeys', 'Tastenkürzel'],
     ] as const
   ).map(([path, kind, en, de]) => ({
     path,

@@ -18,6 +18,7 @@ const de: Dictionary = {
   handle:
     '{window}: die Leiste. Pfeiltasten bewegen das Fenster, Umschalt und Pfeiltasten ändern seine Größe.',
   help: 'Hilfe',
+  hotkeyHint: 'Drücken Sie {key} für Tastenkürzel',
   hotkeys: 'Tastenkürzel',
   imprint: 'Impressum',
   language: 'Sprache: Deutsch',
