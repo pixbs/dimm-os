@@ -1,4 +1,5 @@
 import {
+  type Access,
   APIError,
   type CollectionBeforeOperationHook,
   type CollectionConfig,
@@ -11,6 +12,7 @@ import { signedIn } from '@/access'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
 import { facts } from '@/fields/facts'
+import { dropBareIds } from '@/hooks/relations'
 import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 import { languages } from '@/i18n/address'
 import { systemKeys } from '@/i18n/keys'
@@ -33,6 +35,28 @@ const systemLetters: string[] = Object.values(systemKeys).flatMap((keys) =>
 
 const onItem: Condition = (data) => Boolean(data?.parent)
 const onWindow: Condition = (data) => !data?.parent
+
+// The one read rule, which Payload applies to every list, count, join and population. Published is per language.
+const read: Access = ({ req }) => {
+  if (req.user) return true
+  const { viewer } = req.context
+  // Not the site's own code: the public API, which serves the two users only.
+  if (viewer === undefined) return false
+
+  const shown: Where = {
+    and: [{ hidden: { not_equals: true } }, { 'parent.hidden': { not_equals: true } }],
+  }
+  const invited = viewer && new Date(viewer.expires) > new Date()
+  const listed = invited
+    ? (viewer.windows ?? []).map((window) => (typeof window === 'object' ? window.id : window))
+    : []
+  return {
+    and: [
+      { _status: { equals: 'published' } },
+      listed.length ? { or: [shown, { id: { in: listed } }, { parent: { in: listed } }] } : shown,
+    ],
+  }
+}
 
 // Unpublishing is a save that asks for a draft without saving one, in one language or in all of them, or the
 // restore of a draft that is not restored as one.
@@ -81,7 +105,7 @@ export const Windows: CollectionConfig = {
   slug: 'windows',
   access: {
     create: signedIn,
-    read: signedIn,
+    read,
     readVersions: signedIn,
     update: signedIn,
     delete: ({ req }) => Boolean(req.user) && { slug: { not_in: legal } },
@@ -324,6 +348,7 @@ export const Windows: CollectionConfig = {
   hooks: {
     afterChange: [revalidateChange],
     afterDelete: [revalidateDelete],
+    afterRead: [dropBareIds],
     beforeOperation: [keepLegalPublished, noteDraft],
   },
   orderable: true,

@@ -9,6 +9,7 @@ import { fileURLToPath } from 'url'
 
 import { Media } from './collections/Media'
 import { Users } from './collections/Users'
+import { Visitors } from './collections/Visitors'
 import { Windows } from './collections/Windows'
 import { Site } from './globals/Site'
 
@@ -22,9 +23,10 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Windows, Media, Users],
+  collections: [Windows, Media, Users, Visitors],
   editor: lexicalEditor(),
   globals: [Site],
+  graphQL: { disable: true },
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
@@ -62,7 +64,8 @@ export default buildConfig({
   storage: [
     vercelBlobStorage({
       clientUploads: true,
-      collections: { media: true },
+      // A file is public at the store, under the random folder Payload gives each upload.
+      collections: { media: { disablePayloadAccessControl: true } },
       token: process.env.BLOB_READ_WRITE_TOKEN,
     }),
   ],

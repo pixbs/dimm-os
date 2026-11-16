@@ -1,13 +1,13 @@
 import type { CollectionConfig } from 'payload'
 
-import { signedIn } from '@/access'
+import { signedIn, signedInOrSite } from '@/access'
 import { revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
     create: signedIn,
-    read: () => true,
+    read: signedInOrSite,
     update: signedIn,
     delete: signedIn,
   },

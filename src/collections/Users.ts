@@ -20,7 +20,8 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
     defaultColumns: ['email', 'role'],
   },
-  auth: true,
+  // A key lets an agent work over MCP as a user, with that user's access and no more.
+  auth: { useAPIKey: true },
   authorship: false,
   fields: [
     {
