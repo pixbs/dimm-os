@@ -1,9 +1,15 @@
-import type { HTMLAttributes, ReactNode } from 'react'
+'use client'
+
+import { AnimatePresence } from 'motion/react'
+import * as m from 'motion/react-m'
+import type { ComponentProps, HTMLAttributes, ReactNode } from 'react'
 
 import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
 import { Bar, BarSpace } from '../molecules/Bar'
-import { Button, ButtonGroup } from '../molecules/Button'
+import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
+import { ways } from '../motion/Origin'
+import { usePainted } from '../motion/vocabulary'
 import { Wallpaper } from './Wallpaper'
 
 export type Tile = 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
@@ -29,6 +35,22 @@ export function Screen({
   )
 }
 
+// The first stop of the keyboard skips to the window in front; with script it leaves the address alone.
+export function Skip({ to, label }: { to: string; label: string }) {
+  return (
+    <div className="screen__skip" data-surface="inverted">
+      <ButtonLink
+        href={`#${to}`}
+        label={label}
+        onClick={(event) => {
+          event.preventDefault()
+          document.getElementById(to)?.focus()
+        }}
+      />
+    </div>
+  )
+}
+
 export type Shortcut = { href: string; name: string; icon: IconName; tile: Tile | null }
 
 // The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for.
@@ -36,9 +58,11 @@ export function Apps(props: {
   apps: Shortcut[]
   layout: 'column' | 'grid' | 'screen'
   label?: string
+  // Covered by a window in full screen, they cannot be reached.
+  inert?: boolean
 }) {
   return (
-    <nav aria-label={props.label} className="apps" data-layout={props.layout}>
+    <nav aria-label={props.label} className="apps" data-layout={props.layout} inert={props.inert}>
       {props.apps.map(({ tile, ...app }) => (
         <App key={app.href} {...app} tile={tile ?? undefined} />
       ))}
@@ -47,7 +71,44 @@ export function Apps(props: {
 }
 
 // A window as the taskbar and the dock show it: the window in front is selected, one minimised has a hollow mark.
-export type Task = { name: string; tile?: Tile | null; front?: boolean; minimised?: boolean }
+export type Task = {
+  // The id of its button, which its window shrinks into.
+  id?: string
+  name: string
+  tile?: Tile | null
+  front?: boolean
+  minimised?: boolean
+}
+
+const TaskButton = m.create(Button)
+const fast = ways('fast')
+
+// One button per window, led by the mark of its app: it comes and goes at its own place as its window does.
+function Tasks(props: {
+  tasks: Task[]
+  onPick?: (index: number) => void
+  button: (task: Task) => Pick<ComponentProps<typeof Button>, 'id' | 'lead' | 'size' | 'tone'>
+}) {
+  const painted = usePainted()
+
+  return (
+    <AnimatePresence initial={false}>
+      {props.tasks.map((task, index) => (
+        <TaskButton
+          {...props.button(task)}
+          animate="open"
+          aria-current={task.front || undefined}
+          exit="closed"
+          initial="closed"
+          key={task.id ?? index}
+          label={task.name}
+          onClick={props.onPick && (() => props.onPick!(index))}
+          variants={painted ? undefined : fast}
+        />
+      ))}
+    </AnimatePresence>
+  )
+}
 
 const mark = (task: Task, coloured: boolean) => (
   <span
@@ -57,7 +118,7 @@ const mark = (task: Task, coloured: boolean) => (
   />
 )
 
-// The foot of a desk: one button per window, led by the mark of its app, and the tray at its end.
+// The foot of a desk: one button per window, and the tray at its end.
 export function Taskbar(props: {
   tasks: Task[]
   size?: 'compact' | 'chrome'
@@ -66,17 +127,16 @@ export function Taskbar(props: {
 }) {
   return (
     <Bar line="above">
-      {props.tasks.map((task, index) => (
-        <Button
-          aria-current={task.front || undefined}
-          key={index}
-          label={task.name}
-          lead={mark(task, true)}
-          onClick={props.onPick && (() => props.onPick!(index))}
-          size={props.size}
-          tone={task.front ? 'solid' : undefined}
-        />
-      ))}
+      <Tasks
+        button={(task) => ({
+          id: task.id,
+          lead: mark(task, true),
+          size: props.size,
+          tone: task.front ? 'solid' : undefined,
+        })}
+        onPick={props.onPick}
+        tasks={props.tasks}
+      />
       <BarSpace />
       {props.children}
     </Bar>
@@ -89,16 +149,14 @@ export function Dock(props: { tasks: Task[]; label?: string; onPick?: (index: nu
     <nav aria-label={props.label} className="dock">
       <div data-surface="window">
         <ButtonGroup cells>
-          {props.tasks.map((task, index) => (
-            <Button
-              aria-current={task.front || undefined}
-              key={index}
-              label={task.name}
-              lead={mark(task, false)}
-              onClick={props.onPick && (() => props.onPick!(index))}
-              tone={task.front ? 'solid' : 'outline'}
-            />
-          ))}
+          <Tasks
+            button={(task) => ({
+              lead: mark(task, false),
+              tone: task.front ? 'solid' : 'outline',
+            })}
+            onPick={props.onPick}
+            tasks={props.tasks}
+          />
         </ButtonGroup>
       </div>
     </nav>

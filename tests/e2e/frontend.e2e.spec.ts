@@ -39,7 +39,10 @@ test.describe('Frontend', () => {
     await expect(front(page)).toHaveText('Grow')
     await expect(windows(page)).toHaveText(['Work', 'Grow'])
 
-    await page.getByRole('heading', { name: 'Work' }).click()
+    // The window behind shows a strip of its bar beside the one in front: a press there picks it.
+    await page
+      .locator('article:not([data-front]) .window__bar')
+      .click({ position: { x: 16, y: 16 } })
     await expect(page).toHaveURL('/work')
     await expect(front(page)).toHaveText('Work')
 

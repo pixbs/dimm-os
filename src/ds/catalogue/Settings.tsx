@@ -11,6 +11,7 @@ const choices = {
   spacing: ['standard', 'wide'],
   motion: ['full', 'reduce'],
   pause: ['off', 'on'],
+  single: ['off', 'on'],
 }
 
 export function Settings({ reset }: { reset: string }) {

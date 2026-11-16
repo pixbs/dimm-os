@@ -129,14 +129,11 @@ test.describe('Screen', () => {
     for (const size of [desk, phone]) {
       await page.setViewportSize(size)
       await page.goto('/work')
-      // A window in full screen takes the whole desk, as high as it is put.
-      await page
-        .locator('main article')
-        .evaluate((window) =>
-          Object.assign(window.style, { position: 'absolute', inset: '0', zIndex: '1000' }),
-        )
+      // A window in full screen takes the whole desk, and no more.
+      await page.locator('main article').getByRole('button', { name: 'Full screen' }).click()
+      await expect(page.locator('main article')).toHaveAttribute('data-full')
       for (const control of await page
-        .locator(':is(header, footer) :is(a, button):visible')
+        .locator(':is(header, footer) :is(.bar, .dock) :is(a, button):visible')
         .all()) {
         const onTop = await control.evaluate((control) => {
           const { x, y, width, height } = control.getBoundingClientRect()
@@ -300,6 +297,22 @@ test.describe('Wallpaper', () => {
     await page.waitForTimeout(200)
     expect(await rate(page)).toBe(0)
     await page.locator('main').evaluate((desk: HTMLElement) => (desk.inert = false))
+    expect(await rate(page)).toBeGreaterThan(20)
+  })
+
+  test('stops under a window in full screen, which covers the apps with it', async ({ page }) => {
+    await open(page, '/work')
+    await page.waitForTimeout(1000)
+    expect(await rate(page)).toBeGreaterThan(20)
+
+    const full = page.locator('main article').getByRole('button', { name: 'Full screen' })
+    await full.click()
+    await expect(page.locator('nav.apps')).toHaveAttribute('inert')
+    await page.waitForTimeout(200)
+    expect(await rate(page)).toBe(0)
+
+    await full.click()
+    await expect(page.locator('nav.apps')).not.toHaveAttribute('inert')
     expect(await rate(page)).toBeGreaterThan(20)
   })
 

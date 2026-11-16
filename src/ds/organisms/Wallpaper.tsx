@@ -18,8 +18,10 @@ function start(box: HTMLElement) {
   const send = (setting: Partial<Setting>) => worker.postMessage(setting)
   let seen = true
 
+  // The apps lie on the desk, so a window in full screen covers the wallpaper when it covers them.
+  const ground = desk?.querySelector('.apps') ?? desk ?? canvas
   // It holds still while the tab is hidden, the desk covered, or the screen off screen.
-  const runs = () => !document.hidden && !(desk ?? canvas).closest('[inert]') && seen
+  const runs = () => !document.hidden && !ground.closest('[inert]') && seen
   function set() {
     const style = getComputedStyle(canvas)
     send({
