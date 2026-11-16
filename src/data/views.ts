@@ -105,9 +105,10 @@ export async function getWindowView(
   }
 }
 
+// Keyed by deployment, as the cache outlives one: a deployment that changes what a view holds never reads an older view.
 const getGuestView = unstable_cache(
   (path: string, language: Language) => getWindowView(path, language, null),
-  ['view'],
+  ['view', process.env.VERCEL_DEPLOYMENT_ID ?? ''],
   { tags: [TAG] },
 )
 
