@@ -3,6 +3,7 @@ import { scrypt } from 'node:crypto'
 import type { CollectionConfig, PayloadRequest, TextFieldSingleValidation } from 'payload'
 
 import { isAdmin } from '@/access'
+import { nested } from '@/hooks/nested'
 
 const DAY = 24 * 60 * 60 * 1000
 
@@ -21,8 +22,8 @@ const password: TextFieldSingleValidation = async (value, { id, operation, req }
   if (value.length < 15) return 'At least 15 characters.'
   const { totalDocs } = await req.payload.count({
     collection: 'visitors',
+    ...nested(req),
     overrideAccess: true,
-    req,
     where: {
       hash: { equals: await keyed(req, value) },
       ...(id ? { id: { not_equals: id } } : {}),

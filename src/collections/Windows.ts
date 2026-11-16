@@ -12,6 +12,7 @@ import { signedIn } from '@/access'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
 import { facts } from '@/fields/facts'
+import { nested } from '@/hooks/nested'
 import { dropBareIds } from '@/hooks/relations'
 import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 import { languages } from '@/i18n/address'
@@ -72,28 +73,29 @@ const keepLegalPublished: CollectionBeforeOperationHook = async ({ args, operati
   if (operation === 'update' && (unpublishAllLocales || (data?._status === 'draft' && !draft)))
     target = id ? { id: { equals: id } } : (where ?? {})
   if (operation === 'restoreVersion' && id && !draft) {
-    const { parent, version } = await req.payload.findVersionByID({
+    const {
+      docs: [found],
+    } = await req.payload.db.findVersions({
       collection: 'windows',
-      id: String(id),
-      depth: 0,
-      fallbackLocale: false,
+      limit: 1,
       locale: 'all',
-      overrideAccess: true,
+      pagination: false,
       req,
+      where: { id: { equals: id } },
     })
+    const { parent, version } = found ?? {}
     // With the status localised, all languages are restored together.
-    const status: unknown = version._status
+    const status: unknown = version?._status
     const statuses = status && typeof status === 'object' ? Object.values(status) : [status]
-    if (statuses.includes('draft')) target = { id: { equals: parent } }
+    if (parent && statuses.includes('draft')) target = { id: { equals: parent } }
   }
   if (!target) return args
 
   const { totalDocs } = await req.payload.count({
     collection: 'windows',
     // A bulk unpublish asks in the language it was chosen in.
-    locale: req.locale && req.locale !== 'all' ? req.locale : 'en',
+    ...nested(req),
     overrideAccess: true,
-    req,
     where: { and: [target, { slug: { in: legal } }] },
   })
   if (totalDocs)
@@ -317,10 +319,8 @@ export const Windows: CollectionConfig = {
         if (value && id) {
           const { totalDocs } = await req.payload.count({
             collection: 'windows',
-            // Slugs and the tree are shared by both languages.
-            locale: 'en',
+            ...nested(req),
             overrideAccess: true,
-            req,
             where: { parent: { equals: id } },
           })
           if (totalDocs) return 'A window with items cannot be an item.'
