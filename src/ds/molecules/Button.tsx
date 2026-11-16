@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react'
 
 import type { Named } from '@/i18n/keys'
 
@@ -15,23 +15,27 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
   lead?: ReactNode
   end?: IconName
   hint?: Named
+  // Without a label, the key stands beside the icon instead of in its tooltip.
+  keyed?: boolean
   // What counts in the end slot while it works; until then it cannot be pressed again.
   busy?: ReactNode
   tone?: 'solid' | 'outline'
-  size?: 'compact'
+  // Chrome is compact where a fine pointer uses it and regular where a finger can land.
+  size?: 'compact' | 'chrome'
   fill?: boolean
   // A state shown at rest, for the catalogue.
   state?: 'hover' | 'pressed' | 'focus'
 }
 
 export function Button(props: Props) {
-  const { label, name, icon, lead, end, hint, busy, tone, size, fill, state, ...rest } = props
-  const key = hint && label && (
+  const { label, name, icon, lead, end, hint, keyed, busy, tone, size, fill, state, ...rest } =
+    props
+  const key = hint && (label || keyed) && (
     <span className="btn__key">
       <ForDevice text={hint} />
     </span>
   )
-  const trail = busy || (end ? <Icon name={end} size="s" /> : key)
+  const trail = busy || (end ? <Icon name={end} size="s" /> : label && key)
 
   return (
     <button
@@ -40,7 +44,7 @@ export function Button(props: Props) {
       aria-busy={busy ? true : undefined}
       aria-label={label ? undefined : name}
       className="btn"
-      data-icon={label ? undefined : ''}
+      data-icon={label || keyed ? undefined : ''}
       data-size={size}
       data-state={state}
       data-surface={tone === 'solid' ? 'inverted' : undefined}
@@ -48,21 +52,47 @@ export function Button(props: Props) {
       data-width={fill ? 'fill' : undefined}
       onClick={busy ? undefined : rest.onClick}
     >
-      {icon && <Icon name={icon} size={label || size ? 's' : undefined} />}
+      {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
-      {label && <span className="btn__label">{label}</span>}
+      {label ? <span className="btn__label">{label}</span> : key}
       {trail && <span className="btn__end">{trail}</span>}
       {!label && name && <Tip hint={hint} label={name} />}
     </button>
   )
 }
 
-// Buttons that share their edges: a choice hugs its cells, actions fill the width and stack in a compact window.
-export function ButtonGroup(props: { hug?: boolean; label?: string; children: ReactNode }) {
+// A button that goes to a window is a plain link, so it works without script.
+export function ButtonLink({
+  label,
+  lead,
+  size,
+  ...rest
+}: AnchorHTMLAttributes<HTMLAnchorElement> & {
+  label: string
+  lead?: ReactNode
+  size?: 'compact' | 'chrome'
+}) {
+  return (
+    <a {...rest} className="btn" data-size={size}>
+      {lead}
+      <span className="btn__label">{label}</span>
+    </a>
+  )
+}
+
+// Buttons that share their edges: a choice hugs its cells, actions fill the width and stack in a compact window,
+// and cells, one for each thing they stand for, stay side by side at every width.
+export function ButtonGroup(props: {
+  hug?: boolean
+  cells?: boolean
+  label?: string
+  children: ReactNode
+}) {
   return (
     <div
       aria-label={props.label}
       className="btngroup"
+      data-cells={props.cells ? '' : undefined}
       data-width={props.hug ? 'hug' : undefined}
       role="group"
     >

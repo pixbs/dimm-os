@@ -11,6 +11,7 @@ const pages = [
   '/rows',
   '/inputs',
   '/content',
+  '/shell',
 ]
 
 // Everything the catalogue draws, held against the tokens the page itself declares.

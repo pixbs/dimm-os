@@ -5,7 +5,7 @@ import { front, manager, start } from '@/shell/manager'
 
 const view = (path: string, title = path): WindowView => ({
   path,
-  frame: { title, kind: null },
+  frame: { title, kind: null, tile: null },
   sections: [],
   counters: { position: 1, total: 1 },
   neighbours: { previous: null, next: null },

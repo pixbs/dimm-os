@@ -1,7 +1,11 @@
 import type { ReactNode } from 'react'
 
 // Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Its slots are buttons and the parts below.
-export function Bar(props: { size?: 'compact'; line?: 'below' | 'above'; children: ReactNode }) {
+export function Bar(props: {
+  size?: 'compact' | 'chrome'
+  line?: 'below' | 'above'
+  children: ReactNode
+}) {
   return (
     <div className="bar" data-line={props.line} data-size={props.size}>
       {props.children}

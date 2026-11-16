@@ -78,6 +78,18 @@
   &[data-icon][data-size='compact'] {
     width: var(--h-compact);
   }
+  /* Chrome: compact where a fine pointer uses it, regular wherever a finger can land. */
+  @media (pointer: fine) {
+    &[data-size='chrome'] {
+      min-height: var(--h-compact);
+      padding: var(--s-1) var(--s-3);
+      font: var(--f-small);
+      font-weight: var(--w-medium);
+    }
+    &[data-icon][data-size='chrome'] {
+      width: var(--h-compact);
+    }
+  }
   &[data-width='fill'] {
     display: flex;
     flex: 1 1 auto;
@@ -128,7 +140,7 @@
   }
 }
 @container (width < 600px) {
-  .btngroup:not([data-width='hug']) {
+  .btngroup:not([data-width='hug'], [data-cells]) {
     flex-direction: column;
 
     & > .btn {

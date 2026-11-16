@@ -896,6 +896,59 @@ const en = {
     date: '2026-11-10',
     window: 'name',
   },
+  shell: {
+    doc: [
+      'Organisms / Shell',
+      'The operating system around the content: the screen, its bars, and what lies on its desk. None of it is content, all of it is made of the same bar, button and app icon.',
+    ],
+    screen: [
+      'Screen',
+      'parts: wallpaper · menu bar · desk · taskbar | compact: menu bar · apps · links · dock · drawers | waiting: menu bar · sections · splash · bar',
+      'The whole display. Windows sit freely on the desk and can be dragged; a window in full screen takes the desk, and both bars stay in view. A screen under 600 px wide is compact, whatever the device: the desk holds the apps, the legal links stand in one line under them, the dock closes the screen, and windows open as drawers over all of it. A screen that waits (starting up, locked, shut down) has no desk: between its bars it holds sections and a Splash.',
+    ],
+    screenCaps: ['pointer', 'compact'],
+    wallpaper: [
+      'Wallpaper',
+      'form: one halftone shape | strength: 16 % | dot: 8 px | field: 100 to 999',
+      'One generated halftone form in paper, behind everything, at the strength of a line. Where the form sits is a setting of the screen; the field number moves it from there. It pours in at the start, drifts on a path of its field, slowly enough to look still at a glance, leans toward the pointer over the empty desk, and pours to its new place as the dial turns. Under reduced motion and under pause it is still; while the tab is hidden or the desk covered, it stops.',
+    ],
+    wallpaperCaps: [
+      'pitch 8, the default; where the circle sits is a setting of the screen',
+      'pitch 5, set in Preferences',
+      'pitch 12, set in Preferences',
+      'the field, turned by the dial of Preferences',
+    ],
+    field: 'Wallpaper field',
+    menubar: [
+      'Menu bar',
+      'density: compact · regular | slots: mark and name · menus · status',
+      'The top edge of the screen. It opens with the mark and the name of the site. On a pointer device it is a compact bar of ghost buttons. On a touch device it is a regular bar with the menus behind one button.',
+    ],
+    menubarCaps: ['pointer: compact bar', 'touch: regular bar'],
+    taskbar: [
+      'Taskbar',
+      'density: pointer · touch | compact screen: dock | slots: windows · tray',
+      'The bottom edge of the screen. It shows what is open: one button per window, led by the mark of its app, the window in front selected. A window that is minimised leaves the desk and stays here, its mark hollow; its button brings it back. Pressing the button of the window in front minimises that one. A closed window leaves the taskbar. The tray at its end holds Imprint, Privacy, Cookies and Preferences, as words. On a compact screen it is a dock: a button group with one cell per app.',
+    ],
+    taskbarCaps: [
+      'pointer: compact buttons, each led by the mark of its app, the window in front selected',
+      'a window that was minimised keeps its button, with a hollow mark; a closed one leaves the taskbar',
+      'touch: regular buttons',
+      'compact screen: a dock. The mark is hollow when the app is not open',
+    ],
+    apps: [
+      'App grid',
+      'layout: column · four across',
+      'The apps the admin has defined, on the desk. The desk is not a window, so the limit of three columns does not apply to it.',
+    ],
+    appsCaps: ['desktop: a column from the top', 'compact screen: four across'],
+    name: 'Name',
+    window: 'Window',
+    title: 'Title',
+    text: 'Text.',
+    clock: 'Tue 10 Nov 09:41',
+    time: '09:41',
+  },
 }
 
 export type Copy = typeof en

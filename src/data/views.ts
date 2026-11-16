@@ -4,9 +4,10 @@ import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
 import { revalidateTag, unstable_cache } from 'next/cache'
 import { cookies } from 'next/headers'
 
+import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 
-import { visitor, windows } from './fixture'
+import { site, visitor, windows } from './fixture'
 import { VISITOR_COOKIE } from './viewer'
 
 type Link = { href: string; title: string }
@@ -15,13 +16,19 @@ type Section = { type: 'text'; html: string } | { type: 'list'; items: Link[] }
 
 export type WindowView = {
   path: string
-  frame: { title: string; kind: string | null }
+  // The tile of the window's app marks it in the taskbar.
+  frame: { title: string; kind: string | null; tile: Tile | null }
   sections: Section[]
   counters: { position: number; total: number }
   neighbours: { previous: Link | null; next: Link | null }
 }
 
-export type View = { language: Language; shortcuts: Link[]; window: WindowView | null }
+export type View = {
+  language: Language
+  site: typeof site
+  shortcuts: Shortcut[]
+  window: WindowView | null
+}
 
 // Null is a guest; a visitor carries the hidden windows the invitation opens.
 type Viewer = { windows: string[] } | null
@@ -45,8 +52,20 @@ export async function getWindowView(
     title: window.title[language],
   })
 
-  const shortcuts = itemsOf('/').map(link)
-  if (path === '/') return { language, shortcuts, window: null }
+  // A file's shortcut is named with its kind: CV.pdf.
+  const shortcuts = itemsOf('/').flatMap(({ path, title, kind, icon, tile }) =>
+    icon
+      ? [
+          {
+            href: toAddress(language, path),
+            name: title[language] + (kind ? `.${kind}` : ''),
+            icon,
+            tile,
+          },
+        ]
+      : [],
+  )
+  if (path === '/') return { language, site, shortcuts, window: null }
 
   const found = visible.find((window) => window.path === path)
   if (!found) return null
@@ -57,12 +76,15 @@ export async function getWindowView(
   const previous = siblings[position - 1]
   const next = siblings[position + 1]
 
+  const app = windows.find((window) => window.path === `/${path.split('/')[1]}`)
+
   return {
     language,
+    site,
     shortcuts,
     window: {
       path,
-      frame: { title: found.title[language], kind: found.kind },
+      frame: { title: found.title[language], kind: found.kind, tile: app?.tile ?? null },
       sections: [
         {
           type: 'text',

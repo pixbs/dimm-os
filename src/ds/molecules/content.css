@@ -324,6 +324,19 @@
   &[data-size='compact'] {
     height: var(--h-compact);
   }
+  @media (pointer: fine) {
+    &[data-size='chrome'] {
+      height: var(--h-compact);
+    }
+    &:not([data-size='compact'], [data-size='chrome']) > .btn[data-size='chrome'] {
+      &:first-child {
+        margin-inline-start: var(--s-1);
+      }
+      &:last-child {
+        margin-inline-end: var(--s-1);
+      }
+    }
+  }
   &[data-line='below'] {
     border-bottom: var(--b-1) solid var(--line);
   }

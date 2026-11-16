@@ -12,6 +12,7 @@ import { Inputs } from './Inputs'
 import { Motion } from './Motion'
 import { Rows } from './Rows'
 import { Settings } from './Settings'
+import { Shell } from './Shell'
 import { Space } from './Space'
 import { Type } from './Type'
 
@@ -31,6 +32,7 @@ export const pages = [
   'rows',
   'inputs',
   'content',
+  'shell',
 ] as const
 
 type Name = (typeof pages)[number]
@@ -77,6 +79,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'rows' && <Rows language={language} t={t.rows} />}
       {name === 'inputs' && <Inputs t={t.inputs} />}
       {name === 'content' && <Content t={t.content} words={await getDictionary(language)} />}
+      {name === 'shell' && <Shell t={t.shell} words={await getDictionary(language)} />}
     </main>
   )
 }

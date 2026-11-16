@@ -3,9 +3,16 @@
 import { type MouseEvent, useEffect, useReducer, useRef } from 'react'
 
 import type { View, WindowView } from '@/data/views'
-import { fromAddress, type Language, toAddress, toRoute } from '@/i18n/address'
+import { change } from '@/ds/atoms/settings'
+import { Bar, BarSpace } from '@/ds/molecules/Bar'
+import { Button, ButtonLink } from '@/ds/molecules/Button'
+import { Tag } from '@/ds/molecules/Tag'
+import { Apps, Dock, Screen, Taskbar } from '@/ds/organisms/Screen'
+import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
+import { named } from '@/i18n/keys'
 
+import { Clock } from './Clock'
 import { front, manager, start } from './manager'
 
 const STORE = 'windows'
@@ -112,70 +119,152 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (restored.current) store(desk.z)
   }, [desk.z])
 
+  // Each open window has a button: in the taskbar by the name its bar shows, in the dock by its title.
+  const tasks = desk.open.map(({ path, frame }) => ({
+    name: path.split('/').pop() + (frame.kind ? `.${frame.kind}` : ''),
+    tile: frame.tile,
+    front: path === front(desk),
+  }))
+  function pick(index: number) {
+    const { path } = desk.open[index]
+    dispatch({ type: 'focus', path })
+    show(path)
+  }
+
+  const other = languages.find((one) => one !== language)!
+  const legal = (
+    [
+      ['/imprint', dictionary.imprint],
+      ['/privacy-policy', dictionary.privacy],
+      ['/cookies', dictionary.cookies],
+    ] as const
+  ).map(([path, label]) => ({ href: toAddress(language, path), label }))
+  const preferences = { href: toAddress(language, '/preferences'), label: dictionary.preferences }
+
   return (
-    <main onClick={follow}>
-      <nav aria-label={dictionary.windows}>
-        <ul>
-          {view.shortcuts.map((shortcut) => (
-            <li key={shortcut.href}>
-              <a href={shortcut.href}>{shortcut.title}</a>
-            </li>
+    <Screen fill onClick={follow}>
+      <header data-surface="desktop">
+        <Bar line="below" size="chrome">
+          <Button data-for="desk touch" icon="menu" name={dictionary.menu} size="chrome" />
+          <Button
+            label={view.site.name}
+            lead={<span className="mark" data-surface="orange" />}
+            size="chrome"
+          />
+          {[dictionary.file, dictionary.view, dictionary.window, dictionary.help].map((menu) => (
+            <Button data-for="desk pointer" key={menu} label={menu} size="chrome" />
           ))}
-        </ul>
-      </nav>
-      {desk.open.map(({ path, frame, sections, counters, neighbours }) => (
-        <article
-          data-front={path === front(desk) ? '' : undefined}
-          key={path}
-          onPointerDown={(event) => {
-            // Only a press of the main button picks a window: a context menu or a middle click leaves history alone.
-            if (event.button !== 0) return
-            dispatch({ type: 'focus', path })
-            show(path)
-          }}
-        >
-          <header>
-            <h1>{frame.title}</h1>
-            {frame.kind && <p>{frame.kind}</p>}
-            <button
-              onClick={() => close(path)}
-              // Closing a window behind the front one leaves the address alone.
-              onPointerDown={(event) => event.stopPropagation()}
-              type="button"
-            >
-              {dictionary.close}
-            </button>
-          </header>
-          {sections.map((section, index) =>
-            section.type === 'text' ? (
-              <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
-            ) : (
-              <ul key={index}>
-                {section.items.map((item) => (
-                  <li key={item.href}>
-                    <a href={item.href}>{item.title}</a>
-                  </li>
-                ))}
-              </ul>
-            ),
-          )}
-          <footer>
-            {neighbours.previous && (
-              <a href={neighbours.previous.href} rel="prev">
-                {dictionary.previous}
-              </a>
+          <BarSpace />
+          <Button
+            data-for="pointer"
+            hint={named(language, ['mod', 'K'])}
+            icon="search"
+            keyed
+            name={dictionary.search}
+            size="chrome"
+          />
+          <Button data-for="touch" icon="search" name={dictionary.search} size="chrome" />
+          <Button
+            data-for="desk pointer"
+            icon="contrast"
+            name={dictionary.theme}
+            onClick={() =>
+              change({
+                theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light',
+              })
+            }
+            size="chrome"
+          />
+          <ButtonLink
+            aria-label={dictionary.language}
+            data-for="desk"
+            href={toAddress(other, front(desk) ?? '/')}
+            hrefLang={other}
+            label={language.toUpperCase()}
+            size="chrome"
+          />
+          <Button label={dictionary.guest} lead={<Tag>{dictionary.guest[0]}</Tag>} size="chrome" />
+          <Clock language={language} zone={view.site.timezone} />
+        </Bar>
+      </header>
+      <main className="screen__desk">
+        <Apps apps={view.shortcuts} label={dictionary.apps} layout="screen" />
+        {desk.open.map(({ path, frame, sections, counters, neighbours }) => (
+          <article
+            data-front={path === front(desk) ? '' : undefined}
+            data-surface="window"
+            key={path}
+            onPointerDown={(event) => {
+              // Only a press of the main button picks a window: a context menu or a middle click leaves history alone.
+              if (event.button !== 0) return
+              dispatch({ type: 'focus', path })
+              show(path)
+            }}
+          >
+            <header>
+              <h1>{frame.title}</h1>
+              {frame.kind && <p>{frame.kind}</p>}
+              <button
+                onClick={() => close(path)}
+                // Closing a window behind the front one leaves the address alone.
+                onPointerDown={(event) => event.stopPropagation()}
+                type="button"
+              >
+                {dictionary.close}
+              </button>
+            </header>
+            {sections.map((section, index) =>
+              section.type === 'text' ? (
+                <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
+              ) : (
+                <ul key={index}>
+                  {section.items.map((item) => (
+                    <li key={item.href}>
+                      <a href={item.href}>{item.title}</a>
+                    </li>
+                  ))}
+                </ul>
+              ),
             )}
-            <p>
-              {counters.position} / {counters.total}
-            </p>
-            {neighbours.next && (
-              <a href={neighbours.next.href} rel="next">
-                {dictionary.next}
-              </a>
-            )}
-          </footer>
-        </article>
-      ))}
-    </main>
+            <footer>
+              {neighbours.previous && (
+                <a href={neighbours.previous.href} rel="prev">
+                  {dictionary.previous}
+                </a>
+              )}
+              <p>
+                {counters.position} / {counters.total}
+              </p>
+              {neighbours.next && (
+                <a href={neighbours.next.href} rel="next">
+                  {dictionary.next}
+                </a>
+              )}
+            </footer>
+          </article>
+        ))}
+      </main>
+      <footer data-for="phone">
+        <Bar>
+          {legal.map((link) => (
+            <ButtonLink key={link.href} {...link} />
+          ))}
+        </Bar>
+        {tasks.length > 0 && (
+          <Dock
+            label={dictionary.windows}
+            onPick={pick}
+            tasks={tasks.map((task, index) => ({ ...task, name: desk.open[index].frame.title }))}
+          />
+        )}
+      </footer>
+      <footer data-for="desk" data-surface="desktop">
+        <Taskbar onPick={pick} size="chrome" tasks={tasks}>
+          {[...legal, preferences].map((link) => (
+            <ButtonLink key={link.href} {...link} size="chrome" />
+          ))}
+        </Taskbar>
+      </footer>
+    </Screen>
   )
 }

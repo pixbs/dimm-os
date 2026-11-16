@@ -2,7 +2,8 @@ import { icons } from './icons'
 
 export type IconName = keyof typeof icons
 
-export function Icon({ name, size }: { name: IconName; size?: 's' }) {
+// Chrome: small where a fine pointer uses it, full where a finger lands.
+export function Icon({ name, size }: { name: IconName; size?: 's' | 'chrome' }) {
   return (
     <svg
       aria-hidden="true"
