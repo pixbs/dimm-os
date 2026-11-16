@@ -139,6 +139,22 @@ export type SupportedTimezones =
   | 'Pacific/Fiji';
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LexicalNodes_AF65A089".
+ */
+export type LexicalNodes_AF65A089 =
+  | SerializedTextNode
+  | SerializedTabNode
+  | SerializedLineBreakNode
+  | SerializedParagraphNode<LexicalNodes_AF65A089>
+  | SerializedAutoLinkNode<LexicalNodes_AF65A089, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_AF65A089, LexicalLinkFields>
+  | SerializedHorizontalRuleNode
+  | SerializedQuoteNode<LexicalNodes_AF65A089>
+  | SerializedListNode<LexicalNodes_AF65A089>
+  | SerializedListItemNode<LexicalNodes_AF65A089>
+  | SerializedHeadingNode<LexicalNodes_AF65A089, 'h2' | 'h3' | 'h4'>;
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "LexicalNodes_3DE324E4".
  */
 export type LexicalNodes_3DE324E4 =
@@ -228,6 +244,7 @@ export interface Window {
   id: number;
   _order?: string | null;
   title: string;
+  sections?: (HeaderBlock | TextBlock)[] | null;
   /**
    * Drawn as a paper record.
    */
@@ -383,6 +400,35 @@ export interface Window {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeaderBlock".
+ */
+export interface HeaderBlock {
+  level: 'display' | 'title' | 'heading';
+  surface: 'window' | 'paper' | 'orange' | 'blue' | 'mint';
+  title: string;
+  text?: string | null;
+  /**
+   * The first is the main one.
+   */
+  actions?:
+    | {
+        type?: ('window' | 'media' | 'address') | null;
+        window?: (number | null) | Window;
+        media?: (number | null) | Media;
+        url?: string | null;
+        /**
+         * On a link to a window, empty is its title.
+         */
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'header';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media".
  */
 export interface Media {
@@ -442,6 +488,26 @@ export interface Media {
       _stored?: boolean | null;
     };
   };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TextBlock".
+ */
+export interface TextBlock {
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  body: LexicalRichText<LexicalNodes_AF65A089>;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'text';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -620,6 +686,12 @@ export interface PayloadLlmInstruction {
 export interface WindowsSelect<T extends boolean = true> {
   _order?: T;
   title?: T;
+  sections?:
+    | T
+    | {
+        header?: T | HeaderBlockSelect<T>;
+        text?: T | TextBlockSelect<T>;
+      };
   paper?: T;
   stamp?: T;
   width?: T;
@@ -683,6 +755,41 @@ export interface WindowsSelect<T extends boolean = true> {
   _status?: T;
   _h_slugPath?: T;
   _h_titlePath?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "HeaderBlock_select".
+ */
+export interface HeaderBlockSelect<T extends boolean = true> {
+  level?: T;
+  surface?: T;
+  title?: T;
+  text?: T;
+  actions?:
+    | T
+    | {
+        type?: T;
+        window?: T;
+        media?: T;
+        url?: T;
+        label?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TextBlock_select".
+ */
+export interface TextBlockSelect<T extends boolean = true> {
+  join?: T;
+  title?: T;
+  text?: T;
+  split?: T;
+  body?: T;
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1079,6 +1186,36 @@ export interface SerializedParagraphNode<TChildren> extends SerializedLexicalEle
   type: 'paragraph';
   textFormat: number;
   textStyle: string;
+}
+
+export interface LexicalLinkFields {
+  [k: string]: unknown;
+  doc?: {
+    relationTo: string;
+    value: Config['db']['defaultIDType'] | { [k: string]: unknown; id: Config['db']['defaultIDType'] };
+  } | null;
+  linkType: 'custom' | 'internal';
+  newTab: boolean;
+  url?: string;
+}
+export interface SerializedLinkNode<TChildren, TFields = LexicalLinkFields> extends SerializedLexicalElementBase<TChildren> {
+  type: 'link';
+  fields: TFields;
+  id?: string;
+}
+export interface SerializedAutoLinkNode<TChildren, TFields = LexicalLinkFields> extends SerializedLexicalElementBase<TChildren> {
+  type: 'autolink';
+  fields: TFields;
+}
+
+export interface SerializedHorizontalRuleNode {
+  type: 'horizontalrule';
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+}
+
+export interface SerializedQuoteNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
+  type: 'quote';
 }
 
 export interface SerializedListNode<TChildren> extends SerializedLexicalElementBase<TChildren> {
