@@ -31,6 +31,7 @@ const en = {
   moveResize: 'Move & Resize',
   next: 'Next',
   nextWindow: 'Next window',
+  notFound: 'Error 404',
   preferences: 'Preferences',
   previous: 'Previous',
   privacy: 'Privacy',

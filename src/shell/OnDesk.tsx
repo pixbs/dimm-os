@@ -16,10 +16,15 @@ type Entry = Windows['open'][number]
 // What its view gives a window besides its body: a toolbar, a foot and a status bar.
 export type Parts = { toolbar?: ReactNode; foot?: ReactNode; status?: ReactNode; body: ReactNode }
 
-// What its bar and its taskbar button call a window: the end of the path it shows, with its kind once its view
-// is here. The kind is never part of the path.
-const named = ({ at, view }: Entry) =>
-  (view?.path ?? at).split('/').pop() + (view?.frame.kind ? `.${view.frame.kind}` : '')
+// What its bar shows: the path it shows, or the one the 404 window answers, its end with its kind once its view
+// is here; its taskbar button shows that end. The kind is never part of the path.
+const segmentsOf = ({ at, view }: Entry) => {
+  const segments = (view?.asked ?? view?.path ?? at).split('/').slice(1)
+  return segments.map((segment, index) =>
+    index === segments.length - 1 && view?.frame.kind ? `${segment}.${view.frame.kind}` : segment,
+  )
+}
+const named = (entry: Entry) => segmentsOf(entry).at(-1)!
 
 // The id of a window's element; its taskbar button carries the same after "task".
 // A hyphen of the path is doubled, so /a-b and /a/b keep apart.
@@ -104,7 +109,7 @@ export function OnDesk(props: {
               inert={desk.z.indexOf(entry.path) < covering || !!back(entry)}
               key={entry.path}
               level={desk.z.indexOf(entry.path) + 1}
-              name={[named(entry)]}
+              name={segmentsOf(entry)}
               oneSize={entry.view?.frame.oneSize}
               opener={entry.opener}
               sizing={desk.sizing === entry.path}

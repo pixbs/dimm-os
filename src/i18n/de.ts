@@ -34,6 +34,7 @@ const de: Dictionary = {
   moveResize: 'Bewegen und Größe ändern',
   next: 'Weiter',
   nextWindow: 'Nächstes Fenster',
+  notFound: 'Fehler 404',
   preferences: 'Einstellungen',
   previous: 'Zurück',
   privacy: 'Datenschutz',

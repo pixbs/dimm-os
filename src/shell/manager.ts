@@ -237,7 +237,12 @@ export function manager(state: Windows, action: Action): Windows {
       return one?.at === action.window.path ? change(one.path, { view: action.window }) : state
     }
     case 'restore': {
-      const added = action.windows.filter((window) => !find(state, window.path))
+      // One entry a window, though a tab may have kept two paths of it.
+      const added = action.windows.filter(
+        (window, at, all) =>
+          !find(state, window.path) &&
+          all.findIndex((one) => windowOf(one.path) === windowOf(window.path)) === at,
+      )
       return placed({
         ...state,
         open: [...state.open, ...added.map((window) => entry(window.path, window))],

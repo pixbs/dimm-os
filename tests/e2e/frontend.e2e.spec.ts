@@ -1,5 +1,6 @@
 import type { Page } from '@playwright/test'
 
+import { login } from './login'
 import { emptyDesk, expect, test } from './test'
 
 const windows = (page: Page) => page.locator('article h1')
@@ -108,22 +109,26 @@ test.describe('Frontend', () => {
     await expect(page).toHaveURL('/work/grow')
     await expect(windows(page)).toHaveText(['Grow'])
     await expect(work.getByRole('heading', { name: 'Grow' })).toBeFocused()
-    // The bar says the file type, which the path never holds.
-    await expect(work.locator('.window__bar .path')).toHaveText('grow.case')
+    // The bar says the path, and the file type, which the path never holds.
+    await expect(work.locator('.window__bar .path')).toHaveText('work/grow.case')
     const line = work.locator('.window__content > .bar').nth(1)
-    await expect(line.locator('.path')).toHaveText('work/grow')
+    await expect(line.getByRole('link', { name: 'Work' })).toHaveAttribute('href', '/work')
     await expect(line.locator('.bar__text').last()).toHaveText('01 / 03')
-    await expect(work.getByRole('link', { name: 'Previous' })).not.toHaveAttribute('href')
+    // The first item leads back to its window, and on to the item after it.
+    const pager = work.getByRole('navigation')
+    await expect(pager.getByRole('link')).toHaveText(['Work', 'Field'])
+    await expect(pager.getByRole('link', { name: 'Work' })).toHaveAttribute('href', '/work')
 
-    await work.getByRole('link', { name: 'Next' }).click()
+    await pager.getByRole('link', { name: 'Field' }).click()
     await expect(page).toHaveURL('/work/field')
+    await expect(pager.getByRole('link')).toHaveText(['Grow', 'Loop'])
     await expect(line.locator('.bar__text').last()).toHaveText('02 / 03')
     // The view it replaces leaves as the new one comes.
     await page.goBack()
     await expect(page).toHaveURL('/work/grow')
     await expect(windows(page)).toHaveText(['Grow'])
 
-    await work.getByRole('link', { name: 'Work', exact: true }).click()
+    await line.getByRole('link', { name: 'Work', exact: true }).click()
     await expect(page).toHaveURL('/work')
     await expect(windows(page)).toHaveText(['Work'])
     await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['work'])
@@ -151,6 +156,9 @@ test.describe('Frontend', () => {
     await expect(phone.locator('article[data-front] h1')).toHaveText('Welcome')
     await expect(phone.locator('article')).toHaveCount(1)
     await expect(phone).toHaveURL('/')
+    // It opened without the visitor, so it waits for them as the page's own window does.
+    await phone.waitForTimeout(500)
+    expect(await phone.evaluate(() => document.activeElement === document.body)).toBe(true)
   })
 
   test('closes a window behind by its control without touching the address or the history', async ({
@@ -268,10 +276,37 @@ test.describe('Frontend at an address without a window', () => {
       const response = await page.goto(path)
       expect(response?.status(), path).toBe(404)
       await expect(front(page)).toHaveText(title)
+      // Its bar shows the address asked for, and its status line the error.
+      const missing = page.locator('article[data-front]')
+      await expect(missing.locator('.window__bar .path')).toHaveText(
+        path.replace(/^\/de/, '').slice(1),
+      )
+      await expect(missing.locator('.window__content > .bar').last()).toHaveText(
+        path.startsWith('/de') ? 'Fehler 404' : 'Error 404',
+      )
       expect(
         (await page.request.get(`/view${path.startsWith('/de') ? '' : '/en'}${path}`)).status(),
       ).toBe(404)
     }
+  })
+
+  test('answers 404 at the next request once a window is hidden', async ({ page, request }) => {
+    await login(page)
+    const windowId = (
+      await (await page.request.get('/api/windows?where[slug][equals]=field&depth=0')).json()
+    ).docs[0].id
+    const hide = (hidden: boolean) =>
+      page.request.patch(`/api/windows/${windowId}?locale=en`, { data: { hidden } })
+    const status = async () => (await request.get('/work/field')).status()
+
+    expect(await status()).toBe(200)
+    try {
+      await hide(true)
+      expect(await status()).toBe(404)
+    } finally {
+      await hide(false)
+    }
+    expect(await status()).toBe(200)
   })
 
   test('redirects a window under an old parent to its path', async ({ page }) => {

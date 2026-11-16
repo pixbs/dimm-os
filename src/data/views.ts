@@ -23,6 +23,8 @@ type Section = { type: 'text'; html: string } | { type: 'list'; items: Link[] }
 
 export type WindowView = {
   path: string
+  // The address the 404 window answers, which its bar shows.
+  asked?: string
   lang?: Language
   // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull.
   frame: { title: string; kind: string | null; tile: Tile | null; oneSize?: boolean }
@@ -112,7 +114,10 @@ async function seen(language: Language, viewer: Viewer): Promise<Seen[]> {
     ...other
       .filter((doc) => !ids.has(doc.id) && !legal.includes(doc.slug))
       .map((doc) => ({ doc, lang: english })),
-  ].sort((a, b) => ((a.doc._order ?? '') < (b.doc._order ?? '') ? -1 : 1))
+  ].sort((a, b) => {
+    const [x, y] = [a.doc._order ?? '', b.doc._order ?? '']
+    return x < y ? -1 : x > y ? 1 : 0
+  })
 
   const byId = new Map(all.map((one) => [one.doc.id, one]))
   return all.map(({ doc, lang }) => {
@@ -201,8 +206,8 @@ async function views(language: Language, viewer: Viewer) {
   const shown = windows.filter((one) => one.doc.slug !== missing)
   const notFound = windows.find((one) => one.doc.slug === missing)
   // A file's shortcut is named with its kind: CV.pdf.
-  const shortcuts = shown.flatMap(({ doc, path, lang }) =>
-    doc.icon
+  const shortcuts = shown.flatMap(({ doc, path, lang, parent }) =>
+    doc.icon && !parent
       ? [
           {
             href: toAddress(language, path),
@@ -290,7 +295,7 @@ export async function generateStaticParams() {
   return all.flat()
 }
 
-// The old view answers once more while the new one renders.
+// No view outlives a change, so a window hidden or unpublished is gone at the next request.
 export function revalidateViews(): void {
-  revalidateTag(TAG, 'max')
+  revalidateTag(TAG, { expire: 0 })
 }

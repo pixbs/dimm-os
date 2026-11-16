@@ -76,14 +76,14 @@ export function ButtonLink({
   Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size'> & { tone?: 'outline' }) {
   return (
     <a
-      {...rest}
       aria-disabled={rest.href ? undefined : true}
       aria-label={label ? undefined : name}
+      role={rest.href ? undefined : 'link'}
+      {...rest}
       className="btn"
       data-icon={label ? undefined : ''}
       data-size={size}
       data-tone={tone}
-      role={rest.href ? undefined : 'link'}
     >
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}

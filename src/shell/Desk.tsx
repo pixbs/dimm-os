@@ -15,7 +15,6 @@ import { change } from '@/ds/atoms/settings'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Key } from '@/ds/molecules/Key'
-import { Path } from '@/ds/molecules/Path'
 import { Tag } from '@/ds/molecules/Tag'
 import { MenuBar } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
@@ -68,34 +67,66 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
-// What a window says until its sections arrive: its title, its text and its items, in the language they are in.
+// What a window says until its sections arrive: its title, its text and its items, in the language they are in,
+// and as an item the way to its neighbours, which ends its body.
 function Body({ view }: { view: WindowView }) {
+  const { parent, neighbours } = view
+  const before = neighbours.previous ?? parent
   return (
-    <div lang={view.lang} style={{ padding: 'var(--inset)' }}>
-      <h1>{view.frame.title}</h1>
-      {view.sections.map((section, index) =>
-        section.type === 'text' ? (
-          <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
-        ) : (
-          <ul key={index}>
-            {section.items.map((item) => (
-              <li key={item.href}>
-                <a href={item.href} lang={item.lang}>
-                  {item.title}
-                </a>
-              </li>
-            ))}
-          </ul>
-        ),
+    <div style={{ padding: 'var(--inset)' }}>
+      <div lang={view.lang}>
+        <h1>{view.frame.title}</h1>
+        {view.sections.map((section, index) =>
+          section.type === 'text' ? (
+            <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
+          ) : (
+            <ul key={index}>
+              {section.items.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} lang={item.lang}>
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ),
+        )}
+      </div>
+      {before && (
+        <nav>
+          <ButtonGroup>
+            <ButtonLink
+              href={before.href}
+              hrefLang={before.lang}
+              icon="arrow-left"
+              label={before.title}
+              lang={before.lang}
+              rel={neighbours.previous ? 'prev' : undefined}
+              tone="outline"
+            />
+            {neighbours.next && (
+              <ButtonLink
+                end="arrow-right"
+                href={neighbours.next.href}
+                hrefLang={neighbours.next.lang}
+                label={neighbours.next.title}
+                lang={neighbours.next.lang}
+                rel="next"
+                tone="outline"
+              />
+            )}
+          </ButtonGroup>
+        </nav>
       )}
     </div>
   )
 }
 
 // The parts of a window its view derives: an item's path line, with the way back to its window and its place
-// among the items, and its pager; the count of a window's items; and a line where it is shown in English.
+// among the items; the count of a window's items; and a line where it is shown in English, or where it answers
+// an address with nothing.
 function parts(view: WindowView, t: Dictionary, language: Language): Parts {
-  const { parent, counters, neighbours, count } = view
+  const { parent, counters, count } = view
   const items = (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
     '{count}',
     String(count),
@@ -106,45 +137,28 @@ function parts(view: WindowView, t: Dictionary, language: Language): Parts {
         href={parent.href}
         hrefLang={parent.lang}
         icon="arrow-left"
-        name={parent.title}
+        label={parent.title}
+        lang={parent.lang}
         size="compact"
       />
-      <BarText>
-        <Path segments={view.path.split('/').slice(1)} />
-      </BarText>
       <BarSpace />
       {counters && <BarText>{`${pad(counters.position)} / ${pad(counters.total)}`}</BarText>}
     </Bar>
   ) : (
     count > 0 && (
-      <Bar line="below" size="compact">
-        <BarSpace />
+      <Bar line="below">
         <BarText>{items}</BarText>
       </Bar>
     )
   )
-  const pager = parent && (
-    <ButtonGroup>
-      {(['previous', 'next'] as const).map((way) => (
-        <ButtonLink
-          end={way === 'next' ? 'arrow-right' : undefined}
-          href={neighbours[way]?.href}
-          hrefLang={neighbours[way]?.lang}
-          key={way}
-          label={t[way]}
-          rel={way === 'next' ? 'next' : 'prev'}
-          tone="outline"
-        />
-      ))}
-    </ButtonGroup>
-  )
-  const status = view.lang && (
+  const says = view.lang ? t.inEnglish : view.asked ? t.notFound : null
+  const status = says && (
     <Bar line="above" size="compact">
-      <BarText>{t.inEnglish}</BarText>
+      <BarText>{says}</BarText>
     </Bar>
   )
 
-  return { toolbar, foot: pager, status, body: <Body view={view} /> }
+  return { toolbar, status, body: <Body view={view} /> }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {

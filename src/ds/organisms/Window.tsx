@@ -206,11 +206,16 @@ export function Window(props: Props) {
     if (viewed.current !== view && viewed.current) replaced()
     viewed.current = view
   }, [view])
-  // A drawer is modal: whenever it comes up in front, the focus moves in; one the page came with waits for it.
+  // A drawer is modal: whenever it comes up in front, the focus moves in; one that opened without the visitor, as
+  // the page's own or one that opens at start, waits for them.
   const comeUp = useEffectEvent(() => {
     if (modal && front && !away && !root.current!.contains(document.activeElement)) enter()
   })
-  useEffect(() => comeUp(), [front, away])
+  const mounted = useRef(false)
+  useEffect(() => {
+    if (mounted.current) comeUp()
+    mounted.current = true
+  }, [front, away])
 
   // The server has no tokens to read, and what it painted stays as it is.
   const frames = useMemo(() => {

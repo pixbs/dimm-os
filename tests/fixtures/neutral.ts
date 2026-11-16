@@ -10,7 +10,7 @@ type Fixture = Partial<
 > & { slug: string; parent?: string; title: Words; description: Words }
 
 // Neutral windows that show every way the desk reads the content, parents before their items.
-export const windows: Fixture[] = [
+const windows: Fixture[] = [
   {
     slug: 'welcome',
     oneSize: true,

@@ -11,16 +11,21 @@ function toInternal(pathname: string): string {
   return toRoute(language, path)
 }
 
+const VIEW_TIMEOUT = 3000
+
 // Whether a window's page has nothing for this viewer, as its view says. The page then shows the 404 window, and
 // the status is set here, since Next.js draws a page's own notFound() with script alone.
 async function missing(request: NextRequest, route: string): Promise<boolean> {
   const [, , first] = route.split('/')
-  if (request.method !== 'GET' || route.startsWith('/view/') || first === 'catalogue') return false
+  const page = request.method === 'GET' || request.method === 'HEAD'
+  if (!page || route.startsWith('/view/') || first === 'catalogue') return false
   try {
     const view = await fetch(new URL(`/view${route}`, request.url), {
       method: 'HEAD',
       headers: { cookie: request.headers.get('cookie') ?? '' },
       redirect: 'manual',
+      // A view that does not answer in time leaves the page its 200 rather than holding it.
+      signal: AbortSignal.timeout(VIEW_TIMEOUT),
     })
     return view.status === 404
   } catch {
