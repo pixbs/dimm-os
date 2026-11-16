@@ -1,4 +1,4 @@
-import { createHmac } from 'node:crypto'
+import { scrypt } from 'node:crypto'
 
 import type { CollectionConfig, PayloadRequest, TextFieldSingleValidation } from 'payload'
 
@@ -6,9 +6,14 @@ import { isAdmin } from '@/access'
 
 const DAY = 24 * 60 * 60 * 1000
 
-// Keyed with Payload's secret, as Payload keys an API key: the hash finds the visitor and cannot be reversed.
+// The same for the same password, so it finds the visitor; keyed with Payload's secret and slow, so a copy of the
+// table gives no password away.
 const keyed = (req: PayloadRequest, password: string) =>
-  createHmac('sha256', req.payload.secret).update(password).digest('hex')
+  new Promise<string>((resolve, reject) =>
+    scrypt(password, req.payload.secret, 32, (error, key) =>
+      error ? reject(error) : resolve(key.toString('hex')),
+    ),
+  )
 
 // A new visitor needs a password; a saved one keeps theirs unless another is typed.
 const password: TextFieldSingleValidation = async (value, { id, operation, req }) => {
@@ -18,7 +23,10 @@ const password: TextFieldSingleValidation = async (value, { id, operation, req }
     collection: 'visitors',
     overrideAccess: true,
     req,
-    where: { hash: { equals: keyed(req, value) }, ...(id ? { id: { not_equals: id } } : {}) },
+    where: {
+      hash: { equals: await keyed(req, value) },
+      ...(id ? { id: { not_equals: id } } : {}),
+    },
   })
   return totalDocs ? 'This password is in use.' : true
 }
@@ -58,9 +66,9 @@ export const Visitors: CollectionConfig = {
       unique: true,
       hooks: {
         beforeChange: [
-          ({ req, siblingData, value }) =>
+          async ({ req, siblingData, value }) =>
             typeof siblingData.password === 'string' && siblingData.password
-              ? keyed(req, siblingData.password)
+              ? await keyed(req, siblingData.password)
               : value,
         ],
       },
