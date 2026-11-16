@@ -45,3 +45,12 @@ Copyright 2022 The Inter Project Authors (https://github.com/rsms/inter-tight)
 
 JetBrains Mono
 Copyright 2020 The JetBrains Mono Project Authors (https://github.com/JetBrains/JetBrainsMono)
+
+The key glyphs ← → ⇧ ⌘ ⌥ ⏎, which Google Fonts serves in no subset, are a
+subset of JetBrains Mono 2.304 Regular from the project's release
+(JetBrainsMono-2.304.zip), in src/app/(frontend)/[lang]/jetbrains-mono-keys.woff2.
+It was made with fontTools 4.68.0:
+
+  pyftsubset fonts/ttf/JetBrainsMono-Regular.ttf \
+    --unicodes=U+2190,U+2192,U+21E7,U+2318,U+2325,U+23CE \
+    --no-hinting --flavor=woff2 --output-file=jetbrains-mono-keys.woff2
