@@ -200,28 +200,32 @@ async function views(language: Language, viewer: Viewer) {
   })
   const byId = new Map(windows.map((one) => [one.doc.id, one]))
   // A link to a window this viewer may see shows its title when its label is empty, and its letter.
-  const button = (action: NonNullable<Doc['actions']>[number]): FootButton[] => {
-    const to = action.type ?? 'window'
-    const label = action.label ?? ''
-    if (to === 'window') {
-      const target = typeof action.window === 'object' ? byId.get(action.window?.id ?? NaN) : null
-      if (!target) return label ? [{ to, label, href: null }] : []
-      return [
-        {
-          to,
-          label: label || target.doc.title,
-          href: toAddress(language, target.path),
-          key: target.doc.key ?? undefined,
-          lang: label ? undefined : other(target.lang),
-        },
-      ]
+  const button =
+    (lang: Language) =>
+    (action: NonNullable<Doc['actions']>[number]): FootButton[] => {
+      const to = action.type ?? 'window'
+      const label = action.label ?? ''
+      const said = other(lang)
+      if (to === 'window') {
+        const target = typeof action.window === 'object' ? byId.get(action.window?.id ?? NaN) : null
+        if (!target) return label ? [{ to, label, href: null, lang: said }] : []
+        return [
+          {
+            to,
+            label: label || target.doc.title,
+            href: toAddress(language, target.path),
+            key: target.doc.key ?? undefined,
+            lang: label ? said : other(target.lang),
+          },
+        ]
+      }
+      const href =
+        to === 'media' ? typeof action.media === 'object' && action.media?.url : action.url
+      if (!href || !label) return []
+      // A file in the store is on another origin, where only the store's own flag makes it a download.
+      const stored = to === 'media' && /\.blob\.vercel-storage\.com\//.test(href)
+      return [{ to, label, href: stored ? `${href}?download=1` : href, lang: said }]
     }
-    const href = to === 'media' ? typeof action.media === 'object' && action.media?.url : action.url
-    if (!href || !label) return []
-    // A file in the store is on another origin, where only the store's own flag makes it a download.
-    const stored = to === 'media' && /\.blob\.vercel-storage\.com\//.test(href)
-    return [{ to, label, href: stored ? `${href}?download=1` : href }]
-  }
   const html = (text: string) =>
     convertLexicalToHTML({ data: buildDefaultEditorState({ text }), disableContainer: true })
 
@@ -244,7 +248,7 @@ async function views(language: Language, viewer: Viewer) {
         paper: doc.paper ?? undefined,
         stamp: doc.paper && doc.stamp ? { code: doc.stamp, place: about.place } : undefined,
       },
-      actions: (doc.actions ?? []).flatMap(button),
+      actions: (doc.actions ?? []).flatMap(button(one.lang)),
       sections: [
         ...(doc.description ? [{ type: 'text' as const, html: html(doc.description) }] : []),
         ...(items.length ? [{ type: 'list' as const, items: items.map(link) }] : []),

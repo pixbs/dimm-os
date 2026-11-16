@@ -121,16 +121,16 @@ function placed(state: Windows): Windows {
 
   const open = state.open.map((entry, nth) => {
     if (entry.placed) return entry
-    const { w, h } = fit({ ...entry.box, w: Math.min(entry.box.w, room.w) }, desk)
+    const kept = { ...entry.box, w: Math.min(entry.box.w, room.w) }
+    const { w, h } = fit(kept, desk)
     const step = nth * CASCADE
     return {
       ...entry,
       placed: true,
       box: {
+        ...kept,
         x: clamp(room.x + Math.round((room.w - w) / 2) + step, 0, desk.w - w),
         y: clamp(Math.round((desk.h - h) / 2) + step, 0, desk.h - h),
-        w,
-        h,
       },
     }
   })
@@ -259,15 +259,13 @@ export function manager(state: Windows, action: Action): Windows {
       const { desk } = state
       if (!desk || !one.placed || one.pulled) return change(one.path, { view: action.window })
       const asked = sizeOf(action.window)
-      const { w, h } = fit(
-        { ...one.box, ...asked, w: Math.min(asked.w, (state.room ?? desk).w) },
-        desk,
-      )
+      const kept = { ...one.box, ...asked, w: Math.min(asked.w, (state.room ?? desk).w) }
+      const was = fit(one.box, desk)
+      const { w, h } = fit(kept, desk)
       const box = {
-        x: clamp(one.box.x + Math.round((one.box.w - w) / 2), 0, desk.w - w),
-        y: clamp(one.box.y + Math.round((one.box.h - h) / 2), 0, desk.h - h),
-        w,
-        h,
+        ...kept,
+        x: clamp(was.x + Math.round((was.w - w) / 2), 0, desk.w - w),
+        y: clamp(was.y + Math.round((was.h - h) / 2), 0, desk.h - h),
       }
       return change(one.path, { view: action.window, box })
     }
