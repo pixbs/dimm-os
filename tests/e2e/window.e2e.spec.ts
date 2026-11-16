@@ -191,6 +191,14 @@ test.describe('Window, in the catalogue', () => {
     expect(await window.boundingBox()).toMatchObject({ x: from.x + 123, y: from.y + 45 })
     expect(await window.evaluate((window) => window.style.transform)).toBe('')
 
+    // A pointer the browser takes away leaves the window where the drag last had it.
+    await drag(page, window.locator('.window__bar'), -40, -16, { x: 200, y: 8 })
+    await window
+      .locator('.window__bar')
+      .dispatchEvent('pointercancel', { pointerId: 1, clientX: 0, clientY: 0 })
+    await page.mouse.up()
+    expect(await window.boundingBox()).toMatchObject({ x: from.x + 83, y: from.y + 29 })
+
     // A pull gives the element its own size, in steps of 8, and a tag says it.
     await drag(page, window.locator('.window__grip'), 37, 21, { x: 18, y: 18 })
     const size = (await window.locator('.window__size').textContent())!

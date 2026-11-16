@@ -91,6 +91,23 @@ test.describe('Frontend', () => {
     expect(routed).toEqual([])
   })
 
+  test('closes a window behind by its control without touching the address or the history', async ({
+    page,
+  }) => {
+    // The dots stand at the start of the bar, where a window behind shows it.
+    await page.addInitScript(() => localStorage.setItem('hand', 'dots'))
+    await page.goto('/')
+    await page.getByRole('link', { name: 'Work' }).click()
+    await page.getByRole('link', { name: 'Grow' }).click()
+    await expect(page).toHaveURL('/work/grow')
+    const entries = await page.evaluate(() => history.length)
+
+    await page.locator('article:not([data-front])').getByRole('button', { name: 'Close' }).click()
+    await expect(windows(page)).toHaveText(['Grow'])
+    await expect(page).toHaveURL('/work/grow')
+    expect(await page.evaluate(() => history.length)).toBe(entries)
+  })
+
   test('opens a window of the German desk at its German address', async ({ page }) => {
     await page.goto('/de')
     await mark(page)

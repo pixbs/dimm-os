@@ -139,7 +139,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (theirs !== language || path === '/') return
 
     event.preventDefault()
-    void open(act, path, anchor, () => location.assign(anchor.href))
+    // The address is written already, so the page the browser loads takes its place.
+    void open(act, path, anchor, () => location.replace(anchor.href))
   }
 
   // Back and Forward bring the window of their address to the front, opening it again if it was closed since.

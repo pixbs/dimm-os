@@ -132,6 +132,8 @@ test.describe('Screen', () => {
       // A window in full screen takes the whole desk, and no more.
       await page.locator('main article').getByRole('button', { name: 'Full screen' }).click()
       await expect(page.locator('main article')).toHaveAttribute('data-full')
+      // On a phone the window lies in the page, so it covers nothing and the apps stay in reach.
+      if (size === phone) await expect(page.locator('nav.apps')).not.toHaveAttribute('inert')
       for (const control of await page
         .locator(':is(header, footer) :is(.bar, .dock) :is(a, button):visible')
         .all()) {

@@ -130,11 +130,13 @@ const onDesk = (state: Windows) => state.z.filter((path) => find(state, path)?.m
 // The window in front is the last on the desk: one in the taskbar is behind them all.
 export const front = (state: Windows): string | undefined => onDesk(state).at(-1)
 
+// Until the desk is measured, and under 600 px, its windows lie in the page.
+export const compact = (state: Windows) => !state.desk || state.desk.w < COMPACT
+
 // What a window shows: its size, the desk's at most, and its place once the desk is measured.
 export function shown(state: Windows, path: string): Box | Size {
   const found = find(state, path)!
-  if (!state.desk || state.desk.w < COMPACT || !found.placed)
-    return { w: found.box.w, h: found.box.h }
+  if (!state.desk || compact(state) || !found.placed) return { w: found.box.w, h: found.box.h }
   return found.mode === 'full' ? { x: 0, y: 0, ...state.desk } : fit(found.box, state.desk)
 }
 

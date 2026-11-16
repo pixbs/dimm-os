@@ -104,13 +104,27 @@ function follow(
     })
 
   held.setPointerCapture(event.pointerId)
-  listen('pointermove', to.move)
-  for (const type of ['pointerup', 'pointercancel'] as const) {
-    listen(type, (dx, dy) => {
-      released.abort()
-      to.end(dx, dy)
-    })
-  }
+  let last: [number, number] = [0, 0]
+  listen('pointermove', (dx, dy) => {
+    last = [dx, dy]
+    to.move(dx, dy)
+  })
+  listen('pointerup', (dx, dy) => {
+    released.abort()
+    to.end(dx, dy)
+  })
+  // A pointer the browser takes away leaves the window where it last had it, whatever the cancel says.
+  listen('pointercancel', () => {
+    released.abort()
+    to.end(...last)
+  })
+}
+
+// A press on a control of a window behind does what the control says without bringing it forward, so closing it
+// leaves the address alone; the keyboard reaching a control brings its window forward as any focus does.
+const control = (event: { target: EventTarget }) => {
+  const at = event.target as Element
+  return !!at.closest('.wctl') && !at.matches(':focus-visible')
 }
 
 // To full screen and back the frame travels on its own: what it holds fades out, and back in at the new width.
@@ -310,8 +324,8 @@ export function Window(props: Props) {
       hidden={gone}
       id={id}
       inert={away || !present || props.inert}
-      onFocus={() => act?.({ type: 'focus' })}
-      onPointerDown={(event) => event.button === 0 && act?.({ type: 'focus' })}
+      onFocus={(event) => !control(event) && act?.({ type: 'focus' })}
+      onPointerDown={(event) => event.button === 0 && !control(event) && act?.({ type: 'focus' })}
       ref={root}
       style={
         box &&

@@ -9,7 +9,7 @@ import { Apps, type Shortcut, type Task } from '@/ds/organisms/Screen'
 import { type Box, Window } from '@/ds/organisms/Window'
 import type { Dictionary } from '@/i18n/en'
 
-import { type Action, front, manager, shown, type Windows } from './manager'
+import { type Action, compact, front, manager, shown, type Windows } from './manager'
 
 type Entry = Windows['open'][number]
 
@@ -18,7 +18,8 @@ const named = ({ path, view }: Entry) =>
   path.split('/').pop() + (view?.frame.kind ? `.${view.frame.kind}` : '')
 
 // The id of a window's element; its taskbar button carries the same after "task".
-export const idOf = (path: string) => `window${path.replaceAll('/', '-')}`
+// A hyphen of the path is doubled, so /a-b and /a/b keep apart.
+export const idOf = (path: string) => `window${path.replaceAll('-', '--').replaceAll('/', '-')}`
 
 // Each open window has a button: the one in front is selected, one put away has a hollow mark.
 export const tasksOf = (desk: Windows): Task[] =>
@@ -53,9 +54,11 @@ export function OnDesk(props: {
     return () => sized.disconnect()
   }, [])
 
-  // What a window in full screen covers cannot be reached: the apps, and the windows behind it.
+  // What a window in full screen covers cannot be reached, the apps and the windows behind it, but on a compact screen it lies in the page and covers nothing.
   const modes = new Map(desk.open.map((entry) => [entry.path, entry.mode]))
-  const covering = Math.max(-1, ...desk.z.map((path, at) => (modes.get(path) === 'full' ? at : -1)))
+  const covering = compact(desk)
+    ? -1
+    : Math.max(-1, ...desk.z.map((path, at) => (modes.get(path) === 'full' ? at : -1)))
 
   return (
     <main className="screen__desk" ref={ground}>
