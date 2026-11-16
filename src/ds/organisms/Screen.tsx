@@ -86,7 +86,7 @@ const fast = ways('fast')
 // One button per window, led by the mark of its app: it comes and goes at its own place as its window does.
 function Tasks(props: {
   tasks: Task[]
-  onPick?: (index: number) => void
+  onPick?: (index: number, button: HTMLElement) => void
   button: (task: Task) => Pick<ComponentProps<typeof Button>, 'id' | 'lead' | 'size' | 'tone'>
 }) {
   const painted = usePainted()
@@ -102,7 +102,7 @@ function Tasks(props: {
           initial="closed"
           key={task.id ?? index}
           label={task.name}
-          onClick={props.onPick && (() => props.onPick!(index))}
+          onClick={props.onPick && ((event) => props.onPick!(index, event.currentTarget))}
           variants={painted ? undefined : fast}
         />
       ))}
@@ -122,7 +122,7 @@ const mark = (task: Task, coloured: boolean) => (
 export function Taskbar(props: {
   tasks: Task[]
   size?: 'compact' | 'chrome'
-  onPick?: (index: number) => void
+  onPick?: (index: number, button: HTMLElement) => void
   children?: ReactNode
 }) {
   return (
@@ -144,7 +144,11 @@ export function Taskbar(props: {
 }
 
 // The taskbar of a phone: a button group with one cell per window, one step in from the edges.
-export function Dock(props: { tasks: Task[]; label?: string; onPick?: (index: number) => void }) {
+export function Dock(props: {
+  tasks: Task[]
+  label?: string
+  onPick?: (index: number, button: HTMLElement) => void
+}) {
   return (
     <nav aria-label={props.label} className="dock">
       <div data-surface="window">

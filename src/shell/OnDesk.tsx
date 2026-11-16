@@ -9,7 +9,7 @@ import { Apps, type Shortcut, type Task } from '@/ds/organisms/Screen'
 import { type Box, Window } from '@/ds/organisms/Window'
 import type { Dictionary } from '@/i18n/en'
 
-import { type Action, compact, front, manager, shown, type Windows } from './manager'
+import { type Action, compact, front, manager, phone, shown, stack, type Windows } from './manager'
 
 type Entry = Windows['open'][number]
 
@@ -54,15 +54,30 @@ export function OnDesk(props: {
     return () => sized.disconnect()
   }, [])
 
-  // What a window in full screen covers cannot be reached, the apps and the windows behind it, but on a compact screen it lies in the page and covers nothing.
+  // What a window in full screen covers cannot be reached, the apps and the windows behind it; on a compact screen
+  // nothing takes the whole desk.
   const modes = new Map(desk.open.map((entry) => [entry.path, entry.mode]))
   const covering = compact(desk)
     ? -1
     : Math.max(-1, ...desk.z.map((path, at) => (modes.get(path) === 'full' ? at : -1)))
+  // On a phone the windows are drawers, and one that is up is modal: what lies behind it cannot be reached. A drawer
+  // knows how many stand in front of it; one past the stack has three, and is not shown.
+  const drawers = phone(desk) ? stack(desk) : null
+  const back = (entry: Entry) => {
+    if (!drawers) return
+    if (entry.mode === 'min') return 0
+    const at = drawers.indexOf(entry.path)
+    return at < 0 ? 3 : drawers.length - 1 - at
+  }
 
   return (
     <main className="screen__desk" ref={ground}>
-      <Apps apps={props.apps} inert={covering >= 0} label={props.label} layout="screen" />
+      <Apps
+        apps={props.apps}
+        inert={covering >= 0 || !!drawers?.length}
+        label={props.label}
+        layout="screen"
+      />
       <AnimatePresence>
         {desk.open.map((entry) => (
           <Window
@@ -71,11 +86,12 @@ export function OnDesk(props: {
               shown(manager(desk, { ...gesture, path: entry.path }), entry.path) as Box
             }
             away={entry.mode === 'min'}
+            back={back(entry)}
             box={shown(desk, entry.path)}
             front={entry.path === front(desk)}
             full={entry.mode === 'full' || (entry.mode === 'min' && entry.was === 'full')}
             id={idOf(entry.path)}
-            inert={desk.z.indexOf(entry.path) < covering}
+            inert={desk.z.indexOf(entry.path) < covering || !!back(entry)}
             key={entry.path}
             level={desk.z.indexOf(entry.path) + 1}
             name={[named(entry)]}

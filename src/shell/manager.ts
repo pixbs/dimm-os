@@ -34,7 +34,9 @@ export type Action =
   | { type: 'fill'; window: WindowView }
   // Windows of an earlier load, back to front, go behind the ones already open.
   | { type: 'restore'; windows: WindowView[] }
-  | { type: 'focus' | 'close' | 'task' | 'hold'; path: string }
+  | { type: 'focus' | 'close' | 'hold'; path: string }
+  // A taskbar or dock button: the button is what opened its window when it brings it back.
+  | { type: 'task'; path: string; opener?: Element | null }
   // Without a path these act on the window in front, as a key or a menu does.
   | { type: 'minimise' | 'full'; path?: string }
   | { type: 'next' | 'escape' }
@@ -51,8 +53,10 @@ const REACH = 80
 // Until a window brings its own size, and how far each new one stands from the one before.
 const SIZE = { w: 720, h: 480 }
 const CASCADE = 24
-// Under 600 px a screen is compact: its windows lie in the page, so none has a place to be moved from.
+// Under 600 px a screen is compact: its windows are drawers, so none has a place to be moved from.
 const COMPACT = 600
+// A stack of three drawers at most: the one in front and two behind it.
+const STACK = 3
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value))
 const snap = (value: number) => Math.round(value / STEP) * STEP
@@ -130,8 +134,14 @@ const onDesk = (state: Windows) => state.z.filter((path) => find(state, path)?.m
 // The window in front is the last on the desk: one in the taskbar is behind them all.
 export const front = (state: Windows): string | undefined => onDesk(state).at(-1)
 
-// Until the desk is measured, and under 600 px, its windows lie in the page.
+// Until the desk is measured, and under 600 px, its windows have no place on it.
 export const compact = (state: Windows) => !state.desk || state.desk.w < COMPACT
+
+// A desk measured under 600 px is a phone, where every window is a drawer.
+export const phone = (state: Windows) => !!state.desk && compact(state)
+
+// The drawers that can be seen, back to front: the windows on the desk, three at most.
+export const stack = (state: Windows) => onDesk(state).slice(-STACK)
 
 // What a window shows: its size, the desk's at most, and its place once the desk is measured.
 export function shown(state: Windows, path: string): Box | Size {
@@ -172,10 +182,17 @@ export function manager(state: Windows, action: Action): Windows {
     }
     case 'open': {
       const { path, opener = null, alone } = action
-      // An open window comes forward where it stands in the page, back from the taskbar as what it was.
+      // An open window comes forward where it stands in the page, back from the taskbar as what it was,
+      // and what brought it is now its opener.
       const open = target
         ? state.open.map((one) =>
-            one === target ? { ...one, mode: one.mode === 'min' ? one.was : one.mode } : one,
+            one === target
+              ? {
+                  ...one,
+                  mode: one.mode === 'min' ? one.was : one.mode,
+                  opener: opener ?? one.opener,
+                }
+              : one,
           )
         : [...state.open, entry(path, null, opener)]
       return placed({
@@ -222,10 +239,9 @@ export function manager(state: Windows, action: Action): Windows {
       ])
     // The button of the window in front puts it away; any other brings its window back or forward.
     case 'task':
-      return manager(state, {
-        type: front(state) === action.path ? 'minimise' : 'open',
-        path: action.path,
-      })
+      return front(state) === action.path
+        ? manager(state, { type: 'minimise', path: action.path })
+        : manager(state, { type: 'open', path: action.path, opener: action.opener })
     case 'next': {
       const top = front(state)
       return top && onDesk(state).length > 1 ? { ...state, z: [top, ...others(top)] } : state

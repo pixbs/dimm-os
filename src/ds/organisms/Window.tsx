@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence, useIsPresent } from 'motion/react'
+import { AnimatePresence, useIsPresent, useMotionValue } from 'motion/react'
 import * as m from 'motion/react-m'
 import { catchError } from 'next/error'
 import {
@@ -9,6 +9,7 @@ import {
   type PointerEvent,
   type ReactNode,
   useEffect,
+  useEffectEvent,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -25,6 +26,8 @@ import { Tag } from '../molecules/Tag'
 import { WindowControls } from '../molecules/WindowControls'
 import { aim, ways } from '../motion/Origin'
 import { curve, duration, reduced, spring, usePainted } from '../motion/vocabulary'
+import { Handle, rises, trap } from './Drawer'
+import { follow } from './follow'
 
 export type Box = { x: number; y: number; w: number; h: number }
 export type Edge = 'n' | 's' | 'w' | 'e' | 'nw' | 'ne' | 'sw' | 'se'
@@ -51,6 +54,8 @@ type Props = {
   // Its size, and on a desk its place once the desk is measured.
   box?: Box | Pick<Box, 'w' | 'h'>
   level?: number
+  // On a phone it is a drawer: how many drawers stand in front of it.
+  back?: number
   // One size: no full screen and nothing to pull. Still: nothing moves it either.
   oneSize?: boolean
   still?: boolean
@@ -88,36 +93,6 @@ const arrows: Record<string, [number, number]> = {
   ArrowRight: [1, 0],
   ArrowUp: [0, -1],
   ArrowDown: [0, 1],
-}
-
-// Follows the pointer from a press to its release, on what was pressed.
-function follow(
-  event: PointerEvent<HTMLElement>,
-  to: Record<'move' | 'end', (dx: number, dy: number) => void>,
-) {
-  const held: HTMLElement = event.currentTarget
-  const { clientX, clientY } = event
-  const released = new AbortController()
-  const listen = (type: 'pointermove' | 'pointerup' | 'pointercancel', then: typeof to.move) =>
-    held.addEventListener(type, (now) => then(now.clientX - clientX, now.clientY - clientY), {
-      signal: released.signal,
-    })
-
-  held.setPointerCapture(event.pointerId)
-  let last: [number, number] = [0, 0]
-  listen('pointermove', (dx, dy) => {
-    last = [dx, dy]
-    to.move(dx, dy)
-  })
-  listen('pointerup', (dx, dy) => {
-    released.abort()
-    to.end(dx, dy)
-  })
-  // A pointer the browser takes away leaves the window where it last had it, whatever the cancel says.
-  listen('pointercancel', () => {
-    released.abort()
-    to.end(...last)
-  })
 }
 
 // A press on a control of a window behind does what the control says without bringing it forward, so closing it
@@ -167,11 +142,15 @@ function Waiting({ label }: { label: string }) {
 }
 
 // Every page is a window, and a window is a frame the visitor handles: its bar holds the controls and its name
-// and is its handle, what it can do sits at its foot, and on a desk every edge pulls.
+// and is its handle, what it can do sits at its foot, and on a desk every edge pulls. On a phone it is a drawer.
 export function Window(props: Props) {
   const { id, title, box, front, full, away = false, opener, task, waiting, t, act, after } = props
   const root = useRef<HTMLElement>(null)
   const origin = useRef<HTMLDivElement>(null)
+  // How far down a drawer is, and how fast it was let go.
+  const y = useMotionValue(0)
+  const flung = useRef(0)
+  const [kept, setKept] = useState(false)
   const size = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
   const present = useIsPresent()
@@ -183,6 +162,8 @@ export function Window(props: Props) {
   if (turn[0] !== full) setTurn([full, full ? 'full' : 'float'])
 
   const placed = !!box && 'x' in box
+  const drawer = props.back !== undefined
+  const modal = drawer && !!act
   const handled = !!act && !!after && placed && !full && !props.still
   const sized = handled && !props.oneSize
   // Chrome follows the device unless a density is asked for: compact under a pointer, regular under a finger.
@@ -198,34 +179,54 @@ export function Window(props: Props) {
     wasAway.current = away
   }, [away, present, opener, task])
 
-  // It takes the focus at its heading, or itself until its view brings one.
-  useEffect(() => {
+  // It takes the focus at its heading, or itself until its view brings one, where it stands: a drawer on its way
+  // up is still below the screen.
+  function enter() {
     const self = root.current!
-    if (!props.takesFocus || (focused.current && document.activeElement !== self)) return
-    focused.current = true
     const heading = self.querySelector<HTMLElement>('.window__body :is(h1, h2)')
     if (heading) heading.tabIndex = -1
-    ;(heading ?? self).focus()
+    ;(heading ?? self).focus({ preventScroll: true })
+  }
+  useEffect(() => {
+    if (!props.takesFocus || (focused.current && document.activeElement !== root.current)) return
+    focused.current = true
+    enter()
   }, [props.takesFocus, waiting])
+  // A drawer is modal: whenever it comes up in front, the focus moves in; one the page came with waits for it.
+  const comeUp = useEffectEvent(() => {
+    if (modal && front && !away && !root.current!.contains(document.activeElement)) enter()
+  })
+  useEffect(() => comeUp(), [front, away])
 
   // The server has no tokens to read, and what it painted stays as it is.
   const frames = useMemo(() => {
     if (painted) return
+    if (drawer) return rises()
     return {
       ...ways('slow', () => opener),
       // A move the visitor can interrupt, so it opens on the spring.
-      open: () => ({ opacity: 1, scale: 1, transition: spring('slow') }),
+      open: () => ({ opacity: 1, scale: 1, y: 0, transition: spring('slow') }),
       away: () => ({
         ...ways('slow', () => byId(task)).closed(),
         transition: { duration: duration('slow'), ease: curve('standard') },
       }),
     }
-  }, [painted, opener, task])
-  const travels = useMemo(
-    () =>
-      painted ? undefined : { layout: { duration: duration('slow'), ease: curve('standard') } },
-    [painted],
-  )
+  }, [painted, opener, task, drawer])
+  // A drawer behind steps back on the spring as the one in front rises.
+  const travels = useMemo(() => {
+    if (painted) return
+    return {
+      layout: drawer ? spring('slow') : { duration: duration('slow'), ease: curve('standard') },
+    }
+  }, [painted, drawer])
+  const scrim = useMemo(() => {
+    if (painted) return
+    const fades = (opacity: number) => () => ({
+      opacity,
+      transition: { duration: duration('slow'), ease: curve('standard') },
+    })
+    return { open: fades(1), kept: fades(1), closed: fades(0), away: fades(0) }
+  }, [painted])
   // What replaces a view comes one step from where the visitor is heading, while the old one fades.
   const views = useMemo(() => {
     if (painted) return
@@ -301,6 +302,14 @@ export function Window(props: Props) {
     event.preventDefault()
   }
 
+  // A drawer goes away by its handle, its scrim or Esc, and the focus goes back to what opened it.
+  function putAway(speed = 0) {
+    flung.current = speed
+    flushSync(() => act!({ type: 'minimise' }))
+    if (opener instanceof HTMLElement) opener.focus({ preventScroll: true })
+  }
+  const state = away ? 'away' : kept ? 'kept' : 'open'
+
   const controls = (shape: 'dots' | 'squares') => (
     <WindowControls
       full={full}
@@ -317,6 +326,7 @@ export function Window(props: Props) {
     <article
       aria-label={title}
       className="window"
+      data-back={props.back || undefined}
       data-front={front && present ? '' : undefined}
       data-full={full ? '' : undefined}
       data-placed={placed ? '' : undefined}
@@ -325,6 +335,15 @@ export function Window(props: Props) {
       id={id}
       inert={away || !present || props.inert}
       onFocus={(event) => !control(event) && act?.({ type: 'focus' })}
+      onKeyDown={
+        modal
+          ? (event) => {
+              if (event.key !== 'Escape') return trap(event)
+              event.preventDefault()
+              putAway()
+            }
+          : undefined
+      }
       onPointerDown={(event) => event.button === 0 && !control(event) && act?.({ type: 'focus' })}
       ref={root}
       style={
@@ -339,38 +358,62 @@ export function Window(props: Props) {
       }
       tabIndex={-1}
     >
+      {/* On a phone the scrim lies between a drawer and what is behind it, and a press on it puts the drawer away. */}
+      <m.div
+        animate={state}
+        aria-hidden
+        className="window__scrim"
+        exit="closed"
+        initial="closed"
+        onClick={modal ? () => putAway() : undefined}
+        variants={scrim}
+      />
       {/* What opens and closes about a point is apart from the frame, which travels to the desk's size. */}
       <m.div
-        animate={away ? 'away' : 'open'}
+        animate={state}
+        aria-label={modal ? title : undefined}
+        aria-modal={modal || undefined}
         className="window__origin"
         exit="closed"
         initial="closed"
         onAnimationComplete={(arrived) => arrived === 'away' && away && setGone(true)}
         ref={origin}
+        role={modal ? 'dialog' : undefined}
+        custom={{ drawer: origin, flung }}
+        style={{ y }}
         variants={frames}
       >
         <m.div
           className="window__frame"
           data-surface={props.surface ?? 'window'}
-          // It moves and sizes to the desk as one piece, unless motion is reduced.
+          // It moves and sizes to the desk as one piece, and steps back as a drawer, unless motion is reduced.
           layout={!painted && !reduced()}
-          layoutDependency={full}
+          layoutDependency={`${full} ${props.back}`}
           transition={travels}
         >
           <m.div animate={turn[1]} className="window__content" variants={fades}>
+            <Handle
+              height={() => origin.current!.offsetHeight}
+              label={t.close}
+              leave={(speed) => modal && putAway(speed)}
+              stay={() => setKept((kept) => !kept)}
+              y={y}
+            />
             <Bar
-              aria-label={act && t.handle.replace('{window}', title)}
+              aria-label={act && !drawer ? t.handle.replace('{window}', title) : undefined}
               className="window__bar"
               data-handle={handled ? '' : undefined}
               line="below"
               onDoubleClick={(event) =>
-                !(event.target as Element).closest('button, a') && act?.({ type: 'full' })
+                !drawer &&
+                !(event.target as Element).closest('button, a') &&
+                act?.({ type: 'full' })
               }
               onKeyDown={key}
               onPointerDown={grab}
-              role={act && 'group'}
+              role={act && !drawer ? 'group' : undefined}
               size={chrome}
-              tabIndex={act && !props.still ? 0 : undefined}
+              tabIndex={act && !props.still && !drawer ? 0 : undefined}
             >
               {controls('dots')}
               <BarText>
@@ -380,26 +423,29 @@ export function Window(props: Props) {
               {controls('squares')}
             </Bar>
             {props.toolbar}
-            <div className="window__body cq">
-              <AnimatePresence custom={props.travel} initial={false} mode="popLayout">
-                <m.div
-                  animate="in"
-                  className="window__view"
-                  custom={props.travel}
-                  exit="out"
-                  initial="from"
-                  key={waiting ? '' : (props.content ?? 'view')}
-                  variants={views}
-                >
-                  {waiting ? (
-                    <Waiting label={t.waiting} />
-                  ) : (
-                    <Caught text={t.failed}>{props.children}</Caught>
-                  )}
-                </m.div>
-              </AnimatePresence>
+            {/* What scrolls: the body, and with it the foot in a short drawer. */}
+            <div className="window__main">
+              <div className="window__body cq">
+                <AnimatePresence custom={props.travel} initial={false} mode="popLayout">
+                  <m.div
+                    animate="in"
+                    className="window__view"
+                    custom={props.travel}
+                    exit="out"
+                    initial="from"
+                    key={waiting ? '' : (props.content ?? 'view')}
+                    variants={views}
+                  >
+                    {waiting ? (
+                      <Waiting label={t.waiting} />
+                    ) : (
+                      <Caught text={t.failed}>{props.children}</Caught>
+                    )}
+                  </m.div>
+                </AnimatePresence>
+              </div>
+              {props.foot}
             </div>
-            {props.foot}
             {props.status}
           </m.div>
           {!props.oneSize && !props.still && !full && (

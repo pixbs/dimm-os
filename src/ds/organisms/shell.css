@@ -52,6 +52,19 @@
   }
 }
 
+/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */
+.screen__main {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  & > footer {
+    position: relative;
+  }
+}
+
 /* The desk: what lies between the bars. On it the apps, and the windows it holds. */
 .screen__desk {
   position: relative;
@@ -64,8 +77,14 @@
   overflow: auto;
 }
 @container screen (width < 600px) {
+  /* Its windows are drawers in the room under the menu bar, so the desk does not hold them. */
   .screen__desk {
+    position: static;
     padding: var(--s-6) var(--s-3) 0;
+
+    & > .apps {
+      position: relative;
+    }
   }
 }
 /* The windows of a desk overlap in an order of their own, and what hangs over its edge is cut off there. */
@@ -220,8 +239,15 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+}
+/* What scrolls: the body, and the actions at its foot, a button group flush with its edges. */
+.window__main {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
 
-  /* The actions at its foot are a button group flush with its edges. */
   & > .btngroup > .btn {
     border-block-end-style: none;
 
@@ -235,7 +261,7 @@
 }
 /* Stacked, each action reaches both edges and keeps the line under it, but for the last. */
 @container (width < 600px) {
-  .window__content > .btngroup:not([data-width='hug'], [data-cells]) > .btn {
+  .window__main > .btngroup:not([data-width='hug'], [data-cells]) > .btn {
     border-inline-style: none;
 
     &:not(:last-child) {
@@ -327,7 +353,7 @@
   & > .bar[data-line='below'] {
     border-bottom: var(--b-2) solid var(--fg);
   }
-  & > .btngroup > .btn {
+  & > .window__main > .btngroup > .btn {
     border-color: var(--fg);
     border-top-width: var(--b-2);
   }
@@ -403,7 +429,7 @@
   & > .bar[data-line='above'] {
     padding-inline-end: var(--s-6);
   }
-  & > .btngroup > .btn:last-child {
+  & > .window__main > .btngroup > .btn:last-child {
     padding-inline-end: var(--s-8);
   }
 }
@@ -414,4 +440,103 @@
   bottom: var(--s-1);
   z-index: var(--z-above);
   display: flex;
+}
+
+/* Drawer: what a window is on a phone. It rises from the bottom edge as wide as the screen, under the menu bar and
+   over the dock, with its scrim between it and what is behind. It is as high as what it holds, and when that is
+   more than the room, 24 px of the room stay in view above it and its body scrolls. */
+.window__scrim,
+.drawer__handle {
+  display: none;
+}
+@container screen (width < 600px) {
+  .screen__desk > .window {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-above);
+    flex-direction: column;
+    justify-content: flex-end;
+    container: drawer / size;
+
+    & > .window__scrim {
+      display: block;
+      position: absolute;
+      inset: 0;
+      background-color: var(--scrim);
+    }
+    & > .window__origin {
+      position: relative;
+      flex: 0 1 auto;
+      min-height: 0;
+      max-height: calc(100% - var(--s-6));
+    }
+    & .window__frame {
+      padding-block-end: var(--s-6);
+    }
+    /* A drawer has no controls and nothing to pull, its handle is the way out, so its actions keep clear of no grip. */
+    & :is(.wctl, .window__grip) {
+      display: none;
+    }
+    & .window__frame > .window__content > .window__main > .btngroup > .btn:last-child {
+      padding-inline-end: var(--s-4);
+    }
+    /* One opened from it goes in front, and it steps back: 8 px in at each side and 8 px up, under the scrim, its
+       edge a stronger line. Two can be seen behind. */
+    &[data-back] .window__frame {
+      box-shadow: 0 0 0 var(--b-1) var(--faint);
+    }
+    &[data-back='1'] > .window__origin {
+      margin: 0 var(--s-2) var(--s-2);
+    }
+    &[data-back='2'] > .window__origin {
+      margin: 0 var(--s-4) var(--s-4);
+    }
+    &[data-back='3'] {
+      display: none;
+    }
+  }
+  /* The handle shows a bar; it can be held a finger high, about the bar. */
+  .screen__desk > .window .drawer__handle {
+    position: relative;
+    z-index: var(--z-above);
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--s-4);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    cursor: grab;
+    touch-action: none;
+
+    &::before {
+      content: '';
+      width: var(--h-compact);
+      height: var(--s-1);
+      background-color: var(--faint);
+    }
+    &::after {
+      content: '';
+      position: absolute;
+      inset: calc((var(--s-4) - var(--h-regular)) / 2) 0;
+    }
+    &:focus-visible {
+      outline: var(--b-2) solid var(--ring);
+      outline-offset: calc(var(--b-2) * -1);
+    }
+  }
+}
+/* In a short drawer the actions at its foot scroll with what it holds. */
+@container drawer (height < 600px) {
+  .window__main {
+    overflow-y: auto;
+
+    & > .window__body {
+      flex: none;
+      overflow: visible;
+    }
+  }
 }

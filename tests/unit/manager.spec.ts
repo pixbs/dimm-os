@@ -2,7 +2,16 @@ import { describe, expect, it } from 'vitest'
 
 import type { WindowView } from '@/data/views'
 import type { Box } from '@/ds/organisms/Window'
-import { type Action, front, manager, shown, start, type Windows } from '@/shell/manager'
+import {
+  type Action,
+  front,
+  manager,
+  phone,
+  shown,
+  stack,
+  start,
+  type Windows,
+} from '@/shell/manager'
 
 const view = (path: string, oneSize = false): WindowView => ({
   path,
@@ -266,5 +275,61 @@ describe('the window manager, as the reference checks it', () => {
 
     act({ type: 'task', path: '/work' }, { type: 'step', path: '/work', x: 1, y: 1, pull: true })
     expect(box(desk, '/work')).toMatchObject({ w: 728, h: 488 })
+  })
+})
+
+// The checks of the handoff's reference that concern drawers: a phone's home opens with the welcome drawer.
+describe('the drawers of a phone, as the reference checks them', () => {
+  let desk = after(start(view('/welcome')), { type: 'desk', w: 390, h: 796 })
+  const act = (...actions: Action[]) => (desk = after(desk, ...actions))
+
+  it('phone home: the welcome drawer', () => {
+    expect(phone(desk)).toBe(true)
+    expect(stack(desk)).toEqual(['/welcome'])
+  })
+
+  it('closes by its handle', () => {
+    // The handle puts the drawer away; its button in the dock brings it back.
+    act({ type: 'minimise', path: '/welcome' })
+    expect(stack(desk)).toEqual([])
+    expect(mode(desk, '/welcome')).toBe('min')
+
+    act({ type: 'task', path: '/welcome' })
+    expect(stack(desk)).toEqual(['/welcome'])
+  })
+})
+
+describe('the drawers of a phone', () => {
+  it('are drawers only once the desk is measured under 600 px', () => {
+    expect(phone(start(view('/a')))).toBe(false)
+    expect(phone(after(start(view('/a')), { type: 'desk', w: 600, h: 800 }))).toBe(false)
+    expect(phone(after(start(view('/a')), { type: 'desk', w: 599, h: 800 }))).toBe(true)
+  })
+
+  it('stand three deep at most, the last opened in front', () => {
+    const desk = after(
+      start(view('/a')),
+      { type: 'desk', w: 390, h: 796 },
+      { type: 'open', path: '/b' },
+      { type: 'open', path: '/c' },
+      { type: 'open', path: '/d' },
+    )
+
+    expect(stack(desk)).toEqual(['/b', '/c', '/d'])
+    // Putting the one in front away brings the next forward.
+    expect(stack(after(desk, { type: 'minimise' }))).toEqual(['/a', '/b', '/c'])
+  })
+
+  it('take what brought a window back as its opener, for the focus to return to', () => {
+    const [link, button] = [{} as Element, {} as Element]
+    const desk = after(
+      start(view('/a')),
+      { type: 'open', path: '/b', opener: link },
+      { type: 'minimise', path: '/b' },
+    )
+    expect(desk.open[1].opener).toBe(link)
+
+    expect(after(desk, { type: 'task', path: '/b', opener: button }).open[1].opener).toBe(button)
+    expect(after(desk, { type: 'open', path: '/b', opener: null }).open[1].opener).toBe(link)
   })
 })
