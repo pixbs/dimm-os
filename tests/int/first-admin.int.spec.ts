@@ -29,7 +29,7 @@ describe('the first admin', () => {
       depth: 0,
       overrideAccess: true,
     })
-    expect(user?.email).toBe(process.env.ADMIN_EMAIL)
+    expect(user).toMatchObject({ email: process.env.ADMIN_EMAIL, role: 'admin' })
   })
 
   it('is not created again once a user exists', async () => {

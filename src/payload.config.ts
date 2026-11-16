@@ -1,6 +1,7 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { sharpTransformer } from '@payloadcms/transformer-sharp'
 import path from 'path'
 import { buildConfig } from 'payload'
@@ -8,6 +9,8 @@ import { fileURLToPath } from 'url'
 
 import { Media } from './collections/Media'
 import { Users } from './collections/Users'
+import { Windows } from './collections/Windows'
+import { Site } from './globals/Site'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -19,8 +22,9 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Users, Media],
+  collections: [Windows, Media, Users],
   editor: lexicalEditor(),
+  globals: [Site],
   secret: process.env.PAYLOAD_SECRET || '',
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
@@ -40,8 +44,11 @@ export default buildConfig({
     },
   },
   localization: {
-    locales: [{ code: 'en', label: 'English' }],
-    fallback: true,
+    locales: [
+      { code: 'en', label: 'English' },
+      { code: 'de', label: 'Deutsch' },
+    ],
+    fallback: false,
     defaultLocale: 'en',
   },
   // Only the Next.js server loads src/data: the CLI runs onInit too, without the server-only condition.
@@ -51,7 +58,27 @@ export default buildConfig({
     await createFirstAdmin(payload)
   },
   plugins: [mcpPlugin({})],
+  // Without a token, as in a local sandbox, files stay on the disk.
+  storage: [
+    vercelBlobStorage({
+      clientUploads: true,
+      collections: { media: true },
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    }),
+  ],
   upload: {
-    transformers: [sharpTransformer()],
+    transformers: [
+      sharpTransformer({
+        collections: {
+          // The tiny picture a picture resolves from while it loads, and the picture a shared link shows.
+          media: {
+            variants: [
+              { name: 'tiny', width: 32 },
+              { name: 'share', width: 1200, height: 630 },
+            ],
+          },
+        },
+      }),
+    ],
   },
 })

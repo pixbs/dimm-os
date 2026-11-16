@@ -156,8 +156,9 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    users: User;
+    windows: Window;
     media: Media;
+    users: User;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -166,8 +167,9 @@ export interface Config {
   };
   collectionsJoins: {};
   collectionsSelect: {
-    users: UsersSelect<false> | UsersSelect<true>;
+    windows: WindowsSelect<false> | WindowsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
+    users: UsersSelect<false> | UsersSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -177,10 +179,14 @@ export interface Config {
   db: {
     defaultIDType: number;
   };
-  fallbackLocale: ('false' | 'none' | 'null') | false | null | 'en' | 'en'[];
-  globals: {};
-  globalsSelect: {};
-  locale: 'en';
+  fallbackLocale: ('false' | 'none' | 'null') | false | null | ('en' | 'de') | ('en' | 'de')[];
+  globals: {
+    site: Site;
+  };
+  globalsSelect: {
+    site: SiteSelect<false> | SiteSelect<true>;
+  };
+  locale: 'en' | 'de';
   widgets: {
     welcome: WelcomeWidget;
     collections: CollectionsWidget;
@@ -214,18 +220,237 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "windows".
+ */
+export interface Window {
+  id: number;
+  _order?: string | null;
+  title: string;
+  /**
+   * Drawn as a paper record.
+   */
+  paper?: boolean | null;
+  stamp?: string | null;
+  width?: number | null;
+  height?: number | null;
+  /**
+   * Neither resized nor made full screen.
+   */
+  oneSize?: boolean | null;
+  /**
+   * Opens on the desk at /.
+   */
+  openAtStart?: boolean | null;
+  /**
+   * The first is the main one.
+   */
+  actions?:
+    | {
+        type?: ('window' | 'media' | 'address') | null;
+        window?: (number | null) | Window;
+        media?: (number | null) | Media;
+        url?: string | null;
+        /**
+         * On a link to a window, empty is its title.
+         */
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  aside?: {
+    type?: ('none' | 'contents' | 'record') | null;
+    facts?:
+      | {
+          label: string;
+          value: string;
+          id?: string | null;
+        }[]
+      | null;
+    /**
+     * The first is the main one.
+     */
+    actions?:
+      | {
+          type?: ('window' | 'media' | 'address') | null;
+          window?: (number | null) | Window;
+          media?: (number | null) | Media;
+          url?: string | null;
+          /**
+           * On a link to a window, empty is its title.
+           */
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
+  tile?: ('orange' | 'blue' | 'mint' | 'paper' | 'raised') | null;
+  /**
+   * Empty, no shortcut on the desk.
+   */
+  icon?:
+    | (
+        | 'arrow-right'
+        | 'arrow-left'
+        | 'arrow-up-right'
+        | 'arrow-down'
+        | 'chevron-right'
+        | 'chevron-down'
+        | 'close'
+        | 'check'
+        | 'plus'
+        | 'minus'
+        | 'search'
+        | 'menu'
+        | 'more'
+        | 'grid'
+        | 'window'
+        | 'folder'
+        | 'file'
+        | 'image'
+        | 'play'
+        | 'mail'
+        | 'phone'
+        | 'link'
+        | 'download'
+        | 'upload'
+        | 'calendar'
+        | 'clock'
+        | 'globe'
+        | 'sun'
+        | 'moon'
+        | 'lock'
+        | 'info'
+        | 'user'
+        | 'sliders'
+        | 'home'
+        | 'power'
+        | 'trash'
+        | 'copy'
+        | 'text'
+        | 'chart'
+        | 'target'
+        | 'contrast'
+        | 'keyboard'
+        | 'expand'
+        | 'star'
+        | 'ab'
+        | 'eye-off'
+      )
+    | null;
+  /**
+   * The letter that opens the window.
+   */
+  key?: string | null;
+  /**
+   * For previews, search and sharing. Empty, the text of the first Header.
+   */
+  description?: string | null;
+  /**
+   * Empty, the first picture.
+   */
+  cover?: (number | null) | Media;
+  caption?: string | null;
+  /**
+   * Empty, the title of the first Header.
+   */
+  headline?: string | null;
+  note?: string | null;
+  facts?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  related?: (number | Window)[] | null;
+  slug: string;
+  parent?: (number | null) | Window;
+  /**
+   * Shown after the title in the bar: grow.case.
+   */
+  kind?: string | null;
+  /**
+   * Not shown to guests, nor are its items.
+   */
+  hidden?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+  _status?: ('draft' | 'published') | null;
+  _h_slugPath?: string | null;
+  _h_titlePath?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "media".
+ */
+export interface Media {
+  id: number;
+  alt: string;
+  /**
+   * Drawn by the system over the file, which is its still.
+   */
+  live?: ('not-found' | 'postmark' | 'portrait') | null;
+  prefix?: string | null;
+  _objectKey?: string | null;
+  updatedAt: string;
+  createdAt: string;
+  url?: string | null;
+  thumbnailURL?: string | null;
+  filename?: string | null;
+  mimeType?: string | null;
+  filesize?: number | null;
+  width?: number | null;
+  height?: number | null;
+  _stored?: boolean | null;
+  _transforms?: UploadTransforms;
+  original?: {
+    filename?: string | null;
+    url?: string | null;
+    mimeType?: string | null;
+    filesize?: number | null;
+    width?: number | null;
+    height?: number | null;
+    prefix?: string | null;
+    _objectKey?: string | null;
+    _stored?: boolean | null;
+  };
+  focalX?: number | null;
+  focalY?: number | null;
+  variants?: {
+    tiny?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+      prefix?: string | null;
+      _objectKey?: string | null;
+      _stored?: boolean | null;
+    };
+    share?: {
+      url?: string | null;
+      width?: number | null;
+      height?: number | null;
+      mimeType?: string | null;
+      filesize?: number | null;
+      filename?: string | null;
+      prefix?: string | null;
+      _objectKey?: string | null;
+      _stored?: boolean | null;
+    };
+  };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
   id: number;
-  createdBy?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
-  updatedBy?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
+  /**
+   * Content edits Windows, Media and Site.
+   */
+  role: 'admin' | 'content';
   updatedAt: string;
   createdAt: string;
   email: string;
@@ -261,46 +486,6 @@ export interface User {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "media".
- */
-export interface Media {
-  id: number;
-  alt: string;
-  createdBy?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
-  updatedBy?: {
-    relationTo: 'users';
-    value: number | User;
-  } | null;
-  updatedAt: string;
-  createdAt: string;
-  url?: string | null;
-  thumbnailURL?: string | null;
-  filename?: string | null;
-  mimeType?: string | null;
-  filesize?: number | null;
-  width?: number | null;
-  height?: number | null;
-  _stored?: boolean | null;
-  _transforms?: UploadTransforms;
-  original?: {
-    filename?: string | null;
-    url?: string | null;
-    mimeType?: string | null;
-    filesize?: number | null;
-    width?: number | null;
-    height?: number | null;
-    prefix?: string | null;
-    _objectKey?: string | null;
-    _stored?: boolean | null;
-  };
-  focalX?: number | null;
-  focalY?: number | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -324,12 +509,16 @@ export interface PayloadLockedDocument {
   id: number;
   document?:
     | ({
-        relationTo: 'users';
-        value: number | User;
+        relationTo: 'windows';
+        value: number | Window;
       } | null)
     | ({
         relationTo: 'media';
         value: number | Media;
+      } | null)
+    | ({
+        relationTo: 'users';
+        value: number | User;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -397,33 +586,74 @@ export interface PayloadLlmInstruction {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "windows_select".
  */
-export interface UsersSelect<T extends boolean = true> {
-  createdBy?: T;
-  updatedBy?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  resetPasswordRequestedAt?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
+export interface WindowsSelect<T extends boolean = true> {
+  _order?: T;
+  title?: T;
+  paper?: T;
+  stamp?: T;
+  width?: T;
+  height?: T;
+  oneSize?: T;
+  openAtStart?: T;
+  actions?:
     | T
     | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-        refreshCount?: T;
-        refreshedAt?: T;
-        label?: T;
         type?: T;
-        metadata?: T;
+        window?: T;
+        media?: T;
+        url?: T;
+        label?: T;
+        id?: T;
       };
+  aside?:
+    | T
+    | {
+        type?: T;
+        facts?:
+          | T
+          | {
+              label?: T;
+              value?: T;
+              id?: T;
+            };
+        actions?:
+          | T
+          | {
+              type?: T;
+              window?: T;
+              media?: T;
+              url?: T;
+              label?: T;
+              id?: T;
+            };
+      };
+  tile?: T;
+  icon?: T;
+  key?: T;
+  description?: T;
+  cover?: T;
+  caption?: T;
+  headline?: T;
+  note?: T;
+  facts?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  related?: T;
+  slug?: T;
+  parent?: T;
+  kind?: T;
+  hidden?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  _status?: T;
+  _h_slugPath?: T;
+  _h_titlePath?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -431,8 +661,9 @@ export interface UsersSelect<T extends boolean = true> {
  */
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
-  createdBy?: T;
-  updatedBy?: T;
+  live?: T;
+  prefix?: T;
+  _objectKey?: T;
   updatedAt?: T;
   createdAt?: T;
   url?: T;
@@ -459,6 +690,65 @@ export interface MediaSelect<T extends boolean = true> {
       };
   focalX?: T;
   focalY?: T;
+  variants?:
+    | T
+    | {
+        tiny?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+              prefix?: T;
+              _objectKey?: T;
+              _stored?: T;
+            };
+        share?:
+          | T
+          | {
+              url?: T;
+              width?: T;
+              height?: T;
+              mimeType?: T;
+              filesize?: T;
+              filename?: T;
+              prefix?: T;
+              _objectKey?: T;
+              _stored?: T;
+            };
+      };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "users_select".
+ */
+export interface UsersSelect<T extends boolean = true> {
+  role?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  email?: T;
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  resetPasswordRequestedAt?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
+    | T
+    | {
+        id?: T;
+        createdAt?: T;
+        expiresAt?: T;
+        refreshCount?: T;
+        refreshedAt?: T;
+        label?: T;
+        type?: T;
+        metadata?: T;
+      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -518,6 +808,114 @@ export interface PayloadLlmInstructionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site".
+ */
+export interface Site {
+  id: number;
+  name: string;
+  email: string;
+  place: string;
+  timezone:
+    | 'Pacific/Midway'
+    | 'Pacific/Niue'
+    | 'Pacific/Honolulu'
+    | 'Pacific/Rarotonga'
+    | 'America/Anchorage'
+    | 'Pacific/Gambier'
+    | 'America/Los_Angeles'
+    | 'America/Tijuana'
+    | 'America/Denver'
+    | 'America/Phoenix'
+    | 'America/Chicago'
+    | 'America/Guatemala'
+    | 'America/New_York'
+    | 'America/Bogota'
+    | 'America/Caracas'
+    | 'America/Santiago'
+    | 'America/Buenos_Aires'
+    | 'America/Sao_Paulo'
+    | 'Atlantic/South_Georgia'
+    | 'Atlantic/Azores'
+    | 'Atlantic/Cape_Verde'
+    | 'Europe/London'
+    | 'Europe/Berlin'
+    | 'Africa/Lagos'
+    | 'Europe/Athens'
+    | 'Africa/Cairo'
+    | 'Europe/Moscow'
+    | 'Asia/Riyadh'
+    | 'Asia/Dubai'
+    | 'Asia/Baku'
+    | 'Asia/Karachi'
+    | 'Asia/Tashkent'
+    | 'Asia/Calcutta'
+    | 'Asia/Dhaka'
+    | 'Asia/Almaty'
+    | 'Asia/Jakarta'
+    | 'Asia/Bangkok'
+    | 'Asia/Shanghai'
+    | 'Asia/Singapore'
+    | 'Asia/Tokyo'
+    | 'Asia/Seoul'
+    | 'Australia/Brisbane'
+    | 'Australia/Sydney'
+    | 'Pacific/Guam'
+    | 'Pacific/Noumea'
+    | 'Pacific/Auckland'
+    | 'Pacific/Fiji';
+  /**
+   * Boot and About count its items.
+   */
+  counted?: (number | null) | Window;
+  boot?:
+    | {
+        label: string;
+        value: string;
+        status: string;
+        id?: string | null;
+      }[]
+    | null;
+  about?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "site_select".
+ */
+export interface SiteSelect<T extends boolean = true> {
+  name?: T;
+  email?: T;
+  place?: T;
+  timezone?: T;
+  counted?: T;
+  boot?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        status?: T;
+        id?: T;
+      };
+  about?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "welcome_widget".
  */
 export interface WelcomeWidget {
@@ -543,7 +941,7 @@ export interface CollectionsWidget {
 export interface CollectionQueryWidget {
   data?: {
     title?: string | null;
-    relatedCollection: 'users' | 'media';
+    relatedCollection: 'windows' | 'media' | 'users';
     where?:
       | {
           [k: string]: unknown;
@@ -565,7 +963,7 @@ export interface CollectionQueryWidget {
  */
 export interface ActivityWidget {
   data?: {
-    excludedCollections?: ('users' | 'media')[] | null;
+    excludedCollections?: ('windows' | 'media' | 'users')[] | null;
   };
   width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }

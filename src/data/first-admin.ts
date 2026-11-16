@@ -17,7 +17,7 @@ export async function createFirstAdmin(payload: Payload): Promise<void> {
 
   await payload.create({
     collection: 'users',
-    data: { email, password },
+    data: { email, password, role: 'admin' },
     depth: 0,
     fallbackLocale: false,
     locale: 'en',
