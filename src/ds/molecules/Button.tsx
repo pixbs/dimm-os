@@ -56,7 +56,7 @@ export function Button(props: Props) {
       {lead}
       {label ? <span className="btn__label">{label}</span> : key}
       {trail && <span className="btn__end">{trail}</span>}
-      {!label && name && <Tip hint={hint} label={name} />}
+      {!label && name && <Tip hint={keyed ? undefined : hint} label={name} />}
     </button>
   )
 }

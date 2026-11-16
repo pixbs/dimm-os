@@ -282,6 +282,10 @@ test.describe('Wallpaper', () => {
       )
       await page.waitForTimeout(200)
       expect(await rate(page), name).toBe(0)
+      // A pointer over the desk draws nothing on a form that holds still.
+      await page.mouse.move(300, 300, { steps: 8 })
+      await page.waitForTimeout(200)
+      expect(await drawn(page), name).toEqual([])
       await page.evaluate((name) => delete document.documentElement.dataset[name], name)
       expect(await rate(page)).toBeGreaterThan(20)
     }
@@ -297,6 +301,34 @@ test.describe('Wallpaper', () => {
     expect(await rate(page)).toBe(0)
     await page.locator('main').evaluate((desk: HTMLElement) => (desk.inert = false))
     expect(await rate(page)).toBeGreaterThan(20)
+  })
+
+  test('pours in without an error when a message comes before its first setting, as when a tab opened hidden is shown', async ({
+    page,
+  }) => {
+    // Right after the canvas the page sends what a hidden tab sends once shown, and a lean.
+    await page.addInitScript(() => {
+      const errors: string[] = []
+      Object.assign(window, { errors })
+      window.Worker = class extends window.Worker {
+        constructor(...args: ConstructorParameters<typeof Worker>) {
+          super(...args)
+          this.addEventListener('error', (event) => errors.push(event.message))
+        }
+        postMessage(message: unknown, transfer?: Transferable[] | StructuredSerializeOptions) {
+          super.postMessage(message, transfer as StructuredSerializeOptions)
+          if (message && typeof message === 'object' && 'canvas' in message) {
+            super.postMessage({ runs: true })
+            super.postMessage({ lean: [10, 10] })
+          }
+        }
+      }
+    })
+    await open(page)
+    await page.waitForTimeout(1000)
+
+    expect((await drawn(page))[0].dots).toBeLessThanOrEqual(4)
+    expect(await page.evaluate(() => Reflect.get(window, 'errors'))).toEqual([])
   })
 
   test('is drawn at once and still when the device asks for reduced motion', async ({ page }) => {

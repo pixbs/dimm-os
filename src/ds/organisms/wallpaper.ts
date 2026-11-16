@@ -57,7 +57,7 @@ function place({ width, height, at, field }: Setting) {
 }
 
 function draw() {
-  dots!.draw(context, now!.colour, 0)
+  dots?.draw(context, now!.colour, 0)
 }
 
 function build(from: 'pour' | 'form' | 'home') {
@@ -145,8 +145,11 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
     context = canvas.getContext('2d')!
     return
   }
-  const was = now
+  // What was drawn before, if anything was: a message may arrive before the first whole setting.
+  const was = dots && now
   now = { ...now!, ...data }
+  // A lean alone changes nothing on a form that holds still.
+  if (!moves() && Object.keys(data).every((name) => name === 'lean')) return
   const sized = ['width', 'height', 'ratio', 'pitch', 'at'].some(
     (name) =>
       JSON.stringify(was?.[name as keyof Setting]) !== JSON.stringify(now![name as keyof Setting]),
