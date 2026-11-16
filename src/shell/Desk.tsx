@@ -157,10 +157,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const [unfolded, setMenus] = useState(0)
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
-  // when it leaves the next takes its place.
+  // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     dispatch(action)
     const after = manager(desk, action)
+    if (action.type === 'desk' || after === desk) return
     const next = showing(after)
     const address = toAddress(language, next ?? '/')
     if (location.pathname === address) return

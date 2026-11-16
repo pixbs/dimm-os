@@ -271,9 +271,8 @@ export async function getView(lang: string, segments: string[] = []) {
   return (await visiting()) ? getWindowView(path, lang, null) : getGuestView(path, lang)
 }
 
-// The desk with the 404 window, in the language of the address or else in the first.
-export async function getMissingView(lang?: string): Promise<View> {
-  const language = lang && hasLanguage(lang) ? lang : english
+// The desk with the 404 window.
+export async function getMissingView(language: Language): Promise<View> {
   return (await visiting()) ? (await views(language, null)).missing() : getGuestMissing(language)
 }
 

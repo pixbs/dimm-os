@@ -11,13 +11,34 @@ function toInternal(pathname: string): string {
   return toRoute(language, path)
 }
 
-export function proxy(request: NextRequest) {
+// Whether a window's page has nothing for this viewer, as its view says. The page then shows the 404 window, and
+// the status is set here, since Next.js draws a page's own notFound() with script alone.
+async function missing(request: NextRequest, route: string): Promise<boolean> {
+  const [, , first] = route.split('/')
+  if (request.method !== 'GET' || route.startsWith('/view/') || first === 'catalogue') return false
+  try {
+    const view = await fetch(new URL(`/view${route}`, request.url), {
+      method: 'HEAD',
+      headers: { cookie: request.headers.get('cookie') ?? '' },
+      redirect: 'manual',
+    })
+    return view.status === 404
+  } catch {
+    return false
+  }
+}
+
+export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone()
   // The cookie's presence alone picks the uncached variant: reading it is the variant's work.
   const visitor = request.cookies.has(VISITOR_COOKIE)
-  url.pathname = (visitor ? '/visitor' : '') + toInternal(url.pathname)
+  const route = toInternal(url.pathname)
+  url.pathname = (visitor ? '/visitor' : '') + route
 
-  const response = NextResponse.rewrite(url)
+  const response = NextResponse.rewrite(
+    url,
+    (await missing(request, route)) ? { status: 404 } : undefined,
+  )
   // A route handler sets no cache header by itself, and a visitor's view must stay out of every cache.
   if (visitor) response.headers.set('Cache-Control', 'private, no-store')
   return response
