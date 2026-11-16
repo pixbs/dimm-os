@@ -1,4 +1,4 @@
-import type { Page } from '@playwright/test'
+import type { CDPSession, Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
@@ -10,6 +10,32 @@ const device = (page: Page, platform: 'MacIntel' | 'Win32') =>
 
 const entry = (page: Page, name: string) =>
   page.locator('.entry', { has: page.getByRole('heading', { name, exact: true }) })
+
+const glyphs = /[⌘⌥⇧⏎↵←→↑↓]/g
+
+// Each key glyph set in mono on the page, with the faces the browser drew it in; a hidden one draws in none.
+async function keyFaces(cdp: CDPSession) {
+  const { root } = await cdp.send('DOM.getDocument', { depth: -1 })
+  const drawn: { text: string; faces: string[] }[] = []
+  const walk = async (node: typeof root, parent?: typeof root): Promise<void> => {
+    if (node.nodeType === 3 && parent && node.nodeValue.match(glyphs)) {
+      const { computedStyle } = await cdp.send('CSS.getComputedStyleForNode', {
+        nodeId: parent.nodeId,
+      })
+      const family = computedStyle.find((style) => style.name === 'font-family')!.value
+      const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId: node.nodeId })
+      if (family.includes('JetBrains Mono') && fonts.length) {
+        drawn.push({
+          text: node.nodeValue,
+          faces: fonts.map((font) => `${font.familyName}${font.isCustomFont ? '' : ' (system)'}`),
+        })
+      }
+    }
+    for (const child of node.children ?? []) await walk(child, node)
+  }
+  await walk(root)
+  return drawn
+}
 
 test.describe('Actions', () => {
   test('shows the window controls in one hand: the setting, or the device under System', async ({
@@ -63,12 +89,35 @@ test.describe('Actions', () => {
         { useInnerText: true },
       )
       // The table names every key on both devices.
-      await expect(keys.locator('.dl')).toContainText('Apple⌘⌥⇧↵↑↓←→Esc')
+      await expect(keys.locator('.dl')).toContainText('Apple⌘⌥⇧⏎↑↓←→Esc')
       await expect(keys.locator('.dl')).toContainText(
-        language ? 'AndereStrgAlt⇧↵↑↓←→Esc' : 'OthersCtrlAlt⇧↵↑↓←→Esc',
+        language ? 'AndereStrgAlt⇧⏎↑↓←→Esc' : 'OthersCtrlAlt⇧⏎↑↓←→Esc',
       )
     }
   })
+
+  for (const platform of ['MacIntel', 'Win32'] as const) {
+    test(`draws every key glyph in the mono font on ${platform}`, async ({ page }) => {
+      await device(page, platform)
+      const cdp = await page.context().newCDPSession(page)
+      await cdp.send('DOM.enable')
+      await cdp.send('CSS.enable')
+
+      for (const language of ['', '/de']) {
+        const seen = new Set<string>()
+        for (const name of ['actions', 'shell']) {
+          await page.goto(`${language}/catalogue/${name}`)
+          await page.evaluate(() => document.fonts.ready)
+
+          for (const { text, faces } of await keyFaces(cdp)) {
+            for (const glyph of text.match(glyphs)!) seen.add(glyph)
+            expect(faces, `${text} on ${language}/catalogue/${name}`).toEqual(['JetBrains Mono'])
+          }
+        }
+        expect([...seen].sort()).toEqual([...'⌘⌥⇧⏎←→↑↓'].sort())
+      }
+    })
+  }
 
   test('shows a tooltip within fast and puts it away within half of it, or at once with Esc', async ({
     page,
