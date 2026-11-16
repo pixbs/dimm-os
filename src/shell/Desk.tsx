@@ -20,7 +20,7 @@ import type { Dictionary } from '@/i18n/en'
 import { named } from '@/i18n/keys'
 
 import { Clock } from './Clock'
-import { type Action, front, manager, start } from './manager'
+import { type Action, front, manager, phone, stack, start } from './manager'
 import { idOf, OnDesk, tasksOf } from './OnDesk'
 
 const STORE = 'windows'
@@ -171,7 +171,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   // In the taskbar a window goes by the name its bar shows, in the dock by its title.
   const tasks = tasksOf(desk)
-  const pick = (index: number) => act({ type: 'task', path: desk.open[index].path })
+  const pick = (index: number, opener: Element) =>
+    act({ type: 'task', path: desk.open[index].path, opener })
 
   const other = languages.find((one) => one !== language)!
   const legal = (
@@ -230,32 +231,35 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           <Clock language={language} zone={view.site.timezone} />
         </Bar>
       </header>
-      <OnDesk
-        apps={view.shortcuts}
-        desk={desk}
-        dispatch={act}
-        label={dictionary.apps}
-        t={dictionary}
-      >
-        {(opened) => <Sections dictionary={dictionary} view={opened} />}
-      </OnDesk>
-      <footer data-for="phone">
-        <Bar>
-          {legal.map((link) => (
-            <ButtonLink key={link.href} {...link} />
-          ))}
-        </Bar>
-        {tasks.length > 0 && (
-          <Dock
-            label={dictionary.windows}
-            onPick={pick}
-            tasks={tasks.map((task, index) => ({
-              ...task,
-              name: desk.open[index].view?.frame.title ?? task.name,
-            }))}
-          />
-        )}
-      </footer>
+      {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
+      <div className="screen__main">
+        <OnDesk
+          apps={view.shortcuts}
+          desk={desk}
+          dispatch={act}
+          label={dictionary.apps}
+          t={dictionary}
+        >
+          {(opened) => <Sections dictionary={dictionary} view={opened} />}
+        </OnDesk>
+        <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
+          <Bar>
+            {legal.map((link) => (
+              <ButtonLink key={link.href} {...link} />
+            ))}
+          </Bar>
+          {tasks.length > 0 && (
+            <Dock
+              label={dictionary.windows}
+              onPick={pick}
+              tasks={tasks.map((task, index) => ({
+                ...task,
+                name: desk.open[index].view?.frame.title ?? task.name,
+              }))}
+            />
+          )}
+        </footer>
+      </div>
       <footer data-for="desk" data-surface="desktop">
         <Taskbar onPick={pick} size="chrome" tasks={tasks}>
           {[...legal, preferences].map((link) => (

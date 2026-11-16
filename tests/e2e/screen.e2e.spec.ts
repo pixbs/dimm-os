@@ -128,14 +128,18 @@ test.describe('Screen', () => {
   }) => {
     for (const size of [desk, phone]) {
       await page.setViewportSize(size)
-      await page.goto('/work')
-      // A window in full screen takes the whole desk, and no more.
-      await page.locator('main article').getByRole('button', { name: 'Full screen' }).click()
-      await expect(page.locator('main article')).toHaveAttribute('data-full')
-      // On a phone the window lies in the page, so it covers nothing and the apps stay in reach.
-      if (size === phone) await expect(page.locator('nav.apps')).not.toHaveAttribute('inert')
+      await page.goto('/work', { waitUntil: 'networkidle' })
+      // A window in full screen takes the whole desk, and no more. On a phone the window is a drawer: it stays
+      // under the menu bar and rises over the dock, which cannot be reached while it is up.
+      if (size === desk) {
+        await page.locator('main article').getByRole('button', { name: 'Full screen' }).click()
+        await expect(page.locator('main article')).toHaveAttribute('data-full')
+      } else {
+        await expect(page.locator('footer[data-for="phone"]')).toHaveAttribute('inert')
+      }
+      const bars = size === desk ? ':is(header, footer)' : 'header'
       for (const control of await page
-        .locator(':is(header, footer) :is(.bar, .dock) :is(a, button):visible')
+        .locator(`${bars} :is(.bar, .dock) :is(a, button):visible`)
         .all()) {
         const onTop = await control.evaluate((control) => {
           const { x, y, width, height } = control.getBoundingClientRect()

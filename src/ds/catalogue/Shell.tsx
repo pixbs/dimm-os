@@ -6,6 +6,7 @@ import { Bar, BarGrip, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
 import { Heading } from '../molecules/Heading'
 import { Path } from '../molecules/Path'
+import { Row } from '../molecules/Row'
 import { WindowControls } from '../molecules/WindowControls'
 import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
@@ -144,6 +145,112 @@ function Windows({ t, words }: Props) {
         <Patch hand="squares" pitch="12" width={45}>
           {frame({})}
         </Patch>
+      </Specs>
+    </Entry>
+  )
+}
+
+// A phone with drawers over its apps and its dock.
+function Phone({ t, children }: Pick<Props, 't'> & { children: ReactNode }) {
+  return (
+    <Screen style={sized(42.875, 80)}>
+      <header data-surface="desktop">
+        <Bar line="below">
+          <Button label={t.name} lead={<Mark />} />
+          <BarSpace />
+          <BarText>{t.time}</BarText>
+        </Bar>
+      </header>
+      <div className="screen__main">
+        <main className="screen__desk">
+          <Apps apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])} layout="screen" />
+          {children}
+        </main>
+        <footer>
+          <Dock
+            tasks={[
+              { name: t.name, front: true },
+              { name: t.name, minimised: true },
+            ]}
+          />
+        </footer>
+      </div>
+    </Screen>
+  )
+}
+
+function Drawers({ t, words }: Props) {
+  const [first, second, third] = t.replaced
+  const rows = (count: number) =>
+    Array.from({ length: count }, (_, at) => (
+      <Row
+        end="arrow-right"
+        href="#"
+        index={String(at + 1).padStart(2, '0')}
+        key={at}
+        title={t.title}
+      />
+    ))
+  // A drawer as many steps back as it is given, with a heading and the rows asked for.
+  const drawer = (name: string, back: number, count: number, foot?: ReactNode) => (
+    <Window
+      back={back}
+      density="touch"
+      foot={foot}
+      front={!back}
+      name={[name]}
+      t={words}
+      title={name}
+    >
+      <div style={{ paddingBlock: 'var(--s-6)' }}>
+        <div style={{ paddingInline: 'var(--inset)' }}>
+          <Heading level="heading" text={t.windowText} title={t.title} />
+        </div>
+        {rows(count)}
+      </div>
+    </Window>
+  )
+  const label = (props: ComponentProps<typeof Button>) => <Button label={t.label} {...props} />
+
+  return (
+    <Entry text={t.drawers}>
+      <Specs caps={t.drawersCaps.slice(0, 3)}>
+        <Phone t={t}>{drawer(t.title, 0, 0)}</Phone>
+        <Phone t={t}>{drawer(t.title, 0, 12)}</Phone>
+        <Phone t={t}>
+          {drawer(
+            t.title,
+            0,
+            3,
+            <ButtonGroup>
+              {label({ tone: 'outline' })}
+              {label({ end: 'arrow-right', tone: 'solid' })}
+            </ButtonGroup>,
+          )}
+        </Phone>
+      </Specs>
+      <Specs caps={t.drawersCaps.slice(3)}>
+        <Phone t={t}>
+          {drawer(first, 1, 8)}
+          {drawer(second, 0, 8)}
+        </Phone>
+        <Phone t={t}>
+          {drawer(first, 2, 8)}
+          {drawer(second, 1, 8)}
+          {drawer(third, 0, 8)}
+        </Phone>
+        <Phone t={t}>
+          {drawer(first, 1, 8)}
+          {drawer(
+            second,
+            0,
+            0,
+            <ButtonGroup>
+              {label({ tone: 'solid' })}
+              {label({ tone: 'outline' })}
+            </ButtonGroup>,
+          )}
+        </Phone>
       </Specs>
     </Entry>
   )
@@ -308,6 +415,7 @@ export function Shell({ t, words }: Props) {
           rows={t.handledRows}
         />
       </Entry>
+      <Drawers t={t} words={words} />
     </Doc>
   )
 }
