@@ -40,6 +40,14 @@ export const tasksOf = (desk: Windows): Task[] =>
     minimised: entry.mode === 'min',
   }))
 
+// Windows open beside the apps, and keep the gap of the desk's top from its far edge.
+function roomOf(desk: HTMLElement) {
+  const apps = desk.querySelector<HTMLElement>(':scope > .apps')
+  const x = apps ? apps.offsetLeft + apps.offsetWidth : 0
+  const gap = parseFloat(getComputedStyle(desk).paddingTop)
+  return { x, w: Math.max(0, desk.clientWidth - x - gap) }
+}
+
 // What lies on the desk: the apps, and the windows its manager keeps.
 export function OnDesk(props: {
   desk: Windows
@@ -55,12 +63,14 @@ export function OnDesk(props: {
   const ground = useRef<HTMLElement>(null)
   // "One window at a time" also means that nothing drags; the server does not know the setting.
   const still = !usePainted() && document.documentElement.dataset.single === 'on'
-  const measured = useEffectEvent((w: number, h: number) => dispatch({ type: 'desk', w, h }))
+  const measured = useEffectEvent((desk: HTMLElement) =>
+    dispatch({ type: 'desk', w: desk.clientWidth, h: desk.clientHeight, room: roomOf(desk) }),
+  )
 
   // The manager places and clamps by the size of the desk, whenever that changes.
   useEffect(() => {
     const element = ground.current!
-    const sized = new ResizeObserver(() => measured(element.clientWidth, element.clientHeight))
+    const sized = new ResizeObserver(() => measured(element))
     sized.observe(element)
     return () => sized.disconnect()
   }, [])
@@ -115,6 +125,7 @@ export function OnDesk(props: {
               sizing={desk.sizing === entry.path}
               status={parts?.status}
               still={still}
+              surface={entry.view?.frame.paper ? 'paper' : undefined}
               t={t}
               takesFocus={entry.opener !== undefined}
               task={`task-${idOf(entry.path)}`}

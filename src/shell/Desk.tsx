@@ -10,13 +10,14 @@ import {
   useState,
 } from 'react'
 
-import type { View, WindowView } from '@/data/views'
+import type { FootButton, View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import { MenuBar } from '@/ds/organisms/Menu'
+import { Stamp } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
@@ -72,53 +73,86 @@ const pad = (number: number) => String(number).padStart(2, '0')
 function Body({ view }: { view: WindowView }) {
   const { parent, neighbours } = view
   const before = neighbours.previous ?? parent
+  const { stamp } = view.frame
   return (
-    <div style={{ padding: 'var(--inset)' }}>
-      <div lang={view.lang}>
-        <h1>{view.frame.title}</h1>
-        {view.sections.map((section, index) =>
-          section.type === 'text' ? (
-            <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
-          ) : (
-            <ul key={index}>
-              {section.items.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href} lang={item.lang}>
-                    {item.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          ),
-        )}
-      </div>
-      {before && (
-        <nav>
-          <ButtonGroup>
-            <ButtonLink
-              href={before.href}
-              hrefLang={before.lang}
-              icon="arrow-left"
-              label={before.title}
-              lang={before.lang}
-              rel={neighbours.previous ? 'prev' : undefined}
-              tone="outline"
-            />
-            {neighbours.next && (
+    <>
+      {stamp && <Stamp code={stamp.code} note={stamp.place} />}
+      <div style={{ padding: 'var(--inset)' }}>
+        <div lang={view.lang}>
+          <h1>{view.frame.title}</h1>
+          {view.sections.map((section, index) =>
+            section.type === 'text' ? (
+              <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
+            ) : (
+              <ul key={index}>
+                {section.items.map((item) => (
+                  <li key={item.href}>
+                    <a href={item.href} lang={item.lang}>
+                      {item.title}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            ),
+          )}
+        </div>
+        {before && (
+          <nav>
+            <ButtonGroup>
               <ButtonLink
-                end="arrow-right"
-                href={neighbours.next.href}
-                hrefLang={neighbours.next.lang}
-                label={neighbours.next.title}
-                lang={neighbours.next.lang}
-                rel="next"
+                href={before.href}
+                hrefLang={before.lang}
+                icon="arrow-left"
+                label={before.title}
+                lang={before.lang}
+                rel={neighbours.previous ? 'prev' : undefined}
                 tone="outline"
               />
-            )}
-          </ButtonGroup>
-        </nav>
-      )}
-    </div>
+              {neighbours.next && (
+                <ButtonLink
+                  end="arrow-right"
+                  href={neighbours.next.href}
+                  hrefLang={neighbours.next.lang}
+                  label={neighbours.next.title}
+                  lang={neighbours.next.lang}
+                  rel="next"
+                  tone="outline"
+                />
+              )}
+            </ButtonGroup>
+          </nav>
+        )}
+      </div>
+    </>
+  )
+}
+
+// Where a foot button leads shows at its end: a window, a download, or an address, out of the site or in it.
+const ends = (button: FootButton) =>
+  button.to === 'media'
+    ? 'arrow-down'
+    : button.to === 'address' && /^https?:/i.test(button.href ?? '')
+      ? 'arrow-up-right'
+      : 'arrow-right'
+
+// The buttons at a window's foot, the main one first; a file downloads.
+function Foot({ buttons }: { buttons: FootButton[] }) {
+  return (
+    <ButtonGroup>
+      {buttons.map((button, index) => (
+        <ButtonLink
+          download={button.to === 'media' || undefined}
+          end={ends(button)}
+          hint={button.key}
+          href={button.href ?? undefined}
+          hrefLang={button.lang}
+          key={index}
+          label={button.label}
+          lang={button.lang}
+          tone="outline"
+        />
+      ))}
+    </ButtonGroup>
   )
 }
 
@@ -158,7 +192,12 @@ function parts(view: WindowView, t: Dictionary, language: Language): Parts {
     </Bar>
   )
 
-  return { toolbar, status, body: <Body view={view} /> }
+  return {
+    toolbar,
+    status,
+    foot: view.actions.length > 0 && <Foot buttons={view.actions} />,
+    body: <Body view={view} />,
+  }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {
