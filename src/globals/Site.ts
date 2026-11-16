@@ -1,14 +1,16 @@
 import type { GlobalConfig } from 'payload'
 import { defaultTimezones } from 'payload/shared'
 
-import { signedIn } from '@/access'
+import { signedIn, signedInOrSite } from '@/access'
 import { facts } from '@/fields/facts'
+import { dropBareIdsOfGlobal } from '@/hooks/relations'
 import { revalidateGlobal } from '@/hooks/revalidate'
 
 // The values the whole system shares. One document that saves directly.
 export const Site: GlobalConfig = {
   slug: 'site',
-  access: { read: signedIn, readVersions: signedIn, update: signedIn },
+  // The site's own code reads it under the windows' rule, so a hidden counted window stays absent.
+  access: { read: signedInOrSite, readVersions: signedIn, update: signedIn },
   admin: { group: 'Content' },
   authorship: false,
   fields: [
@@ -59,6 +61,6 @@ export const Site: GlobalConfig = {
     },
     { ...facts('about', 'About plate'), localized: true },
   ],
-  hooks: { afterChange: [revalidateGlobal] },
+  hooks: { afterChange: [revalidateGlobal], afterRead: [dropBareIdsOfGlobal] },
   versions: false,
 }

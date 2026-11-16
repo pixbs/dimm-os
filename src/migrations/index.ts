@@ -1,5 +1,6 @@
 import * as migration_20261115_001553_initial from './20261115_001553_initial';
 import * as migration_20261116_130705_content_model from './20261116_130705_content_model';
+import * as migration_20261116_152833_visitors_and_access from './20261116_152833_visitors_and_access';
 
 export const migrations = [
   {
@@ -10,6 +11,11 @@ export const migrations = [
   {
     up: migration_20261116_130705_content_model.up,
     down: migration_20261116_130705_content_model.down,
-    name: '20261116_130705_content_model'
+    name: '20261116_130705_content_model',
+  },
+  {
+    up: migration_20261116_152833_visitors_and_access.up,
+    down: migration_20261116_152833_visitors_and_access.down,
+    name: '20261116_152833_visitors_and_access'
   },
 ];

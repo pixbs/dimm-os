@@ -159,6 +159,7 @@ export interface Config {
     windows: Window;
     media: Media;
     users: User;
+    visitors: Visitor;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -170,6 +171,7 @@ export interface Config {
     windows: WindowsSelect<false> | WindowsSelect<true>;
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
+    visitors: VisitorsSelect<false> | VisitorsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -453,6 +455,9 @@ export interface User {
   role: 'admin' | 'content';
   updatedAt: string;
   createdAt: string;
+  apiKey?: string | null;
+  apiKeyLast4?: string | null;
+  apiKeyIndex?: string | null;
   email: string;
   resetPasswordToken?: string | null;
   resetPasswordExpiration?: string | null;
@@ -483,6 +488,26 @@ export interface User {
     | null;
   password?: string | null;
   collection: 'users';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visitors".
+ */
+export interface Visitor {
+  id: number;
+  name: string;
+  /**
+   * Kept only as a keyed hash; empty keeps the saved one.
+   */
+  password?: string | null;
+  hash?: string | null;
+  /**
+   * Hidden windows the visitor may open, each with its items.
+   */
+  windows?: (number | Window)[] | null;
+  expires: string;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -519,6 +544,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'users';
         value: number | User;
+      } | null)
+    | ({
+        relationTo: 'visitors';
+        value: number | Visitor;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -729,6 +758,9 @@ export interface UsersSelect<T extends boolean = true> {
   role?: T;
   updatedAt?: T;
   createdAt?: T;
+  apiKey?: T;
+  apiKeyLast4?: T;
+  apiKeyIndex?: T;
   email?: T;
   resetPasswordToken?: T;
   resetPasswordExpiration?: T;
@@ -749,6 +781,19 @@ export interface UsersSelect<T extends boolean = true> {
         type?: T;
         metadata?: T;
       };
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "visitors_select".
+ */
+export interface VisitorsSelect<T extends boolean = true> {
+  name?: T;
+  password?: T;
+  hash?: T;
+  windows?: T;
+  expires?: T;
+  updatedAt?: T;
+  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -941,7 +986,7 @@ export interface CollectionsWidget {
 export interface CollectionQueryWidget {
   data?: {
     title?: string | null;
-    relatedCollection: 'windows' | 'media' | 'users';
+    relatedCollection: 'windows' | 'media' | 'users' | 'visitors';
     where?:
       | {
           [k: string]: unknown;
@@ -963,7 +1008,7 @@ export interface CollectionQueryWidget {
  */
 export interface ActivityWidget {
   data?: {
-    excludedCollections?: ('windows' | 'media' | 'users')[] | null;
+    excludedCollections?: ('windows' | 'media' | 'users' | 'visitors')[] | null;
   };
   width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }

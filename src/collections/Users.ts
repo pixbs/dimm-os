@@ -1,6 +1,7 @@
 import type { Access, CollectionConfig } from 'payload'
 
 import { isAdmin, signedIn } from '@/access'
+import { nested } from '@/hooks/nested'
 
 // The admin reaches every user; the content user, only their own account.
 const selfOrAdmin: Access = ({ req }) =>
@@ -20,7 +21,8 @@ export const Users: CollectionConfig = {
     useAsTitle: 'email',
     defaultColumns: ['email', 'role'],
   },
-  auth: true,
+  // A key lets an agent work over MCP as a user, with that user's access and no more.
+  auth: { useAPIKey: true },
   authorship: false,
   fields: [
     {
@@ -40,7 +42,7 @@ export const Users: CollectionConfig = {
         beforeChange: [
           async ({ operation, req, value }) =>
             operation === 'create' &&
-            (await req.payload.count({ collection: 'users', overrideAccess: true, req }))
+            (await req.payload.count({ collection: 'users', ...nested(req), overrideAccess: true }))
               .totalDocs === 0
               ? 'admin'
               : value,

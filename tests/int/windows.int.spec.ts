@@ -21,6 +21,8 @@ const slugs = [
   'withdrawn',
   'imprint-old',
   'addressed',
+  'kept-parent',
+  'kept-item',
 ]
 const signedIn: User = {
   id: 0,
@@ -149,6 +151,24 @@ describe('a window', () => {
       locale: 'en',
       overrideAccess: true,
     })
+  })
+
+  it('keeps English when an item is saved in German', async () => {
+    const parent = await create({ title: 'Kept parent' })
+    const { id } = await create({ title: 'Kept item', parent: parent.id })
+    await payload.update({
+      collection: 'windows',
+      id,
+      data: { title: 'Behaltenes Stück', _status: 'published' },
+      depth: 0,
+      draft: false,
+      fallbackLocale: false,
+      locale: 'de',
+      overrideAccess: true,
+    })
+
+    expect((await read(id, 'en', false)).title).toBe('Kept item')
+    expect((await read(id, 'de', false)).title).toBe('Behaltenes Stück')
   })
 
   it('is a window or the item of one, no deeper', async () => {
