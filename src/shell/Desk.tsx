@@ -135,10 +135,10 @@ const ends = (button: FootButton) =>
       ? 'arrow-up-right'
       : 'arrow-right'
 
-// The buttons at a window's foot, the main one first; a file downloads.
+// The buttons at a window's foot, the main one first, side by side at every width; a file downloads.
 function Foot({ buttons }: { buttons: FootButton[] }) {
   return (
-    <ButtonGroup>
+    <ButtonGroup cells>
       {buttons.map((button, index) => (
         <ButtonLink
           download={button.to === 'media' || undefined}

@@ -121,6 +121,31 @@ describe('the view of a window', () => {
     })
   })
 
+  it('carries its paper, its stamp with the place, its size and its foot buttons', async () => {
+    const cv = await view('/cv', 'en')
+    const welcome = await view('/welcome', 'de')
+    const services = await view('/services', 'en')
+
+    expect(cv.window?.frame).toMatchObject({
+      paper: true,
+      stamp: { code: 'FIX/CV.01', place: 'Somewhere' },
+      size: { w: 800, h: 1114 },
+    })
+    expect(cv.window?.actions).toEqual([
+      { to: 'media', label: 'Download', href: expect.stringMatching(/fixture.*\.txt$/) },
+      { to: 'window', label: 'Write', href: '/contact', key: 'K' },
+    ])
+    // A button to a window without a label shows that window's title, in the language it is in.
+    expect(welcome.window?.actions).toEqual([
+      { to: 'window', label: 'Arbeit', href: '/de/work', key: 'W' },
+      { to: 'window', label: 'Lebenslauf', href: '/de/cv', key: 'C' },
+    ])
+    expect((await view('/work', 'en')).window?.frame.stamp).toBeUndefined()
+    // To a window the guest may not see, it keeps its label and goes nowhere; the invited see where.
+    expect(services.window?.actions).toEqual([{ to: 'window', label: 'Archive', href: null }])
+    expect((await view('/services', 'en', invited)).window?.actions[0].href).toBe('/archive')
+  })
+
   it('has the windows that open at start at /, and no window of its own', async () => {
     const desk = await view('/', 'en')
 
