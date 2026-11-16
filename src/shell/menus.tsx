@@ -31,6 +31,7 @@ export function menus(props: {
   const oneSize = !!shown?.view?.frame.oneSize
   const onDesk = desk.open.filter((entry) => entry.mode !== 'min').length
   const about = link('/about', t.about.replace('{name}', props.name))
+  const hotkeys = link('/hotkeys', phone(desk) ? t.gestures : t.hotkeys, '?')
   const legal = [
     link('/imprint', t.imprint),
     link('/privacy-policy', t.privacy),
@@ -101,12 +102,7 @@ export function menus(props: {
       act: () => act({ type: 'open', path: desk.open[at].path }),
     })),
   ]
-  const help: Item[] = [
-    link('/hotkeys', t.hotkeys, '?'),
-    link('/accessibility', t.accessibility),
-    about,
-    ...legal,
-  ]
+  const help: Item[] = [hotkeys, link('/accessibility', t.accessibility), about, ...legal]
   const others = [
     { label: t.file, items: file },
     { label: t.view, items: view },
@@ -117,7 +113,7 @@ export function menus(props: {
     about,
     link('/preferences', t.preferences, ','),
     link('/accessibility', t.accessibility),
-    link('/hotkeys', phone(desk) ? t.gestures : t.hotkeys, '?'),
+    hotkeys,
     'rule',
     // The screens that wait arrive with the boot.
     { label: t.lock, disabled: true },

@@ -43,8 +43,19 @@ type Props = {
 // from 96 % at its own place; on a compact screen it is a drawer that rises under the menu bar, its actions stacked.
 export function Dialog(props: Props) {
   const painted = usePainted()
+  // Each opening is a dialog of its own, so one opened again while the last is still leaving stands modal.
+  const [times, setTimes] = useState(0)
+  const [was, setWas] = useState(props.open)
+  if (was !== props.open) {
+    setWas(props.open)
+    if (props.open) setTimes(times + 1)
+  }
 
-  return <AnimatePresence initial={!painted}>{props.open && <Shown {...props} />}</AnimatePresence>
+  return (
+    <AnimatePresence initial={!painted}>
+      {props.open && <Shown key={times} {...props} />}
+    </AnimatePresence>
+  )
 }
 
 function Shown(props: Props) {

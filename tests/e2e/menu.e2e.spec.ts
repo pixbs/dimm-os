@@ -228,6 +228,21 @@ test.describe('Menus on a phone', () => {
     await expect(page.locator('dialog')).toHaveCount(0)
     await expect(top(page, 'Dimm OS')).toBeFocused()
   })
+
+  test('opened again while it leaves, the system menu stands open, and its hotkeys are gestures', async ({
+    page,
+  }) => {
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    await top(page, 'Dimm OS').click()
+    await menu(page, 'Dimm OS').getByRole('menuitem', { name: 'View' }).click()
+    await menu(page, 'View').getByRole('menuitem', { name: 'Theme' }).click()
+    await top(page, 'Dimm OS').click()
+    const drawer = page.locator('dialog', { has: menu(page, 'Dimm OS') })
+    await expect(drawer).toBeVisible()
+    expect(await drawer.evaluate((dialog) => dialog.matches(':modal'))).toBe(true)
+    await menu(page, 'Dimm OS').getByRole('menuitem', { name: 'Help' }).click()
+    await expect(menu(page, 'Help').getByRole('menuitem', { name: 'Gestures' })).toBeVisible()
+  })
 })
 
 test.describe('Dialog', () => {
@@ -284,4 +299,15 @@ test.describe('Dialog', () => {
     expect((await size('.dialog:not([data-drawer]) .dialog__frame'))[0]).toBe(480)
     expect((await size('.notice'))[0]).toBe(320)
   })
+})
+
+test('the menus the catalogue draws open stay open when something else is pressed', async ({
+  page,
+}) => {
+  await page.goto('/catalogue/shell', { waitUntil: 'networkidle' })
+  const open = page.locator('[aria-haspopup=menu][aria-expanded=true]')
+  const count = await open.count()
+  expect(count).toBeGreaterThan(0)
+  await page.mouse.click(5, 300)
+  await expect(open).toHaveCount(count)
 })

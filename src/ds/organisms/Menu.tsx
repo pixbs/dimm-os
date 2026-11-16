@@ -265,14 +265,18 @@ function useMenus(root: { current: HTMLElement | null }, shown?: number) {
     close(0, true)
   }
 
+  // A menu drawn open for the catalogue is not the visitor's to close by pressing elsewhere.
   const outside = useEffectEvent((event: PointerEvent) => {
-    if (!root.current?.contains(event.target as Node)) setChain([])
+    if (!root.current?.contains(event.target as Node)) {
+      setChain(chain.filter((level) => level.from === null))
+    }
   })
+  const opened = chain.some((level) => level.from !== null)
   useEffect(() => {
-    if (!chain.length) return
+    if (!opened) return
     document.addEventListener('pointerdown', outside)
     return () => document.removeEventListener('pointerdown', outside)
-  }, [chain.length])
+  }, [opened])
 
   return { chain, open, close, done }
 }
