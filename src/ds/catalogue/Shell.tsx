@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 
+import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
 import { Bar, BarGrip, BarSpace, BarText, BarTitle } from '../molecules/Bar'
@@ -11,11 +12,12 @@ import { WindowControls } from '../molecules/WindowControls'
 import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
 import { FieldDial } from './Changing'
+import { Asking, Dialogs, Menubar, Menus, Notices, Phone } from './Floats'
 import type { Copy } from './copy/en'
 import { Handled, Replaced } from './Handled'
 import { Cap, Doc, Entry, Specs, Table, u } from './parts'
 
-type Props = { t: Copy['shell']; words: Dictionary }
+type Props = { t: Copy['shell']; words: Dictionary; language: Language }
 
 const sized = (width: number, height?: number) => ({
   width: u(width),
@@ -35,16 +37,6 @@ const desk = { backgroundImage: 'var(--pattern)', backgroundSize: 'var(--s-4) va
 function Tray({ words, size }: { words: Dictionary; size?: 'compact' }) {
   return [words.imprint, words.privacy, words.cookies, words.preferences].map((label) => (
     <ButtonLink href="#" key={label} label={label} size={size} />
-  ))
-}
-
-function Mark() {
-  return <span className="mark" data-surface="orange" />
-}
-
-function Menus({ words }: { words: Dictionary }) {
-  return [words.file, words.view, words.window, words.help].map((menu) => (
-    <Button key={menu} label={menu} size="compact" />
   ))
 }
 
@@ -150,36 +142,8 @@ function Windows({ t, words }: Props) {
   )
 }
 
-// A phone with drawers over its apps and its dock.
-function Phone({ t, children }: Pick<Props, 't'> & { children: ReactNode }) {
-  return (
-    <Screen style={sized(42.875, 80)}>
-      <header data-surface="desktop">
-        <Bar line="below">
-          <Button label={t.name} lead={<Mark />} />
-          <BarSpace />
-          <BarText>{t.time}</BarText>
-        </Bar>
-      </header>
-      <div className="screen__main">
-        <main className="screen__desk">
-          <Apps apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])} layout="screen" />
-          {children}
-        </main>
-        <footer>
-          <Dock
-            tasks={[
-              { name: t.name, front: true },
-              { name: t.name, minimised: true },
-            ]}
-          />
-        </footer>
-      </div>
-    </Screen>
-  )
-}
-
-function Drawers({ t, words }: Props) {
+function Drawers(props: Props) {
+  const { t, words } = props
   const [first, second, third] = t.replaced
   const rows = (count: number) =>
     Array.from({ length: count }, (_, at) => (
@@ -215,9 +179,9 @@ function Drawers({ t, words }: Props) {
   return (
     <Entry text={t.drawers}>
       <Specs caps={t.drawersCaps.slice(0, 3)}>
-        <Phone t={t}>{drawer(t.title, 0, 0)}</Phone>
-        <Phone t={t}>{drawer(t.title, 0, 12)}</Phone>
-        <Phone t={t}>
+        <Phone {...props}>{drawer(t.title, 0, 0)}</Phone>
+        <Phone {...props}>{drawer(t.title, 0, 12)}</Phone>
+        <Phone {...props}>
           {drawer(
             t.title,
             0,
@@ -230,33 +194,26 @@ function Drawers({ t, words }: Props) {
         </Phone>
       </Specs>
       <Specs caps={t.drawersCaps.slice(3)}>
-        <Phone t={t}>
+        <Phone {...props}>
           {drawer(first, 1, 8)}
           {drawer(second, 0, 8)}
         </Phone>
-        <Phone t={t}>
+        <Phone {...props}>
           {drawer(first, 2, 8)}
           {drawer(second, 1, 8)}
           {drawer(third, 0, 8)}
         </Phone>
-        <Phone t={t}>
+        <Phone {...props}>
           {drawer(first, 1, 8)}
-          {drawer(
-            second,
-            0,
-            0,
-            <ButtonGroup>
-              {label({ tone: 'solid' })}
-              {label({ tone: 'outline' })}
-            </ButtonGroup>,
-          )}
+          <Asking t={t} words={words} />
         </Phone>
       </Specs>
     </Entry>
   )
 }
 
-export function Shell({ t, words }: Props) {
+export function Shell(props: Props) {
+  const { t, words } = props
   const tasks = (minimised = false): Task[] => [
     { name: t.window, tile: 'orange', front: true },
     { name: t.window, tile: 'blue' },
@@ -270,15 +227,7 @@ export function Shell({ t, words }: Props) {
         <Specs caps={t.screenCaps}>
           <Screen style={sized(90, 55)}>
             <header data-surface="desktop">
-              <Bar line="below" size="compact">
-                <Button label={t.name} lead={<Mark />} size="compact" />
-                <Menus words={words} />
-                <BarSpace />
-                <Button icon="search" name={words.search} size="compact" />
-                <Button icon="contrast" name={words.theme} size="compact" />
-                <Button label="EN" size="compact" />
-                <BarText>{t.clock}</BarText>
-              </Bar>
+              <Menubar {...props} kind="pointer" />
             </header>
             <main className="screen__desk">
               <Apps apps={apps(t.name, ['orange', 'mint', 'blue'])} layout="screen" />
@@ -307,11 +256,7 @@ export function Shell({ t, words }: Props) {
           </Screen>
           <Screen style={sized(42.875, 70)}>
             <header data-surface="desktop">
-              <Bar line="below">
-                <Button label={t.name} lead={<Mark />} />
-                <BarSpace />
-                <BarText>{t.time}</BarText>
-              </Bar>
+              <Menubar {...props} kind="phone" />
             </header>
             <main className="screen__desk">
               <Apps apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])} layout="screen" />
@@ -342,27 +287,10 @@ export function Shell({ t, words }: Props) {
       </Entry>
       <Entry text={t.menubar}>
         <div className="spec" style={{ flexDirection: 'column', alignItems: 'stretch' }}>
-          <Cap label={t.menubarCaps[0]}>
-            {fill(
-              <Bar line="below" size="compact">
-                <Button label={t.name} lead={<Mark />} size="compact" />
-                <Menus words={words} />
-                <BarSpace />
-                <Button icon="search" name={words.search} size="compact" />
-                <Button icon="contrast" name={words.theme} size="compact" />
-                <Button label="EN" size="compact" />
-                <BarText>{t.clock}</BarText>
-              </Bar>,
-            )}
-          </Cap>
+          <Cap label={t.menubarCaps[0]}>{fill(<Menubar {...props} kind="pointer" />)}</Cap>
           <Cap label={t.menubarCaps[1]}>
             <div style={sized(46.875)}>
-              <Bar line="below">
-                <Button icon="menu" name={words.menu} />
-                <Button label={t.name} lead={<Mark />} />
-                <BarSpace />
-                <BarText>{t.time}</BarText>
-              </Bar>
+              <Menubar {...props} kind="touch" />
             </div>
           </Cap>
         </div>
@@ -400,7 +328,7 @@ export function Shell({ t, words }: Props) {
           </div>
         </Specs>
       </Entry>
-      <Windows t={t} words={words} />
+      <Windows {...props} />
       <Entry text={t.handled}>
         <Specs caps={t.handledCaps}>
           <Handled t={t} words={words} />
@@ -415,7 +343,10 @@ export function Shell({ t, words }: Props) {
           rows={t.handledRows}
         />
       </Entry>
-      <Drawers t={t} words={words} />
+      <Drawers {...props} />
+      <Menus {...props} />
+      <Dialogs {...props} />
+      <Notices {...props} />
     </Doc>
   )
 }

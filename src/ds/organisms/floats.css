@@ -1,0 +1,211 @@
+/* Organisms / What floats: the menu, the dialog and the notice, above the desk. */
+
+/* The menu bar: the menus of the screen, which the arrows walk as one. */
+.menubar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+/* Menu: a raised list of rows, compact where a pointer opens it and regular where a finger does. */
+.menu {
+  display: flex;
+  flex-direction: column;
+  min-width: calc(var(--h-regular) * 4);
+
+  &[data-surface] {
+    padding-block: var(--s-1);
+    --raised: var(--e-popover), 0 0 0 var(--b-1) var(--line);
+
+    box-shadow: var(--raised);
+
+    & .row {
+      --row-line: transparent;
+    }
+  }
+  /* A row that can be checked keeps the room of its check when it is not. */
+  & [aria-checked='false'] > .row__lead {
+    visibility: hidden;
+  }
+}
+.menu__rule {
+  flex: none;
+  height: var(--b-1);
+  margin-block: var(--s-1);
+  background-color: var(--line);
+
+  /* In a drawer every row has its line, which is rule enough. */
+  .menu:not([data-surface]) > & {
+    display: none;
+  }
+}
+/* It hangs from what opens it, 4 px under, flush with its start, or with its end when that closes a bar; a
+   submenu hangs beside its row, its first row level with it. It unfolds from the edge it hangs from. */
+/* Without weight, so a screen still hides the menus it does not show. */
+:where(.menu-anchor, .menu__sub) {
+  position: relative;
+  display: flex;
+}
+.menu__sub {
+  flex-direction: column;
+}
+/* What opened a menu holds the pressed fill while the menu is open. */
+:is(.menu-anchor, .menu__sub) > [aria-expanded='true'] {
+  --state: var(--pressed);
+}
+.menu__hang {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  z-index: var(--z-above);
+  margin-block-start: var(--s-1);
+  /* As wide as its longest row, whatever the width of what it hangs from. */
+  white-space: nowrap;
+  transform-origin: top;
+
+  &[data-end] {
+    inset-inline: auto 0;
+  }
+  .menu__sub > & {
+    top: calc(var(--s-1) * -1);
+    inset-inline-start: 100%;
+    margin-block-start: 0;
+  }
+}
+
+/* Dialog: a window that asks one question, in front of everything, as wide as a dialog. */
+.dialog {
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  overflow: visible;
+
+  &::backdrop {
+    background: none;
+  }
+  /* Drawn where it stands, for the catalogue. */
+  &:not(:modal) {
+    position: static;
+  }
+}
+.dialog__frame {
+  display: flex;
+  flex-direction: column;
+  width: var(--w-dialog);
+  max-width: 100%;
+  --raised: var(--e-window), 0 0 0 var(--b-1) var(--line);
+
+  box-shadow: var(--raised);
+
+  /* Its actions are a button group flush with its edges. */
+  & > .btngroup > .btn {
+    border-block-end-style: none;
+
+    &:first-child {
+      border-inline-start-style: none;
+    }
+    &:last-child {
+      border-inline-end-style: none;
+    }
+  }
+}
+.dialog__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  padding: var(--s-6);
+}
+/* On a compact screen a dialog, and a menu, is a drawer: under the menu bar, over the dock, its scrim behind it.
+   Behind one opened from it, it steps back as a drawer does. */
+.dialog[data-drawer] {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-above);
+  width: auto;
+  height: auto;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+
+  &[open] {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+  }
+  &:modal {
+    position: fixed;
+    inset: var(--room, 0) 0 0;
+  }
+  & > .dialog__frame {
+    position: relative;
+    width: auto;
+    max-height: calc(100% - var(--s-6));
+    padding-block-end: var(--s-6);
+    overflow-y: auto;
+  }
+  & > .dialog__frame > .dialog__body {
+    padding-inline: var(--s-4);
+  }
+  /* Stacked, each action reaches both edges and keeps the line under it, but for the last. */
+  & > .dialog__frame > .btngroup > .btn {
+    border-inline-style: none;
+
+    &:not(:last-child) {
+      border-block-end-style: solid;
+    }
+  }
+  &[data-back] > .dialog__scrim {
+    visibility: hidden;
+  }
+  &[data-back] > .dialog__frame {
+    box-shadow: 0 0 0 var(--b-1) var(--faint);
+  }
+  &[data-back='1'] > .dialog__frame {
+    margin: 0 var(--s-2) var(--s-2);
+  }
+  &[data-back='2'] > .dialog__frame {
+    margin: 0 var(--s-4) var(--s-4);
+  }
+  &[data-back='3'] {
+    visibility: hidden;
+  }
+}
+.dialog__scrim {
+  position: absolute;
+  inset: 0;
+  background-color: var(--scrim);
+}
+
+/* Notice: a raised note in a corner of the screen. It blocks nothing. */
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  width: var(--w-popover);
+  max-width: 100%;
+  padding: var(--s-4);
+  --raised: var(--e-popover), 0 0 0 var(--b-1) var(--line);
+
+  box-shadow: var(--raised);
+}
+.notice__head {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+}
+.notice__mark {
+  flex: none;
+  display: flex;
+  align-items: center;
+  height: var(--lh-lead);
+}
+.notice__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}
