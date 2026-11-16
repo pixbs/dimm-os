@@ -10,12 +10,16 @@ const known = new Map<string, string>()
 // each motion setting, since every question recalculates the styles of the page.
 function read(property: 'transitionDuration' | 'transitionTimingFunction', token: string) {
   const key = `${property} ${token} ${document.documentElement.dataset.motion}`
-  if (!known.has(key)) {
+  let value = known.get(key)
+  if (value === undefined) {
     probe ??= document.head.appendChild(document.createElement('i'))
     probe.style[property] = `var(--m-${token})`
-    known.set(key, getComputedStyle(probe)[property])
+    const style = getComputedStyle(probe)
+    value = style[property]
+    // An answer from before the stylesheet arrived is not a token's, so it is not kept.
+    if (style.getPropertyValue(`--m-${token}`)) known.set(key, value)
   }
-  return known.get(key)!
+  return value
 }
 
 // In seconds, as the browser and Motion count.
