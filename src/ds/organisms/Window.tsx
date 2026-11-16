@@ -148,7 +148,7 @@ export function Window(props: Props) {
   const root = useRef<HTMLElement>(null)
   const origin = useRef<HTMLDivElement>(null)
   // How far down a drawer is, and how fast it was let go.
-  const y = useMotionValue(0)
+  const y = useMotionValue('0%')
   const flung = useRef(0)
   const [kept, setKept] = useState(false)
   const size = useRef<HTMLSpanElement>(null)
@@ -205,7 +205,7 @@ export function Window(props: Props) {
     return {
       ...ways('slow', () => opener),
       // A move the visitor can interrupt, so it opens on the spring.
-      open: () => ({ opacity: 1, scale: 1, y: 0, transition: spring('slow') }),
+      open: () => ({ opacity: 1, scale: 1, y: '0%', transition: spring('slow') }),
       away: () => ({
         ...ways('slow', () => byId(task)).closed(),
         transition: { duration: duration('slow'), ease: curve('standard') },
@@ -379,7 +379,7 @@ export function Window(props: Props) {
         onAnimationComplete={(arrived) => arrived === 'away' && away && setGone(true)}
         ref={origin}
         role={modal ? 'dialog' : undefined}
-        custom={{ drawer: origin, flung }}
+        custom={flung}
         style={{ y }}
         variants={frames}
       >

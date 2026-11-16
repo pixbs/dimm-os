@@ -36,6 +36,14 @@ const seen = (page: Page) =>
   page.evaluate(() => (Reflect.get(window, 'seen') as Seen[][]).splice(0))
 
 const drawer = (page: Page, name: string) => page.locator(`article[aria-label="${name}"]`)
+// A drawer has arrived once nothing moves it any more, and the one behind has stepped back.
+const settled = async (part: Locator, x = 0) => {
+  const origin = part.locator('.window__origin')
+  await expect
+    .poll(() => origin.evaluate((part) => getComputedStyle(part).transform))
+    .toMatch(/^(none|matrix\(1, 0, 0, 1, 0, 0\))$/)
+  await expect.poll(async () => (await part.locator('.window__frame').boundingBox())!.x).toBe(x)
+}
 const top = async (part: Locator) => (await part.locator('.window__origin').boundingBox())!.y
 const bottom = async (page: Page) => {
   const room = (await page.locator('.screen__main').boundingBox())!
@@ -64,8 +72,7 @@ test.describe('Drawer', () => {
     await watch(page, 'article .window__origin')
     await page.getByRole('link', { name: 'Work' }).click()
     const work = drawer(page, 'Work')
-    await expect(work).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(work)
     const rest = await top(work)
     const rising = (await seen(page)).flatMap((parts) => parts.slice(0, 1))
     // It starts with its top at the bottom edge, as wide as the screen, and rises without growing or overshooting.
@@ -80,8 +87,8 @@ test.describe('Drawer', () => {
     await watch(page, 'article .window__frame')
     await work.getByRole('link', { name: 'Grow' }).click()
     const grow = drawer(page, 'Grow')
-    await expect(grow).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(grow)
+    await settled(work, 8)
     const frames = (await seen(page)).filter((parts) => parts.length === 2)
     // While the new one rises, the first comes 8 px in at each side and 8 px up, under the scrim.
     const both = frames.filter(
@@ -100,8 +107,7 @@ test.describe('Drawer', () => {
   }) => {
     await page.getByRole('link', { name: 'Work' }).click()
     const work = drawer(page, 'Work')
-    await expect(work).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(work)
     await expect(work.getByRole('button', { name: 'Close' })).toHaveCount(1)
     await expect(work.locator('.wctl:visible')).toHaveCount(0)
 
@@ -132,16 +138,15 @@ test.describe('Drawer', () => {
   }) => {
     await page.getByRole('link', { name: 'Work' }).click()
     const work = drawer(page, 'Work')
-    await expect(work).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(work)
     const rest = await top(work)
     const height = (await work.locator('.window__origin').boundingBox())!.height
 
     // Held and moved, it is where the finger is, and never above its place.
     await pull(page, work, 60, 6)
-    expect(await top(work)).toBe(rest + 60)
+    expect(await top(work)).toBeCloseTo(rest + 60, 0)
     await page.mouse.move(195, 0, { steps: 4 })
-    expect(await top(work)).toBe(rest)
+    expect(await top(work)).toBeCloseTo(rest, 0)
     await page.mouse.move(195, rest + 8 + 60, { steps: 4 })
     // Let go after a rest, short of half its height, it springs back.
     await page.waitForTimeout(200)
@@ -156,8 +161,7 @@ test.describe('Drawer', () => {
     await expect(page).toHaveURL('/')
 
     await page.getByRole('navigation', { name: 'Windows' }).getByRole('button').click()
-    await expect(work).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(work)
     // A flick a fraction of its height long puts it away too, from where the finger left it.
     await watch(page, 'article .window__origin')
     await pull(page, work, 48, 3, 0)
@@ -220,7 +224,9 @@ test.describe('Drawer', () => {
     await expect(work).toBeHidden()
     await expect(services).toHaveAttribute('data-back', '2')
     await expect(cv).toHaveAttribute('data-back', '1')
-    await page.waitForTimeout(600)
+    await settled(contact)
+    await settled(cv, 8)
+    await settled(services, 16)
     const frame = (part: Locator) => part.locator('.window__frame').boundingBox()
     expect(await frame(services)).toMatchObject({ x: 16, width: 358 })
     expect(await frame(cv)).toMatchObject({ x: 8, width: 374 })
@@ -242,15 +248,14 @@ test.describe('Drawer', () => {
     await watch(page, 'article .window__origin')
     await page.getByRole('link', { name: 'Work' }).click()
     const work = drawer(page, 'Work')
-    await expect(work).toHaveAttribute('data-front')
-    await page.waitForTimeout(600)
+    await settled(work)
     const rest = await top(work)
     const opening = (await seen(page)).flatMap((parts) => parts).filter(({ width }) => width > 0)
     expect(opening.every(({ y }) => y === 0)).toBe(true)
     expect(opening.some(({ opacity }) => opacity > 0 && opacity < 1)).toBe(true)
 
     await pull(page, work, 40, 4)
-    expect(await top(work)).toBe(rest + 40)
+    expect(await top(work)).toBeCloseTo(rest + 40, 0)
     await page.mouse.up()
 
     await watch(page, 'article .window__origin')

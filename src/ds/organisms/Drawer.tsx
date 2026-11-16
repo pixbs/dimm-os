@@ -12,33 +12,35 @@ const FLICK = 500
 // How far back the speed of a drag is read, in ms.
 const RECENT = 100
 
-// What a drawer does: it rises from the bottom edge, not from its opener, and sinks back to it on the spring,
-// from where the finger left it and as fast; with reduced motion it fades in place.
-// The drawer and how fast it was let go reach its moves as their custom value.
-export type Held = { drawer: RefObject<HTMLElement | null>; flung: RefObject<number> }
+// A drawer is moved in shares of its own height, so it rises from the bottom edge before it is measured, and keeps
+// its place while its content arrives.
+const share = (part: number) => `${part * 100}%`
 
+// What a drawer does: it rises from the bottom edge, not from its opener, and sinks back to it on the spring,
+// from where the finger left it and as fast; with reduced motion it fades in place. How fast it was let go, in
+// heights a second, reaches its moves as their custom value.
 export function rises() {
-  // Before it is in the page its height is its own, and Motion reads a share of it.
-  const sinks = ({ drawer, flung }: Held) =>
+  const sinks = (flung: RefObject<number>) =>
     reduced()
       ? { opacity: 0, transition: { duration: duration('slow-exit'), ease: curve('exit') } }
       : {
-          y: drawer.current?.offsetHeight ?? '100%',
+          y: share(1),
           opacity: 1,
           scale: 1,
-          transition: { ...spring('slow'), velocity: flung.current },
+          transition: { ...spring('slow'), velocity: flung.current * 100 },
         }
   const open = () => ({
-    y: 0,
+    y: share(0),
     opacity: 1,
     scale: 1,
+    // It sets out from rest: the speed Motion reads off its value would count the jump to where it starts.
     transition: reduced()
       ? { duration: duration('slow'), ease: curve('enter'), y: { duration: 0 } }
-      : spring('slow'),
+      : { ...spring('slow'), velocity: 0 },
   })
   // Let go before it is put away, it springs back from where the finger left it: written as keyframes, the target
   // differs from the last one, so Motion moves it again.
-  const kept = () => ({ ...open(), y: [null, 0] })
+  const kept = () => ({ ...open(), y: [null, share(0)] })
   return { closed: sinks, away: sinks, open, kept }
 }
 
@@ -46,8 +48,9 @@ export function rises() {
 // drawer away, and let go sooner the drawer springs back. The drawer follows the finger, never above its place.
 export function Handle(props: {
   label: string
-  y: MotionValue<number>
+  y: MotionValue<string>
   height: () => number
+  // How fast it was let go, in heights of the drawer a second.
   leave: (speed: number) => void
   stay: () => void
 }) {
@@ -57,6 +60,7 @@ export function Handle(props: {
   function grab(event: PointerEvent<HTMLButtonElement>) {
     if (event.button !== 0) return
     moved.current = false
+    const height = props.height()
     const seen: [number, number][] = []
     follow(event, {
       move: (_, dy) => {
@@ -64,14 +68,14 @@ export function Handle(props: {
         if (!moved.current) return
         seen.push([performance.now(), dy])
         y.stop()
-        y.set(Math.max(0, dy))
+        y.set(share(Math.max(0, dy) / height))
       },
       end: (_, dy) => {
         if (!moved.current) return
         const now = performance.now()
         const from = seen.find(([at]) => now - at <= RECENT)
         const speed = from && now > from[0] ? ((dy - from[1]) / (now - from[0])) * 1000 : 0
-        if (speed >= FLICK || dy >= props.height() / 2) props.leave(Math.max(0, speed))
+        if (speed >= FLICK || dy >= height / 2) props.leave(Math.max(0, speed) / height)
         else props.stay()
       },
     })
