@@ -29,6 +29,14 @@ let picture: Media
 let invited: Visitor
 let expired: Visitor
 const contentKey = 'a-local-api-key-for-the-content-user'
+const owner = {
+  id: 0,
+  collection: 'users',
+  email: 'access-owner@example.com',
+  role: 'admin',
+  createdAt: '',
+  updatedAt: '',
+} as User
 
 const titles: Record<Slug, Record<Language, string>> = {
   'access-work': { en: 'Work', de: 'Arbeit' },
@@ -40,8 +48,7 @@ const titles: Record<Slug, Record<Language, string>> = {
   'access-unpublished': { en: 'Unpublished', de: 'Unveröffentlicht' },
 }
 
-// A window published in both languages, unless it is the one left as a draft. German comes first: the parent's
-// validation counts in English, which turns a later German save of an item into an English one.
+// A window published in both languages, unless it is the one left as a draft.
 async function make(slug: Slug, data: Partial<Window> = {}) {
   const published = slug !== 'access-unpublished'
   const status = published ? 'published' : 'draft'
@@ -227,6 +234,32 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
     expect((grow.related as Window[]).map((one) => one.slug)).toEqual(['access-work'])
     expect(grow.actions?.[0].window).toBeNull()
     expect((grow.parent as Window).title).toBe(titles['access-work'][locale])
+  })
+
+  it('appear in no relation of Site', async () => {
+    const counted = async (window: Window) => {
+      await payload.updateGlobal({
+        slug: 'site',
+        data: {
+          name: 'A site',
+          email: 'site@example.com',
+          place: 'Somewhere',
+          timezone: 'Europe/London',
+          counted: window.id,
+        },
+        depth: 0,
+        draft: false,
+        fallbackLocale: false,
+        locale,
+        overrideAccess: true,
+        // The choice is checked against what its saver may read.
+        user: owner,
+      })
+      return (await payload.findGlobal({ slug: 'site', ...site(null, locale) })).counted
+    }
+
+    expect(await counted(made['access-secret'])).toBeNull()
+    expect(await counted(made['access-work'])).toMatchObject({ slug: 'access-work' })
   })
 
   it('appear in no media listing or API answer', async () => {
