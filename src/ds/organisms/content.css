@@ -1,0 +1,107 @@
+/* Organisms / Content: what goes inside a window, built from the molecules alone. */
+
+/* Rich text: a paragraph keeps to the measure of prose; headings, lists and quotations to the wider one. Its headings
+   start at Heading, since the title of the page belongs to the Header. */
+.prose {
+  max-width: var(--measure-wide);
+
+  & > * {
+    margin: 0;
+  }
+  & > * + * {
+    margin-top: var(--s-4);
+  }
+  & > p {
+    max-width: var(--measure);
+  }
+  & > h2 {
+    font: var(--f-heading);
+    letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+  }
+  & > h3 {
+    font: var(--f-lead);
+    font-weight: var(--w-medium);
+    letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+  }
+  & > h4 {
+    font: var(--f-body);
+    font-weight: var(--w-medium);
+  }
+  & > * + h2 {
+    margin-top: var(--s-12);
+  }
+  & > * + h3 {
+    margin-top: var(--s-8);
+  }
+  & > * + h4 {
+    margin-top: var(--s-6);
+  }
+  & > :is(h2, h3, h4) + * {
+    margin-top: var(--s-2);
+  }
+  & strong {
+    font-weight: var(--w-medium);
+  }
+  & code {
+    padding: 0 var(--s-1);
+    background-color: var(--line);
+    font: var(--f-mono);
+  }
+  & > :is(ul, ol) {
+    display: flex;
+    flex-direction: column;
+    gap: var(--s-2);
+    padding: 0;
+    list-style: none;
+
+    & > li {
+      position: relative;
+      padding-left: var(--s-6);
+    }
+  }
+  /* A bullet is the dot, at the middle of the first line. */
+  & > ul > li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: calc((var(--lh-body) - var(--dot)) / 2);
+    width: var(--dot);
+    height: var(--dot);
+    border-radius: var(--r-full);
+    background-color: var(--faint);
+  }
+  & > ol {
+    counter-reset: item;
+
+    & > li {
+      counter-increment: item;
+    }
+    & > li::before {
+      content: counter(item);
+      position: absolute;
+      left: 0;
+      font: var(--f-mono);
+      line-height: var(--lh-body);
+      color: var(--muted);
+    }
+  }
+  & > blockquote {
+    padding-left: var(--s-4);
+    border-left: var(--b-2) solid var(--fg);
+    font: var(--f-lead);
+    letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+  }
+  & > hr {
+    height: var(--b-1);
+    margin-block: var(--s-8);
+    border: 0;
+    background-color: var(--line);
+  }
+}
+
+/* Actions: buttons side by side, wrapping where the width ends. */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-2);
+}

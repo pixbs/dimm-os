@@ -27,3 +27,14 @@
   stroke-width: calc(var(--pitch-dot) + var(--pitch-edge));
   touch-action: pan-y;
 }
+
+/* What enters by scroll rises a step into place as it fades in; with reduced motion it only fades. */
+[data-enter] {
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-slow);
+  transition-timing-function: var(--m-enter);
+}
+[data-enter='wait'] {
+  opacity: 0;
+  transform: translateY(var(--s-6));
+}

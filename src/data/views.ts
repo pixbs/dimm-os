@@ -1,12 +1,25 @@
 import 'server-only'
 
 import config from '@payload-config'
-import { buildDefaultEditorState } from '@payloadcms/richtext-lexical'
-import { convertLexicalToHTML } from '@payloadcms/richtext-lexical/html'
+import type { LinkFields } from '@payloadcms/richtext-lexical'
+import {
+  convertLexicalToHTML,
+  defaultHTMLConverters,
+  type HTMLConverter,
+  type HTMLConverters,
+} from '@payloadcms/richtext-lexical/html'
+import type {
+  SerializedEditorState,
+  SerializedLexicalNode,
+} from '@payloadcms/richtext-lexical/lexical'
 import { revalidateTag, unstable_cache } from 'next/cache'
 import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
+import { sanitizeUrl } from 'payload/shared'
 
+import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
+import { text, type TextView } from '@/blocks/text/view'
+import { icons } from '@/ds/atoms/icons'
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
@@ -19,7 +32,8 @@ import { VISITOR_COOKIE } from './viewer'
 // A part shown in another language than the page's carries that language.
 type Link = { href: string; title: string; lang?: Language }
 
-type Section = { type: 'text'; html: string } | { type: 'list'; items: Link[] }
+// The sections the admin placed, and the list of its items a window shows until the List section arrives.
+type Section = HeaderView | TextView | { type: 'list'; items: Link[] }
 
 export type WindowView = {
   path: string
@@ -56,6 +70,11 @@ const TAG = 'views'
 // German that is not written yet shows the English, except in the two legal windows.
 const english: Language = 'en'
 const legal = ['imprint', 'privacy-policy']
+
+type LinkNode = { type: 'link' | 'autolink'; children: SerializedLexicalNode[]; fields: LinkFields }
+
+// An address goes into an attribute of the HTML a view carries.
+const escape = (value: string) => value.replace(/[&"<>]/g, (char) => `&#${char.charCodeAt(0)};`)
 // The 404 window answers every address that has nothing, and has none of its own.
 const missing = '404'
 
@@ -71,6 +90,7 @@ const fields = {
   oneSize: true,
   openAtStart: true,
   description: true,
+  sections: true,
 } as const
 
 type Doc = Pick<Window, keyof typeof fields | 'id'>
@@ -92,7 +112,7 @@ async function read(locale: Language, viewer: Viewer): Promise<Doc[]> {
     locale,
     overrideAccess: false,
     pagination: false,
-    populate: { windows: { slug: true } },
+    populate: { media: { url: true }, windows: { slug: true } },
     select: fields,
     sort: '_order',
   })
@@ -173,8 +193,57 @@ async function views(language: Language, viewer: Viewer) {
     title: doc.title,
     lang: other(lang),
   })
-  const html = (text: string) =>
-    convertLexicalToHTML({ data: buildDefaultEditorState({ text }), disableContainer: true })
+  // A window this viewer may see, from a relation or a link in running text, which carries its id or itself.
+  const byId = new Map(windows.map((one) => [one.doc.id, one]))
+  const linkTo = (value: unknown) => {
+    const found = byId.get(typeof value === 'object' && value ? (value as Doc).id : Number(value))
+    return found ? link(found) : null
+  }
+  // To a window under its title when it has no label, to a file, which downloads, or to an address.
+  const action = (button: Button): Action | null => {
+    const label = button.label ?? ''
+    if (button.type === 'media') {
+      const file = button.media
+      return typeof file === 'object' && file?.url
+        ? { href: file.url, label, download: true }
+        : null
+    }
+    if (button.type === 'address') return button.url ? { href: button.url, label } : null
+    const to = linkTo(button.window)
+    if (!to) return null
+    return label ? { href: to.href, label } : { href: to.href, label: to.title, lang: to.lang }
+  }
+  // A link in running text is the link molecule, and says so with an arrow where it leaves the site; one to a
+  // window this viewer may not see is its words alone.
+  const anchor: HTMLConverter<LinkNode> = ({ node, nodesToHTML }) => {
+    const words = nodesToHTML({ nodes: node.children }).join('')
+    const { fields } = node
+    const href = fields.linkType === 'internal' ? linkTo(fields.doc?.value)?.href : fields.url
+    if (!href) return words
+    const away = /^https?:/i.test(href)
+      ? `<svg aria-hidden="true" class="icon" data-size="s" viewBox="0 0 24 24">${icons['arrow-up-right']}</svg>`
+      : ''
+    const target = fields.newTab ? ' rel="noopener noreferrer" target="_blank"' : ''
+    return `<a class="link" href="${escape(sanitizeUrl(href))}"${target}>${words}${away}</a>`
+  }
+  const converters: HTMLConverters = { ...defaultHTMLConverters, link: anchor, autolink: anchor }
+  const html = (body: SerializedEditorState) =>
+    convertLexicalToHTML({
+      converters,
+      data: body,
+      disableContainer: true,
+      disableIndent: true,
+      disableTextAlign: true,
+    })
+  // A joined section continues a section with a body: a Header has none to share.
+  const sectionsOf = (doc: Doc): Section[] =>
+    (doc.sections ?? [])
+      .map((block) => (block.blockType === 'header' ? header(block, action) : text(block, html)))
+      .map((section, at, all) =>
+        section.type === 'text' && section.join && all[at - 1]?.type !== 'text'
+          ? { ...section, join: false }
+          : section,
+      )
 
   const view = (one: Seen): WindowView => {
     const { doc, parent } = one
@@ -193,7 +262,7 @@ async function views(language: Language, viewer: Viewer) {
         oneSize: app.doc.oneSize ?? undefined,
       },
       sections: [
-        ...(doc.description ? [{ type: 'text' as const, html: html(doc.description) }] : []),
+        ...sectionsOf(doc),
         ...(items.length ? [{ type: 'list' as const, items: items.map(link) }] : []),
       ],
       count: items.length,
