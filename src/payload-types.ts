@@ -226,7 +226,6 @@ export interface Window {
   id: number;
   _order?: string | null;
   title: string;
-  sections?: unknown[] | null;
   /**
    * Drawn as a paper record.
    */
@@ -592,7 +591,6 @@ export interface PayloadLlmInstruction {
 export interface WindowsSelect<T extends boolean = true> {
   _order?: T;
   title?: T;
-  sections?: T | {};
   paper?: T;
   stamp?: T;
   width?: T;

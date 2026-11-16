@@ -77,11 +77,8 @@ export const Windows: CollectionConfig = {
     { name: 'title', type: 'text', localized: true, maxLength: 24, required: true },
     {
       type: 'tabs',
+      // The tab Sections, a localised blocks field, comes with its first block: Payload's admin fails on one without blocks.
       tabs: [
-        {
-          label: 'Sections',
-          fields: [{ name: 'sections', type: 'blocks', blocks: [], localized: true }],
-        },
         {
           label: 'Window',
           fields: [

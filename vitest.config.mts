@@ -13,7 +13,13 @@ export default defineConfig({
       },
       {
         extends: true,
-        test: { name: 'int', environment: 'node', include: ['tests/int/**/*.int.spec.ts'] },
+        // One database for every file, so one file at a time.
+        test: {
+          name: 'int',
+          environment: 'node',
+          include: ['tests/int/**/*.int.spec.ts'],
+          fileParallelism: false,
+        },
       },
     ],
   },
