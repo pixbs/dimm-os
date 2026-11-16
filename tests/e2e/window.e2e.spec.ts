@@ -39,6 +39,9 @@ const timing = (part: Locator) =>
     return [timing?.duration, String(timing?.easing).replace(/\(.*/, '')]
   })
 const control = (window: Locator, name: string) => window.getByRole('button', { name })
+// A shortcut on the desk, apart from the links inside the windows.
+const app = (page: Page, name: string) =>
+  page.getByRole('navigation', { name: 'Apps' }).getByRole('link', { name })
 const drag = async (page: Page, from: Locator, dx: number, dy: number, at = { x: 8, y: 8 }) => {
   const box = (await from.boundingBox())!
   await page.mouse.move(box.x + at.x, box.y + at.y)
@@ -424,18 +427,18 @@ test.describe('Window, on the desk', () => {
   }) => {
     await page.evaluate(() => localStorage.setItem('single', 'on'))
     await page.reload({ waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Grow' }).click()
+    await app(page, 'Services').click()
     await expect(page.locator('article')).toHaveCount(1)
-    const grow = window(page, 'Grow')
-    await expect(grow.getByRole('heading')).toHaveText('Grow')
-    await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['grow.case'])
+    const services = window(page, 'Services')
+    await expect(services.getByRole('heading')).toHaveText('Services')
+    await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['services'])
 
-    const box = await grow.boundingBox()
-    await drag(page, grow.locator('.window__bar'), 100, 100, { x: 200, y: 8 })
+    const box = await services.boundingBox()
+    await drag(page, services.locator('.window__bar'), 100, 100, { x: 200, y: 8 })
     await page.mouse.up()
-    expect(await grow.boundingBox()).toEqual(box)
-    await expect(grow.locator('.window__grip, .window__edge')).toHaveCount(0)
-    await expect(grow.locator('.window__bar')).not.toHaveAttribute('tabindex')
+    expect(await services.boundingBox()).toEqual(box)
+    await expect(services.locator('.window__grip, .window__edge')).toHaveCount(0)
+    await expect(services.locator('.window__bar')).not.toHaveAttribute('tabindex')
   })
 
   test('is not modal: focus brings a window to the front, a new window takes it at its heading, and the first link skips to the front window', async ({
@@ -449,9 +452,9 @@ test.describe('Window, on the desk', () => {
     await expect(window(page)).toBeFocused()
     await expect(page).toHaveURL('/work')
 
-    await page.getByRole('link', { name: 'Grow' }).press('Enter')
-    await expect(window(page, 'Grow').getByRole('heading')).toBeFocused()
-    await expect(window(page, 'Grow')).toHaveAttribute('data-front')
+    await app(page, 'Services').press('Enter')
+    await expect(window(page, 'Services').getByRole('heading')).toBeFocused()
+    await expect(window(page, 'Services')).toHaveAttribute('data-front')
 
     // Nothing holds the focus in the window in front: what lies behind takes it, and comes forward.
     await window(page).locator('.window__bar').focus()
@@ -471,13 +474,13 @@ test.describe('Window, on the desk', () => {
     await expect(full).toHaveAttribute('aria-pressed', 'true')
     // What a window in full screen covers cannot be reached.
     await expect(page.locator('nav.apps')).toHaveAttribute('inert')
-    await expect(window(page, 'Grow')).toHaveAttribute('inert')
+    await expect(window(page, 'Services')).toHaveAttribute('inert')
   })
 
   test('brings each taskbar button in at its own place as its window opens', async ({ page }) => {
     await watch(page, 'footer[data-for="desk"] button:nth-of-type(2)')
-    await page.getByRole('link', { name: 'Grow' }).click()
-    await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['work', 'grow.case'])
+    await app(page, 'Services').click()
+    await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['work', 'services'])
     await expect(page.locator('footer[data-for="desk"] button').nth(1)).toHaveCSS('opacity', '1')
     const frames = first(await seen(page))
     expect(frames.some(({ opacity }) => opacity < 1)).toBe(true)
@@ -493,24 +496,24 @@ test.describe('Window with a view that cannot be rendered', () => {
     page,
   }) => {
     await page.setViewportSize(screen)
-    await page.route('**/view/en/work/grow', async (route) => {
+    await page.route('**/view/en/services', async (route) => {
       const view = await (await route.fetch()).json()
       view.window.sections = [{ type: 'list', items: null }]
       await route.fulfill({ json: view })
     })
     await page.goto('/work', { waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Grow' }).click()
+    await app(page, 'Services').click()
 
-    const [work, grow] = ['Work', 'Grow'].map((name) =>
+    const [work, services] = ['Work', 'Services'].map((name) =>
       page.locator(`article[aria-label="${name}"]`),
     )
-    await expect(grow).toContainText('This window did not open. Close it and open it again.')
+    await expect(services).toContainText('This window did not open. Close it and open it again.')
     await expect(work.getByRole('heading')).toHaveText('Work')
     await expect(work.getByRole('link', { name: 'Grow' })).toBeVisible()
 
     // Both still answer: the broken one closes, the other comes forward.
-    await control(grow, 'Close').click()
-    await expect(grow).toHaveCount(0)
+    await control(services, 'Close').click()
+    await expect(services).toHaveCount(0)
     await expect(work).toHaveAttribute('data-front')
   })
 })

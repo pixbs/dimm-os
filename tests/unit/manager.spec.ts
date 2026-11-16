@@ -7,6 +7,7 @@ import {
   front,
   manager,
   phone,
+  showing,
   shown,
   stack,
   start,
@@ -81,6 +82,45 @@ describe('the window manager', () => {
     expect(front(state)).toBe('/a')
     expect(manager(state, { type: 'focus', path: '/a' })).toBe(state)
     expect(manager(state, { type: 'focus', path: '/c' })).toBe(state)
+  })
+
+  it("shows an item in its parent's window, keeping the view before until its own arrives", () => {
+    const state = after(start(view('/work')), { type: 'open', path: '/work/grow' })
+
+    expect(paths(state)).toEqual(['/work'])
+    expect(showing(state)).toBe('/work/grow')
+    expect(state.open[0]).toMatchObject({ view: { path: '/work' }, travel: 'forward' })
+    // A view that comes after its window went elsewhere is not shown.
+    expect(after(state, { type: 'fill', window: view('/work') }).open[0].view?.path).toBe('/work')
+
+    const grow = after(state, { type: 'fill', window: view('/work/grow') })
+    expect(grow.open[0].view?.path).toBe('/work/grow')
+    expect(after(grow, { type: 'open', path: '/work' }).open[0].travel).toBe('back')
+    // Back from the taskbar, a window shows what it showed.
+    expect(showing(after(grow, { type: 'minimise' }, { type: 'task', path: '/work' }))).toBe(
+      '/work/grow',
+    )
+  })
+
+  it('opens the windows marked to open at start with the measured desk, the first in front', () => {
+    const windows = [view('/welcome'), view('/work')]
+    const desk = after(start(null), { type: 'start', windows }, { type: 'desk', w: 1440, h: 820 })
+
+    expect(paths(desk)).toEqual(['/welcome', '/work'])
+    expect(front(desk)).toBe('/welcome')
+    // On a phone only the first opens, measured before or after.
+    for (const actions of [
+      [
+        { type: 'start', windows },
+        { type: 'desk', w: 390, h: 796 },
+      ],
+      [
+        { type: 'desk', w: 390, h: 796 },
+        { type: 'start', windows },
+      ],
+    ] as Action[][]) {
+      expect(paths(after(start(null), ...actions))).toEqual(['/welcome'])
+    }
   })
 
   it('restores windows behind the open ones, once each', () => {

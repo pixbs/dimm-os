@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { emptyDesk, expect, test } from './test'
 
 const win = (page: Page, name: string) => page.locator(`article[aria-label="${name}"]`)
 const front = (page: Page) => page.locator('article[data-front]')
@@ -34,6 +34,7 @@ test.describe('Hotkeys on a desk', () => {
   ] as const) {
     test(`every key of the map acts, with ${mod} K for search`, async ({ page }) => {
       await device(page, platform)
+      await emptyDesk(page)
       await page.goto('/', { waitUntil: 'networkidle' })
 
       await page.keyboard.press('w')

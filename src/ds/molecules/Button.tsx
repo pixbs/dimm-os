@@ -77,11 +77,13 @@ export function ButtonLink({
   return (
     <a
       {...rest}
+      aria-disabled={rest.href ? undefined : true}
       aria-label={label ? undefined : name}
       className="btn"
       data-icon={label ? undefined : ''}
       data-size={size}
       data-tone={tone}
+      role={rest.href ? undefined : 'link'}
     >
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
