@@ -1,0 +1,130 @@
+/* Organisms / Shell: the screen and its bars, built from the molecules alone. */
+
+/* The screen: the menu bar at the top, the desk between, the taskbar at its foot, the wallpaper behind everything.
+   Its width chooses a desk or a phone: filling the browser's window, that is the window's width. */
+.screen {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  container: screen / inline-size;
+
+  /* The bars stand over the desk, so nothing on it reaches them, not even a window in full screen. */
+  & > :is(header, footer) {
+    position: relative;
+    z-index: var(--z-above);
+  }
+  /* The screen of the site fills the browser's window, and sets where the wallpaper's form sits by its shape. */
+  &[data-fill] {
+    height: var(--h-screen);
+
+    & > .wallpaper {
+      --wallpaper-at: var(--wallpaper-wide);
+
+      @media (orientation: portrait) {
+        --wallpaper-at: var(--wallpaper-tall);
+      }
+    }
+  }
+}
+/* What only one kind of screen shows: a desk or a phone by its width, a pointer or a finger by the device. */
+@container screen (width < 600px) {
+  .screen[data-fill] > .wallpaper {
+    --wallpaper-at: var(--wallpaper-phone);
+  }
+  [data-for~='desk'] {
+    display: none;
+  }
+}
+@container screen (width >= 600px) {
+  [data-for~='phone'] {
+    display: none;
+  }
+}
+@media (pointer: fine) {
+  .screen [data-for~='touch'] {
+    display: none;
+  }
+}
+@media not (pointer: fine) {
+  .screen [data-for~='pointer'] {
+    display: none;
+  }
+}
+
+/* The desk: what lies between the bars. On it the apps, and the windows it holds. */
+.screen__desk {
+  position: relative;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: var(--s-6) var(--s-4) 0;
+  overflow: auto;
+}
+@container screen (width < 600px) {
+  .screen__desk {
+    padding: var(--s-6) var(--s-3) 0;
+  }
+}
+
+/* The wallpaper: one form in dots, at the strength of a line. Its canvas is the size of the halftone it stands for. */
+.wallpaper {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+
+  & > canvas {
+    position: absolute;
+    top: calc(var(--s-3) * -1);
+    left: calc(var(--s-3) * -1);
+    width: calc(100% + var(--s-3) * 2);
+    height: calc(100% + var(--s-3) * 2);
+    opacity: var(--a-line);
+  }
+}
+
+/* The apps the admin has defined: a column from the top of a desk, four across on a phone. */
+.apps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  justify-items: center;
+  gap: var(--s-4) 0;
+
+  & > .app {
+    width: 100%;
+  }
+  &[data-layout='column'] {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-2);
+
+    & > .app {
+      width: calc(var(--h-regular) * 2);
+    }
+  }
+}
+/* On the screen of the site they stand in a column on a desk, and four across on a phone. */
+@container screen (width >= 600px) {
+  .apps[data-layout='screen'] {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--s-2);
+
+    & > .app {
+      width: calc(var(--h-regular) * 2);
+    }
+  }
+}
+
+/* The dock: the taskbar of a phone, a button group one step in from the edges. */
+.dock {
+  flex: none;
+  padding: var(--s-3) var(--s-3) var(--s-6);
+}

@@ -17,8 +17,20 @@ describe('the view of a window', () => {
     const en = await getWindowView('/work', 'en', null)
     const de = await getWindowView('/work', 'de', null)
 
-    expect(en?.shortcuts).toEqual([{ href: '/work', title: 'Work' }])
-    expect(de?.shortcuts).toEqual([{ href: '/de/work', title: 'Arbeit' }])
+    expect(en?.shortcuts[0]).toEqual({ href: '/work', name: 'Work', icon: 'grid', tile: 'orange' })
+    expect(de?.shortcuts[0]).toEqual({
+      href: '/de/work',
+      name: 'Arbeit',
+      icon: 'grid',
+      tile: 'orange',
+    })
+    // A window without an icon, as the legal ones, has no shortcut; a file's shortcut is named with its kind.
+    expect(en?.shortcuts.map((shortcut) => shortcut.name)).toEqual([
+      'Work',
+      'Services',
+      'CV.pdf',
+      'Contact',
+    ])
     expect(en?.window?.sections[1]).toEqual({
       type: 'list',
       items: [{ href: '/work/grow', title: 'Grow' }],

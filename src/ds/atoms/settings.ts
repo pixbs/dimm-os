@@ -16,6 +16,8 @@ export function apply() {
     theme: asks('prefers-color-scheme: light') ? 'light' : 'dark',
     contrast: asks('prefers-contrast: more') ? 'more' : 'standard',
     pitch: '8',
+    // The field number that seeds the wallpaper's form.
+    wallpaper: '299',
     hand: apple ? 'dots' : 'squares',
     keys: apple ? 'apple' : 'other',
     motion,

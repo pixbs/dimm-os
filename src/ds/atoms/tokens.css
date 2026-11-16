@@ -63,6 +63,8 @@
   --w-popover: 320px;
   --w-dialog: 480px;
   --measure: 560px;
+  /* a screen as high as the browser's window, whatever its bars take */
+  --h-screen: 100dvh;
 
   /* the soft edge of a dot drawn on the pitch */
   --pitch-edge: 0.6px;
@@ -75,6 +77,11 @@
   --ht-cell: radial-gradient(circle, var(--ht-light) 0%, var(--ht-dark) 122%);
   --ht-blend: multiply;
   --ht-cut: contrast(14);
+  /* where the form of the wallpaper sits, as a setting of a screen: by default, and on the screen of a wide desk, a tall desk and a phone */
+  --wallpaper-at: 80% 60%;
+  --wallpaper-wide: 78% 70%;
+  --wallpaper-tall: 74% 76%;
+  --wallpaper-phone: 70% 82%;
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,

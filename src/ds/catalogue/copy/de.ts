@@ -924,6 +924,59 @@ const de: Copy = {
     date: '2026-11-10',
     window: 'name',
   },
+  shell: {
+    doc: [
+      'Organismen / Shell',
+      'Das Betriebssystem um den Inhalt: der Bildschirm, seine Leisten und was auf seinem Desktop liegt. Nichts davon ist Inhalt, alles ist aus derselben Leiste, demselben Button und demselben App-Symbol gebaut.',
+    ],
+    screen: [
+      'Bildschirm',
+      'Teile: Hintergrund · Menüleiste · Desktop · Taskleiste | kompakt: Menüleiste · Apps · Links · Dock · Schubladen | wartend: Menüleiste · Abschnitte · Splash · Leiste',
+      'Die ganze Anzeige. Fenster liegen frei auf dem Desktop und lassen sich ziehen; ein Fenster im Vollbild nimmt den Desktop ein, und beide Leisten bleiben sichtbar. Ein Bildschirm unter 600 px Breite ist kompakt, gleich auf welchem Gerät: Der Desktop trägt die Apps, die rechtlichen Links stehen in einer Zeile darunter, das Dock schließt den Bildschirm ab, und Fenster öffnen sich als Schubladen über allem. Ein wartender Bildschirm (Starten, Sperren, Ausschalten) hat keinen Desktop: Zwischen seinen Leisten trägt er Abschnitte und einen Splash.',
+    ],
+    screenCaps: ['Zeiger', 'kompakt'],
+    wallpaper: [
+      'Hintergrund',
+      'Form: eine Rasterform | Stärke: 16 % | Punkt: 8 px | Feld: 100 bis 999',
+      'Eine erzeugte Rasterform in Papier, hinter allem, in der Stärke einer Linie. Wo die Form sitzt, ist eine Einstellung des Bildschirms; die Feldnummer verschiebt sie von dort. Zu Beginn fließt sie ein, sie wandert auf einem Pfad ihres Felds, so langsam, dass sie auf einen Blick still wirkt, neigt sich über dem leeren Desktop zum Zeiger und fließt an ihren neuen Ort, wenn das Rad gedreht wird. Bei reduzierter Bewegung und angehaltenen Bildern steht sie still; solange der Tab verborgen oder der Desktop verdeckt ist, hält sie an.',
+    ],
+    wallpaperCaps: [
+      'Raster 8, die Voreinstellung; wo der Kreis sitzt, ist eine Einstellung des Bildschirms',
+      'Raster 5, in den Einstellungen gewählt',
+      'Raster 12, in den Einstellungen gewählt',
+      'das Feld, gedreht mit dem Rad der Einstellungen',
+    ],
+    field: 'Hintergrundfeld',
+    menubar: [
+      'Menüleiste',
+      'Dichte: kompakt · regulär | Plätze: Zeichen und Name · Menüs · Status',
+      'Der obere Rand des Bildschirms. Sie beginnt mit dem Zeichen und dem Namen der Website. Auf einem Gerät mit Zeiger ist sie eine kompakte Leiste aus Ghost-Buttons, auf einem Touch-Gerät eine reguläre Leiste mit den Menüs hinter einem Button.',
+    ],
+    menubarCaps: ['Zeiger: kompakte Leiste', 'Touch: reguläre Leiste'],
+    taskbar: [
+      'Taskleiste',
+      'Dichte: Zeiger · Touch | kompakter Bildschirm: Dock | Plätze: Fenster · Tray',
+      'Der untere Rand des Bildschirms. Sie zeigt, was offen ist: ein Button je Fenster, angeführt vom Zeichen seiner App, das vordere Fenster ausgewählt. Ein minimiertes Fenster verlässt den Desktop und bleibt hier, mit hohlem Zeichen; sein Button holt es zurück. Der Button des vorderen Fensters minimiert es. Ein geschlossenes Fenster verlässt die Taskleiste. Das Tray an ihrem Ende trägt Impressum, Datenschutz, Cookies und Einstellungen, als Wörter. Auf einem kompakten Bildschirm ist sie ein Dock: eine Buttongruppe mit einer Zelle je App.',
+    ],
+    taskbarCaps: [
+      'Zeiger: kompakte Buttons, jeder vom Zeichen seiner App angeführt, das vordere Fenster ausgewählt',
+      'ein minimiertes Fenster behält seinen Button, mit hohlem Zeichen; ein geschlossenes verlässt die Taskleiste',
+      'Touch: reguläre Buttons',
+      'kompakter Bildschirm: ein Dock. Das Zeichen ist hohl, wenn die App nicht offen ist',
+    ],
+    apps: [
+      'App-Raster',
+      'Anordnung: Spalte · vier nebeneinander',
+      'Die Apps, die die Redaktion angelegt hat, auf dem Desktop. Der Desktop ist kein Fenster, also gilt die Grenze von drei Spalten für ihn nicht.',
+    ],
+    appsCaps: ['Desktop: eine Spalte von oben', 'kompakter Bildschirm: vier nebeneinander'],
+    name: 'Name',
+    window: 'Fenster',
+    title: 'Titel',
+    text: 'Text.',
+    clock: 'Di. 10. Nov. 09:41',
+    time: '09:41',
+  },
 }
 
 export default de

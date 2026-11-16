@@ -135,6 +135,13 @@ body {
     width: var(--g-s);
     height: var(--g-s);
   }
+  /* In chrome it is small where a fine pointer uses it, and full where a finger lands. */
+  @media (pointer: fine) {
+    &[data-size='chrome'] {
+      width: var(--g-s);
+      height: var(--g-s);
+    }
+  }
 }
 
 /* Round: it counts, shows position and signals. */
