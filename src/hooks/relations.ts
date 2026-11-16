@@ -16,6 +16,7 @@ export const dropBareIds: CollectionAfterReadHook = ({ collection, doc, override
       if (Array.isArray(value)) data[field.name] = value.filter(present)
       else if (value != null && !present(value)) data[field.name] = null
     },
+    config: req.payload.config,
     fields: collection.fields,
     fillEmpty: false,
     // A read in one language holds no locale keys, which the walker otherwise expects under a localised field.
