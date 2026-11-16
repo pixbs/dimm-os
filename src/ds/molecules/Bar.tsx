@@ -1,15 +1,19 @@
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 
-// Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Its slots are buttons and the parts below.
-export function Bar(props: {
+type Props = HTMLAttributes<HTMLDivElement> & {
   size?: 'compact' | 'chrome'
   line?: 'below' | 'above'
-  children: ReactNode
-}) {
+}
+
+// Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Its slots are buttons and the parts below.
+export function Bar({ size, line, className, ...rest }: Props) {
   return (
-    <div className="bar" data-line={props.line} data-size={props.size}>
-      {props.children}
-    </div>
+    <div
+      {...rest}
+      className={className ? `bar ${className}` : 'bar'}
+      data-line={line}
+      data-size={size}
+    />
   )
 }
 

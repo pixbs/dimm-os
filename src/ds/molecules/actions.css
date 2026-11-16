@@ -350,3 +350,16 @@
   width: calc(var(--s-4) + var(--s-1));
   height: calc(var(--s-4) + var(--s-1));
 }
+/* In chrome they are regular wherever a finger can land. */
+@media not (pointer: fine) {
+  .wctl[data-size='chrome'] .wdot__sign {
+    opacity: 100%;
+  }
+  .wctl[data-size='chrome'] .wdot {
+    width: var(--h-compact);
+  }
+  .wctl[data-size='chrome'] .wdot__dot {
+    width: calc(var(--s-4) + var(--s-1));
+    height: calc(var(--s-4) + var(--s-1));
+  }
+}

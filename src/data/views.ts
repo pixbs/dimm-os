@@ -16,8 +16,8 @@ type Section = { type: 'text'; html: string } | { type: 'list'; items: Link[] }
 
 export type WindowView = {
   path: string
-  // The tile of the window's app marks it in the taskbar.
-  frame: { title: string; kind: string | null; tile: Tile | null }
+  // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull.
+  frame: { title: string; kind: string | null; tile: Tile | null; oneSize?: boolean }
   sections: Section[]
   counters: { position: number; total: number }
   neighbours: { previous: Link | null; next: Link | null }

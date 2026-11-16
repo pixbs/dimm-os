@@ -14,27 +14,35 @@ const icons = { close: 'close', minimise: 'minus', fullScreen: 'expand' } as con
 
 type Props = {
   shape: 'dots' | 'squares'
-  // compact under a pointer, regular where a finger lands
-  size: 'compact' | 'regular'
+  // compact under a pointer, regular where a finger lands, chrome whichever the device asks for
+  size: 'compact' | 'regular' | 'chrome'
   // What the window does not allow stays in its place, disabled.
   off?: Control[]
+  // Full screen is a toggle: pressed while the window takes the desk.
+  full?: boolean
+  on?: (control: Control) => void
   t: Pick<Dictionary, Control | 'window'>
 }
 
 // Close, minimise, full screen: as dots in that order at the start of a bar, as squares at its end with close last.
-export function WindowControls({ shape, size, off = [], t }: Props) {
+export function WindowControls({ shape, size, off = [], full, on, t }: Props) {
   const order: Control[] =
     shape === 'dots' ? ['close', 'minimise', 'fullScreen'] : ['minimise', 'fullScreen', 'close']
+  const press = (control: Control) => ({
+    'aria-pressed': control === 'fullScreen' ? full : undefined,
+    disabled: off.includes(control),
+    onClick: on && (() => on(control)),
+  })
 
   return (
     <span aria-label={t.window} className="wctl" data-shape={shape} data-size={size} role="group">
       {order.map((control) =>
         shape === 'dots' ? (
           <button
+            {...press(control)}
             aria-label={t[control]}
             className="wdot"
             data-close={control === 'close' ? '' : undefined}
-            disabled={off.includes(control)}
             key={control}
             type="button"
           >
@@ -46,11 +54,11 @@ export function WindowControls({ shape, size, off = [], t }: Props) {
           </button>
         ) : (
           <Button
-            disabled={off.includes(control)}
+            {...press(control)}
             icon={icons[control]}
             key={control}
             name={t[control]}
-            size={size === 'compact' ? size : undefined}
+            size={size === 'regular' ? undefined : size}
           />
         ),
       )}

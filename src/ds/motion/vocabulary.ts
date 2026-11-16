@@ -1,15 +1,25 @@
 import { useSyncExternalStore } from 'react'
 
-type Time = 'fast' | 'slow' | 'long' | 'fast-exit' | 'slow-exit' | 'spread'
+type Time = 'fast' | 'slow' | 'long' | 'fast-exit' | 'slow-exit' | 'spread' | 'wait'
 type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop'
 
 let probe: HTMLElement | undefined
+const known = new Map<string, string>()
 
-// Script reads the tokens CSS reads, resolved by the browser on an element that is never drawn.
+// Script reads the tokens CSS reads, resolved by the browser on an element that is never drawn: once for
+// each motion setting, since every question recalculates the styles of the page.
 function read(property: 'transitionDuration' | 'transitionTimingFunction', token: string) {
-  probe ??= document.head.appendChild(document.createElement('i'))
-  probe.style[property] = `var(--m-${token})`
-  return getComputedStyle(probe)[property]
+  const key = `${property} ${token} ${document.documentElement.dataset.motion}`
+  let value = known.get(key)
+  if (value === undefined) {
+    probe ??= document.head.appendChild(document.createElement('i'))
+    probe.style[property] = `var(--m-${token})`
+    const style = getComputedStyle(probe)
+    value = style[property]
+    // An answer from before the stylesheet arrived is not a token's, so it is not kept.
+    if (style.getPropertyValue(`--m-${token}`)) known.set(key, value)
+  }
+  return value
 }
 
 // In seconds, as the browser and Motion count.

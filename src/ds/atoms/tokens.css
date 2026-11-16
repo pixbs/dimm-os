@@ -115,6 +115,8 @@
   --m-slow-exit: calc(var(--m-slow) / 2);
   /* the delays across what comes as many, from its first to its last */
   --m-spread: 220ms;
+  /* how long a part that waits for its content stays quiet before it says so */
+  --m-wait: 300ms;
   /* curves: a move that stays on screen, what arrives, what leaves, and the two of the long move */
   --m-standard: cubic-bezier(0.2, 0, 0, 1);
   --m-enter: cubic-bezier(0, 0, 0, 1);

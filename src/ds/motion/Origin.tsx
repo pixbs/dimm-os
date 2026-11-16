@@ -29,6 +29,32 @@ function centre(opener?: Element | null) {
   return seen ? { x: at.left + at.width / 2, y: at.top + at.height / 2 } : null
 }
 
+// The point a part scales about is the centre of its opener, wherever both are by now.
+export function aim(part: HTMLElement, opener?: Element | null) {
+  const from = !reduced() && centre(opener)
+  const box = part.getBoundingClientRect()
+  const [x, y] = getComputedStyle(part).transformOrigin.split(' ').map(parseFloat)
+  // A part caught in flight has shrunk towards the point it scales about: that is undone to find its corner.
+  const shrunk = 1 - box.width / part.offsetWidth
+  part.style.transformOrigin = from
+    ? `${from.x - box.left + x * shrunk}px ${from.y - box.top + y * shrunk}px`
+    : ''
+}
+
+// What a part does as it opens and closes, for the one here and for a part that a list keeps present.
+export const ways = (speed: 'fast' | 'slow', opener?: () => Element | null | undefined) => ({
+  open: () => ({
+    opacity: 1,
+    scale: 1,
+    transition: { duration: duration(speed), ease: curve('enter') },
+  }),
+  closed: () => ({
+    opacity: 0,
+    scale: reduced() ? 1 : centre(opener?.()) ? 0 : start(),
+    transition: { duration: duration(`${speed}-exit`), ease: curve('exit') },
+  }),
+})
+
 // A part grows out of the centre of what opened it and closes back into it; with no opener on
 // screen it opens from just under its size at its own place, and with reduced motion it fades.
 export function Origin({ open, opener, speed, inline, className, children }: Props) {
@@ -36,31 +62,12 @@ export function Origin({ open, opener, speed, inline, className, children }: Pro
   const Part = inline ? m.span : m.div
   const painted = usePainted()
 
-  // The point the part scales about is measured as it opens and again as it closes, wherever both are by then.
+  // The point is measured as the part opens and again as it closes.
   useLayoutEffect(() => {
-    if (!part.current) return
-    const from = !reduced() && centre(opener)
-    const box = part.current.getBoundingClientRect()
-    const [x, y] = getComputedStyle(part.current).transformOrigin.split(' ').map(parseFloat)
-    // A part caught in flight has shrunk towards the point it scales about: that is undone to find its corner.
-    const shrunk = 1 - box.width / part.current.offsetWidth
-    part.current.style.transformOrigin = from
-      ? `${from.x - box.left + x * shrunk}px ${from.y - box.top + y * shrunk}px`
-      : ''
+    if (part.current) aim(part.current, opener)
   }, [open, opener])
 
-  const variants = {
-    open: () => ({
-      opacity: 1,
-      scale: 1,
-      transition: { duration: duration(speed), ease: curve('enter') },
-    }),
-    closed: () => ({
-      opacity: 0,
-      scale: reduced() ? 1 : centre(opener) ? 0 : start(),
-      transition: { duration: duration(`${speed}-exit`), ease: curve('exit') },
-    }),
-  }
+  const variants = ways(speed, () => opener)
 
   return (
     <AnimatePresence initial={!painted}>

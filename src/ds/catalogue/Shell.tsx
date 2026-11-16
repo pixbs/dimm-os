@@ -1,15 +1,18 @@
-import type { ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import type { Dictionary } from '@/i18n/en'
 
 import { Bar, BarGrip, BarSpace, BarText, BarTitle } from '../molecules/Bar'
-import { Button, ButtonLink } from '../molecules/Button'
+import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
 import { Heading } from '../molecules/Heading'
+import { Path } from '../molecules/Path'
 import { WindowControls } from '../molecules/WindowControls'
 import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
+import { Window } from '../organisms/Window'
 import { FieldDial } from './Changing'
 import type { Copy } from './copy/en'
-import { Cap, Doc, Entry, Specs, u } from './parts'
+import { Handled, Replaced } from './Handled'
+import { Cap, Doc, Entry, Specs, Table, u } from './parts'
 
 type Props = { t: Copy['shell']; words: Dictionary }
 
@@ -42,6 +45,108 @@ function Menus({ words }: { words: Dictionary }) {
   return [words.file, words.view, words.window, words.help].map((menu) => (
     <Button key={menu} label={menu} size="compact" />
   ))
+}
+
+// A patch of desk for a window, in the hand and at the pitch its caption names.
+function Patch(props: {
+  width: number
+  hand?: 'squares'
+  pitch?: '5' | '12'
+  children: ReactNode
+}) {
+  return (
+    <div
+      className="stage"
+      data-hand={props.hand ?? 'dots'}
+      data-pitch={props.pitch}
+      data-surface="desktop"
+      style={desk}
+    >
+      <div style={sized(props.width)}>{props.children}</div>
+    </div>
+  )
+}
+
+function Windows({ t, words }: Props) {
+  const [file, sys, pdf] = t.files
+  const frame = (props: Partial<ComponentProps<typeof Window>>) => (
+    <Window front name={[file]} t={words} title={t.window} {...props}>
+      <div className="stage">
+        <Heading level="heading" text={t.windowText} title={t.title} />
+      </div>
+    </Window>
+  )
+  const label = (props: ComponentProps<typeof Button>) => <Button label={t.label} {...props} />
+
+  return (
+    <Entry text={t.windows}>
+      <Specs caps={t.windowsCaps.slice(0, 2)}>
+        <Patch width={70}>
+          {frame({
+            toolbar: (
+              <Bar line="below">
+                <Button icon="arrow-left" name={t.back} size="compact" />
+                <Button disabled icon="arrow-right" name={t.forward} size="compact" />
+                <BarText>
+                  <Path segments={t.path} />
+                </BarText>
+                <BarSpace />
+                <BarText>{t.position}</BarText>
+              </Bar>
+            ),
+            status: (
+              <Bar line="above" size="compact">
+                <BarText>{t.items}</BarText>
+                <BarSpace />
+                <BarText>{t.updated}</BarText>
+              </Bar>
+            ),
+          })}
+        </Patch>
+        <Patch width={40}>{frame({ front: false })}</Patch>
+      </Specs>
+      <Specs caps={t.windowsCaps.slice(2, 4)}>
+        <Patch hand="squares" width={60}>
+          {frame({ name: t.path })}
+        </Patch>
+        <Patch width={60}>{frame({ density: 'touch' })}</Patch>
+      </Specs>
+      <Specs caps={t.windowsCaps.slice(4, 6)}>
+        <Patch width={50}>
+          {frame({
+            name: [sys],
+            oneSize: true,
+            foot: (
+              <ButtonGroup>
+                {label({ tone: 'outline' })}
+                {label({ tone: 'solid' })}
+              </ButtonGroup>
+            ),
+          })}
+        </Patch>
+        <Patch width={50}>
+          {frame({
+            name: [pdf],
+            surface: 'paper',
+            foot: (
+              <ButtonGroup>
+                {label({ end: 'arrow-down', tone: 'outline' })}
+                {label({ end: 'arrow-right', tone: 'outline' })}
+              </ButtonGroup>
+            ),
+          })}
+        </Patch>
+      </Specs>
+      <Specs caps={t.windowsCaps.slice(6)}>
+        <Patch hand="squares" pitch="5" width={45}>
+          {frame({})}
+        </Patch>
+        <Patch hand="squares" pitch="12" width={45}>
+          {frame({})}
+        </Patch>
+      </Specs>
+    </Entry>
+  )
 }
 
 export function Shell({ t, words }: Props) {
@@ -187,6 +292,21 @@ export function Shell({ t, words }: Props) {
             <Apps apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])} layout="grid" />
           </div>
         </Specs>
+      </Entry>
+      <Windows t={t} words={words} />
+      <Entry text={t.handled}>
+        <Specs caps={t.handledCaps}>
+          <Handled t={t} words={words} />
+          <Patch width={60}>
+            <Replaced t={t} words={words} />
+          </Patch>
+        </Specs>
+        <Table
+          classes={['t-medium', 'c-muted', 't-mono c-muted']}
+          columns="30 1fr 15"
+          head={t.handledHead}
+          rows={t.handledRows}
+        />
       </Entry>
     </Doc>
   )

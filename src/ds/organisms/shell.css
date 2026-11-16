@@ -68,6 +68,26 @@
     padding: var(--s-6) var(--s-3) 0;
   }
 }
+/* The windows of a desk overlap in an order of their own, and what hangs over its edge is cut off there. */
+@container screen (width >= 600px) {
+  .screen__desk {
+    isolation: isolate;
+    overflow: clip;
+  }
+}
+
+/* The link that skips to the window in front waits above the screen until the keyboard reaches it. */
+.screen__skip {
+  position: absolute;
+  top: var(--s-1);
+  inset-inline-start: var(--s-1);
+  transform: translateY(calc(-100% - var(--s-1)));
+  transition: transform var(--m-fast) var(--m-standard);
+
+  &:focus-within {
+    transform: none;
+  }
+}
 
 /* The wallpaper: one form in dots, at the strength of a line. Its canvas is the size of the halftone it stands for. */
 .wallpaper {
@@ -127,4 +147,271 @@
 .dock {
   flex: none;
   padding: var(--s-3) var(--s-3) var(--s-6);
+}
+
+/* Window: a frame the visitor handles. Where it lies in a page it is as high as what it holds. */
+.window {
+  display: flex;
+  min-width: 0;
+  outline: none;
+
+  &[hidden] {
+    display: none;
+  }
+}
+/* On a desk it floats: in the middle until the desk is measured, then where its manager puts it. */
+@container screen (width >= 600px) {
+  .screen__desk > .window {
+    position: absolute;
+    inset: 0;
+    width: min(var(--w), 100%);
+    height: min(var(--h), 100%);
+    margin: auto;
+
+    &[data-placed] {
+      inset: 0 auto auto 0;
+      margin: 0;
+      transform: translate(var(--x), var(--y));
+    }
+    &[data-full] {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      transform: none;
+    }
+  }
+}
+.window__origin {
+  flex: 1 1 auto;
+  display: flex;
+  min-width: 0;
+}
+/* The frame carries the surface, a line round it, and the shadow of the window in front. */
+.window__frame {
+  --frame-front: var(--e-window), 0 0 0 var(--b-1) var(--line);
+
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  outline: var(--b-2) solid transparent;
+  outline-offset: calc(var(--b-2) * -1);
+  box-shadow: 0 0 0 var(--b-1) var(--line);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  [data-front] > * > & {
+    box-shadow: var(--frame-front);
+  }
+  /* In full screen the window is the desk. */
+  [data-full] > * > & {
+    box-shadow: none;
+  }
+  .window:focus-visible > * > & {
+    outline-color: var(--ring);
+  }
+}
+.window__content {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+
+  /* The actions at its foot are a button group flush with its edges. */
+  & > .btngroup > .btn {
+    border-block-end-style: none;
+
+    &:first-child {
+      border-inline-start-style: none;
+    }
+    &:last-child {
+      border-inline-end-style: none;
+    }
+  }
+}
+/* Stacked, each action reaches both edges and keeps the line under it, but for the last. */
+@container (width < 600px) {
+  .window__content > .btngroup:not([data-width='hug'], [data-cells]) > .btn {
+    border-inline-style: none;
+
+    &:not(:last-child) {
+      border-block-end-style: solid;
+    }
+  }
+}
+/* The bar is the handle: the window in front shows it in dots, one behind is quiet until the pointer comes. */
+.window__bar {
+  user-select: none;
+
+  &:focus-visible {
+    outline: var(--b-2) solid var(--ring);
+    outline-offset: calc(var(--b-2) * -1);
+  }
+  &[data-handle] {
+    cursor: grab;
+    touch-action: none;
+
+    &:active {
+      cursor: grabbing;
+    }
+  }
+  & :is(.bar__grip, .path__here) {
+    transition-property: var(--m-fades);
+    transition-duration: var(--m-fast);
+    transition-timing-function: var(--m-standard);
+  }
+}
+:where(.window:not([data-front])) {
+  & .window__bar .path__here {
+    color: var(--muted);
+  }
+  & .wdot__dot {
+    background-color: transparent;
+    box-shadow: inset 0 0 0 var(--b-1) var(--faint);
+  }
+  & .wctl:hover .wdot__dot {
+    background-color: var(--fg);
+    box-shadow: none;
+  }
+}
+/* Nothing to grip: behind, in full screen, where nothing drags, and lying in the page of a compact screen. */
+.window:not([data-front]) :is(.bar__grip, .window__grip),
+.window:is([data-full], [data-still]) .bar__grip {
+  opacity: 0;
+}
+@container screen (width < 600px) {
+  .window :is(.bar__grip, .window__grip) {
+    opacity: 0;
+  }
+}
+.window__body {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+
+  & [tabindex='-1']:focus-visible {
+    outline: var(--b-2) solid var(--ring);
+    outline-offset: var(--b-2);
+  }
+}
+.window__view {
+  flex: 1 0 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  & > * {
+    flex: none;
+  }
+}
+/* What a body says in place of a view: dots while it is on the way, a sentence when it cannot be shown. */
+.window__view > .window__says {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: var(--inset);
+  color: var(--muted);
+}
+/* On paper it is a record: the same frame in ink, with a heavier rule under its bar and over its actions. */
+.window__frame[data-surface='paper'] > .window__content {
+  & > .bar[data-line='below'] {
+    border-bottom: var(--b-2) solid var(--fg);
+  }
+  & > .btngroup > .btn {
+    border-color: var(--fg);
+    border-top-width: var(--b-2);
+  }
+}
+/* Every edge and corner pulls; the corner at the end says so with dots on the pitch, in rows of one, two and three. */
+.window__edge {
+  position: absolute;
+  z-index: var(--z-above);
+  touch-action: none;
+
+  &[data-edge='n'],
+  &[data-edge='s'] {
+    left: var(--s-3);
+    right: var(--s-3);
+    height: var(--s-1);
+    cursor: ns-resize;
+  }
+  &[data-edge='w'],
+  &[data-edge='e'] {
+    top: var(--s-3);
+    bottom: var(--s-3);
+    width: var(--s-1);
+    cursor: ew-resize;
+  }
+  &:is([data-edge='nw'], [data-edge='ne'], [data-edge='sw']) {
+    width: var(--s-3);
+    height: var(--s-3);
+    cursor: nesw-resize;
+  }
+  &[data-edge='nw'] {
+    cursor: nwse-resize;
+  }
+  &:is([data-edge='n'], [data-edge='nw'], [data-edge='ne']) {
+    top: 0;
+  }
+  &:is([data-edge='s'], [data-edge='sw']) {
+    bottom: 0;
+  }
+  &:is([data-edge='w'], [data-edge='nw'], [data-edge='sw']) {
+    left: 0;
+  }
+  &:is([data-edge='e'], [data-edge='ne']) {
+    right: 0;
+  }
+  /* The two edges that meet at the grip end before it. */
+  &[data-edge='s'] {
+    right: var(--s-6);
+  }
+  &[data-edge='e'] {
+    bottom: var(--s-6);
+  }
+}
+.window__grip {
+  position: absolute;
+  right: var(--s-1);
+  bottom: var(--s-1);
+  z-index: var(--z-above);
+  width: calc(var(--pitch) * var(--pitch-grip));
+  height: calc(var(--pitch) * var(--pitch-grip));
+  clip-path: polygon(
+    calc(100% - var(--pitch) / 2) 0,
+    100% 0,
+    100% 100%,
+    0 100%,
+    0 calc(100% - var(--pitch) / 2)
+  );
+  cursor: nwse-resize;
+  touch-action: none;
+  transition: opacity var(--m-fast) var(--m-standard);
+}
+/* What closes a window that has a grip keeps clear of it. */
+.window__frame:has(> .window__grip) > .window__content {
+  & > .bar[data-line='above'] {
+    padding-inline-end: var(--s-6);
+  }
+  & > .btngroup > .btn:last-child {
+    padding-inline-end: var(--s-8);
+  }
+}
+/* While an edge is pulled, a tag at the corner says how large the window is. */
+.window__size {
+  position: absolute;
+  right: var(--s-8);
+  bottom: var(--s-1);
+  z-index: var(--z-above);
+  display: flex;
 }
