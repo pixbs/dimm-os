@@ -104,7 +104,7 @@ export function menus(props: {
       label: task.name,
       radio: true,
       checked: !!task.front,
-      act: () => act({ type: 'open', path: desk.open[at].path }),
+      act: () => act({ type: 'open', path: desk.open[at].at }),
     })),
   ]
   const help: Item[] = [hotkeys, link('/accessibility', t.accessibility), about, ...legal]

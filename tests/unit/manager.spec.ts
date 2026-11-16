@@ -17,7 +17,9 @@ const view = (path: string, oneSize = false): WindowView => ({
   path,
   frame: { title: path, kind: null, tile: null, oneSize },
   sections: [],
-  counters: { position: 1, total: 1 },
+  count: 0,
+  parent: null,
+  counters: null,
   neighbours: { previous: null, next: null },
 })
 

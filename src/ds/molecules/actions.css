@@ -14,7 +14,7 @@
   &[data-state='focus'] {
     outline-color: var(--ring);
   }
-  &:disabled {
+  &:is(:disabled, a:not([href])) {
     opacity: var(--a-faint);
     pointer-events: none;
   }

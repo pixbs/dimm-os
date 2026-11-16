@@ -61,21 +61,37 @@ export function Button(props: Props) {
   )
 }
 
-// A button that goes to a window is a plain link, so it works without script.
+// A button that goes to a window is a plain link, so it works without script. Without an address it keeps its
+// label and goes nowhere, as a button to a window this visitor may not see.
 export function ButtonLink({
   label,
+  name,
+  icon,
   lead,
+  end,
+  tone,
   size,
   ...rest
-}: AnchorHTMLAttributes<HTMLAnchorElement> & {
-  label: string
-  lead?: ReactNode
-  size?: 'compact' | 'chrome'
-}) {
+}: AnchorHTMLAttributes<HTMLAnchorElement> &
+  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size'> & { tone?: 'outline' }) {
   return (
-    <a {...rest} className="btn" data-size={size}>
+    <a
+      {...rest}
+      aria-label={label ? undefined : name}
+      className="btn"
+      data-icon={label ? undefined : ''}
+      data-size={size}
+      data-tone={tone}
+    >
+      {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
-      <span className="btn__label">{label}</span>
+      {label && <span className="btn__label">{label}</span>}
+      {end && (
+        <span className="btn__end">
+          <Icon name={end} size="s" />
+        </span>
+      )}
+      {!label && name && <Tip label={name} />}
     </a>
   )
 }

@@ -13,9 +13,13 @@ import { type Action, compact, front, manager, phone, shown, stack, type Windows
 
 type Entry = Windows['open'][number]
 
-// What its bar and its taskbar button call a window: the end of its path, with its kind once its view is here.
-const named = ({ path, view }: Entry) =>
-  path.split('/').pop() + (view?.frame.kind ? `.${view.frame.kind}` : '')
+// What its view gives a window besides its body: a toolbar, a foot and a status bar.
+export type Parts = { toolbar?: ReactNode; foot?: ReactNode; status?: ReactNode; body: ReactNode }
+
+// What its bar and its taskbar button call a window: the end of the path it shows, with its kind once its view
+// is here. The kind is never part of the path.
+const named = ({ at, view }: Entry) =>
+  (view?.path ?? at).split('/').pop() + (view?.frame.kind ? `.${view.frame.kind}` : '')
 
 // The id of a window's element; its taskbar button carries the same after "task".
 // A hyphen of the path is doubled, so /a-b and /a/b keep apart.
@@ -40,7 +44,7 @@ export function OnDesk(props: {
   // Drawers opened in front of the windows, such as menus on a phone.
   over?: number
   t: Dictionary
-  children: (view: WindowView) => ReactNode
+  children: (view: WindowView) => Parts
 }) {
   const { desk, dispatch, t } = props
   const ground = useRef<HTMLElement>(null)
@@ -81,35 +85,43 @@ export function OnDesk(props: {
         layout="screen"
       />
       <AnimatePresence>
-        {desk.open.map((entry) => (
-          <Window
-            act={(action) => dispatch({ ...action, path: entry.path })}
-            after={(gesture) =>
-              shown(manager(desk, { ...gesture, path: entry.path }), entry.path) as Box
-            }
-            away={entry.mode === 'min'}
-            back={back(entry)}
-            box={shown(desk, entry.path)}
-            front={entry.path === front(desk)}
-            full={entry.mode === 'full' || (entry.mode === 'min' && entry.was === 'full')}
-            id={idOf(entry.path)}
-            inert={desk.z.indexOf(entry.path) < covering || !!back(entry)}
-            key={entry.path}
-            level={desk.z.indexOf(entry.path) + 1}
-            name={[named(entry)]}
-            oneSize={entry.view?.frame.oneSize}
-            opener={entry.opener}
-            sizing={desk.sizing === entry.path}
-            still={still}
-            t={t}
-            takesFocus={entry.opener !== undefined}
-            task={`task-${idOf(entry.path)}`}
-            title={entry.view?.frame.title ?? named(entry)}
-            waiting={!entry.view}
-          >
-            {entry.view && props.children(entry.view)}
-          </Window>
-        ))}
+        {desk.open.map((entry) => {
+          const parts = entry.view && props.children(entry.view)
+          return (
+            <Window
+              act={(action) => dispatch({ ...action, path: entry.path })}
+              after={(gesture) =>
+                shown(manager(desk, { ...gesture, path: entry.path }), entry.path) as Box
+              }
+              away={entry.mode === 'min'}
+              back={back(entry)}
+              box={shown(desk, entry.path)}
+              content={entry.view?.path}
+              foot={parts?.foot}
+              front={entry.path === front(desk)}
+              full={entry.mode === 'full' || (entry.mode === 'min' && entry.was === 'full')}
+              id={idOf(entry.path)}
+              inert={desk.z.indexOf(entry.path) < covering || !!back(entry)}
+              key={entry.path}
+              level={desk.z.indexOf(entry.path) + 1}
+              name={[named(entry)]}
+              oneSize={entry.view?.frame.oneSize}
+              opener={entry.opener}
+              sizing={desk.sizing === entry.path}
+              status={parts?.status}
+              still={still}
+              t={t}
+              takesFocus={entry.opener !== undefined}
+              task={`task-${idOf(entry.path)}`}
+              title={entry.view?.frame.title ?? named(entry)}
+              toolbar={parts?.toolbar}
+              travel={entry.travel}
+              waiting={!entry.view}
+            >
+              {parts?.body}
+            </Window>
+          )
+        })}
       </AnimatePresence>
     </main>
   )

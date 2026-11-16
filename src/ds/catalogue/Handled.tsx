@@ -34,7 +34,9 @@ export function Handled({ t, words }: Props) {
           path,
           frame: { title: name, kind: null, tile: tiles[at] ?? null },
           sections: [],
-          counters: { position: 1, total: 1 },
+          count: 0,
+          parent: null,
+          counters: null,
           neighbours: { previous: null, next: null },
         },
       })
@@ -84,11 +86,13 @@ export function Handled({ t, words }: Props) {
           dispatch={dispatch}
           t={words}
         >
-          {(view) => (
-            <div className="stage">
-              <Heading level="heading" text={t.windowText} title={view.frame.title} />
-            </div>
-          )}
+          {(view) => ({
+            body: (
+              <div className="stage">
+                <Heading level="heading" text={t.windowText} title={view.frame.title} />
+              </div>
+            ),
+          })}
         </OnDesk>
         <footer data-surface="desktop">
           <Taskbar

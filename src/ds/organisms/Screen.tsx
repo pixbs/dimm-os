@@ -51,7 +51,13 @@ export function Skip({ to, label }: { to: string; label: string }) {
   )
 }
 
-export type Shortcut = { href: string; name: string; icon: IconName; tile: Tile | null }
+export type Shortcut = {
+  href: string
+  name: string
+  icon: IconName
+  tile: Tile | null
+  lang?: string
+}
 
 // The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for.
 export function Apps(props: {
