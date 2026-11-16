@@ -15,9 +15,10 @@ type Press = Pick<KeyboardEvent, 'key' | 'metaKey' | 'ctrlKey' | 'altKey'> &
 // A key that types a character, which speech input can press by saying a word.
 const single = (keys: readonly string[]) => keys.length === 1 && keys[0].length === 1
 
-const typing = (target: EventTarget | null) =>
+// A field types the keys, and a menu or a modal dialog takes them for itself over what lies behind it.
+const held = (target: EventTarget | null) =>
   !!(target as Element | null)?.closest?.(
-    'input, textarea, select, [contenteditable]:not([contenteditable="false"])',
+    'input, textarea, select, [contenteditable]:not([contenteditable="false"]), [role=menu], dialog',
   )
 
 // What a command does on the desk; search has no action of the window manager.
@@ -49,8 +50,7 @@ export function keyAction(
   singleKeys: boolean,
   desk: Windows,
 ): Action | 'search' | null {
-  if (press.defaultPrevented || press.isComposing || press.altKey || typing(press.target))
-    return null
+  if (press.defaultPrevented || press.isComposing || press.altKey || held(press.target)) return null
 
   const name = press.key === 'Escape' ? 'esc' : press.key
   const combo = [...(press.metaKey || press.ctrlKey ? ['mod'] : []), name].join(' ').toUpperCase()

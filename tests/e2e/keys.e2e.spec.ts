@@ -11,6 +11,17 @@ const device = (page: Page, platform: 'MacIntel' | 'Win32') =>
 // What the visitor chose in Preferences, as the device keeps it.
 const keep = (page: Page, name: string, value: string) =>
   page.addInitScript(([name, value]) => localStorage.setItem(name, value), [name, value])
+// Whether the desk took the last key pressed, so the browser does nothing with it.
+const watch = (page: Page) =>
+  page.evaluate(() =>
+    addEventListener('keydown', (event) => Reflect.set(window, 'taken', event.defaultPrevented)),
+  )
+const taken = (page: Page) => page.evaluate(() => Reflect.get(window, 'taken') as boolean)
+// Keeps what has the focus, and tells whether it still has it.
+const hold = (page: Page) =>
+  page.evaluate(() => Reflect.set(window, 'held', document.activeElement))
+const held = (page: Page) =>
+  page.evaluate(() => document.activeElement === Reflect.get(window, 'held'))
 
 test.describe('Hotkeys on a desk', () => {
   test.beforeEach(async ({ page }) => {
@@ -54,9 +65,14 @@ test.describe('Hotkeys on a desk', () => {
       await page.keyboard.press('m')
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
 
-      // Until the palette arrives, the key finds the button that will open it.
+      // Until the palette arrives, the key is taken and does nothing, as the Search row in File.
+      await watch(page)
+      await hold(page)
+      const count = await page.locator('article').count()
       await page.keyboard.press(`${mod}+k`)
-      await expect(page.getByRole('button', { name: 'Search' }).first()).toBeFocused()
+      expect(await taken(page)).toBe(true)
+      expect(await held(page)).toBe(true)
+      await expect(page.locator('article')).toHaveCount(count)
     })
   }
 
@@ -92,8 +108,33 @@ test.describe('Hotkeys on a desk', () => {
     await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
     await expect(win(page, 'Work')).not.toHaveAttribute('data-full', '')
 
+    await watch(page)
     await page.keyboard.press('Control+k')
-    await expect(page.getByRole('button', { name: 'Search' }).first()).toBeFocused()
+    expect(await taken(page)).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(page.locator('article')).toHaveCount(0)
+  })
+
+  test('a menu holds the keys, and none acts on what lies behind it', async ({ page }) => {
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    await page.getByRole('menubar').getByRole('menuitem', { name: 'View', exact: true }).click()
+    for (const key of ['m', 'f', ',', 'w']) await page.keyboard.press(key)
+
+    await expect(page.getByRole('menu', { name: 'View' })).toBeVisible()
+    await expect(page.locator('article')).toHaveCount(1)
+    await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
+    await expect(win(page, 'Work')).not.toHaveAttribute('data-full', '')
+  })
+
+  test('Esc puts an open tooltip away before it closes the window', async ({ page }) => {
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    const button = page.locator('header').getByRole('button', { name: 'Theme', exact: true })
+    await button.focus()
+    await expect(button.locator('.tip')).toBeVisible()
+    await page.keyboard.press('Escape')
+
+    await expect(button.locator('.tip')).toHaveCount(0)
+    await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
     await page.keyboard.press('Escape')
     await expect(page.locator('article')).toHaveCount(0)
   })

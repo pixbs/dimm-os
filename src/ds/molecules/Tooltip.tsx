@@ -28,19 +28,29 @@ export function Tip(props: { label: string; hint?: Named }) {
 
   useEffect(() => {
     const host = at.current!.parentElement!
+    let shown = false
+    const show = (open: boolean) => {
+      shown = open
+      setOpen(open)
+    }
     const listeners = {
-      pointerenter: () => setOpen(true),
-      pointerleave: () => setOpen(false),
-      pointerdown: (event: Event) => !at.current!.contains(event.target as Node) && setOpen(false),
+      pointerenter: () => show(true),
+      pointerleave: () => show(false),
+      pointerdown: (event: Event) => !at.current!.contains(event.target as Node) && show(false),
       // The tooltip can be pointed at, but a press on it does not press what it names.
       click: (event: Event) => {
         if (!at.current!.contains(event.target as Node)) return
         event.preventDefault()
         event.stopPropagation()
       },
-      focusin: () => setOpen(host.matches(':focus-visible')),
-      focusout: () => setOpen(false),
-      keydown: (event: Event) => (event as KeyboardEvent).key === 'Escape' && setOpen(false),
+      focusin: () => show(host.matches(':focus-visible')),
+      focusout: () => show(false),
+      // Esc puts an open tooltip away and does nothing else, so the window it stands on stays.
+      keydown: (event: Event) => {
+        if ((event as KeyboardEvent).key !== 'Escape' || !shown) return
+        event.preventDefault()
+        show(false)
+      },
     }
     for (const [type, listener] of Object.entries(listeners)) host.addEventListener(type, listener)
 
