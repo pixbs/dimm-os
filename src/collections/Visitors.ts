@@ -45,7 +45,11 @@ export const Visitors: CollectionConfig = {
       type: 'text',
       virtual: true,
       validate: password,
-      admin: { description: 'Kept only as a keyed hash; empty keeps the saved one.' },
+      // Typed by the owner, though Payload makes a field that is not stored read-only.
+      admin: {
+        description: 'Kept only as a keyed hash; empty keeps the saved one.',
+        readOnly: false,
+      },
     },
     {
       name: 'hash',
