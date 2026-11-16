@@ -85,8 +85,11 @@ export function Handle(props: {
     <button
       aria-label={props.label}
       className="drawer__handle"
-      // A drag ends in its own way; a press, or Enter and Space, puts the drawer away.
-      onClick={() => (moved.current ? (moved.current = false) : props.leave(0))}
+      // A drag ends in its own way, and the click a mouse makes after it is let pass; a press, or Enter and Space,
+      // whose click counts no press of a pointer, puts the drawer away.
+      onClick={(event) =>
+        moved.current && event.detail ? (moved.current = false) : props.leave(0)
+      }
       onPointerDown={grab}
       type="button"
     />

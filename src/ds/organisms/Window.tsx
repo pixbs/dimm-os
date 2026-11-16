@@ -202,10 +202,12 @@ export function Window(props: Props) {
   const frames = useMemo(() => {
     if (painted) return
     if (drawer) return rises()
+    // A move the visitor can interrupt, so it opens on the spring; a drawer let go and kept is a window opened.
+    const open = () => ({ opacity: 1, scale: 1, y: '0%', transition: spring('slow') })
     return {
       ...ways('slow', () => opener),
-      // A move the visitor can interrupt, so it opens on the spring.
-      open: () => ({ opacity: 1, scale: 1, y: '0%', transition: spring('slow') }),
+      open,
+      kept: open,
       away: () => ({
         ...ways('slow', () => byId(task)).closed(),
         transition: { duration: duration('slow'), ease: curve('standard') },
@@ -395,7 +397,8 @@ export function Window(props: Props) {
             <Handle
               height={() => origin.current!.offsetHeight}
               label={t.close}
-              leave={(speed) => modal && putAway(speed)}
+              // A drawer that is only shown, with nothing to put it away, springs back.
+              leave={(speed) => (modal ? putAway(speed) : setKept((kept) => !kept))}
               stay={() => setKept((kept) => !kept)}
               y={y}
             />

@@ -172,6 +172,37 @@ test.describe('Drawer', () => {
     expect(sinking.every(({ opacity }) => opacity === 1)).toBe(true)
   })
 
+  test('goes at a press of Enter on its handle after a drag the browser made no click of', async ({
+    page,
+  }) => {
+    await page.getByRole('link', { name: 'Work' }).click()
+    const work = drawer(page, 'Work')
+    await settled(work)
+    const handle = work.locator('.drawer__handle')
+
+    // A touch drag let go short of half springs back, and a touch drag ends in no click.
+    await handle.evaluate((handle) => {
+      const { x, y } = handle.getBoundingClientRect()
+      const send = (type: string, dy: number) =>
+        handle.dispatchEvent(
+          new PointerEvent(type, {
+            bubbles: true,
+            button: 0,
+            pointerId: 1,
+            clientX: x + 10,
+            clientY: y + 10 + dy,
+          }),
+        )
+      send('pointerdown', 0)
+      send('pointermove', 30)
+      send('pointerup', 30)
+    })
+    await settled(work)
+    await handle.focus()
+    await page.keyboard.press('Enter')
+    await expect(work).toBeHidden()
+  })
+
   test('is modal: the focus moves in and stays in, what is behind is inert, Esc closes it, and the focus returns to its opener', async ({
     page,
   }) => {
@@ -230,6 +261,10 @@ test.describe('Drawer', () => {
     const frame = (part: Locator) => part.locator('.window__frame').boundingBox()
     expect(await frame(services)).toMatchObject({ x: 16, width: 358 })
     expect(await frame(cv)).toMatchObject({ x: 8, width: 374 })
+    // One scrim, the front drawer's, lies over the desk and the drawers behind.
+    await expect(contact.locator('.window__scrim')).toBeVisible()
+    await expect(cv.locator('.window__scrim')).toBeHidden()
+    await expect(services.locator('.window__scrim')).toBeHidden()
 
     await contact.locator('.window__scrim').click({ position: { x: 195, y: 4 } })
     await expect(contact).toBeHidden()

@@ -485,6 +485,10 @@
     &[data-back] .window__frame {
       box-shadow: 0 0 0 var(--b-1) var(--faint);
     }
+    /* One scrim, the front drawer's, lies over the desk and the drawers behind. */
+    &[data-back] > .window__scrim {
+      visibility: hidden;
+    }
     &[data-back='1'] > .window__origin {
       margin: 0 var(--s-2) var(--s-2);
     }
