@@ -5,6 +5,7 @@ import {
   type Condition,
   type Where,
 } from 'payload'
+import { relationship } from 'payload/shared'
 
 import { signedIn } from '@/access'
 import { icons } from '@/ds/atoms/icons'
@@ -198,7 +199,7 @@ export const Windows: CollectionConfig = {
                   hooks: { beforeChange: [({ value }) => value?.toUpperCase()] },
                   validate: (value: null | string | undefined) =>
                     !value ||
-                    (/^[A-Z]$/.test(value) && !systemLetters.includes(value)) ||
+                    (/^[a-z]$/i.test(value) && !systemLetters.includes(value.toUpperCase())) ||
                     `One letter, other than ${systemLetters.join(', ')}.`,
                   admin: { description: 'The letter that opens the window.', width: '33%' },
                 },
@@ -258,33 +259,27 @@ export const Windows: CollectionConfig = {
       relationTo: 'windows',
       hasMany: false,
       admin: { position: 'sidebar' },
-      // A window and its items: two levels.
-      filterOptions: ({ id }) => ({ parent: { exists: false }, id: { not_equals: id } }),
-      validate: async (value, { data, id, req }) => {
-        if (!value) return true
-        if (fixed.includes((data as { slug?: string }).slug ?? ''))
-          return 'This window stays on top.'
-        const parent = await req.payload.findByID({
-          collection: 'windows',
-          id: typeof value === 'object' ? (value as unknown as { id: number }).id : value,
-          depth: 0,
-          draft: true,
-          fallbackLocale: false,
-          locale: 'en',
-          overrideAccess: true,
-          req,
-          select: { parent: true },
-        })
-        if (parent.parent) return 'An item holds no items.'
-        if (!id) return true
-        const { totalDocs } = await req.payload.count({
-          collection: 'windows',
-          locale: 'en',
-          overrideAccess: true,
-          req,
-          where: { parent: { equals: id } },
-        })
-        return totalDocs === 0 || 'A window with items is no item.'
+      // A window and its items: two levels, which Payload's own validation checks against these options.
+      filterOptions: ({ id }) => ({
+        parent: { exists: false },
+        ...(id ? { id: { not_equals: id } } : {}),
+      }),
+      validate: async (value, options) => {
+        const { data, id, req } = options
+        if (value && fixed.includes((data as { slug?: string }).slug ?? ''))
+          return 'The 404, the imprint and the privacy policy stay at the top.'
+        if (value && id) {
+          const { totalDocs } = await req.payload.count({
+            collection: 'windows',
+            // Slugs and the tree are shared by both languages.
+            locale: 'en',
+            overrideAccess: true,
+            req,
+            where: { parent: { equals: id } },
+          })
+          if (totalDocs) return 'A window with items cannot be an item.'
+        }
+        return relationship(value, options)
       },
     },
     {
