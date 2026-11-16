@@ -1,7 +1,7 @@
 import type { Language } from './address'
 
 // The keys that have a symbol are drawn as it on every device.
-const symbols = { shift: '⇧', enter: '↵', up: '↑', down: '↓', left: '←', right: '→', esc: 'Esc' }
+const symbols = { shift: '⇧', enter: '⏎', up: '↑', down: '↓', left: '←', right: '→', esc: 'Esc' }
 
 // The name of each key, per language and device: mod is the key that commands, ⌘ on an Apple device.
 export const keyNames = {

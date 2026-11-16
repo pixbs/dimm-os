@@ -241,7 +241,8 @@ export function Menus(props: Props) {
 
 // A dialog drawn as it stands, and one to open: it is modal, Esc closes it and the focus returns to the button.
 export function Dialogs(props: Props) {
-  const { t, words } = props
+  const { t, words, language } = props
+  const enter = named(language, ['enter'])
   const [open, setOpen] = useState(false)
   const [opener, setOpener] = useState<Element | null>(null)
   const close = () => setOpen(false)
@@ -265,7 +266,7 @@ export function Dialogs(props: Props) {
               actions={
                 <ButtonGroup>
                   <Button label={t.cancel} tone="outline" />
-                  <Button hint="↵" label={t.confirm} tone="solid" />
+                  <Button hint={enter} label={t.confirm} tone="solid" />
                 </ButtonGroup>
               }
               label={t.question}
@@ -281,7 +282,7 @@ export function Dialogs(props: Props) {
             actions={
               <ButtonGroup>
                 <Button label={t.cancel} onClick={close} tone="outline" />
-                <Button hint="↵" label={t.confirm} onClick={close} tone="solid" />
+                <Button hint={enter} label={t.confirm} onClick={close} tone="solid" />
               </ButtonGroup>
             }
             label={t.question}

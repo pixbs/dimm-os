@@ -33,8 +33,8 @@ describe('the words of the interface', () => {
   it('name keys by a symbol where they have one, the same on every device', () => {
     for (const language of ['en', 'de'] as const) {
       expect(named(language, ['shift', 'enter', 'up', 'down', 'left', 'right'])).toEqual({
-        apple: '⇧↵↑↓←→',
-        other: '⇧ ↵ ↑ ↓ ← →',
+        apple: '⇧⏎↑↓←→',
+        other: '⇧ ⏎ ↑ ↓ ← →',
       })
       expect(named(language, ['esc'])).toBe('Esc')
     }
