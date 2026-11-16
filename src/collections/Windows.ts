@@ -36,7 +36,7 @@ const systemLetters: string[] = Object.values(systemKeys).flatMap((keys) =>
 const onItem: Condition = (data) => Boolean(data?.parent)
 const onWindow: Condition = (data) => !data?.parent
 
-// The one read rule, which Payload applies to every list, count, join and population. Published is per language.
+// The one read rule, which Payload applies to every list, count, join and population; published is per language.
 const read: Access = ({ req }) => {
   if (req.user) return true
   const { viewer } = req.context

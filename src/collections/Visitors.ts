@@ -23,7 +23,7 @@ const password: TextFieldSingleValidation = async (value, { id, operation, req }
   return totalDocs ? 'This password is in use.' : true
 }
 
-// An invited reader of hidden windows. Not a Payload user: no login, no admin, no API.
+// An invited reader of hidden windows, and not a Payload user: no login, no admin, no API.
 export const Visitors: CollectionConfig = {
   slug: 'visitors',
   access: {
