@@ -190,11 +190,12 @@ export function Window(props: Props) {
     if (heading) heading.tabIndex = -1
     ;(heading ?? self).focus({ preventScroll: true })
   }
-  useEffect(() => {
+  const takeFocus = useEffectEvent(() => {
     if (!props.takesFocus || (focused.current && document.activeElement !== root.current)) return
     focused.current = true
     enter()
-  }, [props.takesFocus, waiting])
+  })
+  useEffect(() => takeFocus(), [props.takesFocus, waiting])
   // A view that replaces another takes the focus the one before held, which leaves with it.
   const replaced = useEffectEvent(() => {
     const at = document.activeElement

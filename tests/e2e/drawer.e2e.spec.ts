@@ -242,9 +242,15 @@ test.describe('Drawer', () => {
     page,
   }) => {
     await page.getByRole('link', { name: 'Work' }).click()
-    await expect(drawer(page, 'Work').getByRole('heading')).toBeFocused()
-    // Each key opens its window as a drawer in front of the last.
-    for (const key of ['s', 'c', 'k']) await page.keyboard.press(key)
+    // Each key opens its window as a drawer in front of the last, once that one has taken the focus.
+    for (const [name, key] of [
+      ['Work', 's'],
+      ['Services', 'c'],
+      ['CV', 'k'],
+    ]) {
+      await expect(drawer(page, name).getByRole('heading')).toBeFocused()
+      await page.keyboard.press(key)
+    }
     const [work, services, cv, contact] = ['Work', 'Services', 'CV', 'Contact'].map((name) =>
       drawer(page, name),
     )
