@@ -37,6 +37,8 @@ export function OnDesk(props: {
   dispatch: (action: Action) => void
   apps: Shortcut[]
   label?: string
+  // Drawers opened in front of the windows, such as menus on a phone.
+  over?: number
   t: Dictionary
   children: (view: WindowView) => ReactNode
 }) {
@@ -61,13 +63,13 @@ export function OnDesk(props: {
     ? -1
     : Math.max(-1, ...desk.z.map((path, at) => (modes.get(path) === 'full' ? at : -1)))
   // On a phone the windows are drawers, and one that is up is modal: what lies behind it cannot be reached. A drawer
-  // knows how many stand in front of it; one past the stack has three, and is not shown.
+  // knows how many stand in front of it, menus included; one past the stack has three, and is not shown.
   const drawers = phone(desk) ? stack(desk) : null
   const back = (entry: Entry) => {
     if (!drawers) return
     if (entry.mode === 'min') return 0
     const at = drawers.indexOf(entry.path)
-    return at < 0 ? 3 : drawers.length - 1 - at
+    return at < 0 ? 3 : Math.min(3, drawers.length - 1 - at + (props.over ?? 0))
   }
 
   return (

@@ -54,7 +54,7 @@
     pointer-events: none;
   }
   /* Selected is the row inverted, which needs no line under it. */
-  &[aria-pressed='true'] {
+  &[data-surface='inverted'] {
     --row-line: transparent;
   }
   /* Current is the pressed fill, held, and a dot in the inset before the text, so it is not told by a tint alone. */

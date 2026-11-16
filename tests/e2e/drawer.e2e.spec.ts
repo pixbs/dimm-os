@@ -289,7 +289,8 @@ test.describe('Drawer', () => {
     expect(opening.every(({ y }) => y === 0)).toBe(true)
     expect(opening.some(({ opacity }) => opacity > 0 && opacity < 1)).toBe(true)
 
-    await pull(page, work, 40, 4)
+    // Slowly, well under a flick, so the drawer springs back when let go.
+    await pull(page, work, 40, 4, 40)
     expect(await top(work)).toBeCloseTo(rest + 40, 0)
     await page.mouse.up()
 

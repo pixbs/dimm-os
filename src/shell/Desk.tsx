@@ -7,6 +7,7 @@ import {
   useEffectEvent,
   useReducer,
   useRef,
+  useState,
 } from 'react'
 
 import type { View, WindowView } from '@/data/views'
@@ -14,6 +15,7 @@ import { change } from '@/ds/atoms/settings'
 import { Bar, BarSpace } from '@/ds/molecules/Bar'
 import { Button, ButtonLink } from '@/ds/molecules/Button'
 import { Tag } from '@/ds/molecules/Tag'
+import { MenuBar } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
@@ -21,6 +23,7 @@ import { named } from '@/i18n/keys'
 
 import { Clock } from './Clock'
 import { type Action, front, manager, phone, stack, start } from './manager'
+import { menus } from './menus'
 import { idOf, OnDesk, tasksOf } from './OnDesk'
 
 const STORE = 'windows'
@@ -104,6 +107,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
   const top = front(desk)
+  // On a phone the menus that are open are drawers in front of the windows.
+  const [unfolded, setMenus] = useState(0)
 
   // The address follows the window in front: picking one adds an entry, and when it leaves the next takes its place.
   function act(action: Action) {
@@ -188,16 +193,14 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     <Screen fill onClick={follow}>
       <header data-surface="desktop">
         {top && <Skip label={dictionary.skip} to={idOf(top)} />}
-        <Bar line="below" size="chrome">
-          <Button data-for="desk touch" icon="menu" name={dictionary.menu} size="chrome" />
-          <Button
-            label={view.site.name}
-            lead={<span className="mark" data-surface="orange" />}
-            size="chrome"
-          />
-          {[dictionary.file, dictionary.view, dictionary.window, dictionary.help].map((menu) => (
-            <Button data-for="desk pointer" key={menu} label={menu} size="chrome" />
-          ))}
+        <MenuBar
+          drawer={phone(desk)}
+          label={dictionary.menuBar}
+          menus={menus({ t: dictionary, language, name: view.site.name, desk, act })}
+          onDepth={setMenus}
+          size="chrome"
+          t={dictionary}
+        >
           <BarSpace />
           <Button
             data-for="pointer"
@@ -229,7 +232,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           />
           <Button label={dictionary.guest} lead={<Tag>{dictionary.guest[0]}</Tag>} size="chrome" />
           <Clock language={language} zone={view.site.timezone} />
-        </Bar>
+        </MenuBar>
       </header>
       {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
       <div className="screen__main">
@@ -238,6 +241,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           desk={desk}
           dispatch={act}
           label={dictionary.apps}
+          over={phone(desk) ? unfolded : 0}
           t={dictionary}
         >
           {(opened) => <Sections dictionary={dictionary} view={opened} />}

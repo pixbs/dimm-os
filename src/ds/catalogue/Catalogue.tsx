@@ -79,7 +79,9 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'rows' && <Rows language={language} t={t.rows} />}
       {name === 'inputs' && <Inputs t={t.inputs} />}
       {name === 'content' && <Content t={t.content} words={await getDictionary(language)} />}
-      {name === 'shell' && <Shell t={t.shell} words={await getDictionary(language)} />}
+      {name === 'shell' && (
+        <Shell language={language} t={t.shell} words={await getDictionary(language)} />
+      )}
     </main>
   )
 }

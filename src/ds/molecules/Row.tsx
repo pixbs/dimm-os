@@ -1,10 +1,10 @@
-import type { ReactNode } from 'react'
+import type { HTMLAttributes, ReactNode } from 'react'
 
 import { Icon, type IconName } from '../atoms/Icon'
 
 type Lines = ReactNode | ReactNode[]
 
-type Props = {
+type Props = Omit<HTMLAttributes<HTMLElement>, 'title'> & {
   // Lead: an index, an icon, a picture (null for an empty one), or a dot or toggle given as it is.
   index?: string
   icon?: IconName
@@ -22,7 +22,7 @@ type Props = {
   end?: IconName
   scale?: 'heading'
   size?: 'compact'
-  // A link; without one, a row that is pressed, current, opens or can be disabled is a button.
+  // A link; without one, a row that acts, is pressed, current, opens or can be disabled is a button.
   href?: string
   // A row that holds a toggle is its label, so pressing anywhere on it presses the toggle.
   toggles?: boolean
@@ -42,33 +42,54 @@ const lines = (text: Lines) =>
   ))
 
 export function Row(props: Props) {
-  const { index, icon, media, lead, side, title, text, label, value, meta, trail, end } = props
-  const { href, expanded, pressed, current, disabled } = props
-  const button = !href && [expanded, pressed, current, disabled].some((set) => set !== undefined)
-  const Element = href ? 'a' : button ? 'button' : props.toggles ? 'label' : 'div'
+  // What is not a slot or a state is the element's own.
+  const {
+    index,
+    icon,
+    media,
+    lead,
+    side,
+    title,
+    text,
+    label,
+    value,
+    above,
+    meta,
+    trail,
+    end,
+    ...own
+  } = props
+  const { scale, size, href, toggles, expanded, pressed, current, disabled, state, ...rest } = own
+  // A link that cannot be followed is a disabled button, and a row that acts or holds a state is a button.
+  const link = !!href && !disabled
+  const button =
+    !link &&
+    (!!rest.onClick || [expanded, pressed, current, disabled].some((set) => set !== undefined))
+  const Element = link ? 'a' : button ? 'button' : toggles ? 'label' : 'div'
   // Opening in place shows the text and turns the plus to a minus.
   const sign = expanded === undefined ? end : expanded ? 'minus' : 'plus'
 
   return (
     <Element
-      aria-current={current ? (href ? 'page' : 'true') : undefined}
+      aria-current={current ? (link ? 'page' : 'true') : undefined}
       aria-expanded={expanded}
-      aria-pressed={pressed}
+      aria-pressed={button ? pressed : undefined}
       className="row"
-      data-layout={props.above ? 'above' : side ? 'split' : undefined}
-      data-scale={props.scale}
-      data-size={props.size}
-      data-state={props.state}
+      data-layout={above ? 'above' : side ? 'split' : undefined}
+      data-scale={scale}
+      data-size={size}
+      data-state={state}
       data-surface={pressed ? 'inverted' : undefined}
       disabled={button ? disabled : undefined}
-      href={href}
+      href={link ? href : undefined}
       type={button ? 'button' : undefined}
+      {...rest}
     >
       {media !== undefined && <span className="row__media">{media}</span>}
       {(index || icon || lead) && (
         <span className="row__lead">
           {index && <span className="row__index">{index}</span>}
-          {icon && <Icon name={icon} size={props.size ? 's' : undefined} />}
+          {icon && <Icon name={icon} size={size ? 's' : undefined} />}
           {lead}
         </span>
       )}

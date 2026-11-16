@@ -499,8 +499,8 @@
       display: none;
     }
   }
-  /* The handle shows a bar; it can be held a finger high, about the bar. */
-  .screen__desk > .window .drawer__handle {
+  /* The handle of a drawer, and of a dialog that is one, shows a bar; it can be held a finger high, about the bar. */
+  :is(.screen__desk > .window, .dialog[data-drawer]) .drawer__handle {
     position: relative;
     z-index: var(--z-above);
     flex: none;

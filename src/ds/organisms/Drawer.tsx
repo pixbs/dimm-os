@@ -75,8 +75,10 @@ export function Handle(props: {
         const now = performance.now()
         const from = seen.find(([at]) => now - at <= RECENT)
         const speed = from && now > from[0] ? ((dy - from[1]) / (now - from[0])) * 1000 : 0
-        if (speed >= FLICK || dy >= height / 2) props.leave(Math.max(0, speed) / height)
-        else props.stay()
+        if (speed >= FLICK || dy >= height / 2) return props.leave(Math.max(0, speed) / height)
+        // With reduced motion it is back at once, so whatever follows sets out from its place.
+        if (reduced()) y.jump(share(0))
+        props.stay()
       },
     })
   }
