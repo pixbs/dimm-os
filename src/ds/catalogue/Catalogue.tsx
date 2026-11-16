@@ -10,7 +10,9 @@ import { Icons } from './Icons'
 import { Index } from './Index'
 import { Inputs } from './Inputs'
 import { Motion } from './Motion'
+import { Records } from './Records'
 import { Rows } from './Rows'
+import { Sections } from './Sections'
 import { Settings } from './Settings'
 import { Shell } from './Shell'
 import { Space } from './Space'
@@ -33,6 +35,8 @@ export const pages = [
   'inputs',
   'content',
   'shell',
+  'records',
+  'sections',
 ] as const
 
 type Name = (typeof pages)[number]
@@ -43,7 +47,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
   const t = await copy[language]()
 
   return (
-    <main className="doc">
+    <main className="doc" data-page={name}>
       <nav className="doc__nav">
         {pages.map((page) => (
           <a
@@ -82,6 +86,8 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'shell' && (
         <Shell language={language} t={t.shell} words={await getDictionary(language)} />
       )}
+      {name === 'records' && <Records t={t.records} />}
+      {name === 'sections' && <Sections t={t.sections} />}
     </main>
   )
 }

@@ -26,7 +26,7 @@ export function Header(props: {
               end={at === 0 ? 'arrow-right' : undefined}
               href={href}
               hrefLang={lang}
-              key={href + label}
+              key={at}
               label={label}
               lang={lang}
               tone={at === 0 ? 'solid' : 'outline'}

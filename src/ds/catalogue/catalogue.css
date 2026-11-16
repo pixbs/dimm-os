@@ -8,6 +8,10 @@
     hyphens: auto;
     overflow-wrap: break-word;
   }
+  /* Three windows side by side: compact, regular and wide. */
+  &[data-page='sections'] {
+    width: calc(var(--s-2) * 327);
+  }
 }
 .doc__nav {
   display: flex;
@@ -358,4 +362,20 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--s-2);
+}
+/* Where a section's organism stands: dots, or a line as high as a control. */
+.placeholder {
+  display: flex;
+  align-items: flex-end;
+  height: calc(var(--h-regular) * 3);
+  padding: var(--s-3);
+  background-image: var(--pattern);
+  background-size: var(--s-2) var(--s-2);
+
+  &[data-size='line'] {
+    align-items: center;
+    height: var(--h-regular);
+    background-image: none;
+    box-shadow: 0 0 0 var(--b-1) var(--line);
+  }
 }
