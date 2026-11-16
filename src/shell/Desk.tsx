@@ -13,7 +13,7 @@ import {
 import type { View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
-import { Button, ButtonLink } from '@/ds/molecules/Button'
+import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import { MenuBar } from '@/ds/organisms/Menu'
@@ -24,29 +24,30 @@ import { named, systemKeys } from '@/i18n/keys'
 
 import { Clock } from './Clock'
 import { keyAction } from './keys'
-import { type Action, front, manager, phone, stack, start } from './manager'
+import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
-import { idOf, OnDesk, tasksOf } from './OnDesk'
+import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 
 const STORE = 'windows'
 
+// A window that moved has a view at another path, which the browser's own load of the address redirects to.
 async function fetchWindow(language: Language, path: string): Promise<WindowView | null> {
   try {
     const response = await fetch(`/view${toRoute(language, path)}`)
     const view: View | null = response.ok ? await response.json() : null
-    return view?.window ?? null
+    return view?.window?.path === path ? view.window : null
   } catch {
     return null
   }
 }
 
-// The paths this tab had open, back to front.
-function stored(): string[] {
+// The paths this tab had open, back to front, or null in a tab that has not shown the desk yet.
+function stored(): string[] | null {
   try {
-    const paths: unknown = JSON.parse(sessionStorage.getItem(STORE) ?? '[]')
-    return Array.isArray(paths) ? paths.filter((path) => typeof path === 'string') : []
+    const paths: unknown = JSON.parse(sessionStorage.getItem(STORE) ?? 'null')
+    return Array.isArray(paths) ? paths.filter((path) => typeof path === 'string') : null
   } catch {
-    return []
+    return null
   }
 }
 
@@ -64,43 +65,100 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
   History.prototype[method].call(history, null, '', address)
 }
 
-// What a window holds until the sections arrive: its title, its text, its items and its neighbours.
-function Sections({ view, dictionary }: { view: WindowView; dictionary: Dictionary }) {
-  const { frame, sections, counters, neighbours } = view
+const pad = (number: number) => String(number).padStart(2, '0')
 
+// What a window says until its sections arrive: its title, its text and its items, in the language they are in,
+// and as an item the way to its neighbours, which ends its body.
+function Body({ view }: { view: WindowView }) {
+  const { parent, neighbours } = view
+  const before = neighbours.previous ?? parent
   return (
     <div style={{ padding: 'var(--inset)' }}>
-      <h1>{frame.title}</h1>
-      {sections.map((section, index) =>
-        section.type === 'text' ? (
-          <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
-        ) : (
-          <ul key={index}>
-            {section.items.map((item) => (
-              <li key={item.href}>
-                <a href={item.href}>{item.title}</a>
-              </li>
-            ))}
-          </ul>
-        ),
+      <div lang={view.lang}>
+        <h1>{view.frame.title}</h1>
+        {view.sections.map((section, index) =>
+          section.type === 'text' ? (
+            <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
+          ) : (
+            <ul key={index}>
+              {section.items.map((item) => (
+                <li key={item.href}>
+                  <a href={item.href} lang={item.lang}>
+                    {item.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ),
+        )}
+      </div>
+      {before && (
+        <nav>
+          <ButtonGroup>
+            <ButtonLink
+              href={before.href}
+              hrefLang={before.lang}
+              icon="arrow-left"
+              label={before.title}
+              lang={before.lang}
+              rel={neighbours.previous ? 'prev' : undefined}
+              tone="outline"
+            />
+            {neighbours.next && (
+              <ButtonLink
+                end="arrow-right"
+                href={neighbours.next.href}
+                hrefLang={neighbours.next.lang}
+                label={neighbours.next.title}
+                lang={neighbours.next.lang}
+                rel="next"
+                tone="outline"
+              />
+            )}
+          </ButtonGroup>
+        </nav>
       )}
-      <footer>
-        {neighbours.previous && (
-          <a href={neighbours.previous.href} rel="prev">
-            {dictionary.previous}
-          </a>
-        )}
-        <p>
-          {counters.position} / {counters.total}
-        </p>
-        {neighbours.next && (
-          <a href={neighbours.next.href} rel="next">
-            {dictionary.next}
-          </a>
-        )}
-      </footer>
     </div>
   )
+}
+
+// The parts of a window its view derives: an item's path line, with the way back to its window and its place
+// among the items; the count of a window's items; and a line where it is shown in English, or where it answers
+// an address with nothing.
+function parts(view: WindowView, t: Dictionary, language: Language): Parts {
+  const { parent, counters, count } = view
+  const items = (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
+    '{count}',
+    String(count),
+  )
+  const toolbar = parent ? (
+    <Bar line="below">
+      <ButtonLink
+        href={parent.href}
+        hrefLang={parent.lang}
+        icon="arrow-left"
+        label={parent.title}
+        lang={parent.lang}
+        size="compact"
+      />
+      <BarSpace />
+      {counters && <BarText>{`${pad(counters.position)} / ${pad(counters.total)}`}</BarText>}
+    </Bar>
+  ) : (
+    count > 0 && (
+      <Bar line="below">
+        <BarText>{items}</BarText>
+      </Bar>
+    )
+  )
+  const says = view.lang ? t.inEnglish : view.asked ? t.notFound : null
+  const status = says && (
+    <Bar line="above" size="compact">
+      <BarText>{says}</BarText>
+    </Bar>
+  )
+
+  return { toolbar, status, body: <Body view={view} /> }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {
@@ -108,18 +166,22 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The first render takes its window from the view alone, so it matches the server's HTML at any address.
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
-  const top = front(desk)
+  const top = showing(desk)
   // On a phone the menus that are open are drawers in front of the windows.
   const [unfolded, setMenus] = useState(0)
 
-  // The address follows the window in front: picking one adds an entry, and when it leaves the next takes its place.
+  // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
+  // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     dispatch(action)
-    const next = front(manager(desk, action))
+    const after = manager(desk, action)
+    if (action.type === 'desk' || after === desk) return
+    const next = showing(after)
     const address = toAddress(language, next ?? '/')
     if (location.pathname === address) return
-    if ('path' in action && action.path === next) write('pushState', address)
-    else if (next !== top) write('replaceState', address)
+    if ('path' in action && action.path && windowOf(action.path) === windowOf(next ?? '/')) {
+      write('pushState', address)
+    } else if (next !== top) write('replaceState', address)
   }
 
   // A window opens at once and fills when its view arrives; without one, the address is the browser's to show.
@@ -128,7 +190,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     startTransition(() =>
       to({ type: 'open', path, opener, alone: document.documentElement.dataset.single === 'on' }),
     )
-    if (desk.z.includes(path)) return
+    if (desk.open.some((entry) => entry.view?.path === path)) return
 
     const opened = await fetchWindow(language, path)
     if (opened) dispatch({ type: 'fill', window: opened })
@@ -146,8 +208,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (theirs !== language || path === '/') return
 
     event.preventDefault()
-    // The address is written already, so the page the browser loads takes its place.
-    void open(act, path, anchor, () => location.replace(anchor.href))
+    // A link in the window it opens another path in did not open the window. The address is written already, so
+    // the page the browser loads takes its place.
+    const inside = anchor.closest('article')?.id === idOf(windowOf(path))
+    void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
 
   // Back and Forward bring the window of their address to the front, opening it again if it was closed since.
@@ -160,12 +224,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     return () => removeEventListener('popstate', arrive)
   }, [])
 
-  // The server knows the window of the address alone: the others come back from this tab's session.
+  // The server knows the window of the address alone: the others come back from this tab's session, and a tab
+  // that has not shown the desk yet opens the windows marked to open at start.
   useEffect(() => {
     // The router keeps its page in the entry a document loads in: emptied, that entry is the desk's as well.
     write('replaceState')
 
-    const paths = stored().filter((path) => path !== view.window?.path)
+    const saved = stored()
+    if (!saved) {
+      restored.current = true
+      const single = document.documentElement.dataset.single === 'on'
+      dispatch({ type: 'start', windows: single ? view.start.slice(0, 1) : view.start })
+      return
+    }
+    const here = view.window && windowOf(view.window.path)
+    const paths = saved.filter((path) => windowOf(path) !== here)
     void Promise.all(paths.map((path) => fetchWindow(language, path))).then((found) => {
       restored.current = true
       dispatch({ type: 'restore', windows: found.filter((opened) => opened !== null) })
@@ -173,8 +246,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }, [language, view])
 
   useEffect(() => {
-    if (restored.current) store(desk.z)
-  }, [desk.z])
+    if (restored.current)
+      store(desk.z.map((path) => desk.open.find((one) => one.path === path)!.at))
+  }, [desk])
 
   // The keys act from wherever the focus is; the switch on the root is read at each press. A key opens its window
   // as the menu's link to it does.
@@ -213,7 +287,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   return (
     <Screen fill onClick={follow}>
       <header data-surface="desktop">
-        {top && <Skip label={dictionary.skip} to={idOf(top)} />}
+        {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
         <MenuBar
           drawer={phone(desk)}
           label={dictionary.menuBar}
@@ -265,7 +339,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           over={phone(desk) ? unfolded : 0}
           t={dictionary}
         >
-          {(opened) => <Sections dictionary={dictionary} view={opened} />}
+          {(opened) => parts(opened, dictionary, language)}
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
           <Bar>

@@ -1,6 +1,7 @@
-import { notFound } from 'next/navigation'
+import { notFound, redirect } from 'next/navigation'
 
-import { getView } from '@/data/views'
+import { getMissingView, getView } from '@/data/views'
+import { hasLanguage, type Language, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
 import { Desk } from '@/shell/Desk'
 
@@ -9,10 +10,19 @@ export const dynamic = 'force-static'
 
 export { generateStaticParams } from '@/data/views'
 
+// The desk with the 404 window, whose bar shows the address asked for.
+async function missingAt(language: Language, asked: string) {
+  const missing = await getMissingView(language)
+  return { ...missing, window: missing.window && { ...missing.window, asked } }
+}
+
+// An address with nothing for this viewer shows the 404 window, and the proxy answers it with 404; a window that
+// moved redirects. Both are known before anything streams.
 export default async function Page({ params }: PageProps<'/[lang]/[[...path]]'>) {
   const { lang, path } = await params
-  const view = await getView(lang, path)
-  if (!view) notFound()
-
+  if (!hasLanguage(lang)) notFound()
+  const found = await getView(lang, path)
+  if (found && 'moved' in found) redirect(toAddress(lang, found.moved))
+  const view = found ?? (await missingAt(lang, `/${(path ?? []).join('/')}`))
   return <Desk dictionary={await getDictionary(view.language)} view={view} />
 }

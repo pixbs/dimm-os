@@ -181,22 +181,41 @@ export function Window(props: Props) {
 
   // It takes the focus at its heading, or itself until its view brings one, where it stands: a drawer on its way
   // up is still below the screen.
+  const view = waiting ? '' : (props.content ?? 'view')
   function enter() {
     const self = root.current!
-    const heading = self.querySelector<HTMLElement>('.window__body :is(h1, h2)')
+    const heading = self.querySelector<HTMLElement>(
+      `.window__view[data-view="${CSS.escape(view)}"] :is(h1, h2)`,
+    )
     if (heading) heading.tabIndex = -1
     ;(heading ?? self).focus({ preventScroll: true })
   }
-  useEffect(() => {
+  const takeFocus = useEffectEvent(() => {
     if (!props.takesFocus || (focused.current && document.activeElement !== root.current)) return
     focused.current = true
     enter()
-  }, [props.takesFocus, waiting])
-  // A drawer is modal: whenever it comes up in front, the focus moves in; one the page came with waits for it.
+  })
+  useEffect(() => takeFocus(), [props.takesFocus, waiting])
+  // A view that replaces another takes the focus the one before held, which leaves with it.
+  const replaced = useEffectEvent(() => {
+    const at = document.activeElement
+    if (at === document.body || root.current!.contains(at)) enter()
+  })
+  const viewed = useRef(view)
+  useEffect(() => {
+    if (viewed.current !== view && viewed.current) replaced()
+    viewed.current = view
+  }, [view])
+  // A drawer is modal: whenever it comes up in front, the focus moves in; one that opened without the visitor, as
+  // the page's own or one that opens at start, waits for them.
   const comeUp = useEffectEvent(() => {
     if (modal && front && !away && !root.current!.contains(document.activeElement)) enter()
   })
-  useEffect(() => comeUp(), [front, away])
+  const mounted = useRef(false)
+  useEffect(() => {
+    if (mounted.current) comeUp()
+    mounted.current = true
+  }, [front, away])
 
   // The server has no tokens to read, and what it painted stays as it is.
   const frames = useMemo(() => {
@@ -433,10 +452,11 @@ export function Window(props: Props) {
                   <m.div
                     animate="in"
                     className="window__view"
+                    data-view={view}
                     custom={props.travel}
                     exit="out"
                     initial="from"
-                    key={waiting ? '' : (props.content ?? 'view')}
+                    key={view}
                     variants={views}
                   >
                     {waiting ? (

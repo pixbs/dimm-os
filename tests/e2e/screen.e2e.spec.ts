@@ -1,6 +1,6 @@
 import { devices, type Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { emptyDesk, expect, test } from './test'
 
 const desk = { width: 1280, height: 720 }
 const phone = { width: 390, height: 844 }
@@ -172,9 +172,12 @@ test.describe('Screen', () => {
   }) => {
     await page.setViewportSize(desk)
     await page.goto('/work')
-    await page.getByRole('link', { name: 'Grow' }).click()
+    await page
+      .getByRole('navigation', { name: 'Apps' })
+      .getByRole('link', { name: 'Services' })
+      .click()
     const taskbar = page.locator('footer[data-for="desk"] button')
-    await expect(taskbar).toHaveText(['work', 'grow.case'])
+    await expect(taskbar).toHaveText(['work', 'services'])
     await expect(taskbar.nth(1)).toHaveAttribute('aria-current', 'true')
 
     await taskbar.nth(0).click()
@@ -183,7 +186,7 @@ test.describe('Screen', () => {
 
     await page.setViewportSize(phone)
     const dock = page.getByRole('navigation', { name: 'Windows' }).getByRole('button')
-    await expect(dock).toHaveText(['Work', 'Grow'])
+    await expect(dock).toHaveText(['Work', 'Services'])
     await expect(dock.nth(0)).toHaveAttribute('aria-current', 'true')
   })
 })
@@ -210,6 +213,7 @@ test.describe('Screen without script', () => {
 
 test.describe('Wallpaper', () => {
   test.beforeEach(async ({ page }) => {
+    await emptyDesk(page)
     await page.setViewportSize(desk)
     await page.emulateMedia({ reducedMotion: 'no-preference' })
   })
@@ -389,6 +393,7 @@ test.describe('Screen on a mid-range phone', () => {
       })
       observe('event', (entry) => seen.input.push(entry.duration))
     })
+    await emptyDesk(page)
     await open(page, '/', 4)
     await page.waitForTimeout(3000)
 

@@ -1,6 +1,6 @@
 import type { Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { emptyDesk, expect, test } from './test'
 
 const win = (page: Page, name: string) => page.locator(`article[aria-label="${name}"]`)
 const front = (page: Page) => page.locator('article[data-front]')
@@ -34,6 +34,7 @@ test.describe('Hotkeys on a desk', () => {
   ] as const) {
     test(`every key of the map acts, with ${mod} K for search`, async ({ page }) => {
       await device(page, platform)
+      await emptyDesk(page)
       await page.goto('/', { waitUntil: 'networkidle' })
 
       await page.keyboard.press('w')
@@ -44,6 +45,8 @@ test.describe('Hotkeys on a desk', () => {
       await expect(page).toHaveURL('/hotkeys')
       await page.keyboard.press(',')
       await expect(win(page, 'Preferences')).toHaveAttribute('data-front', '')
+      // Its view has arrived, which takes the focus, so the next key acts on a settled desk.
+      await expect(win(page, 'Preferences').getByRole('heading', { level: 1 })).toBeFocused()
 
       await page.keyboard.press('n')
       await expect(front(page)).toHaveCount(1)

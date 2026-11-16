@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { emptyDesk, expect, test } from './test'
 
 // A phone, as its own browser opens the page.
 test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
@@ -63,6 +63,7 @@ async function pull(page: Page, part: Locator, dy: number, steps: number, wait =
 
 test.describe('Drawer', () => {
   test.beforeEach(async ({ page }) => {
+    await emptyDesk(page)
     await page.goto('/', { waitUntil: 'networkidle' })
   })
 
@@ -85,9 +86,9 @@ test.describe('Drawer', () => {
     expect(rising.at(-1)!.top).toBeCloseTo(rest, 0)
 
     await watch(page, 'article .window__frame')
-    await work.getByRole('link', { name: 'Grow' }).click()
-    const grow = drawer(page, 'Grow')
-    await settled(grow)
+    await page.keyboard.press('s')
+    const services = drawer(page, 'Services')
+    await settled(services)
     await settled(work, 8)
     const frames = (await seen(page)).filter((parts) => parts.length === 2)
     // While the new one rises, the first comes 8 px in at each side and 8 px up, under the scrim.
@@ -208,7 +209,7 @@ test.describe('Drawer', () => {
   }) => {
     const app = page.getByRole('link', { name: 'Work' })
     await app.click()
-    const work = drawer(page, 'Work')
+    const work = page.locator('#window-work')
     await expect(work.getByRole('heading', { name: 'Work' })).toBeFocused()
     await expect(work.getByRole('dialog', { name: 'Work' })).toHaveAttribute('aria-modal', 'true')
     for (const behind of ['nav.apps', 'footer[data-for="phone"]']) {
@@ -224,20 +225,16 @@ test.describe('Drawer', () => {
       }
     }
 
-    // A drawer opened from it goes in front; Esc puts it away and the focus is on its link again.
-    const link = work.getByRole('link', { name: 'Grow' })
-    await link.press('Enter')
-    const grow = drawer(page, 'Grow')
-    await expect(grow.getByRole('heading', { name: 'Grow' })).toBeFocused()
-    await page.keyboard.press('Escape')
-    await expect(grow).toBeHidden()
-    await expect(link).toBeFocused()
-    await expect(page).toHaveURL('/work')
+    // An item opened from its list shows in the same drawer, which takes the focus at its heading.
+    await work.getByRole('link', { name: 'Grow' }).press('Enter')
+    await expect(work.getByRole('heading', { name: 'Grow' })).toBeFocused()
+    await expect(page).toHaveURL('/work/grow')
+    await expect(page.locator('article')).toHaveCount(1)
 
     await page.keyboard.press('Escape')
     await expect(work).toBeHidden()
     await expect(app).toBeFocused()
-    await expect(page.locator('main [inert], footer[inert]')).toHaveCount(2)
+    await expect(page.locator('main [inert], footer[inert]')).toHaveCount(1)
     await expect(page.locator('nav.apps')).not.toHaveAttribute('inert')
   })
 
@@ -245,8 +242,14 @@ test.describe('Drawer', () => {
     page,
   }) => {
     await page.getByRole('link', { name: 'Work' }).click()
-    for (const name of ['Work', 'Services', 'CV']) {
-      await drawer(page, name).getByRole('link', { name: 'Next' }).click()
+    // Each key opens its window as a drawer in front of the last, once that one has taken the focus.
+    for (const [name, key] of [
+      ['Work', 's'],
+      ['Services', 'c'],
+      ['CV', 'k'],
+    ]) {
+      await expect(drawer(page, name).getByRole('heading')).toBeFocused()
+      await page.keyboard.press(key)
     }
     const [work, services, cv, contact] = ['Work', 'Services', 'CV', 'Contact'].map((name) =>
       drawer(page, name),

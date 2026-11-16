@@ -7,6 +7,8 @@ type Props = {
   name: string
   icon: IconName
   href: string
+  // The language of its name, where it is not the page's.
+  lang?: string
   tile?: 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
   // Compact drops the name and lives in a bar.
   size?: 'compact'
@@ -18,7 +20,17 @@ type Props = {
 }
 
 // An icon on a tile with its name under it; the admin picks icon, name and tile.
-export function App({ name, icon, href, tile = 'raised', size, selected, open, state }: Props) {
+export function App({
+  name,
+  icon,
+  href,
+  lang,
+  tile = 'raised',
+  size,
+  selected,
+  open,
+  state,
+}: Props) {
   // A dot the server painted is there already; one that comes later pops.
   const painted = usePainted()
 
@@ -29,6 +41,7 @@ export function App({ name, icon, href, tile = 'raised', size, selected, open, s
       data-size={size}
       data-state={state}
       href={href}
+      lang={lang}
     >
       <span className="app__tile" data-surface={tile}>
         <Icon name={icon} size={size ? 's' : undefined} />

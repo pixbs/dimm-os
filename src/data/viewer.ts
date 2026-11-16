@@ -1,4 +1,4 @@
 import 'server-only'
 
-// Holding the cookie is enough for now: the visitor is a fixture until the login arrives.
+// Its holder is sent to the uncached pages; until the login arrives, holding it names no visitor.
 export const VISITOR_COOKIE = 'visitor'

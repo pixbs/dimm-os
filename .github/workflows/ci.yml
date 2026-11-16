@@ -95,6 +95,12 @@ jobs:
           pnpm test:unit
           pnpm test:int
 
+      # The build renders what the database holds, and the end-to-end tests read the neutral fixture.
+      - name: The neutral fixture fills a fresh database
+        run: |
+          pnpm payload migrate:fresh --force-accept-warning
+          pnpm fixture
+
       - name: Build
         run: pnpm build
 

@@ -1,12 +1,17 @@
 import type { WindowView } from '@/data/views'
 import type { Box, Edge } from '@/ds/organisms/Window'
+import { fromAddress } from '@/i18n/address'
 
 type Size = Pick<Box, 'w' | 'h'>
 
 type Entry = {
+  // The window, named by the first segment of the path it shows: an item shows in its parent's window.
   path: string
-  // Null while its view is on the way.
+  at: string
+  // Null while its view is on the way; until the next arrives, it keeps the one before.
   view: WindowView | null
+  // The way the visitor went when it came to show another path: what replaces its view comes from there.
+  travel?: 'forward' | 'back'
   // What opened it, where that is an element; a window the page came with has none.
   opener?: Element | null
   // Floating on the desk, taking the whole desk, or put away in the taskbar, and what it comes back as.
@@ -25,6 +30,8 @@ export type Windows = {
   desk: Size | null
   // The window whose edge is held, which shows its size.
   sizing: string | null
+  // The windows that open at start wait for the desk to be measured, since a phone opens only the first.
+  starting: WindowView[]
 }
 
 export type Action =
@@ -34,6 +41,8 @@ export type Action =
   | { type: 'fill'; window: WindowView }
   // Windows of an earlier load, back to front, go behind the ones already open.
   | { type: 'restore'; windows: WindowView[] }
+  // The windows marked to open at start, the first in front.
+  | { type: 'start'; windows: WindowView[] }
   | { type: 'focus' | 'close' | 'hold'; path: string }
   // A taskbar or dock button: the button is what opened its window when it brings it back.
   | { type: 'task'; path: string; opener?: Element | null }
@@ -110,8 +119,12 @@ function placed(state: Windows): Windows {
   return { ...state, open }
 }
 
+// The window of a path: its first segment.
+export const windowOf = (path: string) => `/${path.split('/')[1]}`
+
 const entry = (path: string, view: WindowView | null, opener?: Element | null): Entry => ({
-  path,
+  path: windowOf(path),
+  at: path,
   view,
   opener,
   mode: 'float',
@@ -122,17 +135,29 @@ const entry = (path: string, view: WindowView | null, opener?: Element | null): 
 
 export const start = (window: WindowView | null): Windows => ({
   open: window ? [entry(window.path, window)] : [],
-  z: window ? [window.path] : [],
+  z: window ? [windowOf(window.path)] : [],
   desk: null,
   sizing: null,
+  starting: [],
 })
 
-const find = (state: Windows, path?: string) => state.open.find((entry) => entry.path === path)
+const find = (state: Windows, path?: string) =>
+  state.open.find((entry) => path && entry.path === windowOf(path))
+
+// Back to the window from its item, or to the item before; anywhere else is forward.
+const travel = ({ at, view }: Entry, path: string): Entry['travel'] =>
+  at.startsWith(`${path}/`) ||
+  (view?.neighbours.previous && fromAddress(view.neighbours.previous.href).path === path)
+    ? 'back'
+    : 'forward'
 
 const onDesk = (state: Windows) => state.z.filter((path) => find(state, path)?.mode !== 'min')
 
 // The window in front is the last on the desk: one in the taskbar is behind them all.
 export const front = (state: Windows): string | undefined => onDesk(state).at(-1)
+
+// What the window in front shows, which the address follows.
+export const showing = (state: Windows): string | undefined => find(state, front(state))?.at
 
 // Until the desk is measured, and under 600 px, its windows have no place on it.
 export const compact = (state: Windows) => !state.desk || state.desk.w < COMPACT
@@ -178,12 +203,16 @@ export function manager(state: Windows, action: Action): Windows {
         const y = kept(was.y, was.h, before.h, desk.h - now.h)
         return { ...one, box: { ...one.box, x, y } }
       })
-      return placed({ ...state, open, desk })
+      const measured = placed({ ...state, open, desk })
+      return state.starting.length
+        ? manager(measured, { type: 'start', windows: state.starting })
+        : measured
     }
     case 'open': {
       const { path, opener = null, alone } = action
-      // An open window comes forward where it stands in the page, back from the taskbar as what it was,
-      // and what brought it is now its opener.
+      const window = windowOf(path)
+      // An open window comes forward where it stands in the page, back from the taskbar as what it was, and
+      // what brought it is now its opener; given another path of its own, it goes there.
       const open = target
         ? state.open.map((one) =>
             one === target
@@ -191,24 +220,45 @@ export function manager(state: Windows, action: Action): Windows {
                   ...one,
                   mode: one.mode === 'min' ? one.was : one.mode,
                   opener: opener ?? one.opener,
+                  ...(one.at === path ? {} : { at: path, travel: travel(one, path) }),
                 }
               : one,
           )
         : [...state.open, entry(path, null, opener)]
       return placed({
         ...state,
-        open: alone ? open.filter((one) => one.path === path) : open,
-        z: alone ? [path] : [...others(path), path],
+        open: alone ? open.filter((one) => one.path === window) : open,
+        z: alone ? [window] : [...others(window), window],
       })
     }
-    case 'fill':
-      return change(action.window.path, { view: action.window })
+    // A view that comes after its window went elsewhere is not shown.
+    case 'fill': {
+      const one = find(state, action.window.path)
+      return one?.at === action.window.path ? change(one.path, { view: action.window }) : state
+    }
     case 'restore': {
-      const added = action.windows.filter((window) => !find(state, window.path))
+      // One entry a window, though a tab may have kept two paths of it.
+      const added = action.windows.filter(
+        (window, at, all) =>
+          !find(state, window.path) &&
+          all.findIndex((one) => windowOf(one.path) === windowOf(window.path)) === at,
+      )
       return placed({
         ...state,
         open: [...state.open, ...added.map((window) => entry(window.path, window))],
-        z: [...added.map((window) => window.path), ...state.z],
+        z: [...added.map((window) => windowOf(window.path)), ...state.z],
+      })
+    }
+    case 'start': {
+      if (!state.desk) return { ...state, starting: action.windows }
+      const windows = (phone(state) ? action.windows.slice(0, 1) : action.windows).filter(
+        (window) => !find(state, window.path),
+      )
+      return placed({
+        ...state,
+        starting: [],
+        open: [...state.open, ...windows.map((window) => entry(window.path, window))],
+        z: [...state.z, ...windows.map((window) => windowOf(window.path)).reverse()],
       })
     }
     case 'focus':
@@ -223,8 +273,10 @@ export function manager(state: Windows, action: Action): Windows {
       }
     case 'minimise': {
       // With nothing in front, the window put away last comes back.
-      const last = state.z.find((path) => find(state, path)?.mode === 'min')
-      if (!target) return last ? manager(state, { type: 'open', path: last }) : state
+      const last = state.open.find(
+        (one) => one.path === state.z.find((path) => find(state, path)?.mode === 'min'),
+      )
+      if (!target) return last ? manager(state, { type: 'open', path: last.at }) : state
       if (target.mode === 'min') return state
       return change(target.path, { mode: 'min', was: target.mode }, [
         target.path,
@@ -241,7 +293,7 @@ export function manager(state: Windows, action: Action): Windows {
     case 'task':
       return front(state) === action.path
         ? manager(state, { type: 'minimise', path: action.path })
-        : manager(state, { type: 'open', path: action.path, opener: action.opener })
+        : manager(state, { type: 'open', path: target?.at ?? action.path, opener: action.opener })
     case 'next': {
       const top = front(state)
       return top && onDesk(state).length > 1 ? { ...state, z: [top, ...others(top)] } : state
