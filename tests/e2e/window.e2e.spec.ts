@@ -410,13 +410,13 @@ test.describe('Window, on the desk', () => {
     expect(await window(page).boundingBox()).toMatchObject({ width: 720, height: 480 })
     expect(await inside()).toBe(true)
 
+    // Its style narrows it at once and the manager moves it in after, so both are asked of the same moment.
+    const placed = async () => [(await window(page).boundingBox())!.width, await inside()]
     await page.setViewportSize({ width: 640, height: 400 })
-    await expect.poll(async () => (await window(page).boundingBox())!.width).toBe(640)
-    expect(await inside()).toBe(true)
+    await expect.poll(placed).toEqual([640, true])
 
     await page.setViewportSize(screen)
-    await expect.poll(async () => (await window(page).boundingBox())!.width).toBe(720)
-    expect(await inside()).toBe(true)
+    await expect.poll(placed).toEqual([720, true])
   })
 
   test('opens one window at a time when that is set: the one before closes, and nothing drags', async ({

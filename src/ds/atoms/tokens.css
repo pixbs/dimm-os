@@ -19,7 +19,7 @@
 
   /* type: two families, two weights, eight styles */
   --font-sans: var(--font-inter-tight), system-ui, sans-serif;
-  --font-mono: var(--font-jetbrains-mono), ui-monospace, monospace;
+  --font-mono: var(--font-jetbrains-mono-keys), var(--font-jetbrains-mono), ui-monospace, monospace;
   --w-regular: 400;
   --w-medium: 500;
   --lh-hero: 80px;
