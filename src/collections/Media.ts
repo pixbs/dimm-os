@@ -1,32 +1,40 @@
 import type { CollectionConfig } from 'payload'
 
-// Only the Next.js server holds views to make stale, and only it may load src/data.
-const revalidate = async () => {
-  if (!process.env.NEXT_RUNTIME) return
-  const { revalidateViews } = await import('../data/views')
-  revalidateViews()
-}
+import { signedIn } from '@/access'
+import { revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 
 export const Media: CollectionConfig = {
   slug: 'media',
   access: {
-    create: ({ req }) => Boolean(req.user),
+    create: signedIn,
     read: () => true,
-    update: ({ req }) => Boolean(req.user),
-    delete: ({ req }) => Boolean(req.user),
+    update: signedIn,
+    delete: signedIn,
   },
+  admin: { group: 'Content' },
+  authorship: false,
   fields: [
     {
       name: 'alt',
       type: 'text',
       required: true,
     },
+    {
+      name: 'live',
+      type: 'select',
+      label: 'Live picture',
+      options: [
+        { label: '404', value: 'not-found' },
+        { label: 'Postmark', value: 'postmark' },
+        { label: 'Portrait', value: 'portrait' },
+      ],
+      admin: { description: 'Drawn by the system over the file, which is its still.' },
+    },
   ],
   hooks: {
-    afterChange: [revalidate],
-    afterDelete: [revalidate],
+    afterChange: [revalidateChange],
+    afterDelete: [revalidateDelete],
   },
-  upload: true,
-  // Payload 4 versions a collection unless told not to, and the initial migration holds these tables.
-  versions: true,
+  upload: { focalPoint: true },
+  versions: false,
 }
