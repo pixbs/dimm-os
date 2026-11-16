@@ -2,6 +2,8 @@ import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
 import { beforeAll, describe, expect, it } from 'vitest'
 
+import type { User, Window } from '@/payload-types'
+
 let payload: Payload
 
 const slugs = [
@@ -14,14 +16,22 @@ const slugs = [
   'item',
   'other',
 ]
-const signedIn = { id: 0, collection: 'users', email: 'admin@example.com', role: 'admin' } as const
+const signedIn: User = {
+  id: 0,
+  collection: 'users',
+  email: 'admin@example.com',
+  role: 'admin',
+  createdAt: '',
+  updatedAt: '',
+}
 
-type Data = Parameters<Payload['create']>[0]['data']
+type Data = Partial<Window>
 
-const create = (data: Data, locale: 'en' | 'de' = 'en') =>
+const create = (data: Data & Pick<Window, 'title'>, locale: 'en' | 'de' = 'en') =>
   payload.create({
     collection: 'windows',
-    data: { _status: 'published', ...data },
+    // The slug fills itself, though the generated type asks for one.
+    data: { _status: 'published', ...data } as Window,
     depth: 0,
     draft: false,
     fallbackLocale: false,
@@ -61,7 +71,7 @@ describe('a window', () => {
   it('publishes German alone and finds English as it was', async () => {
     const english = {
       title: 'Bilingual',
-      actions: [{ type: 'address', url: '/en', label: 'Read' }],
+      actions: [{ type: 'address' as const, url: '/en', label: 'Read' }],
     }
     const { id } = await create(english)
     await payload.update({
