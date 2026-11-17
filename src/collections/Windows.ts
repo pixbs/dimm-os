@@ -10,6 +10,7 @@ import { relationship } from 'payload/shared'
 
 import { signedIn } from '@/access'
 import { Header } from '@/blocks/header/config'
+import { Media } from '@/blocks/media/config'
 import { Text } from '@/blocks/text/config'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
@@ -134,7 +135,7 @@ export const Windows: CollectionConfig = {
               type: 'blocks',
               localized: true,
               labels: { singular: 'Section', plural: 'Sections' },
-              blocks: [Header, Text],
+              blocks: [Header, Text, Media],
             },
           ],
         },

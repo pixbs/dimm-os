@@ -12,6 +12,10 @@ export type Source = {
   // How wide it stands at most in its window on a desk, in CSS pixels; in a drawer it spans the screen.
   span: number
   first?: boolean
+  // Where the box crops it, as an object position.
+  position?: string
+  // The upload of a live picture, which stands still until its visual draws over it.
+  still?: boolean
 }
 
 // The steps a picture resolves through, in pitches: from the coarsest to the dot.
@@ -59,7 +63,8 @@ function sample(img: HTMLImageElement, ink: string, step: number): Dots {
   return { step, cols, rows, cover }
 }
 
-export function Picture({ src, alt, span, first, live }: Source & { live?: ReactNode }) {
+export function Picture(props: Source & { live?: ReactNode }) {
+  const { src, alt, span, first, position, still: standing, live } = props
   const host = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
   const server = useRef(painted)
@@ -137,11 +142,12 @@ export function Picture({ src, alt, span, first, live }: Source & { live?: React
         loading={first ? 'eager' : undefined}
         sizes={`(max-width: 599px) 100vw, ${span}px`}
         src={src}
+        style={position ? { objectPosition: position } : undefined}
       />
       {running ? (
         <span className="media__live">{live}</span>
       ) : (
-        !first && !live && <canvas aria-hidden className="media__dots" />
+        !first && !live && !standing && <canvas aria-hidden className="media__dots" />
       )}
     </span>
   )

@@ -10,6 +10,21 @@ const tracks = (columns: string) =>
     .map((column) => (column.endsWith('fr') ? `minmax(0, ${column})` : u(Number(column))))
     .join(' ')
 
+// A window body at each of the three widths a section or an organism knows.
+const windows = [u(47), u(90), u(130)]
+
+export function Widths({ caps, children }: { caps: string[]; children: ReactNode }) {
+  return (
+    <Specs caps={caps}>
+      {windows.map((width) => (
+        <div className="cq box" data-surface="window" key={width} style={{ width }}>
+          {children}
+        </div>
+      ))}
+    </Specs>
+  )
+}
+
 export function Doc({ text, children }: { text: string[]; children: ReactNode }) {
   return (
     <>
@@ -88,7 +103,7 @@ export function Grid(props: { columns: number; gap?: string; children: ReactNode
   const style = { gridTemplateColumns: `repeat(${props.columns}, minmax(0, 1fr))`, gap: props.gap }
 
   return (
-    <div className="grid" style={style}>
+    <div className="cells" style={style}>
       {props.children}
     </div>
   )

@@ -898,7 +898,7 @@ const en = {
   },
   sections: {
     doc: [
-      'Templates / Sections: page, text',
+      'Templates / Sections: page, text, media',
       'A template is a section: one organism in a shared frame, placed in the body of a window by the admin. A window is any number of them in any order. Every section is shown here in a compact, a regular and a wide window, which is all it needs to know about where it is.',
     ],
     frame: [
@@ -916,6 +916,11 @@ const en = {
       'heading: title · text | layout: stack · split | join: continues the section above | body: rich text',
       'Whatever the editor produces: a paragraph kept to the measure of prose, headings and lists to the wider one.',
     ],
+    media: [
+      'Media',
+      'heading: title · text | items: 1 or more | columns: 1 · 2 · 3 | ratio: 16:9 · 4:3 · 1:1 | width: inset · edge to edge',
+      'One picture, or a gallery of them. A caption belongs to this use of the picture, not to its file. Edge to edge, the pictures run to the edges of the window; the heading and the captions keep the inset.',
+    ],
     widths: ['compact · 376', 'regular · 720', 'wide · 1040'],
     caps: [
       'surface: paper, orange',
@@ -924,6 +929,7 @@ const en = {
       'level: heading, on orange',
       'split',
       'stack, no heading',
+      'one, edge to edge · three in a gallery',
     ],
     title: 'Heading of the section',
     sentence: 'Text that says in a sentence or two what this is about.',
@@ -943,6 +949,23 @@ const en = {
     wraps:
       'A paragraph of running text. It says what there is to say in full sentences and wraps at the measure, wherever the window ends.',
     holds: ['A second paragraph. It can hold', 'strong words', 'and a', 'link'],
+    caption: 'Caption.',
+  },
+  lists: {
+    doc: [
+      'Organisms / Content: media',
+      'What goes inside a window. Each one is a way to arrange molecules, and each answers to the width of the window it is in. None of them is named after what it will hold.',
+    ],
+    gallery: [
+      'Gallery',
+      'columns: 1 · 2 · 3 | ratio: one per gallery',
+      'Media in a grid, each with its caption. Where three become two, the third starts the next row. A picture is asked for at the width its column takes; the first on screen is neither lazy nor animated, the others resolve in dots.',
+    ],
+    caps: [
+      'three across in a wide window, two in a regular one, one in a compact one',
+      'columns: 2',
+    ],
+    caption: 'Caption.',
   },
   records: {
     doc: [

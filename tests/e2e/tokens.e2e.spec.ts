@@ -12,6 +12,7 @@ const pages = [
   '/inputs',
   '/content',
   '/shell',
+  '/lists',
   '/records',
   '/sections',
 ]

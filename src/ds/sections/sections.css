@@ -10,6 +10,15 @@
 .section__head {
   min-width: 0;
 }
+/* Edge to edge: the body runs to the window's edges, while the heading and the captions keep the inset. */
+.section[data-bleed] {
+  padding-inline: 0;
+
+  & > .section__head,
+  & .media__caption {
+    padding-inline: var(--inset);
+  }
+}
 /* What a section holds stacks 24 apart. */
 .section__body {
   display: flex;

@@ -1,11 +1,16 @@
+import path from 'path'
 import type { Payload } from 'payload'
+import { fileURLToPath } from 'url'
 
-import type { Window } from '@/payload-types'
+import type { Media, Window } from '@/payload-types'
 
 // Words in English and, where it is written, in German.
 type Words = { en: string; de?: string }
 
 type Sections = NonNullable<Window['sections']>
+
+// A picture, and the same file as a live picture, whose upload is its still.
+type Pictures = { still: number; live: number }
 
 type Fixture = Partial<
   Pick<Window, 'kind' | 'hidden' | 'tile' | 'icon' | 'key' | 'oneSize' | 'openAtStart'>
@@ -14,8 +19,8 @@ type Fixture = Partial<
   parent?: string
   title: Words
   description: Words
-  // Made once every window has its id, so a section can link to any of them.
-  sections?: (ids: Record<string, number>) => { en: Sections; de?: Sections }
+  // Made once every window has its id, so a section can link to any of them, and once the pictures are there.
+  sections?: (ids: Record<string, number>, pictures: Pictures) => { en: Sections; de?: Sections }
 }
 
 // Running text as the editor stores it, from paragraphs, third-level headings and lists of plain words.
@@ -56,21 +61,31 @@ const rich = (...parts: Part[]) => ({
   },
 })
 
-// A window told at length: a Header with a lead, text beside its headings, a part that joins the section above,
-// running text without a heading, and a closing call on an accent to another window.
+// A picture with the same caption in every place, one or more times.
+const pictures = (picture: number, caption: string, count = 1) =>
+  Array.from({ length: count }, () => ({ picture, caption }))
+
+// A window told at length: a Header with a lead, an inset picture, text beside its headings, a part that joins the
+// section above, a gallery of three, running text without a heading, a picture edge to edge, and a closing call on an
+// accent to another window.
 const told = (
   to: number,
+  picture: number,
   t: {
     title: string
     lead: string
+    figure: string
     question: string[]
     changed: [string, string, string]
     joined: string
+    three: string
+    caption: string
     closing: string[]
     call: string
   },
 ): Sections => [
   { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
+  { blockType: 'media', ratio: '16:9', items: pictures(picture, t.figure) },
   { blockType: 'text', title: t.question[0], split: true, body: rich(...t.question.slice(1)) },
   {
     blockType: 'text',
@@ -79,7 +94,15 @@ const told = (
     body: rich({ h3: t.changed[1] }, t.changed[2]),
   },
   { blockType: 'text', join: true, body: rich(t.joined) },
+  {
+    blockType: 'media',
+    title: t.three,
+    columns: '3',
+    ratio: '4:3',
+    items: pictures(picture, t.caption, 3),
+  },
   { blockType: 'text', body: rich(...t.closing) },
+  { blockType: 'media', ratio: '16:9', bleed: true, items: pictures(picture, '') },
   {
     blockType: 'header',
     level: 'heading',
@@ -122,10 +145,11 @@ const windows: Fixture[] = [
       en: 'A fixture item that every guest may open.',
       de: 'Ein Beispieleintrag, den jeder Gast öffnen darf.',
     },
-    sections: (ids) => ({
-      en: told(ids.contact, {
+    sections: (ids, { still }) => ({
+      en: told(ids.contact, still, {
         title: 'Grow',
         lead: 'A fixture item that every guest may open. Its lead paragraph says in a sentence or two what the window holds.',
+        figure: 'A picture inset in the window, with its caption.',
         question: [
           'The question',
           'A paragraph of running text. It says what there is to say in full sentences and wraps at the measure of prose.',
@@ -137,12 +161,15 @@ const windows: Fixture[] = [
           'A paragraph under a heading of its own. It runs over several lines in a narrow window and keeps to the measure in a wide one, wherever the window ends.',
         ],
         joined: 'A part that joins the section above and stands under its heading.',
+        three: 'Three in a row',
+        caption: 'A caption.',
         closing: ['Running text without a heading of its own.', 'A second paragraph after it.'],
         call: 'A closing line that asks for one thing',
       }),
-      de: told(ids.contact, {
+      de: told(ids.contact, still, {
         title: 'Grow',
         lead: 'Ein Beispieleintrag, den jeder Gast öffnen darf. Sein Vorspann sagt in ein, zwei Sätzen, was das Fenster enthält.',
+        figure: 'Ein Bild mit Abstand zum Fensterrand, mit seiner Bildunterschrift.',
         question: [
           'Die Frage',
           'Ein Absatz Fließtext. Er sagt in ganzen Sätzen, was zu sagen ist, und bricht am Maß des Fließtexts um.',
@@ -155,6 +182,8 @@ const windows: Fixture[] = [
         ],
         joined:
           'Ein Teil, der an den Abschnitt darüber anschließt und unter dessen Überschrift steht.',
+        three: 'Drei in einer Reihe',
+        caption: 'Eine Bildunterschrift.',
         closing: ['Fließtext ohne eigene Überschrift.', 'Ein zweiter Absatz danach.'],
         call: 'Eine Schlusszeile, die um eine Sache bittet',
       }),
@@ -166,6 +195,20 @@ const windows: Fixture[] = [
     kind: 'case',
     title: { en: 'Field', de: 'Feld' },
     description: { en: 'A second fixture item.', de: 'Ein zweiter Beispieleintrag.' },
+    sections: (_, { still, live }) => ({
+      en: [
+        {
+          blockType: 'media',
+          title: 'Two in a row',
+          columns: '2',
+          ratio: '1:1',
+          items: [
+            { picture: still, caption: 'A caption.' },
+            { picture: live, caption: 'A live picture, still until script runs.' },
+          ],
+        },
+      ],
+    }),
   },
   {
     slug: 'loop',
@@ -298,6 +341,33 @@ const windows: Fixture[] = [
 
 const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
 
+// The neutral picture of the catalogue, uploaded once under each of its names.
+export const file = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  '../../src/ds/catalogue/picture.jpg',
+)
+
+async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Promise<number> {
+  const {
+    docs: [found],
+  } = await payload.find({
+    collection: 'media',
+    limit: 1,
+    where: { alt: { equals: data.alt } },
+    locale: 'en',
+    ...trusted,
+  })
+  if (found) return found.id
+  const { id } = await payload.create({
+    collection: 'media',
+    data,
+    filePath: file,
+    locale: 'en',
+    ...trusted,
+  })
+  return id
+}
+
 // Makes the fixture's windows, or brings them back to it, each published in the languages it is written in.
 export async function fill(payload: Payload): Promise<Record<string, number>> {
   const ids: Record<string, number> = {}
@@ -340,8 +410,12 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
       })
     ids[slug] = id
   }
+  const shown = {
+    still: await upload(payload, { alt: 'A sun setting over two hills' }),
+    live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
+  }
   for (const { slug, sections } of windows) {
-    const { en, de } = sections?.(ids) ?? {}
+    const { en, de } = sections?.(ids, shown) ?? {}
     for (const [locale, made] of [
       ['en', en],
       ['de', de],

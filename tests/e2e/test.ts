@@ -1,7 +1,21 @@
 import { expect, type Page, test as base } from '@playwright/test'
 
+import { file } from '../fixtures/neutral'
+
 // Every test fails when its page throws or logs an error.
-export const test = base.extend<{ pageErrors: void }>({
+export const test = base.extend<{ pageErrors: void; uploads: void }>({
+  // Without the store an upload is a file only signed-in users may read, so a picture is served from its local file.
+  uploads: [
+    async ({ page }, use) => {
+      await page.route('**/_next/image?**', (route) =>
+        new URL(route.request().url()).searchParams.get('url')?.startsWith('/api/media/file/')
+          ? route.fulfill({ path: file, contentType: 'image/jpeg' })
+          : route.fallback(),
+      )
+      await use()
+    },
+    { auto: true },
+  ],
   pageErrors: [
     async ({ page }, use) => {
       const errors: string[] = []

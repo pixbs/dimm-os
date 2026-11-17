@@ -9,6 +9,7 @@ import { Content } from './Content'
 import { Icons } from './Icons'
 import { Index } from './Index'
 import { Inputs } from './Inputs'
+import { Lists } from './Lists'
 import { Motion } from './Motion'
 import { Records } from './Records'
 import { Rows } from './Rows'
@@ -35,6 +36,7 @@ export const pages = [
   'inputs',
   'content',
   'shell',
+  'lists',
   'records',
   'sections',
 ] as const
@@ -86,6 +88,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'shell' && (
         <Shell language={language} t={t.shell} words={await getDictionary(language)} />
       )}
+      {name === 'lists' && <Lists t={t.lists} widths={t.sections.widths} />}
       {name === 'records' && <Records t={t.records} />}
       {name === 'sections' && <Sections t={t.sections} />}
     </main>

@@ -72,7 +72,7 @@ const pad = (number: number) => String(number).padStart(2, '0')
 
 // A window's sections in the language they are in, its title until it has any, the list of its items, and as an
 // item the way to its neighbours, which ends its body.
-function Body({ view }: { view: WindowView }) {
+function Body({ view, width }: { view: WindowView; width: number }) {
   const { parent, neighbours, sections } = view
   const before = neighbours.previous ?? parent
   const placed = sections.filter((section) => section.type !== 'list')
@@ -82,7 +82,7 @@ function Body({ view }: { view: WindowView }) {
       <div lang={view.lang}>
         {/* A window that does not open with a Header still holds its title once. */}
         {placed[0]?.type !== 'header' && <Header level="title" page title={view.frame.title} />}
-        {placed.length > 0 && <Sections sections={placed} />}
+        {placed.length > 0 && <Sections sections={placed} width={width} />}
         {items.length > 0 && (
           <Section>
             <ul>
@@ -132,7 +132,7 @@ function Body({ view }: { view: WindowView }) {
 // The parts of a window its view derives: an item's path line, with the way back to its window and its place
 // among the items; the count of a window's items; and a line where it is shown in English, or where it answers
 // an address with nothing.
-function parts(view: WindowView, t: Dictionary, language: Language): Parts {
+function parts(view: WindowView, t: Dictionary, language: Language, width: number): Parts {
   const { parent, counters, count } = view
   const items = (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
     '{count}',
@@ -165,7 +165,7 @@ function parts(view: WindowView, t: Dictionary, language: Language): Parts {
     </Bar>
   )
 
-  return { toolbar, status, body: <Body view={view} /> }
+  return { toolbar, status, body: <Body view={view} width={width} /> }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {
@@ -346,7 +346,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           over={phone(desk) ? unfolded : 0}
           t={dictionary}
         >
-          {(opened) => parts(opened, dictionary, language)}
+          {(opened, width) => parts(opened, dictionary, language, width)}
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
           <Bar>

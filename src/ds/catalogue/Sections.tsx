@@ -1,29 +1,13 @@
-import type { ReactNode } from 'react'
-
 import { Tag } from '../molecules/Tag'
 import { Prose } from '../organisms/Prose'
 import { Header } from '../sections/Header'
+import { Media } from '../sections/Media'
 import { Section } from '../sections/Section'
 import { Text } from '../sections/Text'
 import type { Copy } from './copy/en'
-import { Doc, Entry, Specs, u } from './parts'
+import { Doc, Entry, Specs, Widths } from './parts'
 
 type Props = { t: Copy['sections'] }
-
-// A window body at each of the three widths a section knows.
-const windows = [u(47), u(90), u(130)]
-
-function Widths({ caps, children }: { caps: string[]; children: ReactNode }) {
-  return (
-    <Specs caps={caps}>
-      {windows.map((width) => (
-        <div className="cq box" data-surface="window" key={width} style={{ width }}>
-          {children}
-        </div>
-      ))}
-    </Specs>
-  )
-}
 
 export function Sections({ t }: Props) {
   const body = (size?: 'line') => (
@@ -38,7 +22,8 @@ export function Sections({ t }: Props) {
   const second = (words: string[]) =>
     `<p>${words[0]} <strong>${words[1]}</strong> ${words[2]} <a class="link" href="#">${words[3]}</a>.</p>`
   const split = `<p>${t.paragraph}</p><h3>${t.three}</h3>${second(t.second)}<ul>${t.items.map((item) => `<li>${item}</li>`).join('')}</ul>`
-  const [surfaces, joined, display, closing, splits, stacked] = t.caps
+  const [surfaces, joined, display, closing, splits, stacked, pictures] = t.caps
+  const empty = (ratio: string, caption?: string) => ({ label: <Tag>{ratio}</Tag>, caption })
 
   return (
     <Doc text={t.doc}>
@@ -96,6 +81,19 @@ export function Sections({ t }: Props) {
         <Specs caps={[stacked]}>
           <Widths caps={t.widths}>
             <Text html={`<p>${t.wraps}</p>${second(t.holds)}`} />
+          </Widths>
+        </Specs>
+      </Entry>
+      <Entry text={t.media}>
+        <Specs caps={[pictures]}>
+          <Widths caps={t.widths}>
+            <Media bleed columns={1} items={[empty('16:9')]} ratio="16:9" />
+            <Media
+              columns={3}
+              items={[1, 2, 3].map(() => empty('4:3', t.caption))}
+              ratio="4:3"
+              title={t.title}
+            />
           </Widths>
         </Specs>
       </Entry>

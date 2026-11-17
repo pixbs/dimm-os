@@ -6,6 +6,9 @@ import { fileURLToPath } from 'url'
 const __filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(__filename)
 
+// The site's own Blob store, named in its token as Payload's storage reads it, so no other store's files are resized.
+const store = process.env.BLOB_READ_WRITE_TOKEN?.match(/^vercel_blob_rw_([a-z\d]+)_[a-z\d]+$/i)?.[1]
+
 const nextConfig: NextConfig = {
   // AGENTS.md points at the docs Next.js ships instead of carrying a copy of its notes.
   agentRules: false,
@@ -19,6 +22,10 @@ const nextConfig: NextConfig = {
         pathname: '/api/media/file/**',
       },
     ],
+    // In the cloud a picture is a public file of the Blob store, which its address names.
+    remotePatterns: store
+      ? [{ protocol: 'https', hostname: `${store.toLowerCase()}.public.blob.vercel-storage.com` }]
+      : [],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {

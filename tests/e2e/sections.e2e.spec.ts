@@ -26,7 +26,12 @@ test.describe('Sections', () => {
     await grow(page).getByRole('button', { name: 'Full screen' }).click()
     await expect(grow(page).locator('.window__body')).toHaveJSProperty('clientWidth', 1440)
     await expect.poll(async () => (await box(body)).x).toBeGreaterThan((await box(head)).x)
-    ;[above, beside] = [await box(head), await box(body)]
+    // Read in one frame: what stands above may still be growing with the window.
+    ;[above, beside] = await question.evaluate((section) =>
+      ['.section__head', '.section__body'].map((part) =>
+        section.querySelector(part)!.getBoundingClientRect().toJSON(),
+      ),
+    )
     expect(beside.x).toBeGreaterThanOrEqual(above.x + above.width)
     expect(Math.abs(beside.y - above.y)).toBeLessThan(8)
 

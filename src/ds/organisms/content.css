@@ -113,3 +113,20 @@
   flex-wrap: wrap;
   gap: var(--s-2);
 }
+
+/* Grid: one, two or three columns, decided by the width of the window. */
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--gutter);
+}
+@container (min-width: 600px) {
+  .grid:is([data-columns='2'], [data-columns='3']) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@container (min-width: 960px) {
+  .grid[data-columns='3'] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
