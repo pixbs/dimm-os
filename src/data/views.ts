@@ -17,8 +17,12 @@ import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import { sanitizeUrl } from 'payload/shared'
 
+import { facts, type FactsView } from '@/blocks/facts/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
 import { media, type MediaView } from '@/blocks/media/view'
+import { quote, type QuoteView } from '@/blocks/quote/view'
+import { stats, type StatsView } from '@/blocks/stats/view'
+import { table, type TableView } from '@/blocks/table/view'
 import { text, type TextView } from '@/blocks/text/view'
 import { icons } from '@/ds/atoms/icons'
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
@@ -34,7 +38,18 @@ import { VISITOR_COOKIE } from './viewer'
 type Link = { href: string; title: string; lang?: Language }
 
 // The sections the admin placed, and the list of its items a window shows until the List section arrives.
-type Section = HeaderView | TextView | MediaView | { type: 'list'; items: Link[] }
+type Section =
+  | HeaderView
+  | TextView
+  | MediaView
+  | StatsView
+  | QuoteView
+  | FactsView
+  | TableView
+  | { type: 'list'; items: Link[] }
+
+// The sections whose body a joined section can continue under their heading.
+const joinable = new Set(['text', 'stats', 'facts', 'table'])
 
 export type WindowView = {
   path: string
@@ -248,19 +263,31 @@ async function views(language: Language, viewer: Viewer) {
       disableIndent: true,
       disableTextAlign: true,
     })
-  // A joined section continues a section with a body: a Header has none to share.
+  const sectionOf = (block: NonNullable<Doc['sections']>[number]) => {
+    switch (block.blockType) {
+      case 'header':
+        return header(block, action)
+      case 'text':
+        return text(block, html)
+      case 'media':
+        return media(block)
+      case 'stats':
+        return stats(block)
+      case 'quote':
+        return quote(block)
+      case 'facts':
+        return facts(block)
+      case 'table':
+        return table(block)
+    }
+  }
+  // A joined section continues a section with a heading and a body: a Header, a picture and a quotation share none.
   const sectionsOf = (doc: Doc): Section[] =>
     (doc.sections ?? [])
-      .map((block) =>
-        block.blockType === 'header'
-          ? header(block, action)
-          : block.blockType === 'text'
-            ? text(block, html)
-            : media(block),
-      )
+      .map(sectionOf)
       // A Media section with no picture left still stands between two texts, so it is dropped after the join is read.
       .map((section, at, all) =>
-        section?.type === 'text' && section.join && all[at - 1]?.type !== 'text'
+        section && 'join' in section && section.join && !joinable.has(all[at - 1]?.type ?? '')
           ? { ...section, join: false }
           : section,
       )

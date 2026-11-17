@@ -130,3 +130,111 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* List: rows under one another; they run past the text on both sides, so the hover fill has room and the text stays
+   on the keyline. */
+.list {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--s-4) * -1);
+}
+
+/* Stats: the stat molecules on a hairline each. */
+.stats > .stat {
+  padding-top: var(--s-4);
+  border-top: var(--b-1) solid var(--line);
+}
+
+/* Quote: words that are not the author's, in Heading, with who said them. */
+.quote {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+  max-width: var(--measure-wide);
+  margin: 0;
+}
+.quote__text {
+  margin: 0;
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+  text-wrap: pretty;
+}
+.quote__by {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+}
+.quote__name,
+.quote__role {
+  display: block;
+}
+.quote__role {
+  color: var(--muted);
+}
+
+/* Table: at most three columns. In a compact window a row folds: its first cell is the title, and each other cell is
+   its column's label beside its value, the label a third of the row as in a set of facts. */
+.table {
+  display: flex;
+  flex-direction: column;
+  margin: 0 calc(var(--s-4) * -1);
+}
+.table__row {
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--s-1);
+}
+.table__cell {
+  display: flex;
+  gap: var(--s-4);
+  min-width: 0;
+  overflow-wrap: break-word;
+
+  &::before {
+    content: attr(data-label);
+    flex: 0 0 calc(100% / 3 - var(--s-4) * 2 / 3);
+    color: var(--muted);
+  }
+  &:first-child {
+    font-weight: var(--w-medium);
+
+    &::before {
+      content: none;
+    }
+  }
+  /* Folded, a cell left empty says nothing. */
+  &:empty {
+    display: none;
+  }
+}
+.table__head {
+  display: none;
+}
+@container (min-width: 600px) {
+  .table__row {
+    flex-direction: row;
+    gap: var(--gutter);
+  }
+  .table__cell {
+    flex: 1 1 0;
+    display: block;
+
+    &:first-child {
+      flex-grow: 2;
+      font-weight: var(--w-regular);
+    }
+    &::before {
+      content: none;
+    }
+    &:empty {
+      display: block;
+    }
+  }
+  /* The column labels are the size of the cells, muted, over a stronger line. */
+  .table__head {
+    --row-line: var(--faint);
+
+    display: flex;
+    color: var(--muted);
+  }
+}

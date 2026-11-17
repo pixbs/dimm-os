@@ -9,8 +9,12 @@ import {
 import { relationship } from 'payload/shared'
 
 import { signedIn } from '@/access'
+import { Facts } from '@/blocks/facts/config'
 import { Header } from '@/blocks/header/config'
 import { Media } from '@/blocks/media/config'
+import { Quote } from '@/blocks/quote/config'
+import { Stats } from '@/blocks/stats/config'
+import { Table } from '@/blocks/table/config'
 import { Text } from '@/blocks/text/config'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
@@ -135,7 +139,7 @@ export const Windows: CollectionConfig = {
               type: 'blocks',
               localized: true,
               labels: { singular: 'Section', plural: 'Sections' },
-              blocks: [Header, Text, Media],
+              blocks: [Header, Text, Media, Stats, Quote, Facts, Table],
             },
           ],
         },

@@ -244,7 +244,7 @@ export interface Window {
   id: number;
   _order?: string | null;
   title: string;
-  sections?: (HeaderBlock | TextBlock | MediaBlock)[] | null;
+  sections?: (HeaderBlock | TextBlock | MediaBlock | StatsBlock | QuoteBlock | FactsBlock | TableBlock)[] | null;
   /**
    * Drawn as a paper record.
    */
@@ -530,6 +530,96 @@ export interface MediaBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StatsBlock".
+ */
+export interface StatsBlock {
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  items: {
+    value: string;
+    label: string;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'stats';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "QuoteBlock".
+ */
+export interface QuoteBlock {
+  surface: 'window' | 'paper' | 'orange' | 'blue' | 'mint';
+  text: string;
+  name: string;
+  role?: string | null;
+  avatar?: (number | null) | Media;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'quote';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FactsBlock".
+ */
+export interface FactsBlock {
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  items: {
+    label: string;
+    value: string;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'facts';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TableBlock".
+ */
+export interface TableBlock {
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  columns: {
+    label: string;
+    id?: string | null;
+  }[];
+  rows: {
+    first: string;
+    second?: string | null;
+    third?: string | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'table';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -711,6 +801,10 @@ export interface WindowsSelect<T extends boolean = true> {
         header?: T | HeaderBlockSelect<T>;
         text?: T | TextBlockSelect<T>;
         media?: T | MediaBlockSelect<T>;
+        stats?: T | StatsBlockSelect<T>;
+        quote?: T | QuoteBlockSelect<T>;
+        facts?: T | FactsBlockSelect<T>;
+        table?: T | TableBlockSelect<T>;
       };
   paper?: T;
   stamp?: T;
@@ -828,6 +922,85 @@ export interface MediaBlockSelect<T extends boolean = true> {
   columns?: T;
   ratio?: T;
   bleed?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "StatsBlock_select".
+ */
+export interface StatsBlockSelect<T extends boolean = true> {
+  join?: T;
+  title?: T;
+  text?: T;
+  split?: T;
+  surface?: T;
+  items?:
+    | T
+    | {
+        value?: T;
+        label?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "QuoteBlock_select".
+ */
+export interface QuoteBlockSelect<T extends boolean = true> {
+  surface?: T;
+  text?: T;
+  name?: T;
+  role?: T;
+  avatar?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FactsBlock_select".
+ */
+export interface FactsBlockSelect<T extends boolean = true> {
+  join?: T;
+  title?: T;
+  text?: T;
+  split?: T;
+  surface?: T;
+  items?:
+    | T
+    | {
+        label?: T;
+        value?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "TableBlock_select".
+ */
+export interface TableBlockSelect<T extends boolean = true> {
+  join?: T;
+  title?: T;
+  text?: T;
+  surface?: T;
+  columns?:
+    | T
+    | {
+        label?: T;
+        id?: T;
+      };
+  rows?:
+    | T
+    | {
+        first?: T;
+        second?: T;
+        third?: T;
+        id?: T;
+      };
   id?: T;
   blockName?: T;
 }
