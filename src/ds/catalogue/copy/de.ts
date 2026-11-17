@@ -949,6 +949,16 @@ const de: Copy = {
       'Überschrift: Titel · Text | Elemente: 1 oder mehr | Spalten: 1 · 2 · 3 | Format: 16:9 · 4:3 · 1:1 | Breite: eingerückt · randlos',
       'Ein Bild oder eine Galerie davon. Eine Bildunterschrift gehört zu dieser Verwendung des Bildes, nicht zu seiner Datei. Randlos reichen die Bilder bis an die Ränder des Fensters; Überschrift und Bildunterschriften halten den Einzug.',
     ],
+    stats: [
+      'Kennzahlen',
+      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Elemente: 1 bis 3 nebeneinander',
+      'Zahlen und was sie zählen. Geteilt nimmt die Überschrift eine von drei Spalten, deshalb stehen drei Zahlen zu zweit nebeneinander.',
+    ],
+    quote: [
+      'Zitat',
+      'Fläche: window · paper · orange · blue · mint | Teile: Text · Name · Rolle · Avatar',
+      'Ein Zitat und wer es gesagt hat. Es hat keine Überschrift, aber eine eigene Fläche.',
+    ],
     widths: ['kompakt · 376', 'regulär · 720', 'breit · 1040'],
     caps: [
       'Fläche: paper, orange',
@@ -958,6 +968,10 @@ const de: Copy = {
       'geteilt',
       'gestapelt, ohne Überschrift',
       'eines, randlos · drei in einer Galerie',
+      'gestapelt',
+      'geteilt',
+      'Fläche: paper',
+      'Fläche: window',
     ],
     title: 'Überschrift des Abschnitts',
     sentence: 'Text, der in ein, zwei Sätzen sagt, worum es geht.',
@@ -978,10 +992,43 @@ const de: Copy = {
       'Ein Absatz Fließtext. Er sagt in ganzen Sätzen, was zu sagen ist, und bricht am Maß um, wo das Fenster auch endet.',
     holds: ['Ein zweiter Absatz. Er kann', 'kräftige Wörter', 'und einen', 'Link'],
     caption: 'Bildunterschrift.',
+    figures: [
+      { value: '12', label: 'gezählte Dinge' },
+      { value: '48 %', label: 'von etwas' },
+      { value: '3×', label: 'so viele' },
+    ],
+    quotation:
+      'Ein Satz, den jemand anderes gesagt hat, vollständig zitiert und groß genug gesetzt, um zuerst gelesen zu werden.',
+    name: 'Name',
+    role: 'Rolle, Organisation',
+  },
+  collections: {
+    doc: [
+      'Vorlagen / Abschnitte: Sammlungen',
+      'Die Abschnitte, die Dinge auflisten, jeder ein Organismus im gemeinsamen Rahmen. Jeder Abschnitt steht in einem kompakten, einem regulären und einem breiten Fenster.',
+    ],
+    facts: [
+      'Fakten',
+      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Elemente: Beschriftung · Wert',
+      'Paare aus Beschriftung und Wert. Die Beschriftung nimmt ein Drittel der Zeile.',
+    ],
+    table: [
+      'Tabelle',
+      'Überschrift: Titel · Text | Anordnung: gestapelt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Spalten: 2 · 3',
+      'Zeilen mit Spalten, höchstens drei, deshalb kann sie nicht geteilt stehen. Spaltenbeschriftungen haben die Größe der Zellen. Im kompakten Fenster faltet sie sich: Die erste Zelle wird zum Titel ihrer Zeile, die anderen stehen neben ihren Spaltenbeschriftungen.',
+    ],
+    caps: ['geteilt', 'drei Spalten'],
+    title: 'Überschrift des Abschnitts',
+    label: 'Beschriftung',
+    value: 'Wert',
+    long: 'Ein Wert, der lang genug ist, um umzubrechen',
+    column: 'Spalte',
+    cell: 'Zelle',
+    wraps: 'Eine Zelle, die lang genug ist, um umzubrechen',
   },
   lists: {
     doc: [
-      'Organismen / Inhalt: Medien',
+      'Organismen / Inhalt: Listen, Medien',
       'Was in ein Fenster kommt. Jeder Organismus ordnet Moleküle auf eine Weise an und richtet sich nach der Breite seines Fensters. Keiner ist nach dem benannt, was er einmal enthält.',
     ],
     gallery: [
@@ -989,11 +1036,32 @@ const de: Copy = {
       'Spalten: 1 · 2 · 3 | Format: eines je Galerie',
       'Medien in einem Raster, jedes mit seiner Bildunterschrift. Wo aus drei zwei werden, beginnt das dritte die nächste Reihe. Ein Bild wird in der Breite angefragt, die seine Spalte einnimmt; das erste auf dem Bildschirm lädt weder träge noch bewegt es sich, die anderen lösen sich aus Punkten.',
     ],
+    table: [
+      'Tabelle',
+      'Spalten: 2 · 3 | Teile: Kopf · Zeilen',
+      'Eine Liste, deren Zeilen Spalten haben, nie mehr als drei. Spaltenbeschriftungen stehen in Body wie die Zellen darunter. Im kompakten Fenster faltet sich eine Zeile: Die erste Zelle wird zum Titel, die anderen zu Beschriftung und Wert.',
+    ],
+    stats: [
+      'Kennzahlen',
+      'Anzahl: 1 bis 3 nebeneinander',
+      'Kennzahl-Moleküle auf je einer Haarlinie, so viele nebeneinander, wie das Fenster Platz hat. Eine Zahl entschlüsselt sich, wenn sie zum ersten Mal zu sehen ist.',
+    ],
     caps: [
       'drei nebeneinander im breiten Fenster, zwei im regulären, eines im kompakten',
       'Spalten: 2',
+      'Spalten: 3',
+      'Spalten: 2',
+      'drei Zahlen',
     ],
     caption: 'Bildunterschrift.',
+    column: 'Spalte',
+    cell: 'Zelle',
+    wraps: 'Eine Zelle, die lang genug ist, um umzubrechen',
+    figures: [
+      { value: '12', label: 'gezählte Dinge' },
+      { value: '48 %', label: 'von etwas' },
+      { value: '3×', label: 'so viele' },
+    ],
   },
   records: {
     doc: [
@@ -1005,7 +1073,16 @@ const de: Copy = {
       'Blöcke: h2 · h3 · h4 · p · ul · ol · Zitat · Linie | im Text: kräftig · Link · Code',
       'Fließtext, wie der Editor ihn hervorbringt und der Server ihn zu HTML macht. Ein Absatz hält das Maß des Fließtexts, 560; Überschriften, Listen und Zitate das breitere, 640. Überschriften darin beginnen bei Heading: Der Seitentitel gehört in den Kopf.',
     ],
-    caps: ['alles, was der Editor hervorbringen kann'],
+    quoted: [
+      'Zitat',
+      'Teile: Text · Avatar · Name · Rolle',
+      'Worte, die nicht vom Autor stammen, in Heading, mit dem, der sie gesagt hat. Ohne Bild zeigt der Avatar das Punktraster.',
+    ],
+    caps: ['alles, was der Editor hervorbringen kann', 'ohne Bild'],
+    quotation:
+      'Ein Satz, den jemand anderes gesagt hat, vollständig zitiert und groß genug gesetzt, um zuerst gelesen zu werden.',
+    name: 'Name',
+    role: 'Rolle, Organisation',
     two: 'Überschrift zwei',
     paragraph: [
       'Ein Absatz Fließtext. Er kann',

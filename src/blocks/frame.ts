@@ -21,7 +21,7 @@ const titled: Condition = (data, siblingData, context) =>
   own(data, siblingData, context) && Boolean(siblingData?.title)
 
 // What every section shares; each takes only the options its design gives it.
-export function frame(options: { split?: boolean; join?: boolean }): Field[] {
+export function frame(options: { split?: boolean; join?: boolean; surface?: boolean }): Field[] {
   return [
     ...(options.join
       ? [
@@ -46,5 +46,7 @@ export function frame(options: { split?: boolean; join?: boolean }): Field[] {
           } satisfies Field,
         ]
       : []),
+    // A joined section stands on the surface of the one it continues.
+    ...(options.surface ? [{ ...surface, admin: { condition: own } } satisfies Field] : []),
   ]
 }

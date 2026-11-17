@@ -65,9 +65,9 @@ const rich = (...parts: Part[]) => ({
 const pictures = (picture: number, caption: string, count = 1) =>
   Array.from({ length: count }, () => ({ picture, caption }))
 
-// A window told at length: a Header with a lead, an inset picture, text beside its headings, a part that joins the
-// section above, a gallery of three, running text without a heading, a picture edge to edge, and a closing call on an
-// accent to another window.
+// A window told at length: a Header with a lead, an inset picture, facts without a heading, text beside its headings, a
+// part that joins the section above, a quotation on paper, a gallery of three, figures beside their heading, running
+// text without a heading, a picture edge to edge, and a closing call on an accent to another window.
 const told = (
   to: number,
   picture: number,
@@ -78,7 +78,10 @@ const told = (
     question: string[]
     changed: [string, string, string]
     joined: string
+    facts: [string, string][]
+    quote: { text: string; name: string; role: string }
     three: string
+    figures: [string, [string, string][]]
     caption: string
     closing: string[]
     call: string
@@ -86,6 +89,7 @@ const told = (
 ): Sections => [
   { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
   { blockType: 'media', ratio: '16:9', items: pictures(picture, t.figure) },
+  { blockType: 'facts', items: t.facts.map(([label, value]) => ({ label, value })) },
   { blockType: 'text', title: t.question[0], split: true, body: rich(...t.question.slice(1)) },
   {
     blockType: 'text',
@@ -94,12 +98,19 @@ const told = (
     body: rich({ h3: t.changed[1] }, t.changed[2]),
   },
   { blockType: 'text', join: true, body: rich(t.joined) },
+  { blockType: 'quote', surface: 'paper', ...t.quote, avatar: picture },
   {
     blockType: 'media',
     title: t.three,
     columns: '3',
     ratio: '4:3',
     items: pictures(picture, t.caption, 3),
+  },
+  {
+    blockType: 'stats',
+    title: t.figures[0],
+    split: true,
+    items: t.figures[1].map(([value, label]) => ({ value, label })),
   },
   { blockType: 'text', body: rich(...t.closing) },
   { blockType: 'media', ratio: '16:9', bleed: true, items: pictures(picture, '') },
@@ -161,7 +172,25 @@ const windows: Fixture[] = [
           'A paragraph under a heading of its own. It runs over several lines in a narrow window and keeps to the measure in a wide one, wherever the window ends.',
         ],
         joined: 'A part that joins the section above and stands under its heading.',
+        facts: [
+          ['Kind', 'A fixture item'],
+          ['Place', 'The first item of its window'],
+          ['Year', '2026'],
+        ],
+        quote: {
+          text: 'A sentence someone else said, quoted in full and set large enough to be read first.',
+          name: 'A participant',
+          role: 'Interview',
+        },
         three: 'Three in a row',
+        figures: [
+          'Figures',
+          [
+            ['12', 'things counted'],
+            ['48 %', 'of something'],
+            ['3×', 'as many as before, in a label long enough to wrap'],
+          ],
+        ],
         caption: 'A caption.',
         closing: ['Running text without a heading of its own.', 'A second paragraph after it.'],
         call: 'A closing line that asks for one thing',
@@ -182,7 +211,25 @@ const windows: Fixture[] = [
         ],
         joined:
           'Ein Teil, der an den Abschnitt darüber anschließt und unter dessen Überschrift steht.',
+        facts: [
+          ['Art', 'Ein Beispieleintrag'],
+          ['Ort', 'Der erste Eintrag seines Fensters'],
+          ['Jahr', '2026'],
+        ],
+        quote: {
+          text: 'Ein Satz, den jemand anderes gesagt hat, vollständig zitiert und groß genug gesetzt, um zuerst gelesen zu werden.',
+          name: 'Eine Teilnehmerin',
+          role: 'Interview',
+        },
         three: 'Drei in einer Reihe',
+        figures: [
+          'Zahlen',
+          [
+            ['12', 'gezählte Dinge'],
+            ['48 %', 'von etwas'],
+            ['3×', 'so viele wie vorher, in einer Beschriftung, die umbricht'],
+          ],
+        ],
         caption: 'Eine Bildunterschrift.',
         closing: ['Fließtext ohne eigene Überschrift.', 'Ein zweiter Absatz danach.'],
         call: 'Eine Schlusszeile, die um eine Sache bittet',
@@ -206,6 +253,42 @@ const windows: Fixture[] = [
             { picture: still, caption: 'A caption.' },
             { picture: live, caption: 'A live picture, still until script runs.' },
           ],
+        },
+        {
+          blockType: 'table',
+          title: 'A table',
+          columns: [{ label: 'Item' }, { label: 'Kind' }, { label: 'Place' }],
+          rows: [
+            { first: 'The first row', second: 'A kind', third: 'Here' },
+            {
+              first: 'A row whose first cell is long enough to wrap in a narrow window',
+              second: 'Another kind',
+              third: 'There',
+            },
+            { first: 'The last row', second: 'A kind' },
+          ],
+        },
+        {
+          blockType: 'text',
+          title: 'Text and facts',
+          body: rich('A paragraph that a set of facts continues, under the same heading.'),
+        },
+        {
+          blockType: 'facts',
+          join: true,
+          items: [
+            { label: 'Label', value: 'Value' },
+            {
+              label: 'A longer label',
+              value: 'A value that is long enough to wrap in a narrow window',
+            },
+          ],
+        },
+        {
+          blockType: 'table',
+          join: true,
+          columns: [{ label: 'Item' }, { label: 'Kind' }, { label: 'Place' }],
+          rows: [{ first: 'A joined row', second: 'A kind', third: 'Here' }],
         },
       ],
     }),

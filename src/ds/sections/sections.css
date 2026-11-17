@@ -39,5 +39,9 @@
     & > .section__body {
       grid-column: 2 / 4;
     }
+    /* The heading already takes one column of three, so three figures stand two across. */
+    & .grid[data-columns='3'] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
   }
 }

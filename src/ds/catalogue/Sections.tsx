@@ -2,7 +2,9 @@ import { Tag } from '../molecules/Tag'
 import { Prose } from '../organisms/Prose'
 import { Header } from '../sections/Header'
 import { Media } from '../sections/Media'
+import { Quote } from '../sections/Quote'
 import { Section } from '../sections/Section'
+import { Stats } from '../sections/Stats'
 import { Text } from '../sections/Text'
 import type { Copy } from './copy/en'
 import { Doc, Entry, Specs, Widths } from './parts'
@@ -22,7 +24,20 @@ export function Sections({ t }: Props) {
   const second = (words: string[]) =>
     `<p>${words[0]} <strong>${words[1]}</strong> ${words[2]} <a class="link" href="#">${words[3]}</a>.</p>`
   const split = `<p>${t.paragraph}</p><h3>${t.three}</h3>${second(t.second)}<ul>${t.items.map((item) => `<li>${item}</li>`).join('')}</ul>`
-  const [surfaces, joined, display, closing, splits, stacked, pictures] = t.caps
+  const [
+    surfaces,
+    joined,
+    display,
+    closing,
+    splits,
+    stacked,
+    pictures,
+    stack,
+    split2,
+    paper,
+    plain,
+  ] = t.caps
+  const quotation = { text: t.quotation, name: t.name, role: t.role }
   const empty = (ratio: string, caption?: string) => ({ label: <Tag>{ratio}</Tag>, caption })
 
   return (
@@ -94,6 +109,30 @@ export function Sections({ t }: Props) {
               ratio="4:3"
               title={t.title}
             />
+          </Widths>
+        </Specs>
+      </Entry>
+      <Entry text={t.stats}>
+        <Specs caps={[stack]}>
+          <Widths caps={t.widths}>
+            <Stats items={t.figures} title={t.title} />
+          </Widths>
+        </Specs>
+        <Specs caps={[split2]}>
+          <Widths caps={t.widths}>
+            <Stats items={t.figures} split title={t.title} />
+          </Widths>
+        </Specs>
+      </Entry>
+      <Entry text={t.quote}>
+        <Specs caps={[paper]}>
+          <Widths caps={t.widths}>
+            <Quote {...quotation} surface="paper" />
+          </Widths>
+        </Specs>
+        <Specs caps={[plain]}>
+          <Widths caps={t.widths}>
+            <Quote {...quotation} />
           </Widths>
         </Specs>
       </Entry>

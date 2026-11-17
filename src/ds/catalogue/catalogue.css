@@ -9,7 +9,7 @@
     overflow-wrap: break-word;
   }
   /* Three windows side by side: compact, regular and wide. */
-  &[data-page='sections'] {
+  &:is([data-page='sections'], [data-page='collections']) {
     width: calc(var(--s-2) * 327);
   }
 }

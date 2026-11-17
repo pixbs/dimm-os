@@ -119,7 +119,7 @@ describe('the view of a window', () => {
     expect(JSON.parse(JSON.stringify(grow))).toEqual(grow)
     // Nothing of Payload travels with it: no block, no node of the editor, no id.
     expect(JSON.stringify(grow)).not.toMatch(/"(id|blockType|blockName|root|children|fields)":/)
-    expect(grow.window?.sections.slice(0, 4)).toEqual([
+    expect(grow.window?.sections.slice(0, 5)).toEqual([
       {
         type: 'header',
         level: 'title',
@@ -146,6 +146,19 @@ describe('the view of a window', () => {
         ],
       },
       {
+        type: 'facts',
+        title: null,
+        text: null,
+        split: false,
+        join: false,
+        surface: 'window',
+        items: [
+          { label: 'Kind', value: 'A fixture item' },
+          { label: 'Place', value: 'The first item of its window' },
+          { label: 'Year', value: '2026' },
+        ],
+      },
+      {
         type: 'text',
         title: 'The question',
         text: null,
@@ -164,7 +177,8 @@ describe('the view of a window', () => {
     async (language) => {
       const sections = (await view('/work/grow', language)).window!.sections
 
-      expect(sections.map((section) => section.type === 'text' && section.join)).toEqual([
+      expect(sections.map((section) => 'join' in section && section.join)).toEqual([
+        false,
         false,
         false,
         false,
@@ -174,9 +188,11 @@ describe('the view of a window', () => {
         false,
         false,
         false,
+        false,
+        false,
       ])
       // A joined section has no heading of its own.
-      expect(sections[4]).toMatchObject({ title: null, text: null })
+      expect(sections[5]).toMatchObject({ title: null, text: null })
     },
   )
 
@@ -265,6 +281,128 @@ describe('the view of a window', () => {
     ])
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
     await payload.delete({ collection: 'media', id: kept.id, overrideAccess: true })
+  })
+
+  it('gives figures, a quotation, facts and a table their words, the table a cell for each column', async () => {
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'stats',
+            title: 'Figures',
+            surface: 'mint',
+            items: [{ value: '12', label: 'things counted' }],
+          },
+          { blockType: 'quote', text: 'Words someone said.', name: 'A participant' },
+          {
+            blockType: 'table',
+            title: 'A table',
+            surface: 'paper',
+            columns: [{ label: 'One' }, { label: 'Two' }],
+            rows: [
+              { first: 'A', second: 'B', third: 'left over from three columns' },
+              { first: 'C' },
+            ],
+          },
+          {
+            blockType: 'facts',
+            join: true,
+            title: 'Not shown',
+            items: [{ label: 'Label', value: 'Value' }],
+          },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+
+    expect((await view('/views-sections', 'en')).window?.sections).toEqual([
+      {
+        type: 'stats',
+        title: 'Figures',
+        text: null,
+        split: true,
+        join: false,
+        surface: 'mint',
+        items: [{ value: '12', label: 'things counted' }],
+      },
+      {
+        type: 'quote',
+        surface: 'window',
+        text: 'Words someone said.',
+        name: 'A participant',
+        role: null,
+        avatar: null,
+      },
+      {
+        type: 'table',
+        title: 'A table',
+        text: null,
+        join: false,
+        surface: 'paper',
+        columns: ['One', 'Two'],
+        rows: [
+          ['A', 'B'],
+          ['C', ''],
+        ],
+      },
+      {
+        type: 'facts',
+        title: null,
+        text: null,
+        split: false,
+        join: true,
+        surface: 'window',
+        items: [{ label: 'Label', value: 'Value' }],
+      },
+    ])
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+
+    // An avatar is its file and its crop: the name beside it says who it is.
+    const grow = (await view('/work/grow', 'en')).window!.sections
+    expect(grow.find((section) => section.type === 'quote')).toMatchObject({
+      surface: 'paper',
+      avatar: { src: expect.stringMatching(/^\/api\/media\/file\//), position: '50% 50%' },
+    })
+  })
+
+  it('lets figures, facts and a table join text, figures, facts or a table, but not a quotation', async () => {
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          { blockType: 'facts', items: [{ label: 'Label', value: 'Value' }] },
+          { blockType: 'stats', join: true, items: [{ value: '1', label: 'one' }] },
+          {
+            blockType: 'table',
+            join: true,
+            columns: [{ label: 'One' }, { label: 'Two' }],
+            rows: [{ first: 'A' }],
+          },
+          { blockType: 'quote', text: 'Words someone said.', name: 'A participant' },
+          { blockType: 'facts', join: true, items: [{ label: 'Label', value: 'Value' }] },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+
+    const sections = (await view('/views-sections', 'en')).window!.sections
+    expect(sections.map((section) => 'join' in section && section.join)).toEqual([
+      false,
+      true,
+      true,
+      false,
+      false,
+    ])
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
   })
 
   it.each(languages)(
