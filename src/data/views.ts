@@ -58,6 +58,20 @@ const joinable = new Set(['text', 'stats', 'facts', 'table', 'list', 'cards'])
 const continued = (section?: Section | null) =>
   Boolean(section && joinable.has(section.type) && !(section.type === 'cards' && section.tiles))
 
+// What About says: what Site holds of the owner, and how many items of the counted window this viewer may see.
+export type AboutView = {
+  name: string
+  place: string
+  memory: string | null
+  facts: { label: string; value: string }[]
+  inside: {
+    picture: { src: string; alt: string; position: string; live: boolean } | null
+    title: string | null
+    text: string | null
+    actions: Action[]
+  }
+}
+
 export type WindowView = {
   path: string
   // The address the 404 window answers, which its bar shows.
@@ -74,6 +88,7 @@ export type WindowView = {
   parent: Link | null
   counters: { position: number; total: number } | null
   neighbours: { previous: Link | null; next: Link | null }
+  about?: AboutView
 }
 
 export type View = {
@@ -199,7 +214,7 @@ async function seen(language: Language, viewer: Viewer): Promise<Seen[]> {
 
 const site = async (language: Language, viewer: Viewer) => {
   const payload = await getPayload({ config })
-  const { name, timezone } = await payload.findGlobal({
+  return payload.findGlobal({
     slug: 'site',
     context: { viewer },
     depth: 1,
@@ -207,18 +222,34 @@ const site = async (language: Language, viewer: Viewer) => {
     fallbackLocale: false,
     locale: language,
     overrideAccess: false,
-    select: { name: true, timezone: true },
+    populate: {
+      media: {
+        url: true,
+        filename: true,
+        prefix: true,
+        alt: true,
+        focalX: true,
+        focalY: true,
+        live: true,
+      },
+      windows: { slug: true },
+    },
+    select: { name: true, timezone: true, place: true, counted: true, about: true, inside: true },
   })
-  return { name: name ?? '', timezone: timezone ?? 'UTC' }
 }
 
 // The view of every window at its path, for one viewer in one language, and of the 404 window.
 async function views(language: Language, viewer: Viewer) {
-  const [windows, about, t] = await Promise.all([
+  const [windows, own, t] = await Promise.all([
     seen(language, viewer),
     site(language, viewer),
     getDictionary(language),
   ])
+  const about = { name: own.name ?? '', timezone: own.timezone ?? 'UTC' }
+  const kinds = t.kinds as Record<
+    string,
+    { one: string; counted?: { one: string; other: string } } | undefined
+  >
   // The system's windows have no document: their views arrive with them, and here their paths resolve.
   const system = Object.entries(systemWindows).map(([path, word]) => ({
     doc: {
@@ -372,6 +403,38 @@ async function views(language: Language, viewer: Viewer) {
       )
       .filter((section) => section !== null)
 
+  // The counted window's items are of one kind, which names them, or are items.
+  const plate = (): AboutView => {
+    const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
+    const items = counted ? itemsOf(counted) : []
+    const [kind, ...others] = new Set(items.map(({ doc }) => doc.kind ?? ''))
+    const words = (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+    const plural = new Intl.PluralRules(language).select(items.length) === 'one' ? 'one' : 'other'
+    const { picture, title, text, actions } = own.inside ?? {}
+    return {
+      name: about.name,
+      place: own.place ?? '',
+      memory: counted
+        ? words[plural].replace('{count}', items.length.toLocaleString(language))
+        : null,
+      facts: (own.about ?? []).map(({ label, value }) => ({ label, value })),
+      inside: {
+        picture:
+          typeof picture === 'object' && picture?.url
+            ? {
+                src: picture.url,
+                alt: picture.alt,
+                position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
+                live: Boolean(picture.live),
+              }
+            : null,
+        title: title || null,
+        text: text || null,
+        actions: (actions ?? []).flatMap((button) => action(button) ?? []),
+      },
+    }
+  }
+
   const view = (one: Seen): WindowView => {
     const { doc, parent } = one
     const app = parent ?? one
@@ -394,6 +457,7 @@ async function views(language: Language, viewer: Viewer) {
       parent: parent ? link(parent) : null,
       counters: parent ? { position: at + 1, total: siblings.length } : null,
       neighbours: { previous: parent ? beside(-1) : null, next: parent ? beside(1) : null },
+      about: one.path === '/about' ? plate() : undefined,
     }
   }
 
@@ -414,7 +478,6 @@ async function views(language: Language, viewer: Viewer) {
       : [],
   )
   // An item is found under its window's title and by it, with its kind in words; a window as a window.
-  const kinds = t.kinds as Record<string, { one: string } | undefined>
   const find = (one: Seen, group: string, kind: string, icon: Found['icon']): Found => ({
     title: one.doc.title,
     kind,

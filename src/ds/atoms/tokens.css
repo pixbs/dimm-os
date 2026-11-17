@@ -138,6 +138,10 @@
   --m-drop: cubic-bezier(0.55, 0, 1, 0.45);
   /* the size a part opens from at its own place */
   --m-start: 0.96;
+  /* a screw: the angle of its slot, and how far it turns and grows as it comes out */
+  --screw-slot: -32deg;
+  --screw-turn: -540deg;
+  --screw-out: 1.9;
   /* what animates on the page itself, and what may still change over time with reduced motion */
   --m-moves: transform, opacity;
   --m-fades:

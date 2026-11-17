@@ -1010,3 +1010,30 @@ describe('a published item of a parent that is not', () => {
     })
   })
 })
+
+describe('About', () => {
+  it('counts the items of the counted window its viewer may see, and holds what Site says', async () => {
+    const counted = {
+      en: ['3 case studies', '4 case studies'],
+      de: ['3 Fallstudien', '4 Fallstudien'],
+    }
+    for (const language of languages) {
+      expect((await view('/about', language)).window?.about?.memory).toBe(counted[language][0])
+      expect((await view('/about', language, invited)).window?.about?.memory).toBe(
+        counted[language][1],
+      )
+    }
+
+    const about = (await view('/about', 'en')).window?.about
+    expect(about?.facts[0]).toEqual({ label: 'Made in', value: 'Somewhere' })
+    expect(about?.inside).toMatchObject({
+      picture: { alt: 'A sun drawn in dots', live: true },
+      title: 'A heading behind the plate.',
+      actions: [
+        { href: '/contact', label: 'Write' },
+        { href: '/cv', label: 'CV' },
+      ],
+    })
+    expect((await view('/work', 'en')).window?.about).toBeUndefined()
+  })
+})

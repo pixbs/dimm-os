@@ -864,16 +864,59 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     }
   }
 
-  await payload.updateGlobal({
-    slug: 'site',
-    data: {
-      name: 'Dimm OS',
-      email: 'site@example.com',
-      place: 'Somewhere',
-      timezone: 'Europe/London',
+  // About counts the work, and behind its plate leads to the contact and the CV windows.
+  const about = {
+    en: [
+      ['Made in', 'Somewhere'],
+      ['Input', 'Questions'],
+      ['Output', 'Answers'],
+      ['Display', 'A fixture fact'],
+      ['Operator', 'A name'],
+    ],
+    de: [
+      ['Hergestellt in', 'Irgendwo'],
+      ['Eingabe', 'Fragen'],
+      ['Ausgabe', 'Antworten'],
+      ['Anzeige', 'Ein Beispielfakt'],
+      ['Bediener', 'Ein Name'],
+    ],
+  }
+  const inside = {
+    en: {
+      title: 'A heading behind the plate.',
+      text: 'One sentence behind the plate.',
+      write: 'Write',
     },
-    locale: 'en',
-    ...trusted,
-  })
+    de: {
+      title: 'Eine Überschrift hinter dem Schild.',
+      text: 'Ein Satz hinter dem Schild.',
+      write: 'Schreiben',
+    },
+  }
+  for (const locale of ['en', 'de'] as const)
+    await payload.updateGlobal({
+      slug: 'site',
+      data: {
+        name: 'Dimm OS',
+        email: 'site@example.com',
+        place: 'Somewhere',
+        timezone: 'Europe/London',
+        counted: ids.work,
+        about: about[locale].map(([label, value]) => ({ label, value })),
+        inside: {
+          picture: shown.live,
+          title: inside[locale].title,
+          text: inside[locale].text,
+          actions: [
+            { type: 'window', window: ids.contact, label: inside[locale].write },
+            { type: 'window', window: ids.cv },
+          ],
+        },
+      },
+      // Its relations are checked against what a guest may read, as the site reads them.
+      context: { viewer: null },
+      locale,
+      ...trusted,
+    })
   return ids
 }
