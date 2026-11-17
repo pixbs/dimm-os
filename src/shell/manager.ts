@@ -1,6 +1,7 @@
 import type { WindowView } from '@/data/views'
 import type { Box, Edge } from '@/ds/organisms/Window'
 import { fromAddress } from '@/i18n/address'
+import { oneSize } from '@/system/windows'
 
 type Size = Pick<Box, 'w' | 'h'>
 
@@ -43,6 +44,8 @@ export type Action =
   | { type: 'restore'; windows: WindowView[] }
   // The windows marked to open at start, the first in front.
   | { type: 'start'; windows: WindowView[] }
+  // Where windows stood when windows are remembered: those open then wait in the taskbar, their views unloaded.
+  | { type: 'remember'; windows: { at: string; box: Box }[] }
   | { type: 'focus' | 'close' | 'hold'; path: string }
   // A taskbar or dock button: the button is what opened its window when it brings it back.
   | { type: 'task'; path: string; opener?: Element | null }
@@ -129,7 +132,7 @@ const entry = (path: string, view: WindowView | null, opener?: Element | null): 
   opener,
   mode: 'float',
   was: 'float',
-  box: { x: 0, y: 0, ...SIZE },
+  box: { x: 0, y: 0, ...(oneSize[windowOf(path) as keyof typeof oneSize] ?? SIZE) },
   placed: false,
 })
 
@@ -260,6 +263,23 @@ export function manager(state: Windows, action: Action): Windows {
         open: [...state.open, ...windows.map((window) => entry(window.path, window))],
         z: [...state.z, ...windows.map((window) => windowOf(window.path)).reverse()],
       })
+    }
+    case 'remember': {
+      const box = (path: string) => action.windows.find((one) => windowOf(one.at) === path)?.box
+      const kept = (one: Entry): Entry =>
+        box(one.path) ? { ...one, box: box(one.path)!, placed: true } : one
+      const back = action.windows
+        .filter(
+          (one, at, all) =>
+            !find(state, one.at) &&
+            all.findIndex((other) => windowOf(other.at) === windowOf(one.at)) === at,
+        )
+        .map((one) => kept({ ...entry(one.at, null), mode: 'min' }))
+      return {
+        ...state,
+        open: [...state.open.map(kept), ...back],
+        z: [...back.map((one) => one.path), ...state.z],
+      }
     }
     case 'focus':
       if (!target || front(state) === action.path) return state

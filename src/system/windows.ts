@@ -9,3 +9,8 @@ export const systemWindows = {
   '/cookies': 'cookies',
   '/cookies/preferences': 'cookiePreferences',
 } as const satisfies Record<string, keyof Dictionary>
+
+// The system windows of one size, and that size on a desk.
+export const oneSize: Partial<Record<keyof typeof systemWindows, { w: number; h: number }>> = {
+  '/preferences': { w: 1040, h: 976 },
+}

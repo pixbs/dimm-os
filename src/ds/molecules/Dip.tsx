@@ -10,12 +10,15 @@ type Props = {
   said?: [string, string]
   // The id of the visible label that names it.
   labelledBy: string
+  // Given, each switch stands as it is told, and a flip goes here.
+  onChange?: (index: number, on: boolean) => void
 }
 
 // Small numbered switches on an accent, up for on, for settings flipped once and then left.
 export function Dip(props: Props) {
   const id = useId()
-  const [on, setOn] = useState(() => props.switches.map((item) => Boolean(item.on)))
+  const [own, setOwn] = useState(() => props.switches.map((item) => Boolean(item.on)))
+  const on = props.onChange ? props.switches.map((item) => Boolean(item.on)) : own
 
   return (
     <>
@@ -27,7 +30,11 @@ export function Dip(props: Props) {
               <input
                 aria-labelledby={props.said ? `${id}-said-${index}` : undefined}
                 checked={on[index]}
-                onChange={() => setOn(on.map((was, at) => (at === index ? !was : was)))}
+                onChange={() =>
+                  props.onChange
+                    ? props.onChange(index, !on[index])
+                    : setOwn(on.map((was, at) => (at === index ? !was : was)))
+                }
                 role="switch"
                 type="checkbox"
               />
@@ -43,7 +50,8 @@ export function Dip(props: Props) {
         <ol className="dip__said">
           {props.switches.map((item, index) => (
             <li id={`${id}-said-${index}`} key={index}>
-              {`${index + 1} ${item.label}: ${props.said![Number(on[index])]}.`}
+              <span className="dip__index">{index + 1}</span>
+              {`${item.label}: ${props.said![Number(on[index])]}`}
             </li>
           ))}
         </ol>

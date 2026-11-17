@@ -33,7 +33,7 @@ import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
-import { systemWindows } from '@/system/windows'
+import { oneSize, systemWindows } from '@/system/windows'
 
 import { VISITOR_COOKIE } from './viewer'
 
@@ -219,6 +219,7 @@ async function views(language: Language, viewer: Viewer) {
       slug: path.split('/').pop()!,
       kind: 'sys',
       title: word === 'about' ? t.about.replace('{name}', about.name) : t[word],
+      oneSize: path in oneSize,
     } as Doc,
     lang: language,
     path,

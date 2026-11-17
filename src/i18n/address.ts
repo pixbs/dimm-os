@@ -2,6 +2,9 @@ export const languages = ['en', 'de'] as const
 
 export type Language = (typeof languages)[number]
 
+// Each language by its own name, the same in every language.
+export const names: Record<Language, string> = { en: 'English', de: 'Deutsch' }
+
 // The first language has no prefix, so an English address is the window's path alone.
 const [unprefixed] = languages
 
