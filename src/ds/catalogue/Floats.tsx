@@ -5,6 +5,7 @@ import { type ReactNode, useState } from 'react'
 import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named } from '@/i18n/keys'
+import { marked } from '@/shell/palette'
 
 import { Bar, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button, ButtonGroup } from '../molecules/Button'
@@ -12,6 +13,7 @@ import { Heading } from '../molecules/Heading'
 import { Row } from '../molecules/Row'
 import { Dialog, Notice, Question } from '../organisms/Dialog'
 import { type Item, Menu, MenuBar, MenuButton, type Top } from '../organisms/Menu'
+import { Palette } from '../organisms/Palette'
 import { Apps, Dock, Screen, type Shortcut } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
 import type { Copy } from './copy/en'
@@ -327,6 +329,55 @@ export function Notices({ t }: Props) {
         <div data-surface="desktop" style={{ padding: 'var(--s-6)' }}>
           <Notice text={t.noticeTells} title={t.title} />
         </div>
+      </Specs>
+    </Entry>
+  )
+}
+
+// The palette as it stands over a desk and as a drawer on a phone, with a few letters typed.
+export function Palettes(props: Props) {
+  const { t, words, language } = props
+  const key = (...keys: string[]) => named(language, keys)
+  // Two rows hold the letters in their titles, and the third, in a group of its own, only in its words.
+  const results = t.found.map((title, at) => ({
+    href: '#',
+    icon: 'window' as const,
+    title: marked(title, at < 2 ? t.typed : ''),
+    kind: t.kind,
+    group: at < 2 ? t.group : `${t.group} 2`,
+    keys: at ? [key('alt'), String(at + 1)] : [key('enter')],
+  }))
+  const palette = (drawer?: boolean) => (
+    <Palette
+      drawer={drawer}
+      escape={key('esc')}
+      field={words.searchField.replace('{name}', t.name)}
+      keys={[
+        [[key('up'), key('down')], words.move],
+        [[key('enter')], words.open],
+        [[key('esc')], words.close],
+      ]}
+      none=""
+      onClose={noop}
+      open
+      results={results}
+      said={words.results.replace('{count}', String(results.length))}
+      selected={0}
+      shown
+      t={words}
+      value={t.typed}
+    />
+  )
+
+  return (
+    <Entry text={t.palette}>
+      <Specs caps={t.paletteCaps}>
+        <div data-surface="desktop" style={{ padding: 'var(--s-6)' }}>
+          {palette()}
+        </div>
+        <Phone {...props} height={60}>
+          {palette(true)}
+        </Phone>
       </Specs>
     </Entry>
   )

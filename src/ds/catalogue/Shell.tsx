@@ -12,7 +12,7 @@ import { WindowControls } from '../molecules/WindowControls'
 import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
 import { FieldDial } from './Changing'
-import { Asking, Dialogs, Menubar, Menus, Notices, Phone } from './Floats'
+import { Asking, Dialogs, Menubar, Menus, Notices, Palettes, Phone } from './Floats'
 import type { Copy } from './copy/en'
 import { Handled, Replaced } from './Handled'
 import { Cap, Doc, Entry, Specs, Table, u } from './parts'
@@ -347,6 +347,7 @@ export function Shell(props: Props) {
       <Menus {...props} />
       <Dialogs {...props} />
       <Notices {...props} />
+      <Palettes {...props} />
     </Doc>
   )
 }

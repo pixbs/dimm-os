@@ -209,3 +209,69 @@
   flex-wrap: wrap;
   gap: var(--s-2);
 }
+
+/* Palette: search over everything, a dialog near the top of the desk as wide as the measure. A press beside it puts
+   it away. Its rows have no lines and move at once, so nothing animates while the visitor types. */
+.palette:not([data-drawer]) {
+  &:modal {
+    inset-block-start: var(--room, 0);
+    margin-block-start: var(--s-12);
+  }
+  & > .dialog__frame {
+    width: var(--measure-wide);
+  }
+}
+/* The list holds twelve rows before it scrolls; in a drawer the drawer scrolls. */
+.palette__list {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(var(--h-regular) * 12);
+  overflow-y: auto;
+  padding-block-end: var(--s-2);
+
+  & .row {
+    --row-line: transparent;
+
+    transition: none;
+  }
+  .palette[data-drawer] & {
+    max-height: none;
+    overflow: visible;
+  }
+}
+/* A group label stands close to its own rows and well clear of the group before it. */
+.palette__group {
+  margin: 0;
+  padding: var(--s-6) var(--s-4) var(--s-1);
+  color: var(--muted);
+  font: var(--f-mono);
+
+  [role='group']:first-child > & {
+    padding-block-start: var(--s-4);
+  }
+}
+/* The keys are a pointer's: under a finger, and in a drawer, the field, the rows and the bar leave theirs out, and a
+   button clears the field. */
+.palette__keys {
+  display: contents;
+}
+.palette[data-drawer] :is(.palette__keys, .palette__list .row__trail) {
+  display: none;
+}
+@media not (pointer: fine) {
+  .palette :is(.palette__keys, .palette__list .row__trail) {
+    display: none;
+  }
+}
+@media (pointer: fine) {
+  .palette:not([data-drawer]) .row[data-kind='field'] > .row__trail > .btn {
+    display: none;
+  }
+}
+/* On a compact screen the bar is left out, and its count is still said. */
+@container screen (width < 600px) {
+  .palette__bar {
+    position: absolute;
+    clip-path: inset(100%);
+  }
+}

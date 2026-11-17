@@ -90,7 +90,7 @@ test.describe('Menus on a desk', () => {
     await page.keyboard.press('ArrowLeft')
     await expect(menu(page, 'File')).toBeVisible()
     await expect(menu(page, 'View')).toHaveCount(0)
-    expect((await focused(page)).title).toBe('Close window')
+    expect((await focused(page)).title).toBe('Search')
     // A press outside closes it.
     await page.mouse.click(700, 500)
     await expect(page.getByRole('menu')).toHaveCount(0)
