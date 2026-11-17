@@ -2,8 +2,8 @@ import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
-// The fixture's lists: Services holds an index, steps, rows that open, a foot and an empty list; the CV headed groups;
-// Grow steps with a meter each; Field its neighbours by picture.
+// The fixture's lists: Services opens with an index; the CV holds headed groups; Grow steps with a meter each; Field its
+// neighbours by picture, steps, rows that open, a foot and an empty list.
 const win = (page: Page, slug: string) => page.locator(`#window-${slug}`)
 const section = (window: Locator, heading: string) =>
   window.locator('section', {
@@ -116,22 +116,17 @@ test.describe('Lists', () => {
   test('say in one line that an empty list has nothing yet, and lead on from a foot', async ({
     page,
   }) => {
-    await page.goto('/services')
-    await expect(section(win(page, 'services'), 'Still to come').locator('.message')).toHaveText(
+    await page.goto('/work/field')
+    await expect(section(win(page, 'work'), 'Still to come').locator('.message')).toHaveText(
       'Nothing here yet.',
     )
-    const foot = section(win(page, 'services'), 'Where it is used').locator('.list__foot')
+    const foot = section(win(page, 'work'), 'Where it is used').locator('.list__foot')
     await expect(foot.getByRole('link')).toHaveAttribute('href', '/work')
-
-    await page.goto('/de/services')
-    await expect(section(win(page, 'services'), 'Noch offen').locator('.message')).toHaveText(
-      'Hier ist noch nichts.',
-    )
   })
 
   test('open a row in place and close it again', async ({ page }) => {
-    await page.goto('/services')
-    const questions = section(win(page, 'services'), 'Questions')
+    await page.goto('/work/field')
+    const questions = section(win(page, 'work'), 'Questions')
     const row = questions.getByRole('button', { name: /^A question that opens\?/ })
     const answer = questions.getByText('Its answer, which shows once the row is open.')
 

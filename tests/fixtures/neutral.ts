@@ -133,20 +133,10 @@ const told = (
   },
 ]
 
-// A window of lists: an index at the heading scale that leads to windows and away, steps beside their heading, rows
-// that open in place, a row to an item with a foot that leads on, and a list that is still empty.
-const listed = (
+// A window that opens with an index at the heading scale, which leads to windows and away and has no heading of its own.
+const indexed = (
   ids: Record<string, number>,
-  t: {
-    title: string
-    lead: string
-    index: [string, string][]
-    when: string
-    steps: [string, string[], string]
-    questions: [string, [string, string][]]
-    used: [string, string, string]
-    empty: string
-  },
+  t: { title: string; lead: string; index: [string, string][]; when: string },
 ): Sections => [
   { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
   {
@@ -161,32 +151,50 @@ const listed = (
       ...(at < 2 ? { window: [ids.work, ids.cv][at] } : { url: 'https://example.com' }),
     })),
   },
+]
+
+// Lists under their headings: steps, rows that open in place, a row to an item with a foot that leads on, and a list
+// that is still empty.
+const lists = (ids: Record<string, number>): Sections => [
   {
     blockType: 'list',
-    title: t.steps[0],
+    title: 'Steps',
     split: true,
     lead: 'index',
     rows: 'plain',
-    items: t.steps[1].map((title) => ({ title, text: t.steps[2] })),
+    items: ['A first step.', 'A second step.', 'A third step.', 'A last step.'].map((title) => ({
+      title,
+      text: 'What happens in it, in one sentence.',
+    })),
   },
   {
     blockType: 'list',
-    title: t.questions[0],
+    title: 'Questions',
     split: true,
     lead: 'none',
     rows: 'opens',
-    items: t.questions[1].map(([title, text]) => ({ title, text })),
+    items: [
+      { title: 'A question that opens?', text: 'Its answer, which shows once the row is open.' },
+      { title: 'Another question?', text: 'Another answer.\nIts second line.' },
+    ],
   },
   {
     blockType: 'list',
-    title: t.used[0],
+    title: 'Where it is used',
     split: true,
     lead: 'none',
     rows: 'link',
-    items: [{ name: 'Grow', caption: t.used[1], title: t.used[2], window: ids.grow }],
+    items: [
+      {
+        name: 'Grow',
+        caption: 'A fixture item',
+        title: 'An item the row leads to',
+        window: ids.grow,
+      },
+    ],
     foot: [{ type: 'window', window: ids.work }],
   },
-  { blockType: 'list', title: t.empty, lead: 'none', rows: 'plain' },
+  { blockType: 'list', title: 'Still to come', lead: 'none', rows: 'plain' },
 ]
 
 // A document whose rows stand in headed groups, a role and its place beside what was done, a kind at the end.
@@ -406,6 +414,7 @@ const windows: Fixture[] = [
             window: ids[title.toLowerCase()],
           })),
         },
+        ...lists(ids),
       ],
     }),
   },
@@ -449,7 +458,7 @@ const windows: Fixture[] = [
       de: 'Ein Beispielfenster für eine zweite App.',
     },
     sections: (ids) => ({
-      en: listed(ids, {
+      en: indexed(ids, {
         title: 'Services',
         lead: 'A fixture window for a second app. Its lead paragraph opens the window and says what the visitor will find in it.',
         index: [
@@ -461,22 +470,8 @@ const windows: Fixture[] = [
           ['A third part', 'Which question leads away from the site?'],
         ],
         when: 'When it fits, in one sentence.\nWhat it holds, as a list of words',
-        steps: [
-          'Steps',
-          ['A first step.', 'A second step.', 'A third step.', 'A last step.'],
-          'What happens in it, in one sentence.',
-        ],
-        questions: [
-          'Questions',
-          [
-            ['A question that opens?', 'Its answer, which shows once the row is open.'],
-            ['Another question?', 'Another answer.\nIts second line.'],
-          ],
-        ],
-        used: ['Where it is used', 'A fixture item', 'An item the row leads to'],
-        empty: 'Still to come',
       }),
-      de: listed(ids, {
+      de: indexed(ids, {
         title: 'Leistungen',
         lead: 'Ein Beispielfenster für eine zweite App. Sein Vorspann öffnet das Fenster und sagt, was Besucher darin finden.',
         index: [
@@ -488,32 +483,6 @@ const windows: Fixture[] = [
           ['Ein dritter Teil', 'Welche Frage führt von der Seite weg?'],
         ],
         when: 'Wann er passt, in einem Satz.\nWas er enthält, als Liste von Wörtern',
-        steps: [
-          'Schritte',
-          [
-            'Ein erster Schritt.',
-            'Ein zweiter Schritt.',
-            'Ein dritter Schritt.',
-            'Ein letzter Schritt.',
-          ],
-          'Was darin geschieht, in einem Satz.',
-        ],
-        questions: [
-          'Fragen',
-          [
-            [
-              'Eine Frage, die sich öffnet?',
-              'Ihre Antwort, die sich zeigt, sobald die Zeile offen ist.',
-            ],
-            ['Eine andere Frage?', 'Eine andere Antwort.\nIhre zweite Zeile.'],
-          ],
-        ],
-        used: [
-          'Wo es verwendet wird',
-          'Ein Beispieleintrag',
-          'Ein Eintrag, zu dem die Zeile führt',
-        ],
-        empty: 'Noch offen',
       }),
     }),
   },
