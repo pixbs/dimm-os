@@ -61,6 +61,14 @@
 :root[data-shortcuts='off'] .screen [data-for~='keys'] {
   display: none;
 }
+/* Where its key shows, an action's key stands in place of its arrow. */
+@container screen (width >= 600px) {
+  @media (pointer: fine) {
+    :root:not([data-shortcuts='off']) .screen .btn__end:has(> .btn__key[data-for]) > .icon {
+      display: none;
+    }
+  }
+}
 
 /* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */
 .screen__main {

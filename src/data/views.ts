@@ -57,14 +57,34 @@ const joinable = new Set(['text', 'stats', 'facts', 'table', 'list', 'cards'])
 const continued = (section?: Section | null) =>
   Boolean(section && joinable.has(section.type) && !(section.type === 'cards' && section.tiles))
 
+// A button at a window's foot: to a window, with its letter where it has one; to a file, which downloads; or to an
+// address.
+export type FootButton = {
+  to: 'window' | 'media' | 'address'
+  label: string
+  href: string
+  key?: string
+  lang?: Language
+}
+
 export type WindowView = {
   path: string
   // The address the 404 window answers, which its bar shows.
   asked?: string
   lang?: Language
-  // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull.
-  frame: { title: string; kind: string | null; tile: Tile | null; oneSize?: boolean }
+  // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull. Its
+  // size on a desk is a maximum. Paper draws it as a record, opened by its stamp: the code and the place.
+  frame: {
+    title: string
+    kind: string | null
+    tile: Tile | null
+    oneSize?: boolean
+    size?: { w?: number; h?: number }
+    paper?: boolean
+    stamp?: { code: string; place: string }
+  }
   sections: Section[]
+  actions: FootButton[]
   // How many items it has, and as an item, which shows in its parent's window: the way back, its place among
   // the items, and the items beside it.
   count: number
@@ -75,7 +95,7 @@ export type WindowView = {
 
 export type View = {
   language: Language
-  site: { name: string; timezone: string }
+  site: { name: string; timezone: string; place: string }
   shortcuts: Shortcut[]
   keys: AppKey[]
   // The window of the address; at / there is none, and the windows marked to open at start.
@@ -120,6 +140,11 @@ const fields = {
   note: true,
   facts: true,
   related: true,
+  paper: true,
+  stamp: true,
+  width: true,
+  height: true,
+  actions: true,
 } as const
 
 type Doc = Pick<Window, keyof typeof fields | 'id'>
@@ -193,7 +218,7 @@ async function seen(language: Language, viewer: Viewer): Promise<Seen[]> {
 
 const site = async (language: Language, viewer: Viewer) => {
   const payload = await getPayload({ config })
-  const { name, timezone } = await payload.findGlobal({
+  const { name, timezone, place } = await payload.findGlobal({
     slug: 'site',
     context: { viewer },
     depth: 1,
@@ -201,9 +226,9 @@ const site = async (language: Language, viewer: Viewer) => {
     fallbackLocale: false,
     locale: language,
     overrideAccess: false,
-    select: { name: true, timezone: true },
+    select: { name: true, timezone: true, place: true },
   })
-  return { name: name ?? '', timezone: timezone ?? 'UTC' }
+  return { name: name ?? '', timezone: timezone ?? 'UTC', place: place ?? '' }
 }
 
 // The view of every window at its path, for one viewer in one language, and of the 404 window.
@@ -236,8 +261,10 @@ async function views(language: Language, viewer: Viewer) {
   })
   // A window this viewer may see, from a relation or a link in running text, which carries its id or itself.
   const byId = new Map(windows.map((one) => [one.doc.id, one]))
+  const seenOf = (value: unknown) =>
+    byId.get(typeof value === 'object' && value ? (value as Doc).id : Number(value))
   const linkTo = (value: unknown) => {
-    const found = byId.get(typeof value === 'object' && value ? (value as Doc).id : Number(value))
+    const found = seenOf(value)
     return found ? link(found) : null
   }
   // The windows a document relates to that this viewer may see, in their order, as buttons to them.
@@ -364,6 +391,34 @@ async function views(language: Language, viewer: Viewer) {
           : section,
       )
       .filter((section) => section !== null)
+  // A foot button to a window shows its title when its label is empty, and its letter; one to a window this viewer
+  // may not see is absent.
+  const button =
+    (lang: Language) =>
+    (action: NonNullable<Doc['actions']>[number]): FootButton[] => {
+      const to = action.type ?? 'window'
+      const label = action.label ?? ''
+      const said = other(lang)
+      if (to === 'window') {
+        const target = seenOf(action.window)
+        if (!target) return []
+        return [
+          {
+            to,
+            label: label || target.doc.title,
+            href: toAddress(language, target.path),
+            key: target.doc.key ?? undefined,
+            lang: label ? said : other(target.lang),
+          },
+        ]
+      }
+      const href =
+        to === 'media' ? typeof action.media === 'object' && action.media?.url : action.url
+      if (!href || !label) return []
+      // A file in the store is on another origin, where only the store's own flag makes it a download.
+      const stored = to === 'media' && /\.blob\.vercel-storage\.com\//.test(href)
+      return [{ to, label, href: stored ? `${href}?download=1` : href, lang: said }]
+    }
 
   const view = (one: Seen): WindowView => {
     const { doc, parent } = one
@@ -380,7 +435,11 @@ async function views(language: Language, viewer: Viewer) {
         kind: doc.kind ?? null,
         tile: app.doc.tile ?? null,
         oneSize: app.doc.oneSize ?? undefined,
+        size: { w: app.doc.width ?? undefined, h: app.doc.height ?? undefined },
+        paper: doc.paper ?? undefined,
+        stamp: doc.paper && doc.stamp ? { code: doc.stamp, place: about.place } : undefined,
       },
+      actions: (doc.actions ?? []).flatMap(button(one.lang)),
       sections: sectionsOf(one),
       count: items.length,
       parent: parent ? link(parent) : null,

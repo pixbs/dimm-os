@@ -23,6 +23,8 @@ const slugs = [
   'addressed',
   'kept-parent',
   'kept-item',
+  'keyed',
+  'keyed-twice',
 ]
 const signedIn: User = {
   id: 0,
@@ -146,6 +148,36 @@ describe('a window', () => {
     await payload.delete({
       collection: 'windows',
       id,
+      depth: 0,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+    })
+  })
+
+  it('takes a letter that neither another window nor the system answers to', async () => {
+    const keyed = await create({ title: 'Keyed', key: 'q' })
+    expect(keyed.key).toBe('Q')
+
+    await expect(create({ title: 'Keyed twice', key: 'Q' })).rejects.toThrow('Key')
+    for (const key of ['M', 'f', 'N'])
+      await expect(create({ title: 'Keyed twice', key }), key).rejects.toThrow('Key')
+    // Saved again, it keeps its own letter.
+    const again = await payload.update({
+      collection: 'windows',
+      id: keyed.id,
+      data: { title: 'Keyed' },
+      depth: 0,
+      draft: false,
+      fallbackLocale: false,
+      locale: 'en',
+      overrideAccess: true,
+    })
+    expect(again.key).toBe('Q')
+    // Its letter would join the key map of the views.
+    await payload.delete({
+      collection: 'windows',
+      id: keyed.id,
       depth: 0,
       fallbackLocale: false,
       locale: 'en',
