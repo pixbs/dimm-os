@@ -352,7 +352,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (!restored.current || remember === null) return
     try {
       if (remember === 'on')
-        localStorage.setItem(PLACES, JSON.stringify(desk.open.map(({ at, box }) => ({ at, box }))))
+        localStorage.setItem(
+          PLACES,
+          JSON.stringify(desk.open.filter((one) => one.placed).map(({ at, box }) => ({ at, box }))),
+        )
       else localStorage.removeItem(PLACES)
     } catch {
       // A tab without storage remembers nothing past itself.

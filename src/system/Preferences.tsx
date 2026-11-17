@@ -13,6 +13,7 @@ import { Stat } from '@/ds/molecules/Heading'
 import { Lamps } from '@/ds/molecules/Lamps'
 import { Row } from '@/ds/molecules/Row'
 import { Slide } from '@/ds/molecules/Slide'
+import { Decipher } from '@/ds/motion/Decipher'
 import { Monitor } from '@/ds/organisms/Monitor'
 import { Section } from '@/ds/sections/Section'
 import { type Language, languages, names, toAddress } from '@/i18n/address'
@@ -90,7 +91,7 @@ function Body({ t, language, site, path }: Props) {
         }
         title={<Stat label={<span id={dial}>{t.prefsField}</span>} value={field} />}
       />
-      <Field control help={say(t.prefsDotSays, { pitch })} label={t.dot}>
+      <Field control help={<Decipher>{say(t.prefsDotSays, { pitch })}</Decipher>} label={t.dot}>
         {(id) => (
           <Slide
             at={pitches.indexOf(pitch)}
@@ -106,11 +107,15 @@ function Body({ t, language, site, path }: Props) {
         <Field
           control
           help={
-            [
-              hand === 'dots' ? t.prefsControlsMac : t.prefsControlsOther,
-              t.prefsDots,
-              t.prefsSquares,
-            ][handAt]
+            <Decipher>
+              {
+                [
+                  hand === 'dots' ? t.prefsControlsMac : t.prefsControlsOther,
+                  t.prefsDots,
+                  t.prefsSquares,
+                ][handAt]
+              }
+            </Decipher>
           }
           label={t.prefsControls}
         >
@@ -133,9 +138,13 @@ function Body({ t, language, site, path }: Props) {
       <Field
         control
         help={
-          [theme === 'light' ? t.prefsThemeLight : t.prefsThemeDark, t.prefsDark, t.prefsLight][
-            themeAt
-          ]
+          <Decipher>
+            {
+              [theme === 'light' ? t.prefsThemeLight : t.prefsThemeDark, t.prefsDark, t.prefsLight][
+                themeAt
+              ]
+            }
+          </Decipher>
         }
         label={t.theme}
       >
@@ -171,7 +180,11 @@ function Body({ t, language, site, path }: Props) {
       </Field>
       <Field
         control
-        help={clock === 'yours' ? t.prefsHere : say(t.prefsSite, { place, name: site.name })}
+        help={
+          <Decipher>
+            {clock === 'yours' ? t.prefsHere : say(t.prefsSite, { place, name: site.name })}
+          </Decipher>
+        }
         label={t.prefsClock}
       >
         {(id) => (
