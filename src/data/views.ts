@@ -441,7 +441,9 @@ async function views(language: Language, viewer: Viewer) {
     language,
     site: about,
     shortcuts,
-    keys: shown.flatMap(({ doc, path }) => (doc.key ? [{ key: doc.key, path }] : [])),
+    keys: shown.flatMap(({ doc, path, lang }) =>
+      doc.key ? [{ key: doc.key, path, title: doc.title, lang: other(lang) }] : [],
+    ),
     search,
   }
   const at = (window: WindowView | null, start: WindowView[] = []): View => ({

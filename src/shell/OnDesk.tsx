@@ -13,8 +13,14 @@ import { type Action, compact, front, manager, phone, shown, stack, type Windows
 
 type Entry = Windows['open'][number]
 
-// What its view gives a window besides its body: a toolbar, a foot and a status bar.
-export type Parts = { toolbar?: ReactNode; foot?: ReactNode; status?: ReactNode; body: ReactNode }
+// What its view gives a window besides its body: a toolbar, a foot, a status bar, and a title for this desk.
+export type Parts = {
+  toolbar?: ReactNode
+  foot?: ReactNode
+  status?: ReactNode
+  title?: string
+  body: ReactNode
+}
 
 // What its bar shows: the path it shows, or the one the 404 window answers, its end with its kind once its view
 // is here; its taskbar button shows that end. The kind is never part of the path.
@@ -120,7 +126,7 @@ export function OnDesk(props: {
               t={t}
               takesFocus={entry.opener !== undefined}
               task={`task-${idOf(entry.path)}`}
-              title={entry.view?.frame.title ?? named(entry)}
+              title={parts?.title ?? entry.view?.frame.title ?? named(entry)}
               toolbar={parts?.toolbar}
               travel={entry.travel}
               waiting={!entry.view}

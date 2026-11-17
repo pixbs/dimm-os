@@ -20,9 +20,10 @@ export function Key({ name }: { name: Named }) {
   )
 }
 
-export function Keys({ names }: { names: Named[] }) {
+// Keys that are switched off are shown faint.
+export function Keys({ names, off }: { names: Named[]; off?: boolean }) {
   return (
-    <span className="keys">
+    <span className="keys" data-off={off ? '' : undefined}>
       {names.map((name, index) => (
         <Key key={index} name={name} />
       ))}

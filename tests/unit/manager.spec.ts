@@ -312,8 +312,9 @@ describe('the window manager, as the reference checks it', () => {
   })
 
   it('a window of one size is not resized by keys', () => {
+    const { w } = box(desk, '/hotkeys')
     act({ type: 'step', path: '/hotkeys', x: 1, y: 0, pull: true })
-    expect(box(desk, '/hotkeys').w).toBe(720)
+    expect(box(desk, '/hotkeys').w).toBe(w)
 
     act({ type: 'task', path: '/work' }, { type: 'step', path: '/work', x: 1, y: 1, pull: true })
     expect(box(desk, '/work')).toMatchObject({ w: 728, h: 488 })
