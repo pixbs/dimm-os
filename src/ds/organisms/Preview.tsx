@@ -12,9 +12,7 @@ export type PreviewProps = {
   action: To
 }
 
-// What an item of a list shows as it opens in place, keeping the columns of a split row: one column when compact,
-// the facts at the side when regular, and when wide the text, facts and action at the side of the media. Its facts
-// put each label above its value, as their column is narrow; its one action is as wide as its column.
+// What an item of a list shows as it opens in place, keeping the columns of a split row so it lines up with the row.
 export function Preview({ id, label, ...props }: PreviewProps & { id: string; label: string }) {
   const { media, text, facts = [], action } = props
 

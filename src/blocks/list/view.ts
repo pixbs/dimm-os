@@ -154,7 +154,7 @@ export function list(block: ListBlock, ways: Ways): ListView | null {
     head,
     items,
     filter:
-      of && block.filter
+      of && block.filter && of.related.length
         ? of.related.map((window) => ({
             ...window,
             count: items.filter(({ tags }) => tags.includes(window.href)).length,

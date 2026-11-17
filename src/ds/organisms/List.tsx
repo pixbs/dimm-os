@@ -9,6 +9,7 @@ import { Icon, type IconName } from '../atoms/Icon'
 import { Dots } from '../molecules/Dots'
 import { Link } from '../molecules/Link'
 import { Row } from '../molecules/Row'
+import { Decipher } from '../motion/Decipher'
 import { useArrives } from '../motion/enters'
 import { Origin } from '../motion/Origin'
 import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
@@ -62,7 +63,11 @@ export function List(props: {
       {props.children}
       {(foot || count) && (
         <div className="list__foot">
-          {count && <span className="list__count">{count}</span>}
+          {count && (
+            <span className="list__count">
+              <Decipher>{count}</Decipher>
+            </span>
+          )}
           {foot && (
             <Link download={foot.download} href={foot.href} hrefLang={foot.lang} lang={foot.lang}>
               {foot.label}
@@ -230,9 +235,8 @@ const fades = {
   out: () => ({ opacity: 0, transition: { duration: duration('slow'), ease: curve('standard') } }),
 }
 
-// Items that change as a filter does: one is open at a time, at first the first, and one taken away gives way to the
-// first left. Rows that stay slide to their place, rows that go leave, new rows arrive along the spread; with reduced
-// motion the whole list crossfades, as a new version of it. What the server painted is simply there.
+// Items that change as a filter does, one open at a time: rows that stay slide, rows that go leave and new rows arrive
+// along the spread, or with reduced motion the whole list crossfades, while what the server painted is simply there.
 function Moving(props: Props) {
   const painted = usePainted()
   const keys = props.items.map(({ key }) => key!)
@@ -318,7 +322,13 @@ function Moving(props: Props) {
 export function Items(props: Props) {
   if (props.items.some((item) => item.key)) return <Moving {...props} />
   return (
-    <List empty={props.empty} foot={props.foot} head={props.head} count={props.count}>
+    <List
+      count={props.count}
+      empty={props.empty}
+      foot={props.foot}
+      head={props.head}
+      reset={props.reset}
+    >
       {props.items.map((item, at) => row(item, at, props))}
     </List>
   )

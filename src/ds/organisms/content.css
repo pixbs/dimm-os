@@ -161,7 +161,8 @@
 }
 /* Headed: the head names the rows and their end in mono, over one line in the foreground from edge to edge; a group
    that is read needs no line between its rows. */
-.list[data-headed] > .row {
+.list[data-headed] > .row,
+.list[data-headed] > .list__rows > .list__item > .row {
   --row-line: transparent;
 }
 .list[data-headed] > .list__head {
@@ -179,7 +180,8 @@
 }
 /* In a compact window a headed row keeps its name above its caption, with the end beside the name. */
 @container (width < 600px) {
-  .list[data-headed] > .row[data-layout='split'] > .row__side {
+  .list[data-headed] > .row[data-layout='split'] > .row__side,
+  .list[data-headed] > .list__rows > .list__item > .row[data-layout='split'] > .row__side {
     display: block;
   }
 }
@@ -196,9 +198,7 @@
   flex-grow: 1;
 }
 
-/* Preview: what an item of a list shows as it opens, keeping the columns of a split row. Compact: one column, media
-   first. Regular: the facts at the side, the rest in the main column. Wide: text, facts and action at the side, the
-   media beside them. */
+/* Preview: what an item of a list shows as it opens, keeping the columns of a split row so it lines up with the row. */
 .preview {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
