@@ -62,8 +62,7 @@ export function Button(props: Props) {
 }
 
 // A button that goes to a window is a plain link, so it works without script. Without an address it keeps its
-// label and goes nowhere, as a button to a window this visitor may not see. Its key, where keys are pressed,
-// stands in place of its end, and is not part of its name.
+// label and goes nowhere, as a button to a window this visitor may not see.
 export function ButtonLink({
   label,
   name,
@@ -95,6 +94,7 @@ export function ButtonLink({
       {label && <span className="btn__label">{label}</span>}
       {(end || hint) && (
         <span className="btn__end">
+          {/* Its key, where keys are pressed, stands in place of its end and is not part of its name. */}
           {hint && (
             <span aria-hidden className="btn__key" data-for="desk pointer keys">
               <ForDevice text={hint} />

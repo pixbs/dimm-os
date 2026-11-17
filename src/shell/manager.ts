@@ -115,16 +115,21 @@ const sizeOf = (view: WindowView | null): Size => ({
   h: view?.frame.size?.h ?? SIZE.h,
 })
 
+// Where windows float, the room beside the apps; a phone's drawers have none, and keep their own size for later.
+const roomIn = (state: Windows): Room | null =>
+  state.desk && !compact(state) ? (state.room ?? { x: 0, w: state.desk.w }) : null
+
 // A window that has no place yet stands in the middle of the room beside the apps, at the room's width at most, a
 // step further for each one before it.
 function placed(state: Windows): Windows {
   const { desk } = state
   if (!desk) return state
-  const room = state.room ?? { x: 0, w: desk.w }
+  const room = roomIn(state)
+  const at = room ?? { x: 0, w: desk.w }
 
   const open = state.open.map((entry, nth) => {
     if (entry.placed) return entry
-    const kept = { ...entry.box, w: Math.min(entry.box.w, room.w) }
+    const kept = { ...entry.box, w: Math.min(entry.box.w, room?.w ?? entry.box.w) }
     const { w, h } = fit(kept, desk)
     const step = nth * CASCADE
     return {
@@ -132,7 +137,7 @@ function placed(state: Windows): Windows {
       placed: true,
       box: {
         ...kept,
-        x: clamp(room.x + Math.round((room.w - w) / 2) + step, 0, desk.w - w),
+        x: clamp(at.x + Math.round((at.w - w) / 2) + step, 0, desk.w - w),
         y: clamp(Math.round((desk.h - h) / 2) + step, 0, desk.h - h),
       },
     }
@@ -255,15 +260,18 @@ export function manager(state: Windows, action: Action): Windows {
         z: alone ? [window] : [...others(window), window],
       })
     }
-    // A view that comes after its window went elsewhere is not shown. Until the visitor sizes it, the window takes
-    // the size its view asks for about the same middle, inside the room.
+    // A view that comes after its window went elsewhere is not shown.
     case 'fill': {
       const one = find(state, action.window.path)
       if (one?.at !== action.window.path) return state
-      const { desk } = state
-      if (!desk || !one.placed || one.pulled) return change(one.path, { view: action.window })
+      if (one.pulled) return change(one.path, { view: action.window })
+      // Until the visitor sizes it, the window takes the size its view asks for, about the same middle once placed.
       const asked = sizeOf(action.window)
-      const kept = { ...one.box, ...asked, w: Math.min(asked.w, (state.room ?? desk).w) }
+      const { desk } = state
+      if (!desk || !one.placed)
+        return change(one.path, { view: action.window, box: { ...one.box, ...asked } })
+      const room = roomIn(state)
+      const kept = { ...one.box, ...asked, w: Math.min(asked.w, room?.w ?? asked.w) }
       const was = fit(one.box, desk)
       const { w, h } = fit(kept, desk)
       const box = {
@@ -418,7 +426,8 @@ export function manager(state: Windows, action: Action): Windows {
       }[action.where]
       // A window of one size can only be centred.
       if (target.view?.frame.oneSize && action.where !== 'centre') return state
-      return change(target.path, { box, mode: 'float' })
+      // Where the visitor puts it, the size is theirs.
+      return change(target.path, { box, mode: 'float', pulled: true })
     }
   }
 }

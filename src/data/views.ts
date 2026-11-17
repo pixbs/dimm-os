@@ -65,7 +65,9 @@ export type FootButton = {
   label: string
   href: string
   key?: string
+  // The language of its label, and of where it leads.
   lang?: Language
+  hrefLang?: Language
 }
 
 export type WindowView = {
@@ -75,14 +77,15 @@ export type WindowView = {
   lang?: Language
   // A window of a hidden app, which no device keeps.
   hidden?: boolean
-  // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull. Its
-  // size on a desk is a maximum. Paper draws it as a record, opened by its stamp: the code and the place.
+  // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull.
   frame: {
     title: string
     kind: string | null
     tile: Tile | null
     oneSize?: boolean
+    // Its size on a desk, which is a maximum.
     size?: { w?: number; h?: number }
+    // Paper draws it as a record, opened by its stamp: the code and the place.
     paper?: boolean
     stamp?: { code: string; place: string }
   }
@@ -418,6 +421,7 @@ async function views(language: Language, viewer: Viewer) {
             href: toAddress(language, target.path),
             key: target.doc.key ?? undefined,
             lang: label ? said : other(target.lang),
+            hrefLang: other(target.lang),
           },
         ]
       }

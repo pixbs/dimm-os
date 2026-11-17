@@ -175,7 +175,7 @@ function Foot({ buttons }: { buttons: FootButton[] }) {
           end={ends(button)}
           hint={button.key}
           href={button.href}
-          hrefLang={button.lang}
+          hrefLang={button.hrefLang}
           key={index}
           label={button.label}
           lang={button.lang}

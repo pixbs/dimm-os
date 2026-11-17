@@ -177,6 +177,30 @@ describe('the window manager', () => {
     const pulled = after(opened, { type: 'pull', path: '/contact', edge: 'se', dx: 80, dy: 0 })
     const kept = after(pulled, { type: 'fill', window: sized('/contact', 640, 512) })
     expect(box(kept, '/contact')).toEqual(box(pulled, '/contact'))
+    // So is the half of the desk it was put on.
+    const put = after(opened, { type: 'put', where: 'left' })
+    const filled2 = after(put, { type: 'fill', window: sized('/contact', 640, 512) })
+    expect(box(filled2, '/contact')).toEqual(box(put, '/contact'))
+  })
+
+  it('keeps a window its own size on a phone, where the room beside the apps is none', () => {
+    const cv: WindowView = {
+      ...view('/cv'),
+      frame: { ...view('/cv').frame, size: { w: 800, h: 600 } },
+    }
+    const phone = after(start(cv), { type: 'desk', w: 390, h: 760, room: { x: 378, w: 0 } })
+    const wide = after(phone, { type: 'desk', w: 1280, h: 800, room: { x: 112, w: 1144 } })
+    expect(box(wide, '/cv')).toMatchObject({ w: 800, h: 600 })
+  })
+
+  it('takes the size of a view that arrives before the desk is measured', () => {
+    const early = after(start(null), { type: 'open', path: '/cv' })
+    const cv: WindowView = {
+      ...view('/cv'),
+      frame: { ...view('/cv').frame, size: { w: 800, h: 600 } },
+    }
+    const measured = after(early, { type: 'fill', window: cv }, { type: 'desk', w: 1440, h: 820 })
+    expect(box(measured, '/cv')).toMatchObject({ w: 800, h: 600 })
   })
 
   it('never lets a window leave the desk: 80 px stay in reach, and its bar under the top', () => {
