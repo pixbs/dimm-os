@@ -1,3 +1,4 @@
+import type { CardsView } from '@/blocks/cards/view'
 import type { FactsView } from '@/blocks/facts/view'
 import type { HeaderView } from '@/blocks/header/view'
 import type { ListView } from '@/blocks/list/view'
@@ -7,10 +8,12 @@ import type { StatsView } from '@/blocks/stats/view'
 import type { TableView } from '@/blocks/table/view'
 import type { TextView } from '@/blocks/text/view'
 import { Row } from '@/ds/molecules/Row'
+import { type CardProps, Cards as Grid, Tiles } from '@/ds/organisms/Card'
 import { Items, List } from '@/ds/organisms/List'
 import { Prose } from '@/ds/organisms/Prose'
 import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
+import { Cards } from '@/ds/sections/Cards'
 import { Facts } from '@/ds/sections/Facts'
 import { Header } from '@/ds/sections/Header'
 import { List as Listed } from '@/ds/sections/List'
@@ -20,7 +23,7 @@ import { Stats } from '@/ds/sections/Stats'
 import { Table } from '@/ds/sections/Table'
 import { Text } from '@/ds/sections/Text'
 
-type Joinable = TextView | StatsView | FactsView | TableView | ListView
+type Joinable = TextView | StatsView | FactsView | TableView | ListView | CardsView
 type Placed = HeaderView | MediaView | QuoteView | Joinable
 
 // A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
@@ -28,8 +31,24 @@ type Placed = HeaderView | MediaView | QuoteView | Joinable
 const across = (columns: number, width: number) =>
   width < 600 ? 1 : width < 960 ? Math.min(columns, 2) : columns
 
+// A card asks for its picture at the share its column takes; under a section's heading it ranks below it, and in a grid
+// its picture is 4:3.
+function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean): CardProps[] {
+  const span = Math.ceil(width / across(cards.columns, width))
+  return cards.items.map(({ picture, ...item }, at) => ({
+    ...item,
+    under,
+    media: picture
+      ? {
+          ratio: cards.tiles ? undefined : '4:3',
+          picture: { ...picture, span, first: first && at === 0, still: Boolean(picture.live) },
+        }
+      : undefined,
+  }))
+}
+
 // The body of a section that joins the one above, under that section's heading.
-function Part({ part }: { part: Joinable }) {
+function Part({ part, width }: { part: Joinable; width: number }) {
   switch (part.type) {
     case 'text':
       return <Prose html={part.html} />
@@ -47,6 +66,8 @@ function Part({ part }: { part: Joinable }) {
       return <Rows columns={part.columns} rows={part.rows} />
     case 'list':
       return <Items {...part} />
+    case 'cards':
+      return <Grid columns={part.columns === 3 ? 3 : 2} items={cardsOf(part, width, false, true)} />
   }
 }
 
@@ -62,7 +83,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
   const first = sections.find((section) => section.type !== 'header')
 
   return groups.map(([lead, ...joined], at) => {
-    const parts = joined.map((part, index) => <Part key={index} part={part} />)
+    const parts = joined.map((part, index) => <Part key={index} part={part} width={width} />)
     // A table, or a list whose rows hold a name and an end text, takes three columns of its own, so the section it
     // stands in keeps its heading above, at three columns at most.
     const beside = ![lead, ...joined].some(
@@ -144,6 +165,28 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           >
             {parts}
           </Table>
+        )
+      case 'cards':
+        // Tiles fill the window with no frame, and hold the title of the page when they open it.
+        return lead.tiles ? (
+          <Tiles
+            columns={lead.columns === 1 ? 1 : 2}
+            items={cardsOf(lead, width, lead === first, false)}
+            key={at}
+            page={at === 0}
+          />
+        ) : (
+          <Cards
+            columns={lead.columns === 3 ? 3 : 2}
+            items={cardsOf(lead, width, lead === first, Boolean(lead.title))}
+            key={at}
+            split={lead.split && beside}
+            surface={lead.surface}
+            text={lead.text}
+            title={lead.title}
+          >
+            {parts}
+          </Cards>
         )
       case 'list':
         return (

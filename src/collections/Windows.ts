@@ -9,6 +9,7 @@ import {
 import { relationship } from 'payload/shared'
 
 import { signedIn } from '@/access'
+import { Cards } from '@/blocks/cards/config'
 import { Facts } from '@/blocks/facts/config'
 import { Header } from '@/blocks/header/config'
 import { List } from '@/blocks/list/config'
@@ -140,7 +141,7 @@ export const Windows: CollectionConfig = {
               type: 'blocks',
               localized: true,
               labels: { singular: 'Section', plural: 'Sections' },
-              blocks: [Header, Text, Media, Stats, Quote, Facts, Table, List],
+              blocks: [Header, Text, Media, Stats, Quote, Facts, Table, List, Cards],
             },
           ],
         },

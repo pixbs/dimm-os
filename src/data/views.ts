@@ -17,6 +17,7 @@ import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import { sanitizeUrl } from 'payload/shared'
 
+import { cards, type CardsView } from '@/blocks/cards/view'
 import { facts, type FactsView } from '@/blocks/facts/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
 import { list, type ListView } from '@/blocks/list/view'
@@ -48,10 +49,13 @@ type Section =
   | FactsView
   | TableView
   | ListView
+  | CardsView
   | { type: 'items'; items: Link[] }
 
-// The sections whose body a joined section can continue under their heading.
-const joinable = new Set(['text', 'stats', 'facts', 'table', 'list'])
+// The sections whose body a joined section can continue under their heading; tiles have none.
+const joinable = new Set(['text', 'stats', 'facts', 'table', 'list', 'cards'])
+const continued = (section?: Section | null) =>
+  Boolean(section && joinable.has(section.type) && !(section.type === 'cards' && section.tiles))
 
 export type WindowView = {
   path: string
@@ -281,6 +285,8 @@ async function views(language: Language, viewer: Viewer) {
         return facts(block)
       case 'table':
         return table(block)
+      case 'cards':
+        return cards(block, action)
       case 'list':
         return list(block, {
           to: (window) => linkTo(window)?.href ?? null,
@@ -296,7 +302,7 @@ async function views(language: Language, viewer: Viewer) {
       .map((block) => sectionOf(block, toAddress(language, path)))
       // A Media section with no picture left still stands between two texts, so it is dropped after the join is read.
       .map((section, at, all) =>
-        section && 'join' in section && section.join && !joinable.has(all[at - 1]?.type ?? '')
+        section && 'join' in section && section.join && !continued(all[at - 1])
           ? { ...section, join: false }
           : section,
       )

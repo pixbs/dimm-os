@@ -5,6 +5,7 @@ import * as migration_20261116_233411_frame_header_text from './20261116_233411_
 import * as migration_20261117_012735_media from './20261117_012735_media';
 import * as migration_20261117_032857_stats_quote_facts_table from './20261117_032857_stats_quote_facts_table';
 import * as migration_20261117_045005_list from './20261117_045005_list';
+import * as migration_20261117_063327_cards from './20261117_063327_cards';
 
 export const migrations = [
   {
@@ -40,6 +41,11 @@ export const migrations = [
   {
     up: migration_20261117_045005_list.up,
     down: migration_20261117_045005_list.down,
-    name: '20261117_045005_list'
+    name: '20261117_045005_list',
+  },
+  {
+    up: migration_20261117_063327_cards.up,
+    down: migration_20261117_063327_cards.down,
+    name: '20261117_063327_cards'
   },
 ];
