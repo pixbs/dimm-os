@@ -269,6 +269,7 @@ function Moving(props: Props) {
       empty={props.empty}
       foot={props.foot}
       head={props.head}
+      lines={props.lines}
       moving
       reset={props.reset}
     >

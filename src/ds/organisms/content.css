@@ -180,7 +180,8 @@
 }
 /* A head over rows that are checked one by one: in the type of its rows, over a faint line on the keyline, and every
    row keeps its own line. */
-.list[data-headed='lines'] > .row {
+.list[data-headed='lines'] > .row,
+.list[data-headed='lines'] > .list__rows > .list__item > .row {
   --row-line: var(--line);
 }
 .list[data-headed='lines'] > .list__head {

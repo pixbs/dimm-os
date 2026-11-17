@@ -420,7 +420,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const key = pressed(event, view.keys, single)
     if (!action || !key) return
     event.preventDefault()
-    light(typeof key === 'string' ? key : key.path)
+    // A row lights where the window that shows it is open, or opens with it.
+    if (key === 'hotkeys' || desk.open.some((one) => one.path === '/hotkeys'))
+      light(typeof key === 'string' ? key : key.path)
     run(action, document.activeElement)
   })
   useEffect(() => {
