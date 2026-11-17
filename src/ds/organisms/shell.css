@@ -655,7 +655,8 @@
   .monitor,
   :root[data-remember='on'] .monitor {
     --monitor-at: var(--monitor-drawer);
-    --wallpaper-at: var(--wallpaper-phone);
+    /* The form shows above the drawer, where the copy can show it. */
+    --wallpaper-at: var(--monitor-above);
 
     width: calc(var(--h-regular) * 4);
     max-width: 100%;

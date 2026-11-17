@@ -420,6 +420,7 @@
 /* DIP switches: small switches on an accent, numbered; up is on. */
 .dip {
   flex: none;
+  place-self: start;
   display: inline-flex;
   flex-direction: column;
   gap: var(--s-1);

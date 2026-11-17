@@ -94,6 +94,7 @@
   --monitor-window-tablet: 14% 14% 52% 14%;
   --monitor-kept-tablet: 40% 6% 26% 22%;
   --monitor-drawer: 40% 0 0 0;
+  --monitor-above: 50% 20%;
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,

@@ -40,7 +40,6 @@ let request = 0
 let last: number | undefined
 let owed = 0
 
-
 function draw() {
   dots?.draw(context, now!.colour, 0)
 }

@@ -29,7 +29,7 @@ export function Slide(props: Props) {
             checked={props.onChange ? index === props.at : undefined}
             defaultChecked={props.onChange ? undefined : index === props.at}
             name={props.name}
-            onChange={() => props.onChange?.(index)}
+            onChange={props.onChange && (() => props.onChange!(index))}
             type="radio"
             value={option}
           />
