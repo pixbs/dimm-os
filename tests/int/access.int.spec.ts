@@ -302,6 +302,24 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
     expect(await counted(made['access-work'])).toMatchObject({ slug: 'access-work' })
   })
 
+  it('appear in no search, and leave no hint of themselves in any language', async () => {
+    const view = (await getWindowView('/access-work', locale, null)) as View
+    const hidden = (
+      ['access-vault', 'access-secret', 'access-secret-item', 'access-other-secret'] as const
+    ).flatMap((slug) => languages.map((language) => titles[slug][language]))
+
+    expect(view.search).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ title: titles['access-work'][locale] }),
+        expect.objectContaining({
+          title: titles['access-grow'][locale],
+          group: titles['access-work'][locale],
+        }),
+      ]),
+    )
+    for (const title of hidden) expect(JSON.stringify(view)).not.toContain(title)
+  })
+
   it('appear in no media listing or API answer', async () => {
     const query = `?locale=${locale}&depth=1`
     for (const route of [
@@ -359,8 +377,26 @@ describe.each(languages)('a visitor, in %s', (locale) => {
     expect((grow.related as Window[]).map((one) => one.slug)).toEqual(['access-work'])
   })
 
+  it('finds the windows on their list and their items, and nothing else that is hidden', async () => {
+    const view = (await getWindowView('/', locale, invited)) as View
+    const found = view.search.map((one) => one.title)
+
+    expect(found).toEqual(
+      expect.arrayContaining(
+        (['access-work', 'access-grow', 'access-secret', 'access-secret-item'] as const).map(
+          (slug) => titles[slug][locale],
+        ),
+      ),
+    )
+    for (const slug of ['access-vault', 'access-other-secret'] as const)
+      for (const language of languages)
+        expect(JSON.stringify(view)).not.toContain(titles[slug][language])
+  })
+
   it('whose invitation ran out sees what a guest sees', async () => {
     expect(await listed(expired, locale)).toEqual(['access-grow', 'access-work'])
+    const view = (await getWindowView('/', locale, expired)) as View
+    expect(JSON.stringify(view.search)).not.toContain(titles['access-secret'][locale])
   })
 })
 

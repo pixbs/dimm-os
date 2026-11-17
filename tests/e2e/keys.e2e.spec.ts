@@ -71,12 +71,15 @@ test.describe('Hotkeys on a desk', () => {
       await page.keyboard.press('m')
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
 
-      // Until the palette arrives, the key is taken and does nothing, as the Search row in File.
+      // The key opens the palette, and Esc gives the focus back to what held it.
       await watch(page)
       await hold(page)
       const count = await page.locator('article').count()
       await page.keyboard.press(`${mod}+k`)
       expect(await taken(page)).toBe(true)
+      await expect(page.getByRole('combobox')).toBeFocused()
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('combobox')).toBeHidden()
       expect(await held(page)).toBe(true)
       await expect(page.locator('article')).toHaveCount(count)
     })
@@ -118,6 +121,8 @@ test.describe('Hotkeys on a desk', () => {
     await watch(page)
     await page.keyboard.press('Control+k')
     expect(await taken(page)).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('combobox')).toBeHidden()
     await page.keyboard.press('Escape')
     await expect(page.locator('article')).toHaveCount(0)
   })

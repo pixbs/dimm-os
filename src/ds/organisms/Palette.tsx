@@ -28,6 +28,7 @@ type Props = {
   onClose: () => void
   drawer?: boolean
   opener?: Element | null
+  onGone?: () => void
   // Shown where it stands, for the catalogue.
   shown?: boolean
   // The name of the field, which it shows until something is typed.
@@ -72,6 +73,7 @@ export function Palette(props: Props) {
       drawer={props.drawer}
       label={t.search}
       onClose={props.onClose}
+      onGone={props.onGone}
       open={props.open}
       opener={props.opener}
       shown={props.shown}
@@ -95,6 +97,7 @@ export function Palette(props: Props) {
               onChange={props.onType}
               onKeyDown={props.onKey}
               placeholder={props.field}
+              readOnly={!props.onType}
               role="combobox"
               spellCheck={false}
               type="text"
@@ -102,16 +105,10 @@ export function Palette(props: Props) {
             />
           </span>
           <span className="row__trail">
-            <span data-for="pointer">
+            <span className="palette__keys">
               <Key name={props.escape} />
             </span>
-            <Button
-              data-for="touch"
-              icon="close"
-              name={t.clear}
-              onClick={props.onClear}
-              size="compact"
-            />
+            <Button icon="close" name={t.clear} onClick={props.onClear} size="compact" />
           </span>
         </div>
       </div>
@@ -141,13 +138,7 @@ export function Palette(props: Props) {
                     {row.title[2]}
                   </>
                 }
-                trail={
-                  row.keys.length > 0 && (
-                    <span data-for="pointer">
-                      <Keys names={row.keys} />
-                    </span>
-                  )
-                }
+                trail={<Keys names={row.keys} />}
               />
             ))}
           </div>
@@ -161,12 +152,14 @@ export function Palette(props: Props) {
         )}
       </div>
       <Bar className="palette__bar" line="above" size="compact">
-        {props.keys.map(([names, does]) => (
-          <BarText data-for="pointer" key={does}>
-            <Keys names={names} />
-            {does}
-          </BarText>
-        ))}
+        <span className="palette__keys">
+          {props.keys.map(([names, does]) => (
+            <BarText key={does}>
+              <Keys names={names} />
+              {does}
+            </BarText>
+          ))}
+        </span>
         <BarSpace />
         <BarText role="status">{props.said}</BarText>
       </Bar>

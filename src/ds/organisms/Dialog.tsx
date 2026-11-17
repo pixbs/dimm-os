@@ -32,8 +32,9 @@ type Props = {
   shown?: boolean
   // A title bar, as a menu has in a drawer.
   bar?: boolean
-  // What gets the focus back, unless something else took it.
+  // What gets the focus back, unless something else took it, and what is told once it has gone.
   opener?: Element | null
+  onGone?: () => void
   actions?: ReactNode
   // A part built on the dialog, which a press beside it also puts away.
   className?: string
@@ -54,7 +55,7 @@ export function Dialog(props: Props) {
   }
 
   return (
-    <AnimatePresence initial={!painted}>
+    <AnimatePresence initial={!painted} onExitComplete={props.onGone}>
       {props.open && <Shown key={times} {...props} />}
     </AnimatePresence>
   )

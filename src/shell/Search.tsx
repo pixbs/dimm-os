@@ -66,6 +66,11 @@ export function Search(props: {
       }}
       onClear={() => setTyped(empty)}
       onClose={props.onClose}
+      // The window could not take the focus while the palette was modal: once it has gone, it does.
+      onGone={() => {
+        if (chosen && document.activeElement === document.body)
+          document.querySelector<HTMLElement>('article[data-front]')?.focus()
+      }}
       onKey={(event) => {
         const does = pressed({ ...typed, sel }, list.length, event.nativeEvent)
         if (!does) return
