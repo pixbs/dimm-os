@@ -926,7 +926,7 @@ const de: Copy = {
   },
   sections: {
     doc: [
-      'Vorlagen / Abschnitte: Seite, Text',
+      'Vorlagen / Abschnitte: Seite, Text, Medien',
       'Eine Vorlage ist ein Abschnitt: ein Organismus in einem gemeinsamen Rahmen, den die Redaktion in den Körper eines Fensters setzt. Ein Fenster besteht aus beliebig vielen davon in beliebiger Reihenfolge. Jeder Abschnitt steht hier in einem kompakten, einem regulären und einem breiten Fenster: mehr muss er über seinen Ort nicht wissen.',
     ],
     frame: [
@@ -944,6 +944,11 @@ const de: Copy = {
       'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Anschluss: setzt den Abschnitt darüber fort | Körper: Fließtext',
       'Was der Editor hervorbringt: ein Absatz im Maß des Fließtexts, Überschriften und Listen im breiteren.',
     ],
+    media: [
+      'Medien',
+      'Überschrift: Titel · Text | Elemente: 1 oder mehr | Spalten: 1 · 2 · 3 | Format: 16:9 · 4:3 · 1:1 | Breite: eingerückt · randlos',
+      'Ein Bild oder eine Galerie davon. Eine Bildunterschrift gehört zu dieser Verwendung des Bildes, nicht zu seiner Datei. Randlos reichen die Bilder bis an die Ränder des Fensters; Überschrift und Bildunterschriften halten den Einzug.',
+    ],
     widths: ['kompakt · 376', 'regulär · 720', 'breit · 1040'],
     caps: [
       'Fläche: paper, orange',
@@ -952,6 +957,7 @@ const de: Copy = {
       'Stufe: heading, auf Orange',
       'geteilt',
       'gestapelt, ohne Überschrift',
+      'eines, randlos · drei in einer Galerie',
     ],
     title: 'Überschrift des Abschnitts',
     sentence: 'Text, der in ein, zwei Sätzen sagt, worum es geht.',
@@ -971,6 +977,23 @@ const de: Copy = {
     wraps:
       'Ein Absatz Fließtext. Er sagt in ganzen Sätzen, was zu sagen ist, und bricht am Maß um, wo das Fenster auch endet.',
     holds: ['Ein zweiter Absatz. Er kann', 'kräftige Wörter', 'und einen', 'Link'],
+    caption: 'Bildunterschrift.',
+  },
+  lists: {
+    doc: [
+      'Organismen / Inhalt: Medien',
+      'Was in ein Fenster kommt. Jeder Organismus ordnet Moleküle auf eine Weise an und richtet sich nach der Breite seines Fensters. Keiner ist nach dem benannt, was er einmal enthält.',
+    ],
+    gallery: [
+      'Galerie',
+      'Spalten: 1 · 2 · 3 | Format: eines je Galerie',
+      'Medien in einem Raster, jedes mit seiner Bildunterschrift. Wo aus drei zwei werden, beginnt das dritte die nächste Reihe. Ein Bild wird in der Breite angefragt, die seine Spalte einnimmt; das erste auf dem Bildschirm lädt weder träge noch bewegt es sich, die anderen lösen sich aus Punkten.',
+    ],
+    caps: [
+      'drei nebeneinander im breiten Fenster, zwei im regulären, eines im kompakten',
+      'Spalten: 2',
+    ],
+    caption: 'Bildunterschrift.',
   },
   records: {
     doc: [

@@ -3,9 +3,9 @@ import { getPayload, type Payload } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import { getWindowView, type View } from '@/data/views'
-import type { Visitor, Window } from '@/payload-types'
+import type { Media, Visitor, Window } from '@/payload-types'
 
-import { fill } from '../fixtures/neutral'
+import { file, fill } from '../fixtures/neutral'
 
 let payload: Payload
 let ids: Record<string, number>
@@ -119,7 +119,7 @@ describe('the view of a window', () => {
     expect(JSON.parse(JSON.stringify(grow))).toEqual(grow)
     // Nothing of Payload travels with it: no block, no node of the editor, no id.
     expect(JSON.stringify(grow)).not.toMatch(/"(id|blockType|blockName|root|children|fields)":/)
-    expect(grow.window?.sections.slice(0, 3)).toEqual([
+    expect(grow.window?.sections.slice(0, 4)).toEqual([
       {
         type: 'header',
         level: 'title',
@@ -127,6 +127,23 @@ describe('the view of a window', () => {
         title: 'Grow',
         text: 'A fixture item that every guest may open. Its lead paragraph says in a sentence or two what the window holds.',
         actions: [],
+      },
+      {
+        type: 'media',
+        title: null,
+        text: null,
+        columns: 1,
+        ratio: '16:9',
+        bleed: false,
+        items: [
+          {
+            src: '/api/media/file/picture.jpg',
+            alt: 'A sun setting over two hills',
+            caption: 'A picture inset in the window, with its caption.',
+            position: '50% 50%',
+            live: null,
+          },
+        ],
       },
       {
         type: 'text',
@@ -151,12 +168,15 @@ describe('the view of a window', () => {
         false,
         false,
         false,
+        false,
         true,
+        false,
+        false,
         false,
         false,
       ])
       // A joined section has no heading of its own.
-      expect(sections[3]).toMatchObject({ title: null, text: null })
+      expect(sections[4]).toMatchObject({ title: null, text: null })
     },
   )
 
@@ -178,6 +198,63 @@ describe('the view of a window', () => {
 
     expect((await view('/views-sections', 'en')).window?.sections[1]).toMatchObject({ join: false })
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
+  })
+
+  it('gives a picture its file, its words, its crop and whether it is live, one picture one column', async () => {
+    const [kept, gone] = await Promise.all(
+      [
+        { alt: 'Views, kept', live: 'portrait', focalX: 20, focalY: 80 },
+        { alt: 'Views, gone' },
+      ].map((data) =>
+        payload.create({ collection: 'media', data: data as Media, filePath: file, ...trusted }),
+      ),
+    )
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'media',
+            title: 'Pictures',
+            text: 'Words under the heading.',
+            columns: '3',
+            ratio: '1:1',
+            bleed: true,
+            items: [{ picture: kept.id, caption: 'Its caption here.' }],
+          },
+          { blockType: 'media', items: [{ picture: gone.id }] },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+    // A section whose pictures are all gone is gone too.
+    await payload.delete({ collection: 'media', id: gone.id, overrideAccess: true })
+
+    expect((await view('/views-sections', 'en')).window?.sections).toEqual([
+      {
+        type: 'media',
+        title: 'Pictures',
+        text: 'Words under the heading.',
+        columns: 1,
+        ratio: '1:1',
+        bleed: true,
+        items: [
+          {
+            src: expect.stringMatching(/^\/api\/media\/file\/picture-\d+\.jpg$/),
+            alt: 'Views, kept',
+            caption: 'Its caption here.',
+            position: '20% 80%',
+            live: 'portrait',
+          },
+        ],
+      },
+    ])
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+    await payload.delete({ collection: 'media', id: kept.id, overrideAccess: true })
   })
 
   it.each(languages)(

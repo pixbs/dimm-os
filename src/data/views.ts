@@ -114,7 +114,16 @@ async function read(locale: Language, viewer: Viewer): Promise<Doc[]> {
     overrideAccess: false,
     pagination: false,
     populate: {
-      media: { url: true, alt: true, focalX: true, focalY: true, live: true },
+      // A file's address is made from its name and folder.
+      media: {
+        url: true,
+        filename: true,
+        prefix: true,
+        alt: true,
+        focalX: true,
+        focalY: true,
+        live: true,
+      },
       windows: { slug: true },
     },
     select: fields,

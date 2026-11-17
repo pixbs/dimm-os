@@ -19,6 +19,8 @@ const nextConfig: NextConfig = {
         pathname: '/api/media/file/**',
       },
     ],
+    // In the cloud a picture is a public file of the Blob store, which its address names.
+    remotePatterns: [{ protocol: 'https', hostname: '*.public.blob.vercel-storage.com' }],
   },
   webpack: (webpackConfig) => {
     webpackConfig.resolve.extensionAlias = {
