@@ -71,12 +71,13 @@ const TAG = 'views'
 const english: Language = 'en'
 const legal = ['imprint', 'privacy-policy']
 
+// The 404 window answers every address that has nothing, and has none of its own.
+const missing = '404'
+
 type LinkNode = { type: 'link' | 'autolink'; children: SerializedLexicalNode[]; fields: LinkFields }
 
 // An address goes into an attribute of the HTML a view carries.
 const escape = (value: string) => value.replace(/[&"<>]/g, (char) => `&#${char.charCodeAt(0)};`)
-// The 404 window answers every address that has nothing, and has none of its own.
-const missing = '404'
 
 const fields = {
   _order: true,
