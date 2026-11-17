@@ -59,6 +59,8 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
 
   return groups.map(([lead, ...joined], at) => {
     const parts = joined.map((part, index) => <Part key={index} part={part} />)
+    // A table takes the whole width it has, so the section it joins keeps its heading above, at three columns at most.
+    const beside = !joined.some((part) => part.type === 'table')
     switch (lead.type) {
       case 'header':
         return <Header key={at} {...lead} page={at === 0} />
@@ -100,7 +102,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           <Stats
             items={lead.items}
             key={at}
-            split={lead.split}
+            split={lead.split && beside}
             surface={lead.surface}
             text={lead.text}
             title={lead.title}
@@ -113,7 +115,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           <Facts
             items={lead.items}
             key={at}
-            split={lead.split}
+            split={lead.split && beside}
             surface={lead.surface}
             text={lead.text}
             title={lead.title}
@@ -136,7 +138,13 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
         )
       case 'text':
         return (
-          <Text html={lead.html} key={at} split={lead.split} text={lead.text} title={lead.title}>
+          <Text
+            html={lead.html}
+            key={at}
+            split={lead.split && beside}
+            text={lead.text}
+            title={lead.title}
+          >
             {parts}
           </Text>
         )

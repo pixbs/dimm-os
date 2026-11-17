@@ -172,8 +172,8 @@
   color: var(--muted);
 }
 
-/* Table: at most three columns. In a compact window a row folds: its first cell is the title, and each other cell is
-   its column's label beside its value, the label a third of the row as in a set of facts. */
+/* Table: in a compact window a row folds so it stays readable, its first cell the title and each other cell its
+   column's label beside its value, the label a third of the row as in a set of facts. */
 .table {
   display: flex;
   flex-direction: column;
@@ -188,7 +188,8 @@
   display: flex;
   gap: var(--s-4);
   min-width: 0;
-  overflow-wrap: break-word;
+  /* Its words are no flex item of their own, so only a break anywhere keeps a long one inside the window. */
+  overflow-wrap: anywhere;
 
   &::before {
     content: attr(data-label);

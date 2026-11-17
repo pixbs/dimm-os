@@ -44,7 +44,7 @@ test.describe('Figures, quotations, facts and tables', () => {
     expect(await size(fact.locator('.row__label'))).toBe(await size(fact.locator('.row__value')))
 
     await page.goto('/work/field')
-    const table = work(page).getByRole('table')
+    const table = work(page).getByRole('table').first()
     expect(await size(table.getByRole('columnheader').first())).toBe(
       await size(table.getByRole('cell').first()),
     )
@@ -93,7 +93,7 @@ test.describe('Figures, quotations, facts and tables', () => {
   }) => {
     await page.setViewportSize({ width: 390, height: 844 })
     await page.goto('/work/field')
-    const table = work(page).getByRole('table')
+    const table = work(page).getByRole('table').first()
     // The head is the first row; the third holds the cell long enough to wrap.
     const cells = table.locator('.table__row').nth(2).locator('.table__cell')
 
@@ -117,11 +117,18 @@ test.describe('Figures, quotations, facts and tables', () => {
     )
   })
 
-  test('joins facts to the text above, under its heading', async ({ page }) => {
+  test('joins facts and a table to the text above, under its heading, which a table keeps above it', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/work/field')
+    await work(page).getByRole('button', { name: 'Full screen' }).click()
+    await expect(work(page).locator('.window__body')).toHaveJSProperty('clientWidth', 1440)
     const joined = section(work(page), 'Text and facts')
 
-    await expect(joined.locator('.section__body > *')).toHaveClass(['prose', 'list'])
+    await expect(joined.locator('.section__body > *')).toHaveClass(['prose', 'list', 'table'])
     await expect(joined.locator('.row__label')).toHaveText(['Label', 'A longer label'])
+    // Beside a heading a table of three would make four columns, so the heading stands above.
+    await expect(joined).not.toHaveAttribute('data-layout', 'split')
   })
 })

@@ -284,6 +284,12 @@ const windows: Fixture[] = [
             },
           ],
         },
+        {
+          blockType: 'table',
+          join: true,
+          columns: [{ label: 'Item' }, { label: 'Kind' }, { label: 'Place' }],
+          rows: [{ first: 'A joined row', second: 'A kind', third: 'Here' }],
+        },
       ],
     }),
   },
