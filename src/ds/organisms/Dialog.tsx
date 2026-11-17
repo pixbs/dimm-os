@@ -32,9 +32,12 @@ type Props = {
   shown?: boolean
   // A title bar, as a menu has in a drawer.
   bar?: boolean
-  // What gets the focus back, unless something else took it.
+  // What gets the focus back, unless something else took it, and what is told once it has gone.
   opener?: Element | null
+  onGone?: () => void
   actions?: ReactNode
+  // A part built on the dialog, which a press beside it also puts away.
+  className?: string
   t: Pick<Dictionary, 'close'>
   children?: ReactNode
 }
@@ -52,7 +55,7 @@ export function Dialog(props: Props) {
   }
 
   return (
-    <AnimatePresence initial={!painted}>
+    <AnimatePresence initial={!painted} onExitComplete={props.onGone}>
       {props.open && <Shown key={times} {...props} />}
     </AnimatePresence>
   )
@@ -63,6 +66,7 @@ function Shown(props: Props) {
   const self = useRef<HTMLDialogElement>(null)
   const y = useMotionValue('0%')
   const flung = useRef(0)
+  const beside = useRef(false)
   const [kept, setKept] = useState(false)
   const painted = usePainted()
 
@@ -81,13 +85,17 @@ function Shown(props: Props) {
     if (shown) return
     const content = ':scope > .dialog__frame > :not(.drawer__handle)'
     if (!dialog.querySelector(`${content}:focus-within`)) {
-      dialog.querySelector<HTMLElement>(`${content} :is(a[href], button:enabled)`)?.focus()
+      dialog
+        .querySelector<HTMLElement>(`${content} :is(input:enabled, a[href], button:enabled)`)
+        ?.focus()
     }
-    return opener
   })
+  // The opener as it is when the dialog leaves: one that hands the focus on names none.
+  const opened = useEffectEvent(() => opener)
   useEffect(() => {
-    const back = settle()
+    settle()
     return () => {
+      const back = opened()
       const lost = (document.activeElement ?? document.body) === document.body
       if (lost && back instanceof HTMLElement) back.focus({ preventScroll: true })
     }
@@ -114,7 +122,7 @@ function Shown(props: Props) {
   return (
     <m.dialog
       aria-label={props.label}
-      className="dialog"
+      className={props.className ? `dialog ${props.className}` : 'dialog'}
       data-back={props.back || undefined}
       data-drawer={drawer ? '' : undefined}
       // Esc closes the dialog in front, not the ones it was opened from.
@@ -122,6 +130,13 @@ function Shown(props: Props) {
         if (event.target !== event.currentTarget) return
         event.preventDefault()
         dismiss()
+      }}
+      // A press on the backdrop lands on the dialog itself; one that began inside and ended beside it is a drag.
+      onClick={(event) => {
+        if (props.className && beside.current && event.target === event.currentTarget) dismiss()
+      }}
+      onPointerDown={(event) => {
+        beside.current = event.target === event.currentTarget
       }}
       open={shown}
       ref={self}

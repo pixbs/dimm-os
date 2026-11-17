@@ -84,6 +84,17 @@
   --wallpaper-wide: 78% 70%;
   --wallpaper-tall: 74% 76%;
   --wallpaper-phone: 70% 82%;
+  /* a small copy of a screen: its shape on a desk, a tablet and a phone, and where its window stands on it, kept
+     elsewhere when windows are remembered, and as a drawer */
+  --monitor-desk: 16 / 10;
+  --monitor-tablet: 3 / 4;
+  --monitor-phone: 9 / 16;
+  --monitor-window: 26% 30% 28% 24%;
+  --monitor-kept: 38% 10% 16% 44%;
+  --monitor-window-tablet: 14% 14% 52% 14%;
+  --monitor-kept-tablet: 40% 6% 26% 22%;
+  --monitor-drawer: 40% 0 0 0;
+  --monitor-above: 50% 20%;
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,

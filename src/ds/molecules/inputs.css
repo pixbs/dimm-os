@@ -420,6 +420,7 @@
 /* DIP switches: small switches on an accent, numbered; up is on. */
 .dip {
   flex: none;
+  place-self: start;
   display: inline-flex;
   flex-direction: column;
   gap: var(--s-1);
@@ -475,16 +476,25 @@
     transform: translateY(-100%);
   }
 }
-/* What each number does, in order, under the block. */
+/* What each number does and whether it is on, one to a line, beside the block or under it. */
 .dip__said {
   display: flex;
-  flex-wrap: wrap;
-  column-gap: var(--s-1);
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--s-2);
   margin: 0;
   padding: 0;
   list-style: none;
-  font: var(--f-small);
+  font: var(--f-body);
+
+  & > li {
+    display: flex;
+    gap: var(--s-4);
+  }
+}
+.dip__index {
   color: var(--muted);
+  font: var(--f-mono);
 }
 
 /* Dial: a knob whose scale is a ring of dots on the pitch and whose pointer is the signal dot. */

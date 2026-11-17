@@ -24,7 +24,9 @@ const glossary = voice
 describe('the words of the interface', () => {
   it('name each thing of the glossary by the glossary, in both languages', () => {
     const known = new Map(glossary.map(([english, german]) => [english, german]))
-    const shared = Object.entries(en).filter(([, word]) => known.has(word))
+    const shared = Object.entries(en).filter(
+      (entry): entry is [string, string] => typeof entry[1] === 'string' && known.has(entry[1]),
+    )
 
     expect(shared.length).toBeGreaterThan(2)
     for (const [key, word] of shared) expect(known.get(word)).toContain(de[key as keyof typeof de])

@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 
+import { useSetting } from '@/ds/atoms/useSetting'
 import type { Language } from '@/i18n/address'
 
 // British English puts the day before the month.
@@ -13,14 +14,20 @@ const ticks = (change: () => void) => {
   return () => clearInterval(timer)
 }
 
-// The time where the site is. It shows once the page runs, so a static page never holds a time already past.
+// The minute it is once the page runs, so a static page never holds a time already past.
+export const useMinute = () => useSyncExternalStore(ticks, minute, () => null)
+
+// The site's time, or the visitor's own where the clock is set to it.
+export const useZone = (site: string) => (useSetting('clock') === 'yours' ? undefined : site)
+
 export function Clock({ language, zone }: { language: Language; zone: string }) {
-  const at = useSyncExternalStore(ticks, minute, () => null)
+  const at = useMinute()
+  const timeZone = useZone(zone)
   if (at === null) return <span className="bar__text" />
 
   const time = new Date(at * 60000)
   const format = (options: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat(locales[language], { timeZone: zone, ...options }).format(time)
+    new Intl.DateTimeFormat(locales[language], { timeZone, ...options }).format(time)
 
   return (
     <span className="bar__text">

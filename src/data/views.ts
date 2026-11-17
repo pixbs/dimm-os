@@ -33,7 +33,8 @@ import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
-import { systemWindows } from '@/system/windows'
+import type { Found } from '@/shell/palette'
+import { oneSize, systemIcons, systemWindows } from '@/system/windows'
 
 import { VISITOR_COOKIE } from './viewer'
 
@@ -72,6 +73,8 @@ export type WindowView = {
   // The address the 404 window answers, which its bar shows.
   asked?: string
   lang?: Language
+  // A window of a hidden app, which no device keeps.
+  hidden?: boolean
   // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull. Its
   // size on a desk is a maximum. Paper draws it as a record, opened by its stamp: the code and the place.
   frame: {
@@ -98,6 +101,8 @@ export type View = {
   site: { name: string; timezone: string; place: string }
   shortcuts: Shortcut[]
   keys: AppKey[]
+  // What search finds: the windows this viewer may see, and the system's apps.
+  search: Found[]
   // The window of the address; at / there is none, and the windows marked to open at start.
   window: WindowView | null
   start: WindowView[]
@@ -132,6 +137,7 @@ const fields = {
   key: true,
   oneSize: true,
   openAtStart: true,
+  hidden: true,
   sections: true,
   description: true,
   cover: true,
@@ -244,6 +250,9 @@ async function views(language: Language, viewer: Viewer) {
       slug: path.split('/').pop()!,
       kind: 'sys',
       title: word === 'about' ? t.about.replace('{name}', about.name) : t[word],
+      oneSize: path in oneSize,
+      width: oneSize[path as keyof typeof oneSize]?.w,
+      height: oneSize[path as keyof typeof oneSize]?.h,
     } as Doc,
     lang: language,
     path,
@@ -430,6 +439,7 @@ async function views(language: Language, viewer: Viewer) {
     return {
       path: one.path,
       lang: other(one.lang),
+      hidden: app.doc.hidden || undefined,
       frame: {
         title: doc.title,
         kind: doc.kind ?? null,
@@ -464,11 +474,36 @@ async function views(language: Language, viewer: Viewer) {
         ]
       : [],
   )
+  // An item is found under its window's title and by it, with its kind in words; a window as a window.
+  const kinds = t.kinds as Record<string, { one: string } | undefined>
+  const find = (one: Seen, group: string, kind: string, icon: Found['icon']): Found => ({
+    title: one.doc.title,
+    kind,
+    group,
+    words: one.parent?.doc.title ?? '',
+    icon: one.doc.icon ?? icon,
+    href: toAddress(language, one.path),
+    lang: other(one.lang),
+  })
+  const tops = shown.filter((one) => !one.parent)
+  const search = [
+    ...tops.flatMap((top) =>
+      itemsOf(top).map((item) => {
+        const kind = item.doc.kind ?? ''
+        return find(item, top.doc.title, kinds[kind]?.one ?? kind, top.doc.icon ?? 'window')
+      }),
+    ),
+    ...tops.map((top) => find(top, t.windows, t.window, 'window')),
+    ...system.map((app) =>
+      find(app, t.system, t.system, systemIcons[app.path as keyof typeof systemIcons]),
+    ),
+  ]
   const desk = {
     language,
     site: about,
     shortcuts,
     keys: shown.flatMap(({ doc, path }) => (doc.key ? [{ key: doc.key, path }] : [])),
+    search,
   }
   const at = (window: WindowView | null, start: WindowView[] = []): View => ({
     ...desk,

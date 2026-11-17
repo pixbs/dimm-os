@@ -27,9 +27,45 @@ export function apply() {
     single: 'off',
     shortcuts: 'on',
     boot: motion === 'reduce' ? 'off' : 'on',
+    // The windows marked to open at start do, the clock shows the site's time, and windows last for the tab.
+    start: 'on',
+    clock: 'site',
+    remember: 'off',
   }
   for (const [name, value] of Object.entries(device)) {
     document.documentElement.dataset[name] = stored(name) ?? value
+  }
+}
+
+// Every setting a visitor can change, which a reset hands back to the device.
+export const settings = [
+  'theme',
+  'contrast',
+  'pitch',
+  'wallpaper',
+  'hand',
+  'motion',
+  'pause',
+  'spacing',
+  'underline',
+  'single',
+  'shortcuts',
+  'boot',
+  'start',
+  'clock',
+  'remember',
+]
+
+// What a tab without storage chose: it holds for this page.
+const unkept: Record<string, string | null> = {}
+
+// The value the visitor chose, or null where the device decides.
+export function chosen(name: string): string | null {
+  if (name in unkept) return unkept[name]
+  try {
+    return localStorage.getItem(name)
+  } catch {
+    return null
   }
 }
 
@@ -41,13 +77,18 @@ export function change(values: Record<string, string | null>) {
       else localStorage.setItem(name, value)
     }
   } catch {
-    // A tab without storage keeps what the device asks for.
-    return
+    // A tab without storage still changes the screen, until it is closed.
+    Object.assign(unkept, values)
   }
 
+  const set = () => {
+    apply()
+    for (const [name, value] of Object.entries(unkept))
+      if (value !== null) document.documentElement.dataset[name] = value
+  }
   const crossfades = Object.keys(values).some((name) =>
     ['theme', 'contrast', 'hand'].includes(name),
   )
-  if (crossfades && document.startViewTransition) document.startViewTransition(apply)
-  else apply()
+  if (crossfades && document.startViewTransition) document.startViewTransition(set)
+  else set()
 }

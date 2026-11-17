@@ -896,6 +896,8 @@ describe('the view of a window', () => {
     expect(preferences.window?.frame).toMatchObject({
       title: { en: 'Preferences', de: 'Einstellungen' }[language],
       kind: 'sys',
+      oneSize: true,
+      size: { w: 1040, h: 1024 },
     })
     expect((await view('/about', language)).window?.frame.title).toContain('Dimm OS')
     expect(cookies.window?.parent?.href).toBe(language === 'en' ? '/cookies' : '/de/cookies')
@@ -952,6 +954,9 @@ describe.each(languages)('a visitor, in %s', (language) => {
     expect(index(work)?.filter?.map(({ count }) => count)).toEqual([3, 2, 1])
     expect(vault.window).toMatchObject({ counters: { position: 4, total: 4 } })
     expect(notes.window?.parent?.title).toBe({ en: 'Archive', de: 'Archiv' }[language])
+    // A hidden window says so, its items too, so the desk keeps none of them on the device.
+    expect(notes.window?.hidden).toBe(true)
+    expect(vault.window?.hidden).toBeUndefined()
     expect(work.shortcuts.map((shortcut) => shortcut.name)).toContain(
       { en: 'Archive', de: 'Archiv' }[language],
     )

@@ -45,8 +45,11 @@ test.describe('Hotkeys on a desk', () => {
       await expect(page).toHaveURL('/hotkeys')
       await page.keyboard.press(',')
       await expect(win(page, 'Preferences')).toHaveAttribute('data-front', '')
-      // Its view has arrived, which takes the focus, so the next key acts on a settled desk.
-      await expect(win(page, 'Preferences').getByRole('heading', { level: 1 })).toBeFocused()
+      // Its view has arrived, and it has no heading, so it holds the focus itself: the next key acts on a settled desk.
+      await expect(
+        win(page, 'Preferences').getByRole('radiogroup', { name: 'Theme' }),
+      ).toBeVisible()
+      await expect(win(page, 'Preferences')).toBeFocused()
 
       await page.keyboard.press('n')
       await expect(front(page)).toHaveCount(1)
@@ -68,14 +71,18 @@ test.describe('Hotkeys on a desk', () => {
       await page.keyboard.press('m')
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
 
-      // Until the palette arrives, the key is taken and does nothing, as the Search row in File.
+      // The key opens the palette, and Esc gives the focus back to what held it.
       await watch(page)
       await hold(page)
-      const count = await page.locator('article').count()
+      // Only Work is left, once the windows closed have gone.
+      await expect(page.locator('article')).toHaveCount(1)
       await page.keyboard.press(`${mod}+k`)
       expect(await taken(page)).toBe(true)
+      await expect(page.getByRole('combobox')).toBeFocused()
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('combobox')).toBeHidden()
       expect(await held(page)).toBe(true)
-      await expect(page.locator('article')).toHaveCount(count)
+      await expect(page.locator('article')).toHaveCount(1)
     })
   }
 
@@ -115,6 +122,8 @@ test.describe('Hotkeys on a desk', () => {
     await watch(page)
     await page.keyboard.press('Control+k')
     expect(await taken(page)).toBe(true)
+    await page.keyboard.press('Escape')
+    await expect(page.getByRole('combobox')).toBeHidden()
     await page.keyboard.press('Escape')
     await expect(page.locator('article')).toHaveCount(0)
   })

@@ -18,6 +18,7 @@ export function menus(props: {
   name: string
   desk: Windows
   act: (action: Action) => void
+  search: () => void
 }): Top[] {
   const { t, language, desk, act } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -45,8 +46,7 @@ export function menus(props: {
   })
 
   const file: Item[] = [
-    // Search arrives with the palette.
-    { label: t.searchCommand, hint: key('search'), disabled: true },
+    { label: t.searchCommand, hint: key('search'), act: props.search },
     {
       label: t.closeWindow,
       hint: key('close'),
