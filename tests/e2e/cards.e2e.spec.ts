@@ -116,7 +116,7 @@ test.describe('Cards and tiles', () => {
       )
     })
 
-  test('open a window under its title, and leave out a button to one the viewer may not see', async ({
+  test('open a window under its title, and leave out a card that leads to one the viewer may not see', async ({
     page,
   }) => {
     await page.goto('/work/field')
@@ -126,7 +126,7 @@ test.describe('Cards and tiles', () => {
 
     await expect(card('On paper').getByRole('link')).toHaveText('Grow')
     await expect(card('On paper').getByRole('link')).toHaveAttribute('href', '/work/grow')
-    await expect(card('On orange').locator('.btngroup')).toHaveCount(0)
-    await expect(card('On orange')).not.toContainText('Vault')
+    await expect(card('On orange')).toHaveCount(0)
+    await expect(work).not.toContainText('only an invited visitor')
   })
 })

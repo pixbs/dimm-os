@@ -24,12 +24,18 @@ export type CardsView = ReturnType<typeof framed> & {
   items: Card[]
 }
 
-// A picture this viewer may not read is absent, and so is a button to a window they may not see.
+// A picture this viewer may not read is absent, and so is a card that leads to a window they may not see, which it is
+// about; with no card left the section is absent too.
 export function cards(
   block: CardsBlock,
   action: (button: Button) => Action | null,
 ): CardsView | null {
-  if (!block.items?.length) return null
+  const items = (block.items ?? []).flatMap((item) => {
+    const ways = (item.actions ?? []).map((button) => ({ button, to: action(button) }))
+    if (ways.some(({ button, to }) => button.type === 'window' && !to)) return []
+    return [{ ...item, actions: ways.flatMap(({ to }) => to ?? []) }]
+  })
+  if (!items.length) return null
   const tiles = Boolean(block.tiles)
   return {
     type: 'cards',
@@ -38,7 +44,7 @@ export function cards(
     surface: (!tiles && block.surface) || 'window',
     tiles,
     columns: Number(block.columns) as 1 | 2 | 3,
-    items: block.items.map(({ title, text, surface, picture, actions }) => ({
+    items: items.map(({ title, text, surface, picture, actions }) => ({
       title,
       text: text || null,
       surface: surface ?? 'raised',
@@ -51,7 +57,7 @@ export function cards(
               live: picture.live ?? null,
             }
           : null,
-      actions: (actions ?? []).flatMap((button) => action(button) ?? []),
+      actions,
     })),
   }
 }

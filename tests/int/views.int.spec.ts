@@ -524,7 +524,7 @@ describe('the view of a window', () => {
     expect(await steps('de')).toMatchObject({ items: [{ meter: { label: '9 von 12' } }, {}, {}] })
   })
 
-  it('gives cards their words, picture and buttons, and tiles no frame, leaving out a button the viewer may not see', async () => {
+  it('gives cards their words, picture and buttons, and tiles no frame, leaving out a card that leads to a window the viewer may not see', async () => {
     const picture = (
       await payload.find({ collection: 'media', limit: 1, ...trusted, locale: 'en' })
     ).docs[0] as Media
@@ -546,10 +546,12 @@ describe('the view of a window', () => {
               {
                 title: 'A statement',
                 surface: 'orange',
-                actions: [
-                  { type: 'window', window: ids.work },
-                  { type: 'window', window: ids.vault, label: 'Hidden' },
-                ],
+                actions: [{ type: 'window', window: ids.work }],
+              },
+              {
+                title: 'About a hidden one',
+                surface: 'raised',
+                actions: [{ type: 'window', window: ids.vault, label: 'Hidden' }],
               },
             ],
           },
@@ -607,10 +609,14 @@ describe('the view of a window', () => {
       columns: 3,
       items: [{ title: 'A card', text: 'Its text.', surface: 'raised', actions: [] }],
     })
-    // An invited visitor sees the button to the window on their list.
+    // An invited visitor sees the card that leads to the window on their list.
     const [shown] = (await view('/views-sections', 'en', invited)).window!.sections
     expect(shown).toMatchObject({
-      items: [{}, { actions: [{ label: 'Work' }, { href: '/work/vault', label: 'Hidden' }] }],
+      items: [
+        {},
+        { actions: [{ label: 'Work' }] },
+        { title: 'About a hidden one', actions: [{ href: '/work/vault', label: 'Hidden' }] },
+      ],
     })
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
   })

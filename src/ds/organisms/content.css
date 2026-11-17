@@ -284,9 +284,8 @@
   }
 }
 
-/* Card: a surface that holds one item, and whatever is on it follows the surface. As a link the whole card is pressed;
-   its state lays a fill over the surface. A raised card is drawn by a line just inside its edge, which gives way to
-   the ring of focus. */
+/* Card: a surface that holds one item; a raised one is drawn by a line just inside its edge, which gives way to the
+   ring of focus. */
 .card {
   --state: transparent;
 
@@ -377,10 +376,8 @@
   }
 }
 
-/* Tiles: cards that fill their window, one step apart, and spread what they hold over their height: a heading in the
-   middle of the space it has, actions at the bottom, media in the bottom corner at the end. In a compact window they
-   stack, a tile with media is 4:3 unless the window gives it more, and the media lies under the text below the first
-   48, so a heading and a line under it stay clear; from 600 the media takes the space the text leaves. */
+/* Tiles: cards that fill their window one step apart, where in a compact one the media lies under the text below its
+   first 48 so a name and a line under it stay clear. */
 .tiles {
   flex: 1 0 auto;
   display: flex;

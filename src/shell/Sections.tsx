@@ -48,7 +48,7 @@ function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean
 }
 
 // The body of a section that joins the one above, under that section's heading.
-function Part({ part, width }: { part: Joinable; width: number }) {
+function Part({ part, width, under }: { part: Joinable; width: number; under: boolean }) {
   switch (part.type) {
     case 'text':
       return <Prose html={part.html} />
@@ -67,7 +67,9 @@ function Part({ part, width }: { part: Joinable; width: number }) {
     case 'list':
       return <Items {...part} />
     case 'cards':
-      return <Grid columns={part.columns === 3 ? 3 : 2} items={cardsOf(part, width, false, true)} />
+      return (
+        <Grid columns={part.columns === 3 ? 3 : 2} items={cardsOf(part, width, false, under)} />
+      )
   }
 }
 
@@ -83,7 +85,10 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
   const first = sections.find((section) => section.type !== 'header')
 
   return groups.map(([lead, ...joined], at) => {
-    const parts = joined.map((part, index) => <Part key={index} part={part} width={width} />)
+    // A joined card ranks below the heading it stands under, where there is one.
+    const parts = joined.map((part, index) => (
+      <Part key={index} part={part} under={'title' in lead && Boolean(lead.title)} width={width} />
+    ))
     // A table, or a list whose rows hold a name and an end text, takes three columns of its own, so the section it
     // stands in keeps its heading above, at three columns at most.
     const beside = ![lead, ...joined].some(
