@@ -376,8 +376,8 @@
   }
 }
 
-/* Tiles: cards that fill their window one step apart, where in a compact one the media lies under the text below its
-   first 48 so a name and a line under it stay clear. */
+/* Tiles: cards that fill their window one step apart, where a picture takes the height its text leaves, so no word
+   ever stands on it. */
 .tiles {
   flex: 1 0 auto;
   display: flex;
@@ -394,14 +394,12 @@
     aspect-ratio: 4 / 3;
 
     & > .card__body {
-      position: relative;
-      z-index: var(--z-above);
       flex: none;
     }
   }
   & > .card > .media {
-    position: absolute;
-    inset: var(--s-12) 0 0;
+    flex: 1 1 0;
+    min-height: calc(var(--h-regular) * 2);
     order: 1;
   }
   & > .card > .btngroup {
@@ -428,9 +426,6 @@
       aspect-ratio: auto;
     }
     & > .card > .media {
-      position: relative;
-      inset: auto;
-      flex: 1 1 0;
       min-height: calc(var(--h-regular) * 3);
     }
   }
