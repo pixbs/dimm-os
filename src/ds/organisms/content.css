@@ -236,15 +236,17 @@
   }
 }
 @container (min-width: 960px) {
-  .preview {
+  /* Without a picture the regular columns stay, so no column is left empty. */
+  .preview:has(> .preview__media) {
     grid-template-areas: 'text media' 'facts media' 'action media';
     grid-template-rows: auto auto minmax(0, 1fr);
-  }
-  .preview__facts {
-    margin-top: 0;
-  }
-  .preview__action {
-    align-self: end;
+
+    & > .preview__facts {
+      margin-top: 0;
+    }
+    & > .preview__action {
+      align-self: end;
+    }
   }
 }
 /* What a row opens to stands under its title, as its lines do. */
