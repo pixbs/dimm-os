@@ -1,10 +1,14 @@
+import { Icon } from '../atoms/Icon'
+import { Button } from '../molecules/Button'
+import { Link } from '../molecules/Link'
 import { Tag } from '../molecules/Tag'
+import { Card, type CardProps, Tiles } from '../organisms/Card'
 import { Gallery } from '../organisms/Gallery'
 import { Items } from '../organisms/List'
 import { Stats } from '../organisms/Stats'
 import { Table } from '../organisms/Table'
 import type { Copy } from './copy/en'
-import { Doc, Entry, Specs, Stage, width, Widths } from './parts'
+import { Doc, Entry, Pane, Specs, Stage, u, width, Widths } from './parts'
 
 export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
   const [three, two, columns3, columns2, figures] = t.caps
@@ -52,6 +56,51 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
     <Items empty={t.empty} items={[]} key="empty" />,
   ]
 
+  // A card as wide as a compact window's column, on the window's surface.
+  const card = (props: CardProps) => (
+    <div className="cq" style={{ width: u(43) }}>
+      <Stage flush>
+        <Card {...props} />
+      </Stage>
+    </div>
+  )
+  const linked: CardProps = {
+    href: '#',
+    media: { label: <Tag>16:9</Tag> },
+    meta: [<Tag key="tag">{t.label}</Tag>, t.meta],
+    title: t.item,
+    text: t.about,
+    foot: (
+      <>
+        <span className="t-mono c-muted">{t.meta}</span>
+        <Icon name="arrow-right" size="s" />
+      </>
+    ),
+  }
+  const onward = (
+    <Link href="#">
+      {t.link}
+      <Icon name="arrow-right" size="s" />
+    </Link>
+  )
+  const actions = [
+    { href: '#', label: t.label },
+    { href: '#', label: t.label, download: true },
+  ]
+  const tiles = (
+    <Tiles
+      columns={2}
+      items={[
+        {
+          surface: 'paper',
+          title: t.item,
+          media: { label: <Tag>{t.media}</Tag> },
+        },
+        { surface: 'orange', title: t.statement, actions },
+      ]}
+    />
+  )
+
   return (
     <Doc text={t.doc}>
       <Entry text={t.list}>
@@ -76,6 +125,65 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
               <Table columns={[t.column, t.column]} rows={rows(2)} />
             </div>
           </Widths>
+        </Specs>
+      </Entry>
+      <Entry text={t.card}>
+        <Specs caps={t.cards.slice(0, 3)}>
+          {card(linked)}
+          {card({ ...linked, state: 'hover' })}
+          {card({ meta: [t.meta], title: t.item, text: t.about, foot: onward })}
+        </Specs>
+        <Specs caps={t.cards.slice(3, 6)}>
+          {card({
+            surface: 'paper',
+            meta: [t.meta],
+            title: t.item,
+            text: t.about,
+            actions: [
+              { href: '#', label: t.label },
+              { href: 'https://example.com', label: t.label },
+            ],
+          })}
+          {card({
+            surface: 'orange',
+            meta: [
+              <Tag key="tag" surface="inverted">
+                {t.label}
+              </Tag>,
+            ],
+            title: t.item,
+            text: t.about,
+            foot: <Button end="arrow-right" label={t.label} tone="solid" />,
+          })}
+          <div className="stack">
+            {card({ surface: 'blue', title: t.item, text: t.text })}
+            {card({ surface: 'mint', title: t.item, text: t.text })}
+          </div>
+        </Specs>
+        <Specs caps={[t.cards[6]]}>
+          <div className="cq" style={{ width: u(90) }}>
+            <Stage flush>
+              <Card
+                foot={onward}
+                level="heading"
+                media={{ ratio: '4:3', label: <Tag>4:3</Tag> }}
+                meta={[t.meta]}
+                side
+                text={t.about}
+                title={t.item}
+              />
+            </Stage>
+          </div>
+        </Specs>
+      </Entry>
+      <Entry text={t.tiles}>
+        <Specs caps={t.tileCaps}>
+          <Pane height={u(50)} width={u(90)}>
+            {tiles}
+          </Pane>
+          <Pane height={u(65)} width={u(43)}>
+            {tiles}
+          </Pane>
         </Specs>
       </Entry>
       <Entry text={t.gallery}>

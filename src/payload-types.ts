@@ -245,7 +245,18 @@ export interface Window {
   _order?: string | null;
   title: string;
   sections?:
-    (HeaderBlock | TextBlock | MediaBlock | StatsBlock | QuoteBlock | FactsBlock | TableBlock | ListBlock)[] | null;
+    | (
+        | HeaderBlock
+        | TextBlock
+        | MediaBlock
+        | StatsBlock
+        | QuoteBlock
+        | FactsBlock
+        | TableBlock
+        | ListBlock
+        | CardsBlock
+      )[]
+    | null;
   /**
    * Drawn as a paper record.
    */
@@ -738,6 +749,54 @@ export interface ListBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardsBlock".
+ */
+export interface CardsBlock {
+  /**
+   * Fill the window, with no frame.
+   */
+  tiles?: boolean | null;
+  columns: '1' | '2' | '3';
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  items: {
+    title: string;
+    surface: 'raised' | 'paper' | 'orange' | 'blue' | 'mint';
+    text?: string | null;
+    picture?: (number | null) | Media;
+    /**
+     * The first is the main one.
+     */
+    actions?:
+      | {
+          type?: ('window' | 'media' | 'address') | null;
+          window?: (number | null) | Window;
+          media?: (number | null) | Media;
+          url?: string | null;
+          /**
+           * On a link to a window, empty is its title.
+           */
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'cards';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -924,6 +983,7 @@ export interface WindowsSelect<T extends boolean = true> {
         facts?: T | FactsBlockSelect<T>;
         table?: T | TableBlockSelect<T>;
         list?: T | ListBlockSelect<T>;
+        cards?: T | CardsBlockSelect<T>;
       };
   paper?: T;
   stamp?: T;
@@ -1161,6 +1221,40 @@ export interface ListBlockSelect<T extends boolean = true> {
         media?: T;
         url?: T;
         label?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "CardsBlock_select".
+ */
+export interface CardsBlockSelect<T extends boolean = true> {
+  tiles?: T;
+  columns?: T;
+  join?: T;
+  title?: T;
+  text?: T;
+  split?: T;
+  surface?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        surface?: T;
+        text?: T;
+        picture?: T;
+        actions?:
+          | T
+          | {
+              type?: T;
+              window?: T;
+              media?: T;
+              url?: T;
+              label?: T;
+              id?: T;
+            };
         id?: T;
       };
   id?: T;

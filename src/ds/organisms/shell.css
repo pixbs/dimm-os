@@ -347,6 +347,12 @@
   & > * {
     flex: none;
   }
+  /* What holds tiles grows with the view, so they fill the window at any size. */
+  & > :has(> .tiles) {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+  }
 }
 /* What a body says in place of a view: dots while it is on the way, a sentence when it cannot be shown. */
 .window__view > .window__says {

@@ -524,6 +524,103 @@ describe('the view of a window', () => {
     expect(await steps('de')).toMatchObject({ items: [{ meter: { label: '9 von 12' } }, {}, {}] })
   })
 
+  it('gives cards their words, picture and buttons, and tiles no frame, leaving out a card that leads to a window the viewer may not see', async () => {
+    const picture = (
+      await payload.find({ collection: 'media', limit: 1, ...trusted, locale: 'en' })
+    ).docs[0] as Media
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'cards',
+            tiles: true,
+            columns: '2',
+            title: 'Kept for a grid',
+            join: true,
+            items: [
+              { title: 'A tile', surface: 'paper', picture: picture.id },
+              {
+                title: 'A statement',
+                surface: 'orange',
+                actions: [{ type: 'window', window: ids.work }],
+              },
+              {
+                title: 'About a hidden one',
+                surface: 'raised',
+                actions: [{ type: 'window', window: ids.vault, label: 'Hidden' }],
+              },
+            ],
+          },
+          {
+            blockType: 'cards',
+            title: 'Cards',
+            text: 'Under the title.',
+            columns: '3',
+            items: [{ title: 'A card', surface: 'raised', text: 'Its text.' }],
+          },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+
+    const [tiles, grid] = (await view('/views-sections', 'en')).window!.sections
+    expect(tiles).toEqual({
+      type: 'cards',
+      title: null,
+      text: null,
+      split: false,
+      join: false,
+      surface: 'window',
+      tiles: true,
+      columns: 2,
+      items: [
+        {
+          title: 'A tile',
+          text: null,
+          surface: 'paper',
+          picture: {
+            src: picture.url,
+            alt: picture.alt,
+            position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
+            live: picture.live ?? null,
+          },
+          actions: [],
+        },
+        {
+          title: 'A statement',
+          text: null,
+          surface: 'orange',
+          picture: null,
+          actions: [{ href: '/work', label: 'Work' }],
+        },
+      ],
+    })
+    expect(grid).toMatchObject({
+      type: 'cards',
+      title: 'Cards',
+      text: 'Under the title.',
+      split: true,
+      tiles: false,
+      columns: 3,
+      items: [{ title: 'A card', text: 'Its text.', surface: 'raised', actions: [] }],
+    })
+    // An invited visitor sees the card that leads to the window on their list.
+    const [shown] = (await view('/views-sections', 'en', invited)).window!.sections
+    expect(shown).toMatchObject({
+      items: [
+        {},
+        { actions: [{ label: 'Work' }] },
+        { title: 'About a hidden one', actions: [{ href: '/work/vault', label: 'Hidden' }] },
+      ],
+    })
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+  })
+
   it.each(languages)(
     'resolves the buttons of a Header, a window under its title when it has no label, in %s',
     async (language) => {

@@ -9,11 +9,12 @@ export function Heading(props: {
   eyebrow?: string
   title?: string
   text?: ReactNode
-  // The title of the page, which a window holds once.
+  // The title of the page, which a window holds once; one under the heading of a section ranks below it.
   page?: boolean
+  under?: boolean
 }) {
-  const { level, eyebrow, title, text, page } = props
-  const Title = page ? 'h1' : 'h2'
+  const { level, eyebrow, title, text, page, under } = props
+  const Title = page ? 'h1' : under ? 'h3' : 'h2'
 
   return (
     <div className="hgroup" data-level={level === 'title' ? undefined : level}>

@@ -232,6 +232,38 @@ const windows: Fixture[] = [
     },
   },
   {
+    slug: 'hello',
+    title: { en: 'Hello', de: 'Hallo' },
+    description: {
+      en: 'A fixture window of tiles that fill it.',
+      de: 'Ein Beispielfenster aus Kacheln, die es füllen.',
+    },
+    sections: (ids, { still }) => {
+      const tiles = (name: string, statement: string, download: string) => [
+        {
+          blockType: 'cards' as const,
+          tiles: true,
+          columns: '2' as const,
+          items: [
+            { title: name, text: 'A line under it', surface: 'paper' as const, picture: still },
+            {
+              title: statement,
+              surface: 'orange' as const,
+              actions: [
+                { type: 'window' as const, window: ids.work },
+                { type: 'media' as const, media: still, label: download },
+              ],
+            },
+          ],
+        },
+      ]
+      return {
+        en: tiles('A name', 'A window that says one thing.', 'Download'),
+        de: tiles('Ein Name', 'Ein Fenster, das eine Sache sagt.', 'Herunterladen'),
+      }
+    },
+  },
+  {
     slug: 'work',
     tile: 'orange',
     icon: 'grid',
@@ -423,6 +455,35 @@ const windows: Fixture[] = [
           })),
         },
         ...lists(ids),
+        {
+          blockType: 'cards',
+          title: 'Three cards',
+          columns: '3',
+          items: ['One', 'Two', 'Three'].map((title) => ({
+            title,
+            surface: 'raised' as const,
+            text: 'Text that says in a sentence or two what this is about.',
+            picture: still,
+          })),
+        },
+        {
+          blockType: 'cards',
+          columns: '2',
+          items: [
+            {
+              title: 'On paper',
+              surface: 'paper',
+              text: 'A card whose button opens a window under its title.',
+              actions: [{ type: 'window', window: ids.grow }],
+            },
+            {
+              title: 'On orange',
+              surface: 'orange',
+              text: 'A card whose button leads to a window only an invited visitor may see.',
+              actions: [{ type: 'window', window: ids.vault }],
+            },
+          ],
+        },
       ],
     }),
   },

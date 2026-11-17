@@ -25,6 +25,17 @@ export function Widths({ caps, children }: { caps: string[]; children: ReactNode
   )
 }
 
+// A window body of a fixed size, for what fills its window.
+export function Pane(props: { width: string; height: string; children: ReactNode }) {
+  const style = { width: props.width, height: props.height }
+
+  return (
+    <div className="cq box pane" data-surface="window" style={style}>
+      {props.children}
+    </div>
+  )
+}
+
 export function Doc({ text, children }: { text: string[]; children: ReactNode }) {
   return (
     <>

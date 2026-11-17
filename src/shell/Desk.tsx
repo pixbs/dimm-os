@@ -80,8 +80,10 @@ function Body({ view, width }: { view: WindowView; width: number }) {
   return (
     <>
       <div lang={view.lang}>
-        {/* A window that does not open with a Header still holds its title once. */}
-        {placed[0]?.type !== 'header' && <Header level="title" page title={view.frame.title} />}
+        {/* A window that opens with neither a Header nor tiles still holds its title once. */}
+        {placed[0]?.type !== 'header' && !(placed[0]?.type === 'cards' && placed[0].tiles) && (
+          <Header level="title" page title={view.frame.title} />
+        )}
         {placed.length > 0 && <Sections sections={placed} width={width} />}
         {items.length > 0 && (
           <Section>
