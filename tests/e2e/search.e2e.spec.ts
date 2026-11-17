@@ -46,6 +46,10 @@ test.describe('Search on a desk', () => {
     await page.keyboard.press('Escape')
     await expect(field(page)).toHaveValue('')
     await expect(options(page)).toHaveCount(all)
+    // The row in force stays in sight past the twelfth.
+    for (let at = 1; at < all; at++) await page.keyboard.press('ArrowDown')
+    await expect(options(page).last()).toHaveAttribute('aria-selected', 'true')
+    await expect(options(page).last()).toBeInViewport()
     await page.keyboard.press('Escape')
     await expect(palette(page)).toBeHidden()
     await expect(opener).toBeFocused()

@@ -16,7 +16,8 @@ export type Found = {
 // What was typed, and the row in force.
 export type Typed = { q: string; sel: number }
 
-type Press = Pick<KeyboardEvent, 'key' | 'code' | 'altKey'>
+type Press = Pick<KeyboardEvent, 'key' | 'code' | 'altKey'> &
+  Partial<Pick<KeyboardEvent, 'ctrlKey' | 'isComposing'>>
 
 const lower = (text: string) => text.toLocaleLowerCase()
 
@@ -47,9 +48,11 @@ export function pressed(
   count: number,
   press: Press,
 ): { typed: Typed } | { open: number } | { close: true } | null {
+  // A word being composed takes its own keys, and AltGr, which is Ctrl with Alt, types a character.
+  if (press.isComposing) return null
   const digit = /^Digit([1-9])$/.exec(press.code)
   // A number past the last row opens nothing, and types nothing either.
-  if (press.altKey && digit)
+  if (press.altKey && !press.ctrlKey && digit)
     return Number(digit[1]) <= count ? { open: Number(digit[1]) - 1 } : { typed }
   if (press.key === 'ArrowDown' || press.key === 'ArrowUp') {
     const sel = typed.sel + (press.key === 'ArrowDown' ? 1 : -1)

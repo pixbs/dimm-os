@@ -1,6 +1,6 @@
 'use client'
 
-import { type ChangeEvent, type KeyboardEvent, type MouseEvent, useId } from 'react'
+import { type ChangeEvent, type KeyboardEvent, type MouseEvent, useEffect, useId } from 'react'
 
 import type { Dictionary } from '@/i18n/en'
 import type { Named } from '@/i18n/keys'
@@ -13,7 +13,7 @@ import { Row } from '../molecules/Row'
 import { Dialog } from './Dialog'
 
 // A row: what leads to it, its title cut where the typed letters stand, its kind, and the keys that open it.
-export type Result = {
+type Result = {
   href: string
   lang?: string
   icon: IconName
@@ -51,7 +51,7 @@ type Props = {
 }
 
 // The id of a row, by which the field names the one in force.
-export const rowId = (palette: string, at: number) => `${palette}-${at}`
+const rowId = (palette: string, at: number) => `${palette}-${at}`
 
 // Search over everything: not a window, it has no title bar and no controls. A field that is a combobox, the rows it
 // found under the labels of their groups, and a bar of the keys with the count. It comes from 96 % at its own place, a
@@ -60,6 +60,10 @@ export function Palette(props: Props) {
   const { results, selected, t } = props
   const id = useId()
   const list = `${id}-list`
+  // The row in force stays in sight as the arrows move it and as the letters change.
+  useEffect(() => {
+    document.getElementById(rowId(id, selected))?.scrollIntoView({ block: 'nearest' })
+  }, [id, selected, props.value])
   // The rows of one group stand together under its label.
   const groups = results.reduce<{ label: string; rows: [Result, number][] }[]>((all, row, at) => {
     if (all.at(-1)?.label !== row.group) all.push({ label: row.group, rows: [] })

@@ -318,6 +318,8 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
       ]),
     )
     for (const title of hidden) expect(JSON.stringify(view)).not.toContain(title)
+    for (const slug of ['access-vault', 'access-secret', 'access-other-secret'])
+      expect(JSON.stringify(view)).not.toContain(`/${slug}`)
   })
 
   it('appear in no media listing or API answer', async () => {

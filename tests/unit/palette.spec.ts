@@ -106,4 +106,10 @@ describe('the palette', () => {
     expect(pressed({ q: 'pro', sel: 0 }, 4, key('a', 'KeyA'))).toBeNull()
     expect(pressed({ q: 'pro', sel: 0 }, 4, key('3', 'Digit3'))).toBeNull()
   })
+
+  it('leaves AltGr and a word being composed to the field', () => {
+    const altGr = { ...key('{', 'Digit7', true), ctrlKey: true }
+    expect(pressed({ q: 'pro', sel: 0 }, 9, altGr)).toBeNull()
+    expect(pressed({ q: 'pro', sel: 0 }, 4, { ...key('Enter'), isComposing: true })).toBeNull()
+  })
 })

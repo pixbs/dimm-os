@@ -66,6 +66,7 @@ function Shown(props: Props) {
   const self = useRef<HTMLDialogElement>(null)
   const y = useMotionValue('0%')
   const flung = useRef(0)
+  const beside = useRef(false)
   const [kept, setKept] = useState(false)
   const painted = usePainted()
 
@@ -130,9 +131,12 @@ function Shown(props: Props) {
         event.preventDefault()
         dismiss()
       }}
-      // A press on the backdrop lands on the dialog itself.
+      // A press on the backdrop lands on the dialog itself; one that began inside and ended beside it is a drag.
       onClick={(event) => {
-        if (props.className && event.target === event.currentTarget) dismiss()
+        if (props.className && beside.current && event.target === event.currentTarget) dismiss()
+      }}
+      onPointerDown={(event) => {
+        beside.current = event.target === event.currentTarget
       }}
       open={shown}
       ref={self}

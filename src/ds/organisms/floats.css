@@ -214,7 +214,8 @@
    it away. Its rows have no lines and move at once, so nothing animates while the visitor types. */
 .palette:not([data-drawer]) {
   &:modal {
-    margin-block-start: calc(var(--room, 0) + var(--s-12));
+    inset-block-start: var(--room, 0);
+    margin-block-start: var(--s-12);
   }
   & > .dialog__frame {
     width: var(--measure-wide);
