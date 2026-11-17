@@ -1034,6 +1034,23 @@ const de: Copy = {
       'Überschrift: Titel · Text | Anordnung: gestapelt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Spalten: 2 · 3',
       'Zeilen mit Spalten, höchstens drei, deshalb kann sie nicht geteilt stehen. Spaltenbeschriftungen haben die Größe der Zellen. Im kompakten Fenster faltet sie sich: Die erste Zelle wird zum Titel ihrer Zeile, die anderen stehen neben ihren Spaltenbeschriftungen.',
     ],
+    cards: [
+      'Karten',
+      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Spalten: 2 · 3 | Karte: Fläche · Bild · Aktionen',
+      'Karten in einem Raster. Drei nebeneinander im breiten Fenster, zwei im regulären, eine im kompakten. Neben einer Überschrift stehen drei zu zweit, damit ein Fenster nie mehr als drei Spalten hält.',
+    ],
+    cardCaps: [
+      'drei Spalten, raised, als Links',
+      'zwei Spalten, paper und orange, von Hand geschrieben',
+    ],
+    tiles: [
+      'Karten als Kacheln',
+      'Spalten: 1 · 2 | Karte: Fläche · Bild · Aktionen',
+      'Dieselben Karten als Kacheln: Sie füllen das Fenster, und es gibt keinen Abschnittsrahmen um sie. Für ein Fenster, das eine Aussage ist.',
+    ],
+    short: 'Titel',
+    statement: 'Ein Titel, der eine Sache sagt',
+    media: 'Medien',
     caps: ['geteilt', 'drei Spalten'],
     title: 'Überschrift des Abschnitts',
     label: 'Beschriftung',
@@ -1045,7 +1062,7 @@ const de: Copy = {
   },
   lists: {
     doc: [
-      'Organismen / Inhalt: Listen, Medien',
+      'Organismen / Inhalt: Listen, Karten, Medien',
       'Was in ein Fenster kommt. Jeder Organismus ordnet Moleküle auf eine Weise an und richtet sich nach der Breite seines Fensters. Keiner ist nach dem benannt, was er einmal enthält.',
     ],
     list: [
@@ -1094,6 +1111,34 @@ const de: Copy = {
       'Spalten: 2',
       'drei Zahlen',
     ],
+    card: [
+      'Karte',
+      'Fläche: raised · paper · orange · blue · mint | Teile: Medien · Meta · Überschrift · Fuß · Aktionen | Anordnung: Medien darüber · Medien daneben | Zustand: Standard · Hover · gedrückt · Fokus',
+      'Eine Fläche, die einen Eintrag trägt. Was auf ihr steht, folgt der Fläche. Als Link wird die ganze Karte gedrückt. Aktionen sind eine Button-Gruppe bündig an ihrer Unterkante, und ein Button, der ein Fenster öffnet, trägt dessen Titel. Die Meta-Zeile hält ein oder zwei Dinge, das erste am Anfang, das letzte am Ende. Medien stehen nur neben dem Text, wenn die Karte die Reihe für sich hat. Karten in einem Raster kommen entlang der Streuung an, sobald sie zum ersten Mal zu sehen sind.',
+    ],
+    cards: [
+      'raised, Medien, Link',
+      'Hover',
+      'ohne Medien',
+      'paper, mit Aktionen',
+      'orange',
+      'blue · mint',
+      'Medien daneben, im regulären und breiten Fenster',
+    ],
+    tiles: [
+      'Kacheln',
+      'Spalten: 1 · 2 | Karten: jede Karte',
+      'Karten, die ihr Fenster füllen, einen Schritt voneinander, ohne Abschnittsrahmen. Eine Kachel ist so hoch, wie das Fenster es zulässt, deshalb steht ihre Überschrift in der Mitte ihres Raums und ihre Aktionen unten, und sie füllt das Fenster weiter, während es seine Größe ändert. Medien stehen in der unteren Ecke am Ende: ab 600 px nehmen sie den Raum, den der Text lässt, im kompakten Fenster liegen sie unter dem Text. Eine Kachel mit Medien ist auf Titelebene benannt, eine ohne sagt eine Sache auf Display-Ebene.',
+    ],
+    tileCaps: [
+      'regulär und breit: zwei nebeneinander, so hoch wie das Fenster',
+      'kompakt: gestapelt, Medien unter dem Text',
+    ],
+    statement: 'Ein Titel, der eine Sache sagt',
+    label: 'Beschriftung',
+    link: 'Link',
+    text: 'Text.',
+    media: 'Medien',
     caption: 'Bildunterschrift.',
     column: 'Spalte',
     cell: 'Zelle',

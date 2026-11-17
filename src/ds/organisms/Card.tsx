@@ -66,8 +66,9 @@ export function Card(props: CardProps) {
         />
         {props.foot && <div className="card__foot">{props.foot}</div>}
       </div>
+      {/* Two at most, they stay side by side at every width. */}
       {actions.length > 0 && (
-        <ButtonGroup>
+        <ButtonGroup cells>
           {actions.map((to, at) => (
             <ButtonLink
               download={to.download}

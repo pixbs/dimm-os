@@ -349,7 +349,7 @@
   margin-top: auto;
   padding-top: var(--s-4);
 }
-/* Its actions are a button group flush with its edges; stacked, each keeps the line under it but for the last. */
+/* Its actions are a button group flush with its edges. */
 .card > .btngroup > .btn {
   border-block-end-style: none;
 
@@ -358,15 +358,6 @@
   }
   &:last-child {
     border-inline-end-style: none;
-  }
-}
-@container (width < 600px) {
-  .card > .btngroup:not([data-width='hug'], [data-cells]) > .btn {
-    border-inline-style: none;
-
-    &:not(:last-child) {
-      border-block-end-style: solid;
-    }
   }
 }
 @container (min-width: 600px) {
