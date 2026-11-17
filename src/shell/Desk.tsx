@@ -368,18 +368,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         )
   }, [desk, language])
 
-  // Places are written only while windows are remembered, and forgotten when they are not; a window is kept by its
-  // own path, so no item it showed is named in the taskbar before its view says who may see it.
+  // Places are written once the desk is measured, only while windows are remembered, and forgotten when they are not;
+  // a window is kept by its own path, and only once its view says it is not hidden, so the taskbar names nothing a
+  // later viewer may not see.
   const remember = useSetting('remember')
   useEffect(() => {
-    if (!restored.current || remember === null) return
+    if (!restored.current || remember === null || !desk.desk) return
+    const kept = desk.open.filter(
+      (one) => one.placed && (one.view ? !one.view.hidden : unloaded.current.has(one.path)),
+    )
     try {
       if (remember === 'on')
         localStorage.setItem(
           PLACES,
-          JSON.stringify(
-            desk.open.filter((one) => one.placed).map(({ path, box }) => ({ at: path, box })),
-          ),
+          JSON.stringify(kept.map(({ path, box }) => ({ at: path, box }))),
         )
       else localStorage.removeItem(PLACES)
     } catch {

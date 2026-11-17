@@ -62,6 +62,8 @@ export type WindowView = {
   // The address the 404 window answers, which its bar shows.
   asked?: string
   lang?: Language
+  // A window of a hidden app, which no device keeps.
+  hidden?: boolean
   // The tile of the window's app marks it in the taskbar; one size means no full screen and nothing to pull.
   frame: { title: string; kind: string | null; tile: Tile | null; oneSize?: boolean }
   sections: Section[]
@@ -112,6 +114,7 @@ const fields = {
   key: true,
   oneSize: true,
   openAtStart: true,
+  hidden: true,
   sections: true,
   description: true,
   cover: true,
@@ -376,6 +379,7 @@ async function views(language: Language, viewer: Viewer) {
     return {
       path: one.path,
       lang: other(one.lang),
+      hidden: app.doc.hidden || undefined,
       frame: {
         title: doc.title,
         kind: doc.kind ?? null,
