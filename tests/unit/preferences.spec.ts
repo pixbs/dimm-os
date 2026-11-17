@@ -6,7 +6,7 @@ import type { WindowView } from '@/data/views'
 import { apply, change, settings } from '@/ds/atoms/settings'
 import { turned } from '@/ds/molecules/Dial'
 import { Lamps } from '@/ds/molecules/Lamps'
-import { manager, start } from '@/shell/manager'
+import { type Action, manager, start } from '@/shell/manager'
 
 // A device as the head script finds it: what it asks for, and a storage that may refuse.
 function device(asks: string[] = [], blocked = false) {
@@ -103,10 +103,10 @@ describe('Preferences', () => {
 
   it('keeps remembered windows in the taskbar where they stood, their views unloaded', () => {
     const box = { x: 320, y: 96, w: 640, h: 400 }
-    const desk = [
+    const desk: Action[] = [
       { type: 'desk', w: 1440, h: 820 },
       { type: 'remember', windows: [{ at: '/work/one', box }] },
-    ] as const
+    ]
     const after = desk.reduce(manager, start(view('/welcome')))
     const work = after.open.find((one) => one.path === '/work')!
     expect(work).toMatchObject({ at: '/work/one', mode: 'min', view: null, box, placed: true })
