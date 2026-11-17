@@ -14,7 +14,7 @@ let expired: Visitor
 
 const languages = ['en', 'de'] as const
 const names = ['Views, invited', 'Views, expired']
-const made = ['views-draft-parent', 'views-orphan']
+const made = ['views-draft-parent', 'views-orphan', 'views-sections']
 const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
 
 // The view of a path that has a window.
@@ -71,14 +71,180 @@ afterAll(async () => {
   await fill(payload)
 })
 
+// Running text as the editor stores it: a paragraph with a link of each kind between its words.
+const linked = (...links: object[]) => ({
+  root: {
+    type: 'root',
+    direction: 'ltr',
+    format: '',
+    indent: 0,
+    version: 1,
+    children: [
+      {
+        type: 'paragraph',
+        direction: 'ltr',
+        format: '',
+        indent: 0,
+        version: 1,
+        textFormat: 0,
+        textStyle: '',
+        children: links.map((fields, at) => ({
+          type: 'link',
+          direction: 'ltr',
+          format: '',
+          indent: 0,
+          version: 1,
+          fields: { newTab: false, ...fields },
+          children: [
+            {
+              type: 'text',
+              text: `link ${at}`,
+              format: 0,
+              detail: 0,
+              mode: 'normal',
+              style: '',
+              version: 1,
+            },
+          ],
+        })),
+      },
+    ],
+  },
+})
+
 describe('the view of a window', () => {
-  it('is plain JSON, with its words as HTML', async () => {
+  it('is plain JSON: its sections as data, and running text as HTML made on the server', async () => {
     const grow = await view('/work/grow', 'en')
 
     expect(JSON.parse(JSON.stringify(grow))).toEqual(grow)
-    expect(grow.window?.sections).toEqual([
-      { type: 'text', html: '<p>A fixture item that every guest may open.</p>' },
+    // Nothing of Payload travels with it: no block, no node of the editor, no id.
+    expect(JSON.stringify(grow)).not.toMatch(/"(id|blockType|blockName|root|children|fields)":/)
+    expect(grow.window?.sections.slice(0, 3)).toEqual([
+      {
+        type: 'header',
+        level: 'title',
+        surface: 'window',
+        title: 'Grow',
+        text: 'A fixture item that every guest may open. Its lead paragraph says in a sentence or two what the window holds.',
+        actions: [],
+      },
+      {
+        type: 'text',
+        title: 'The question',
+        text: null,
+        split: true,
+        join: false,
+        html: '<p>A paragraph of running text. It says what there is to say in full sentences and wraps at the measure of prose.</p><p>A second paragraph, shorter than the first.</p>',
+      },
+      expect.objectContaining({
+        html: expect.stringMatching(/^<h3>A heading inside the text<\/h3><p>/),
+      }),
     ])
+  })
+
+  it.each(languages)(
+    'lets a section join the one above it under its heading, in %s',
+    async (language) => {
+      const sections = (await view('/work/grow', language)).window!.sections
+
+      expect(sections.map((section) => section.type === 'text' && section.join)).toEqual([
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+      ])
+      // A joined section has no heading of its own.
+      expect(sections[3]).toMatchObject({ title: null, text: null })
+    },
+  )
+
+  it('gives a Header nothing to join, since it has no body to share', async () => {
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          { blockType: 'header', title: 'Sections' },
+          { blockType: 'text', join: true, body: linked({ linkType: 'custom', url: '/work' }) },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+
+    expect((await view('/views-sections', 'en')).window?.sections[1]).toMatchObject({ join: false })
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+  })
+
+  it.each(languages)(
+    'resolves the buttons of a Header, a window under its title when it has no label, in %s',
+    async (language) => {
+      const grow = await view('/work/grow', language)
+
+      expect(grow.window?.sections.at(-1)).toMatchObject({
+        type: 'header',
+        level: 'heading',
+        surface: 'orange',
+        actions: [
+          {
+            href: { en: '/contact', de: '/de/contact' }[language],
+            label: { en: 'Contact', de: 'Kontakt' }[language],
+          },
+        ],
+      })
+    },
+  )
+
+  it('leaves out a button and a link to a window the viewer may not see, and marks a link that leaves', async () => {
+    await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'header',
+            title: 'Sections',
+            actions: [
+              { type: 'window', window: ids.vault },
+              { type: 'window', window: ids.work, label: 'Back' },
+              { type: 'address', url: 'https://example.com', label: 'Away' },
+            ],
+          },
+          {
+            blockType: 'text',
+            body: linked(
+              { linkType: 'internal', doc: { relationTo: 'windows', value: ids.vault } },
+              { linkType: 'internal', doc: { relationTo: 'windows', value: ids.work } },
+              { linkType: 'custom', url: 'https://example.com' },
+            ),
+          },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+
+    const [header, text] = (await view('/views-sections', 'en')).window!.sections
+    expect(header).toMatchObject({
+      actions: [
+        { href: '/work', label: 'Back' },
+        { href: 'https://example.com', label: 'Away' },
+      ],
+    })
+    expect(text).toMatchObject({
+      html: expect.stringMatching(
+        /^<p>link 0<a class="link" href="\/work">link 1<\/a><a class="link" href="https:\/\/example.com">link 2<svg .*<\/svg><\/a><\/p>$/,
+      ),
+    })
+
+    const [shown] = (await view('/views-sections', 'en', invited)).window!.sections
+    expect(shown).toMatchObject({ actions: [{ href: '/work/vault', label: 'Vault' }, {}, {}] })
   })
 
   it('gives each window one path in each language, and its shortcut in its order', async () => {
@@ -100,7 +266,7 @@ describe('the view of a window', () => {
     expect(en.keys).toEqual(
       ['W', 'S', 'C', 'K'].map((key, at) => ({ key, path: en.shortcuts[at].href })),
     )
-    expect(de.window?.sections[1]).toMatchObject({
+    expect(de.window?.sections.at(-1)).toMatchObject({
       items: [{ href: '/de/work/grow' }, { href: '/de/work/field' }, { href: '/de/work/loop' }],
     })
     expect(en.window).toMatchObject({ count: 3, parent: null, counters: null })
@@ -198,7 +364,7 @@ describe('German that is not written yet', () => {
     const loop = await view('/work/loop', 'de')
     const field = await view('/work/field', 'de')
 
-    expect(work.window?.sections[1]).toMatchObject({
+    expect(work.window?.sections.at(-1)).toMatchObject({
       items: [{ title: 'Grow' }, { title: 'Feld' }, { title: 'Loop', lang: 'en' }],
     })
     expect(work.window?.lang).toBeUndefined()
@@ -206,7 +372,7 @@ describe('German that is not written yet', () => {
       lang: 'en',
       frame: { title: 'Loop' },
       parent: { title: 'Arbeit' },
-      sections: [{ html: '<p>A fixture item not yet written in German.</p>' }],
+      sections: [{ type: 'header', title: 'Loop' }],
     })
     expect(field.window?.neighbours.next).toEqual({
       href: '/de/work/loop',

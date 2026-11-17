@@ -5,9 +5,89 @@ import type { Window } from '@/payload-types'
 // Words in English and, where it is written, in German.
 type Words = { en: string; de?: string }
 
+type Sections = NonNullable<Window['sections']>
+
 type Fixture = Partial<
   Pick<Window, 'kind' | 'hidden' | 'tile' | 'icon' | 'key' | 'oneSize' | 'openAtStart'>
-> & { slug: string; parent?: string; title: Words; description: Words }
+> & {
+  slug: string
+  parent?: string
+  title: Words
+  description: Words
+  // Made once every window has its id, so a section can link to any of them.
+  sections?: (ids: Record<string, number>) => { en: Sections; de?: Sections }
+}
+
+// Running text as the editor stores it, from paragraphs, third-level headings and lists of plain words.
+type Part = string | { h3: string } | { ul: string[] }
+const element = { direction: 'ltr', format: '', indent: 0, version: 1 } as const
+const words = (text: string) => [
+  { type: 'text', text, format: 0, detail: 0, mode: 'normal', style: '', version: 1 } as const,
+]
+const rich = (...parts: Part[]) => ({
+  root: {
+    ...element,
+    type: 'root' as const,
+    children: parts.map((part) =>
+      typeof part === 'string'
+        ? {
+            ...element,
+            type: 'paragraph' as const,
+            textFormat: 0,
+            textStyle: '',
+            children: words(part),
+          }
+        : 'h3' in part
+          ? { ...element, type: 'heading' as const, tag: 'h3' as const, children: words(part.h3) }
+          : {
+              ...element,
+              type: 'list' as const,
+              listType: 'bullet' as const,
+              tag: 'ul' as const,
+              start: 1,
+              children: part.ul.map((item, at) => ({
+                ...element,
+                type: 'listitem' as const,
+                value: at + 1,
+                children: words(item),
+              })),
+            },
+    ),
+  },
+})
+
+// A window told at length: a Header with a lead, text beside its headings, a part that joins the section above,
+// running text without a heading, and a closing call on an accent to another window.
+const told = (
+  to: number,
+  t: {
+    title: string
+    lead: string
+    question: string[]
+    changed: [string, string, string]
+    joined: string
+    closing: string[]
+    call: string
+  },
+): Sections => [
+  { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
+  { blockType: 'text', title: t.question[0], split: true, body: rich(...t.question.slice(1)) },
+  {
+    blockType: 'text',
+    title: t.changed[0],
+    split: true,
+    body: rich({ h3: t.changed[1] }, t.changed[2]),
+  },
+  { blockType: 'text', join: true, body: rich(t.joined) },
+  { blockType: 'text', body: rich(...t.closing) },
+  {
+    blockType: 'header',
+    level: 'heading',
+    surface: 'orange',
+    title: t.call,
+    actions: [{ type: 'window', window: to }],
+  },
+]
 
 // Neutral windows that show every way the desk reads the content, parents before their items.
 const windows: Fixture[] = [
@@ -42,6 +122,43 @@ const windows: Fixture[] = [
       en: 'A fixture item that every guest may open.',
       de: 'Ein Beispieleintrag, den jeder Gast öffnen darf.',
     },
+    sections: (ids) => ({
+      en: told(ids.contact, {
+        title: 'Grow',
+        lead: 'A fixture item that every guest may open. Its lead paragraph says in a sentence or two what the window holds.',
+        question: [
+          'The question',
+          'A paragraph of running text. It says what there is to say in full sentences and wraps at the measure of prose.',
+          'A second paragraph, shorter than the first.',
+        ],
+        changed: [
+          'What changed',
+          'A heading inside the text',
+          'A paragraph under a heading of its own. It runs over several lines in a narrow window and keeps to the measure in a wide one, wherever the window ends.',
+        ],
+        joined: 'A part that joins the section above and stands under its heading.',
+        closing: ['Running text without a heading of its own.', 'A second paragraph after it.'],
+        call: 'A closing line that asks for one thing',
+      }),
+      de: told(ids.contact, {
+        title: 'Grow',
+        lead: 'Ein Beispieleintrag, den jeder Gast öffnen darf. Sein Vorspann sagt in ein, zwei Sätzen, was das Fenster enthält.',
+        question: [
+          'Die Frage',
+          'Ein Absatz Fließtext. Er sagt in ganzen Sätzen, was zu sagen ist, und bricht am Maß des Fließtexts um.',
+          'Ein zweiter Absatz, kürzer als der erste.',
+        ],
+        changed: [
+          'Was sich geändert hat',
+          'Eine Überschrift im Text',
+          'Ein Absatz unter einer eigenen Überschrift. In einem schmalen Fenster läuft er über mehrere Zeilen, in einem breiten hält er das Maß, wo das Fenster auch endet.',
+        ],
+        joined:
+          'Ein Teil, der an den Abschnitt darüber anschließt und unter dessen Überschrift steht.',
+        closing: ['Fließtext ohne eigene Überschrift.', 'Ein zweiter Absatz danach.'],
+        call: 'Eine Schlusszeile, die um eine Sache bittet',
+      }),
+    }),
   },
   {
     slug: 'field',
@@ -56,6 +173,17 @@ const windows: Fixture[] = [
     kind: 'case',
     title: { en: 'Loop' },
     description: { en: 'A fixture item not yet written in German.' },
+    sections: () => ({
+      en: [
+        {
+          blockType: 'header',
+          level: 'title',
+          surface: 'window',
+          title: 'Loop',
+          text: 'A fixture item not yet written in German.',
+        },
+      ],
+    }),
   },
   {
     slug: 'vault',
@@ -78,6 +206,26 @@ const windows: Fixture[] = [
       en: 'A fixture window for a second app.',
       de: 'Ein Beispielfenster für eine zweite App.',
     },
+    sections: () => ({
+      en: [
+        {
+          blockType: 'header',
+          level: 'title',
+          surface: 'window',
+          title: 'Services',
+          text: 'A fixture window for a second app. Its lead paragraph opens the window and says what the visitor will find in it.',
+        },
+      ],
+      de: [
+        {
+          blockType: 'header',
+          level: 'title',
+          surface: 'window',
+          title: 'Leistungen',
+          text: 'Ein Beispielfenster für eine zweite App. Sein Vorspann öffnet das Fenster und sagt, was Besucher darin finden.',
+        },
+      ],
+    }),
   },
   {
     slug: 'cv',
@@ -153,7 +301,7 @@ const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess:
 // Makes the fixture's windows, or brings them back to it, each published in the languages it is written in.
 export async function fill(payload: Payload): Promise<Record<string, number>> {
   const ids: Record<string, number> = {}
-  for (const { slug, parent, title, description, ...shared } of windows) {
+  for (const { slug, parent, title, description, sections: _, ...shared } of windows) {
     const {
       docs: [found],
     } = await payload.find({
@@ -191,6 +339,22 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
         ...trusted,
       })
     ids[slug] = id
+  }
+  for (const { slug, sections } of windows) {
+    const { en, de } = sections?.(ids) ?? {}
+    for (const [locale, made] of [
+      ['en', en],
+      ['de', de],
+    ] as const) {
+      if (made)
+        await payload.update({
+          collection: 'windows',
+          id: ids[slug],
+          data: { sections: made },
+          locale,
+          ...trusted,
+        })
+    }
   }
 
   await payload.updateGlobal({

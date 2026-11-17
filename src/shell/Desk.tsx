@@ -18,6 +18,8 @@ import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import { MenuBar } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
+import { Header } from '@/ds/sections/Header'
+import { Section } from '@/ds/sections/Section'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
@@ -27,6 +29,7 @@ import { keyAction } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
+import { Sections } from './Sections'
 
 const STORE = 'windows'
 
@@ -67,21 +70,23 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
-// What a window says until its sections arrive: its title, its text and its items, in the language they are in,
-// and as an item the way to its neighbours, which ends its body.
+// A window's sections in the language they are in, its title until it has any, the list of its items, and as an
+// item the way to its neighbours, which ends its body.
 function Body({ view }: { view: WindowView }) {
-  const { parent, neighbours } = view
+  const { parent, neighbours, sections } = view
   const before = neighbours.previous ?? parent
+  const placed = sections.filter((section) => section.type !== 'list')
+  const items = sections.flatMap((section) => (section.type === 'list' ? section.items : []))
   return (
-    <div style={{ padding: 'var(--inset)' }}>
+    <>
       <div lang={view.lang}>
-        <h1>{view.frame.title}</h1>
-        {view.sections.map((section, index) =>
-          section.type === 'text' ? (
-            <div dangerouslySetInnerHTML={{ __html: section.html }} key={index} />
-          ) : (
-            <ul key={index}>
-              {section.items.map((item) => (
+        {/* A window that does not open with a Header still holds its title once. */}
+        {placed[0]?.type !== 'header' && <Header level="title" page title={view.frame.title} />}
+        {placed.length > 0 && <Sections sections={placed} />}
+        {items.length > 0 && (
+          <Section>
+            <ul>
+              {items.map((item) => (
                 <li key={item.href}>
                   <a href={item.href} lang={item.lang}>
                     {item.title}
@@ -89,36 +94,38 @@ function Body({ view }: { view: WindowView }) {
                 </li>
               ))}
             </ul>
-          ),
+          </Section>
         )}
       </div>
       {before && (
-        <nav>
-          <ButtonGroup>
-            <ButtonLink
-              href={before.href}
-              hrefLang={before.lang}
-              icon="arrow-left"
-              label={before.title}
-              lang={before.lang}
-              rel={neighbours.previous ? 'prev' : undefined}
-              tone="outline"
-            />
-            {neighbours.next && (
+        <Section>
+          <nav>
+            <ButtonGroup>
               <ButtonLink
-                end="arrow-right"
-                href={neighbours.next.href}
-                hrefLang={neighbours.next.lang}
-                label={neighbours.next.title}
-                lang={neighbours.next.lang}
-                rel="next"
+                href={before.href}
+                hrefLang={before.lang}
+                icon="arrow-left"
+                label={before.title}
+                lang={before.lang}
+                rel={neighbours.previous ? 'prev' : undefined}
                 tone="outline"
               />
-            )}
-          </ButtonGroup>
-        </nav>
+              {neighbours.next && (
+                <ButtonLink
+                  end="arrow-right"
+                  href={neighbours.next.href}
+                  hrefLang={neighbours.next.lang}
+                  label={neighbours.next.title}
+                  lang={neighbours.next.lang}
+                  rel="next"
+                  tone="outline"
+                />
+              )}
+            </ButtonGroup>
+          </nav>
+        </Section>
       )}
-    </div>
+    </>
   )
 }
 

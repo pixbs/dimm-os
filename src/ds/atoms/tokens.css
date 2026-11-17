@@ -53,7 +53,7 @@
   --s-8: 32px;
   --s-12: 48px;
 
-  /* size: two control heights, two glyph sizes, one dot, three fixed widths */
+  /* size: two control heights, two glyph sizes, one dot, four fixed widths */
   --h-compact: 32px;
   --h-regular: 48px;
   --g-s: 16px;
@@ -63,6 +63,8 @@
   --w-popover: 320px;
   --w-dialog: 480px;
   --measure: 560px;
+  /* a heading, a lead paragraph and a list run wider than a paragraph of prose */
+  --measure-wide: 640px;
   /* a screen as high as the browser's window, whatever its bars take */
   --h-screen: 100dvh;
 

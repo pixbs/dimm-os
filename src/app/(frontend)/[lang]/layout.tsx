@@ -1,6 +1,7 @@
 import '@/ds/atoms/index.css'
 import '@/ds/molecules/index.css'
 import '@/ds/organisms/index.css'
+import '@/ds/sections/index.css'
 
 import { Inter_Tight, JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'

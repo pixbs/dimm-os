@@ -73,7 +73,7 @@ export function ButtonLink({
   size,
   ...rest
 }: AnchorHTMLAttributes<HTMLAnchorElement> &
-  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size'> & { tone?: 'outline' }) {
+  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size' | 'tone'>) {
   return (
     <a
       aria-disabled={rest.href ? undefined : true}
@@ -83,6 +83,7 @@ export function ButtonLink({
       className="btn"
       data-icon={label ? undefined : ''}
       data-size={size}
+      data-surface={tone === 'solid' ? 'inverted' : undefined}
       data-tone={tone}
     >
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}

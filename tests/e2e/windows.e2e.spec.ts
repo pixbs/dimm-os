@@ -75,6 +75,23 @@ test.describe('A window in the admin', () => {
     await expect(page.locator('#field-title')).toHaveValue(`Parent ${stamp}`)
   })
 
+  test('offers its sections in the block picker, each with its preview', async ({ page }) => {
+    const response = await page.request.post('/api/windows?locale=en', {
+      data: { title: `Sections ${stamp}` },
+    })
+    const { doc } = await response.json()
+    made.push(doc.id)
+
+    await page.goto(`/admin/collections/windows/${doc.id}`)
+    await page.getByRole('tab', { name: 'Sections', exact: true }).click()
+    await page.getByRole('button', { name: 'Add Section' }).click()
+    for (const name of ['Header', 'Text']) {
+      await expect(
+        page.getByRole('img', { name: `Preview of the ${name} section` }),
+      ).toHaveAttribute('src', `/block-previews/${name.toLowerCase()}.png`)
+    }
+  })
+
   test('hides on an item the fields that do not apply to it', async ({ page }) => {
     const create = async (data: object) => {
       const response = await page.request.post('/api/windows?locale=en', { data })

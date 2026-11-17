@@ -9,6 +9,8 @@ import {
 import { relationship } from 'payload/shared'
 
 import { signedIn } from '@/access'
+import { Header } from '@/blocks/header/config'
+import { Text } from '@/blocks/text/config'
 import { icons } from '@/ds/atoms/icons'
 import { buttons } from '@/fields/link'
 import { facts } from '@/fields/facts'
@@ -123,8 +125,19 @@ export const Windows: CollectionConfig = {
     { name: 'title', type: 'text', localized: true, maxLength: 24, required: true },
     {
       type: 'tabs',
-      // The tab Sections, a localised blocks field, comes with its first block: Payload's admin fails on one without blocks.
       tabs: [
+        {
+          label: 'Sections',
+          fields: [
+            {
+              name: 'sections',
+              type: 'blocks',
+              localized: true,
+              labels: { singular: 'Section', plural: 'Sections' },
+              blocks: [Header, Text],
+            },
+          ],
+        },
         {
           label: 'Window',
           fields: [

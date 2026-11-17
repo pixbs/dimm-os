@@ -8,13 +8,16 @@ export function Heading(props: {
   eyebrow?: string
   title: string
   text?: ReactNode
+  // The title of the page, which a window holds once.
+  page?: boolean
 }) {
-  const { level, eyebrow, title, text } = props
+  const { level, eyebrow, title, text, page } = props
+  const Title = page ? 'h1' : 'h2'
 
   return (
     <div className="hgroup" data-level={level === 'title' ? undefined : level}>
       {eyebrow && <p className="hgroup__eyebrow">{eyebrow}</p>}
-      <h2 className="hgroup__title">{title}</h2>
+      <Title className="hgroup__title">{title}</Title>
       {text && <p className="hgroup__text">{text}</p>}
     </div>
   )
