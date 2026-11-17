@@ -248,7 +248,7 @@ test.describe('Drawer', () => {
       ['Services', 'c'],
       ['CV', 'k'],
     ]) {
-      await expect(drawer(page, name).getByRole('heading')).toBeFocused()
+      await expect(drawer(page, name).getByRole('heading', { level: 1 })).toBeFocused()
       await page.keyboard.press(key)
     }
     const [work, services, cv, contact] = ['Work', 'Services', 'CV', 'Contact'].map((name) =>
