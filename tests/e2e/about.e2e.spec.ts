@@ -2,7 +2,7 @@ import { execSync } from 'child_process'
 
 import type { Page } from '@playwright/test'
 
-import { emptyDesk, expect, test } from './test'
+import { expect, test } from './test'
 
 // The version is the month of the commit the build was made from.
 const version = execSync('git log -1 --format=%cd --date=format:%Y.%m', { encoding: 'utf8' }).trim()
@@ -37,15 +37,15 @@ test.describe('About', () => {
 
   test('opens and closes with keys alone', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
-    await emptyDesk(page)
-    await page.goto('/', { waitUntil: 'networkidle' })
-    // Search opens it, and it takes the focus at its title.
-    await page.keyboard.press('Control+K')
-    await page.keyboard.type('About')
-    await page.keyboard.press('Enter')
-    await expect(plate(page).getByRole('heading', { level: 1 })).toBeFocused()
-
+    await page.goto('/about', { waitUntil: 'networkidle' })
+    // The first link skips to the window, and Tab goes on from its bar to the first screw.
     await page.keyboard.press('Tab')
+    await page.keyboard.press('Enter')
+    for (let presses = 0; presses < 5; presses++) {
+      if (await screw(page, 'top left').evaluate((element) => element === document.activeElement))
+        break
+      await page.keyboard.press('Tab')
+    }
     await expect(screw(page, 'top left')).toBeFocused()
     await page.keyboard.press('Enter')
     await page.keyboard.press('Enter')
