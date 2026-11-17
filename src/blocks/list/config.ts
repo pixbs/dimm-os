@@ -9,6 +9,7 @@ import { number } from 'payload/shared'
 
 import { icons } from '@/ds/atoms/icons'
 import { address, buttons } from '@/fields/link'
+import { listing, source, written } from '@/fields/source'
 
 import { frame } from '../frame'
 
@@ -41,9 +42,9 @@ const leads: TextFieldSingleValidation = (value, options) =>
     ? 'Choose a window or give an address.'
     : address(value, options)
 
-// A meter counts whole dots, and lights no more than it has.
+// A meter counts whole dots, and lights no more than it has; a list shows whole rows.
 const whole: NumberFieldSingleValidation = (value, options) =>
-  value == null || Number.isInteger(value) ? number(value, options) : 'A whole number of dots.'
+  value == null || Number.isInteger(value) ? number(value, options) : 'A whole number.'
 const lit: NumberFieldSingleValidation = (value, options) => {
   const of = (options.siblingData as { of?: number | null }).of
   if (value != null && of == null) return 'Give the number of dots in all.'
@@ -61,6 +62,7 @@ export const List: Block = {
   },
   fields: [
     ...frame({ split: true, join: true, surface: true }).map(headless),
+    source,
     {
       type: 'row',
       fields: [
@@ -98,6 +100,28 @@ export const List: Block = {
       ],
     },
     {
+      type: 'row',
+      fields: [
+        {
+          name: 'filter',
+          type: 'checkbox',
+          admin: {
+            condition: listing,
+            description: 'By what the items relate to, in the toolbar.',
+            width: '50%',
+          },
+        },
+        {
+          name: 'limit',
+          type: 'number',
+          label: 'Rows at most',
+          min: 1,
+          validate: whole,
+          admin: { condition: listing, width: '50%' },
+        },
+      ],
+    },
+    {
       name: 'endLabel',
       type: 'text',
       label: 'End label',
@@ -107,6 +131,7 @@ export const List: Block = {
       name: 'items',
       type: 'array',
       labels: { singular: 'Item', plural: 'Items' },
+      admin: { condition: written },
       fields: [
         {
           type: 'row',

@@ -10,13 +10,15 @@ import {
   useState,
 } from 'react'
 
+import type { ListView } from '@/blocks/list/view'
 import type { View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
-import { MenuBar } from '@/ds/organisms/Menu'
+import { Decipher } from '@/ds/motion/Decipher'
+import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
 import { Section } from '@/ds/sections/Section'
@@ -25,11 +27,12 @@ import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 
 import { Clock } from './Clock'
+import { type Chosen, filtered } from './filtered'
 import { keyAction } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
-import { Sections } from './Sections'
+import { type Placed, Sections } from './Sections'
 
 const STORE = 'windows'
 
@@ -70,34 +73,23 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
-// A window's sections in the language they are in, its title until it has any, the list of its items, and as an
-// item the way to its neighbours, which ends its body.
-function Body({ view, width }: { view: WindowView; width: number }) {
-  const { parent, neighbours, sections } = view
+// A window's sections in the language they are in, its title until it has any, and as an item the way to its
+// neighbours, which ends its body.
+function Body({ view, sections, width }: { view: WindowView; sections: Placed[]; width: number }) {
+  const { parent, neighbours } = view
   const before = neighbours.previous ?? parent
-  const placed = sections.filter((section) => section.type !== 'items')
-  const items = sections.flatMap((section) => (section.type === 'items' ? section.items : []))
+  const [first] = sections
   return (
     <>
       <div lang={view.lang}>
-        {/* A window that opens with neither a Header nor tiles still holds its title once. */}
-        {placed[0]?.type !== 'header' && !(placed[0]?.type === 'cards' && placed[0].tiles) && (
-          <Header level="title" page title={view.frame.title} />
-        )}
-        {placed.length > 0 && <Sections sections={placed} width={width} />}
-        {items.length > 0 && (
-          <Section>
-            <ul>
-              {items.map((item) => (
-                <li key={item.href}>
-                  <a href={item.href} lang={item.lang}>
-                    {item.title}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </Section>
-        )}
+        {/* A window that opens with neither a Header, nor tiles, nor the list of its own items, which its bar names and
+            its toolbar counts, still holds its title once. */}
+        {first?.type !== 'header' &&
+          !(first?.type === 'cards' && first.tiles) &&
+          !(first?.type === 'list' && first.here) && (
+            <Header level="title" page title={view.frame.title} />
+          )}
+        {sections.length > 0 && <Sections sections={sections} width={width} />}
       </div>
       {before && (
         <Section>
@@ -131,15 +123,48 @@ function Body({ view, width }: { view: WindowView; width: number }) {
   )
 }
 
+// What the filter of a window holds: the choice in force, the way to change it, and on a phone how many of its menus,
+// which are drawers there, stand in front of the window.
+type Filter = {
+  chosen: Chosen | null
+  choose: (chosen: Chosen | null) => void
+  drawer: boolean
+  onDepth: (depth: number) => void
+}
+
 // The parts of a window its view derives: an item's path line, with the way back to its window and its place
-// among the items; the count of a window's items; and a line where it is shown in English, or where it answers
-// an address with nothing.
-function parts(view: WindowView, t: Dictionary, language: Language, width: number): Parts {
-  const { parent, counters, count } = view
-  const items = (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
-    '{count}',
-    String(count),
+// among the items; the count of a window's items, or of what its filter leaves, with the filter; and a line where it
+// is shown in English, or where it answers an address with nothing.
+function parts(
+  view: WindowView,
+  t: Dictionary,
+  language: Language,
+  width: number,
+  filter: Filter,
+): Parts {
+  const { parent, counters } = view
+  const counted = (count: number) =>
+    (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
+      '{count}',
+      String(count),
+    )
+  // The first list that filters is the one the toolbar counts and filters; every list keeps to its limit.
+  const filtering = view.sections.find(
+    (section): section is ListView => section.type === 'list' && !!section.filter,
   )
+  let count = view.count
+  const sections = view.sections.map((section): Placed => {
+    if (section.type !== 'list') return section
+    const chosen = section === filtering ? filter.chosen : null
+    const shown = filtered(section, chosen, t)
+    if (section === filtering) count = shown.matching
+    return {
+      ...shown,
+      reset:
+        shown.empty && chosen ? { label: t.showAll, onClick: () => filter.choose(null) } : null,
+    }
+  })
+  const choices = filtering?.filter ?? []
   const toolbar = parent ? (
     <Bar line="below">
       <ButtonLink
@@ -153,10 +178,44 @@ function parts(view: WindowView, t: Dictionary, language: Language, width: numbe
       <BarSpace />
       {counters && <BarText>{`${pad(counters.position)} / ${pad(counters.total)}`}</BarText>}
     </Bar>
+  ) : filtering ? (
+    <Bar line="below">
+      {/* The count after a filter is said as it changes. */}
+      <BarText role="status">
+        <Decipher>{counted(count)}</Decipher>
+      </BarText>
+      <BarSpace />
+      <MenuButton
+        button={{ end: 'chevron-down', label: filter.chosen?.label ?? t.all }}
+        drawer={filter.drawer}
+        end
+        items={[
+          {
+            label: t.all,
+            meta: String(filtering.items.length),
+            checked: !filter.chosen,
+            radio: true,
+            act: () => filter.choose(null),
+          },
+          'rule',
+          ...choices.map(({ href, label, count }) => ({
+            label,
+            meta: String(count),
+            checked: filter.chosen?.href === href,
+            radio: true,
+            act: () => filter.choose({ href, label }),
+          })),
+        ]}
+        label={t.filter}
+        onDepth={filter.onDepth}
+        size="chrome"
+        t={t}
+      />
+    </Bar>
   ) : (
     count > 0 && (
       <Bar line="below">
-        <BarText>{items}</BarText>
+        <BarText>{counted(count)}</BarText>
       </Bar>
     )
   )
@@ -167,7 +226,7 @@ function parts(view: WindowView, t: Dictionary, language: Language, width: numbe
     </Bar>
   )
 
-  return { toolbar, status, body: <Body view={view} width={width} /> }
+  return { toolbar, status, body: <Body sections={sections} view={view} width={width} /> }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {
@@ -176,8 +235,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
   const top = showing(desk)
-  // On a phone the menus that are open are drawers in front of the windows.
+  // On a phone the menus that are open are drawers in front of the windows, those of a filter too.
   const [unfolded, setMenus] = useState(0)
+  const [filtering, setFiltering] = useState(0)
+  // The filter in force in each window, by its path.
+  const [chosen, setChosen] = useState<Record<string, Chosen | null>>({})
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
@@ -345,10 +407,17 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           desk={desk}
           dispatch={act}
           label={dictionary.apps}
-          over={phone(desk) ? unfolded : 0}
+          over={phone(desk) ? unfolded + filtering : 0}
           t={dictionary}
         >
-          {(opened, width) => parts(opened, dictionary, language, width)}
+          {(opened, width) =>
+            parts(opened, dictionary, language, width, {
+              chosen: chosen[opened.path] ?? null,
+              choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+              drawer: phone(desk),
+              onDepth: setFiltering,
+            })
+          }
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
           <Bar>

@@ -134,9 +134,30 @@
 /* List: rows under one another; they run past the text on both sides, so the hover fill has room and the text stays
    on the keyline. */
 .list {
+  position: relative;
   display: flex;
   flex-direction: column;
   margin: 0 calc(var(--s-4) * -1);
+}
+/* Rows that change: what leaves is lifted out of the flow where it stood, so the rows that stay slide past it. */
+.list__rows {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+/* An item that opens in place: its row and what it shows under it, the line under the row moved under both. */
+.list__item {
+  display: flex;
+  flex-direction: column;
+
+  &[data-open] {
+    background: linear-gradient(var(--line), var(--line)) no-repeat var(--s-4) 100% /
+      calc(100% - var(--s-4) * 2) var(--b-1);
+
+    & > .row {
+      --row-line: transparent;
+    }
+  }
 }
 /* Headed: the head names the rows and their end in mono, over one line in the foreground from edge to edge; a group
    that is read needs no line between its rows. */
@@ -162,13 +183,69 @@
     display: block;
   }
 }
-/* The foot leads on from the last row, at its end. */
+/* The foot counts what is shown of how many, at its start, and leads on from the last row, at its end. */
 .list__foot {
   display: flex;
   justify-content: flex-end;
+  gap: var(--s-4);
   padding: var(--s-3) var(--s-4) 0;
   font: var(--f-mono);
   color: var(--muted);
+}
+.list__count {
+  margin-inline-end: auto;
+}
+
+/* Preview: what an item of a list shows as it opens, keeping the columns of a split row. Compact: one column, media
+   first. Regular: the facts at the side, the rest in the main column. Wide: text, facts and action at the side, the
+   media beside them. */
+.preview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'media' 'text' 'facts' 'action';
+  gap: var(--s-4);
+  padding: var(--s-2) var(--s-4) var(--s-6);
+}
+.preview__media {
+  grid-area: media;
+  min-width: 0;
+}
+.preview__text {
+  grid-area: text;
+  margin: 0;
+  font: var(--f-lead);
+  letter-spacing: calc(var(--tk-lead) + var(--k-wide));
+  text-wrap: pretty;
+}
+.preview__facts {
+  grid-area: facts;
+  min-width: 0;
+}
+.preview__action {
+  grid-area: action;
+  display: flex;
+  min-width: 0;
+}
+@container (min-width: 600px) {
+  .preview {
+    grid-template-columns: calc(100% / 3 - var(--s-4) * 2 / 3) minmax(0, 1fr);
+    grid-template-areas: 'facts media' 'facts text' 'facts action';
+  }
+  .preview__facts {
+    margin-top: calc(var(--s-3) * -1);
+  }
+}
+@container (min-width: 960px) {
+  .preview {
+    grid-template-areas: 'text media' 'facts media' 'action media';
+    grid-template-rows: auto auto minmax(0, 1fr);
+  }
+  .preview__facts {
+    margin-top: 0;
+  }
+  .preview__action {
+    align-self: end;
+  }
 }
 /* What a row opens to stands under its title, as its lines do. */
 .list__lines {

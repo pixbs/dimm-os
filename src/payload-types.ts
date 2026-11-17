@@ -646,9 +646,16 @@ export interface ListBlock {
    */
   split?: boolean | null;
   surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  source?: ('items' | 'window') | null;
+  from?: (number | null) | Window;
   lead: 'none' | 'index' | 'icon' | 'picture';
   rows: 'plain' | 'link' | 'opens';
   large?: boolean | null;
+  /**
+   * By what the items relate to, in the toolbar.
+   */
+  filter?: boolean | null;
+  limit?: number | null;
   /**
    * Heads the end texts, with the title beside it.
    */
@@ -768,29 +775,33 @@ export interface CardsBlock {
    */
   split?: boolean | null;
   surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
-  items: {
-    title: string;
-    surface: 'raised' | 'paper' | 'orange' | 'blue' | 'mint';
-    text?: string | null;
-    picture?: (number | null) | Media;
-    /**
-     * The first is the main one.
-     */
-    actions?:
-      | {
-          type?: ('window' | 'media' | 'address') | null;
-          window?: (number | null) | Window;
-          media?: (number | null) | Media;
-          url?: string | null;
-          /**
-           * On a link to a window, empty is its title.
-           */
-          label?: string | null;
-          id?: string | null;
-        }[]
-      | null;
-    id?: string | null;
-  }[];
+  source?: ('items' | 'window') | null;
+  from?: (number | null) | Window;
+  items?:
+    | {
+        title: string;
+        surface: 'raised' | 'paper' | 'orange' | 'blue' | 'mint';
+        text?: string | null;
+        picture?: (number | null) | Media;
+        /**
+         * The first is the main one.
+         */
+        actions?:
+          | {
+              type?: ('window' | 'media' | 'address') | null;
+              window?: (number | null) | Window;
+              media?: (number | null) | Media;
+              url?: string | null;
+              /**
+               * On a link to a window, empty is its title.
+               */
+              label?: string | null;
+              id?: string | null;
+            }[]
+          | null;
+        id?: string | null;
+      }[]
+    | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'cards';
@@ -1193,9 +1204,13 @@ export interface ListBlockSelect<T extends boolean = true> {
   text?: T;
   split?: T;
   surface?: T;
+  source?: T;
+  from?: T;
   lead?: T;
   rows?: T;
   large?: T;
+  filter?: T;
+  limit?: T;
   endLabel?: T;
   items?:
     | T
@@ -1238,6 +1253,8 @@ export interface CardsBlockSelect<T extends boolean = true> {
   text?: T;
   split?: T;
   surface?: T;
+  source?: T;
+  from?: T;
   items?:
     | T
     | {

@@ -392,6 +392,10 @@ export function MenuButton(
   const anchor = useRef<HTMLSpanElement>(null)
   const menus = useMenus(anchor, props.shown)
   const open = menus.chain.length > 0
+  // On a phone its menus are drawers in front of the window it is in, which steps back, until they close or it goes.
+  const depth = useEffectEvent((count: number) => props.onDepth?.(count))
+  useEffect(() => depth(menus.chain.length), [menus.chain.length])
+  useEffect(() => () => depth(0), [])
 
   return (
     <span className="menu-anchor" ref={anchor}>

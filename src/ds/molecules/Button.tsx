@@ -71,9 +71,10 @@ export function ButtonLink({
   end,
   tone,
   size,
+  fill,
   ...rest
 }: AnchorHTMLAttributes<HTMLAnchorElement> &
-  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size' | 'tone'>) {
+  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size' | 'tone' | 'fill'>) {
   return (
     <a
       aria-disabled={rest.href ? undefined : true}
@@ -85,6 +86,7 @@ export function ButtonLink({
       data-size={size}
       data-surface={tone === 'solid' ? 'inverted' : undefined}
       data-tone={tone}
+      data-width={fill ? 'fill' : undefined}
     >
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
