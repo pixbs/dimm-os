@@ -160,6 +160,8 @@
 }
 /* A picture as the lead: as high as a regular row, an empty one shows the dot grid. */
 .row__media {
+  position: relative;
+  overflow: hidden;
   flex: none;
   width: var(--h-regular);
   height: var(--h-regular);

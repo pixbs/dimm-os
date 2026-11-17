@@ -1,5 +1,6 @@
 import type { FactsView } from '@/blocks/facts/view'
 import type { HeaderView } from '@/blocks/header/view'
+import type { ListView } from '@/blocks/list/view'
 import type { MediaView } from '@/blocks/media/view'
 import type { QuoteView } from '@/blocks/quote/view'
 import type { StatsView } from '@/blocks/stats/view'
@@ -12,13 +13,14 @@ import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
 import { Facts } from '@/ds/sections/Facts'
 import { Header } from '@/ds/sections/Header'
+import { Items, List as Listed } from '@/ds/sections/List'
 import { Media } from '@/ds/sections/Media'
 import { Quote } from '@/ds/sections/Quote'
 import { Stats } from '@/ds/sections/Stats'
 import { Table } from '@/ds/sections/Table'
 import { Text } from '@/ds/sections/Text'
 
-type Joinable = TextView | StatsView | FactsView | TableView
+type Joinable = TextView | StatsView | FactsView | TableView | ListView
 type Placed = HeaderView | MediaView | QuoteView | Joinable
 
 // A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
@@ -43,6 +45,8 @@ function Part({ part }: { part: Joinable }) {
       )
     case 'table':
       return <Rows columns={part.columns} rows={part.rows} />
+    case 'list':
+      return <Items {...part} />
   }
 }
 
@@ -135,6 +139,12 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           >
             {parts}
           </Table>
+        )
+      case 'list':
+        return (
+          <Listed {...lead} key={at} split={lead.split && beside}>
+            {parts}
+          </Listed>
         )
       case 'text':
         return (

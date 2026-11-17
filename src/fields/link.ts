@@ -8,7 +8,7 @@ const label: TextFieldSingleValidation = (value, options) =>
     : options.req.t('validation:required')
 
 // A script in a link would run with the rights of whoever presses it.
-const address: TextFieldSingleValidation = (value, options) =>
+export const address: TextFieldSingleValidation = (value, options) =>
   value && !/^(https?:|mailto:|tel:|\/)/i.test(value)
     ? 'An address starts with https://, mailto:, tel: or /.'
     : text(value, options)

@@ -75,8 +75,8 @@ const pad = (number: number) => String(number).padStart(2, '0')
 function Body({ view, width }: { view: WindowView; width: number }) {
   const { parent, neighbours, sections } = view
   const before = neighbours.previous ?? parent
-  const placed = sections.filter((section) => section.type !== 'list')
-  const items = sections.flatMap((section) => (section.type === 'list' ? section.items : []))
+  const placed = sections.filter((section) => section.type !== 'items')
+  const items = sections.flatMap((section) => (section.type === 'items' ? section.items : []))
   return (
     <>
       <div lang={view.lang}>

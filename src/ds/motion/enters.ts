@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 import { usePainted } from './vocabulary'
 
@@ -28,6 +28,46 @@ function arrive(element: HTMLElement) {
     })
   }
   arriving.push(element)
+}
+
+// The parts of what this marks arrive as they are first seen, those seen together as one sweep along the spread;
+// once in place they keep their own transitions. What the server painted is simply there.
+export function useArrives() {
+  const whole = useRef<HTMLDivElement>(null)
+  const server = useRef(usePainted())
+
+  // Before paint, so a part is never seen before it arrives.
+  useLayoutEffect(() => {
+    const element = whole.current
+    if (!element || server.current) return
+    const watcher = new IntersectionObserver(
+      (entries) => {
+        for (const { isIntersecting, target } of entries) {
+          if (!isIntersecting) continue
+          watcher.unobserve(target)
+          arrive(target as HTMLElement)
+        }
+      },
+      { root: scroller(element) },
+    )
+    const settle = ({ target }: Event) => {
+      const part = target as HTMLElement
+      if (part.parentElement !== element || part.dataset.enter !== 'in') return
+      delete part.dataset.enter
+      part.style.transitionDelay = ''
+    }
+    for (const part of element.children) {
+      ;(part as HTMLElement).dataset.enter = 'wait'
+      watcher.observe(part)
+    }
+    element.addEventListener('transitionend', settle)
+    return () => {
+      watcher.disconnect()
+      element.removeEventListener('transitionend', settle)
+    }
+  }, [])
+
+  return whole
 }
 
 // The part this marks enters by scroll and plays once, as it comes into view; in view as it arrives it comes with

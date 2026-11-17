@@ -27,7 +27,7 @@ async function view(path: string, language: 'en' | 'de', viewer: Visitor | null 
 
 const titles = (view: View) =>
   view.window?.sections.flatMap((section) =>
-    section.type === 'list' ? section.items.map((item) => item.title) : [],
+    section.type === 'items' ? section.items.map((item) => item.title) : [],
   )
 
 beforeAll(async () => {
