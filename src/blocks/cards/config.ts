@@ -1,7 +1,14 @@
-import type { Block, Condition, Field, SelectFieldSingleValidation } from 'payload'
-import { select } from 'payload/shared'
+import type {
+  ArrayFieldValidation,
+  Block,
+  Condition,
+  Field,
+  SelectFieldSingleValidation,
+} from 'payload'
+import { array, select } from 'payload/shared'
 
 import { buttons } from '@/fields/link'
+import { source, written } from '@/fields/source'
 
 import { frame } from '../frame'
 
@@ -21,6 +28,12 @@ const across: SelectFieldSingleValidation = (value, options) => {
     ? `${tiles ? 'Tiles' : 'Cards'} stand ${allowed.join(' or ')} across.`
     : select(value, options)
 }
+
+// Cards written by hand are at least one.
+const some: ArrayFieldValidation = (value, options) =>
+  (options.siblingData as { source?: string }).source !== 'window' && !value?.length
+    ? 'Write a card, or show the items of a window.'
+    : array(value, options)
 
 // Cards in a grid under a heading, or tiles that fill the window as one statement.
 export const Cards: Block = {
@@ -53,12 +66,13 @@ export const Cards: Block = {
       ],
     },
     ...frame({ split: true, join: true, surface: true }).map(framed),
+    source,
     {
       name: 'items',
       type: 'array',
       labels: { singular: 'Card', plural: 'Cards' },
-      minRows: 1,
-      required: true,
+      validate: some,
+      admin: { condition: written },
       fields: [
         {
           type: 'row',

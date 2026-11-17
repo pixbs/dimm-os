@@ -15,6 +15,7 @@ export function Collections({ t, widths }: { t: Copy['collections']; widths: str
   const thrice = <T,>(item: (at: number) => T) => [0, 1, 2].map(item)
   const lists = [
     <List
+      count={t.counted}
       foot={{ href: '/', label: t.all }}
       items={thrice(() => ({ title: t.item, end: t.meta, href: '#' }))}
       key="index"

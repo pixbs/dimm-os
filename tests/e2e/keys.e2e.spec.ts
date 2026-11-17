@@ -84,10 +84,11 @@ test.describe('Hotkeys on a desk', () => {
   }) => {
     await page.goto('/work', { waitUntil: 'networkidle' })
     for (const html of ['<input>', '<textarea></textarea>', '<div contenteditable></div>']) {
+      // At the top of the body, clear of the edge that resizes the window, however long its content.
       await page.evaluate((html) => {
-        document.querySelector('#window-work .window__body')!.insertAdjacentHTML('beforeend', html)
+        document.querySelector('#window-work .window__body')!.insertAdjacentHTML('afterbegin', html)
       }, html)
-      const field = page.locator('#window-work .window__body > :last-child')
+      const field = page.locator('#window-work .window__body > :first-child')
       await field.click()
       await page.keyboard.type('wm?,fn')
       for (const key of ['Escape', 'Control+k']) await page.keyboard.press(key)

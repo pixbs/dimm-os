@@ -1009,16 +1009,17 @@ const de: Copy = {
     ],
     list: [
       'Liste',
-      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Maßstab: Fließtext · Überschrift | Anfang: nichts · Nummer · Symbol · Bild | Zeilen: schlicht · Link · öffnet sich an Ort und Stelle | Teile: Fuß | Endbeschriftung: benennt die Endtexte',
-      'Zeilen unter einer Überschrift. Mit Zeilen in Überschriftgröße ist sie ein Verzeichnis, mit Nummern eine Folge von Schritten, mit Links eine Navigation. Mit einer Endbeschriftung ist sie eine Gruppe mit Kopf, wie eine Akte sie hat: Ihr Titel steht in ihrem Kopf. Leer sagt sie das in einer Zeile.',
+      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Quelle: eigene Einträge · die Einträge eines Fensters | Maßstab: Fließtext · Überschrift | Anfang: nichts · Nummer · Symbol · Bild | Zeilen: schlicht · Link · öffnet sich an Ort und Stelle | Filter: in der Werkzeugleiste | Grenze: höchstens so viele Zeilen | Teile: Fuß | Endbeschriftung: benennt die Endtexte',
+      'Zeilen unter einer Überschrift. Mit Zeilen in Überschriftgröße ist sie ein Verzeichnis, mit Nummern eine Folge von Schritten, mit Links eine Navigation. Mit einer Endbeschriftung ist sie eine Gruppe mit Kopf, wie eine Akte sie hat: Ihr Titel steht in ihrem Kopf. Aus einem Fenster gefüllt ist eine Zeile einer seiner Einträge, nach dem, was seine Auflistung sagt, und kann sich an Ort und Stelle zu einer Vorschau öffnen; die Werkzeugleiste zählt die Einträge und filtert sie nach dem, worauf sie sich beziehen, und mit einer Grenze sagt der Fuß, wie viele von wie vielen sie zeigt. Leer sagt sie das in einer Zeile und bietet nach einem Filter an, alle zu zeigen.',
     ],
     lists: [
-      'gestapelt, Überschriftgröße, Links',
+      'gestapelt, Überschriftgröße, aus einem Fenster, eine Grenze',
       'geteilt, Fließtext, von Hand geschrieben',
       'mit Kopf, eine Endbeschriftung',
     ],
     item: 'Titel des Eintrags',
     about: 'Ein Text, der in ein, zwei Sätzen sagt, worum es geht.',
+    counted: '3 von 12',
     meta: 'meta',
     all: 'Alle Einträge',
     group: 'Gruppe',
@@ -1036,7 +1037,7 @@ const de: Copy = {
     ],
     cards: [
       'Karten',
-      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Spalten: 2 · 3 | Karte: Fläche · Bild · Aktionen',
+      'Überschrift: Titel · Text | Anordnung: gestapelt · geteilt | Fläche: window · paper · orange · blue · mint | Anschluss: setzt den Abschnitt darüber fort | Quelle: eigene Karten · die Einträge eines Fensters | Spalten: 2 · 3 | Karte: Fläche · Bild · Aktionen',
       'Karten in einem Raster. Drei nebeneinander im breiten Fenster, zwei im regulären, eine im kompakten. Neben einer Überschrift stehen drei zu zweit, damit ein Fenster nie mehr als drei Spalten hält.',
     ],
     cardCaps: [
@@ -1089,6 +1090,17 @@ const de: Copy = {
     name: 'Name',
     share: '9 von 12',
     empty: 'Hier ist noch nichts.',
+    preview: [
+      'Vorschau',
+      'Teile: Medien · Text · Fakten · Aktion | Spalten: kompakt 1 · regulär 2 · breit 2 | öffnet sich aus: einer Zeile einer Liste',
+      'Was ein Eintrag einer Liste zeigt, wenn er sich an Ort und Stelle öffnet, unter seiner Zeile; offen ist jeweils einer. Die Linie unter der Zeile wandert unter den ganzen Eintrag. Sie behält die Spalten einer geteilten Zeile, damit, was sie zeigt, mit dem übereinstimmt, was die Zeile sagt: in einem kompakten Fenster eine Spalte, Medien zuerst; in einem regulären die Fakten an der Seite; in einem breiten Text, Fakten und Aktion an der Seite, die Medien daneben. Die Fakten setzen jede Beschriftung über ihren Wert, weil ihre Spalte schmal ist. Eine Aktion: eine gefüllte Schaltfläche so breit wie ihre Spalte. Ändert ein Filter die Liste, gleiten Zeilen, die bleiben, Zeilen, die gehen, verschwinden, und neue kommen entlang der Streuung an; mit reduzierter Bewegung blendet die Liste über.',
+    ],
+    value: 'Wert',
+    previewCaps: ['kompakt · regulär · breit'],
+    says: 'Was der Eintrag sagt, als Überschrift gesetzt',
+    next: 'Was der nächste Eintrag sagt',
+    more: 'Ein Text, der etwas mehr sagt.',
+    sentence: 'Ein, zwei Sätze, die sagen, was der Eintrag ist.',
     gallery: [
       'Galerie',
       'Spalten: 1 · 2 · 3 | Format: eines je Galerie',

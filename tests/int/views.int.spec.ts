@@ -2,6 +2,7 @@ import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import type { ListView } from '@/blocks/list/view'
 import { getWindowView, type View } from '@/data/views'
 import type { Media, Visitor, Window } from '@/payload-types'
 
@@ -14,7 +15,7 @@ let expired: Visitor
 
 const languages = ['en', 'de'] as const
 const names = ['Views, invited', 'Views, expired']
-const made = ['views-draft-parent', 'views-orphan', 'views-sections']
+const made = ['views-draft-parent', 'views-orphan', 'views-sections', 'views-told']
 const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
 
 // The view of a path that has a window.
@@ -25,10 +26,10 @@ async function view(path: string, language: 'en' | 'de', viewer: Visitor | null 
   return found as View
 }
 
-const titles = (view: View) =>
-  view.window?.sections.flatMap((section) =>
-    section.type === 'items' ? section.items.map((item) => item.title) : [],
-  )
+// The list of a window's own items, its one section.
+const index = (view: View) =>
+  view.window?.sections.find((section): section is ListView => section.type === 'list')
+const titles = (view: View) => index(view)?.items.map((item) => item.name)
 
 beforeAll(async () => {
   payload = await getPayload({ config })
@@ -487,6 +488,8 @@ describe('the view of a window', () => {
       head: { title: 'A list', end: 'End' },
       items: [
         {
+          key: null,
+          tags: [],
           name: 'Name',
           caption: 'Caption',
           title: 'Title',
@@ -497,10 +500,13 @@ describe('the view of a window', () => {
           picture: null,
           href: '/work',
           current: false,
+          preview: null,
         },
         expect.objectContaining({ title: 'Away', href: 'https://example.com' }),
         expect.objectContaining({ name: null, caption: null, title: 'Unnamed', href: '/work' }),
       ],
+      filter: null,
+      limit: null,
       foot: null,
       empty: null,
     })
@@ -590,6 +596,7 @@ describe('the view of a window', () => {
             live: picture.live ?? null,
           },
           actions: [],
+          href: null,
         },
         {
           title: 'A statement',
@@ -597,6 +604,7 @@ describe('the view of a window', () => {
           surface: 'orange',
           picture: null,
           actions: [{ href: '/work', label: 'Work' }],
+          href: null,
         },
       ],
     })
@@ -617,6 +625,127 @@ describe('the view of a window', () => {
         { actions: [{ label: 'Work' }] },
         { title: 'About a hidden one', actions: [{ href: '/work/vault', label: 'Hidden' }] },
       ],
+    })
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+  })
+
+  it('lists the items of a window in one shape from their Listing, filters them by what they relate to, and holds them to a limit', async () => {
+    const work = await view('/work', 'en')
+    expect(index(work)).toMatchObject({
+      type: 'list',
+      opens: true,
+      limit: null,
+      foot: null,
+      filter: [
+        { href: '/services', label: 'Services', count: 2 },
+        { href: '/cv', label: 'CV', count: 2 },
+      ],
+    })
+    expect(index(work)!.items[0]).toEqual({
+      key: '/work/grow',
+      lang: undefined,
+      tags: ['/services', '/cv'],
+      name: 'Grow',
+      caption: 'First item, 2026',
+      title: 'Which question does the first item answer?',
+      text: ['How it was found out, in one line', 'Services, CV'],
+      end: null,
+      meter: null,
+      icon: null,
+      picture: null,
+      href: null,
+      current: false,
+      preview: {
+        picture: expect.objectContaining({ alt: 'A sun setting over two hills' }),
+        text: 'A fixture item that every guest may open.',
+        facts: [
+          { label: 'Role', value: 'A role' },
+          { label: 'Outcome', value: 'An outcome' },
+        ],
+        action: { href: '/work/grow', label: 'Grow' },
+      },
+    })
+
+    // Elsewhere, a limit leads on to the window listed; cards of a window lead to its items.
+    const field = (await view('/work/field', 'en')).window!.sections
+    expect(field.find((section) => section.type === 'list' && section.limit)).toMatchObject({
+      limit: 2,
+      filter: null,
+      items: [
+        { href: '/work/grow' },
+        { href: '/work/field', current: true },
+        { href: '/work/loop' },
+      ],
+      foot: { href: '/work', label: 'Work' },
+    })
+    expect(field.at(-1)).toMatchObject({
+      type: 'cards',
+      items: [
+        { title: 'Which question does the first item answer?', href: '/work/grow' },
+        { href: '/work/field' },
+        { href: '/work/loop', picture: null },
+      ],
+    })
+
+    // What a Listing leaves empty comes from the item's first Header and its first picture; a list or cards of a
+    // window the viewer may not see are absent.
+    const picture = (
+      await payload.find({ collection: 'media', limit: 1, ...trusted, locale: 'en' })
+    ).docs[0] as Media
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          { blockType: 'list', source: 'window', from: ids.archive, lead: 'none', rows: 'link' },
+          { blockType: 'cards', columns: '2', source: 'window', from: ids.archive },
+          { blockType: 'list', source: 'window', from: ids.cv, lead: 'none', rows: 'opens' },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+    await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Told',
+        slug: 'views-told',
+        parent: ids.cv,
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'header',
+            level: 'title',
+            surface: 'window',
+            title: 'A heading',
+            text: 'A lead.',
+          },
+          { blockType: 'media', ratio: '16:9', items: [{ picture: picture.id }] },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+    const [told] = (await view('/views-sections', 'en')).window!.sections
+    expect(told).toMatchObject({
+      items: [
+        {
+          name: 'Told',
+          title: 'A heading',
+          preview: { text: 'A lead.', picture: { alt: picture.alt }, facts: [] },
+        },
+      ],
+    })
+    const [archive, cards] = (await view('/views-sections', 'en', invited)).window!.sections
+    expect(archive).toMatchObject({ items: [{ name: 'Old notes', href: '/archive/old-notes' }] })
+    expect(cards).toMatchObject({ type: 'cards', items: [{ title: 'Old notes' }] })
+    await payload.delete({
+      collection: 'windows',
+      where: { slug: { equals: 'views-told' } },
+      ...trusted,
+      locale: 'en',
     })
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
   })
@@ -707,8 +836,8 @@ describe('the view of a window', () => {
     expect(en.keys).toEqual(
       ['W', 'S', 'C', 'K'].map((key, at) => ({ key, path: en.shortcuts[at].href })),
     )
-    expect(de.window?.sections.at(-1)).toMatchObject({
-      items: [{ href: '/de/work/grow' }, { href: '/de/work/field' }, { href: '/de/work/loop' }],
+    expect(index(de)).toMatchObject({
+      items: [{ key: '/de/work/grow' }, { key: '/de/work/field' }, { key: '/de/work/loop' }],
     })
     expect(en.window).toMatchObject({ count: 3, parent: null, counters: null })
   })
@@ -763,8 +892,20 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (la
     const work = await view('/work', language)
     const loop = await view('/work/loop', language)
 
-    expect(titles(work)).not.toContain('Vault')
+    expect(titles(work)).not.toContain(language === 'en' ? 'Vault' : 'Tresor')
     expect(work.window?.count).toBe(3)
+    // Nor in a filter: a window only a hidden item relates to is no choice, and no count counts the item.
+    expect(index(work)?.filter?.map(({ label, count }) => [label, count])).toEqual(
+      language === 'en'
+        ? [
+            ['Services', 2],
+            ['CV', 2],
+          ]
+        : [
+            ['Leistungen', 2],
+            ['Lebenslauf', 2],
+          ],
+    )
     expect(loop.window).toMatchObject({ counters: { total: 3 }, neighbours: { next: null } })
     expect(work.shortcuts.map((shortcut) => shortcut.href)).not.toContain('/archive')
     expect(work.keys).toHaveLength(4)
@@ -783,6 +924,7 @@ describe.each(languages)('a visitor, in %s', (language) => {
     const notes = await view('/archive/old-notes', language, invited)
 
     expect(titles(work)).toHaveLength(4)
+    expect(index(work)?.filter?.map(({ count }) => count)).toEqual([3, 2, 1])
     expect(vault.window).toMatchObject({ counters: { position: 4, total: 4 } })
     expect(notes.window?.parent?.title).toBe({ en: 'Archive', de: 'Archiv' }[language])
     expect(work.shortcuts.map((shortcut) => shortcut.name)).toContain(
@@ -805,8 +947,8 @@ describe('German that is not written yet', () => {
     const loop = await view('/work/loop', 'de')
     const field = await view('/work/field', 'de')
 
-    expect(work.window?.sections.at(-1)).toMatchObject({
-      items: [{ title: 'Grow' }, { title: 'Feld' }, { title: 'Loop', lang: 'en' }],
+    expect(index(work)).toMatchObject({
+      items: [{ name: 'Grow' }, { name: 'Feld' }, { name: 'Loop', lang: 'en' }],
     })
     expect(work.window?.lang).toBeUndefined()
     expect(loop.window).toMatchObject({

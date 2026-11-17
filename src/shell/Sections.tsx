@@ -1,3 +1,5 @@
+import type { ComponentProps } from 'react'
+
 import type { CardsView } from '@/blocks/cards/view'
 import type { FactsView } from '@/blocks/facts/view'
 import type { HeaderView } from '@/blocks/header/view'
@@ -16,15 +18,21 @@ import { Table as Rows } from '@/ds/organisms/Table'
 import { Cards } from '@/ds/sections/Cards'
 import { Facts } from '@/ds/sections/Facts'
 import { Header } from '@/ds/sections/Header'
-import { List as Listed } from '@/ds/sections/List'
+import { List as Section } from '@/ds/sections/List'
 import { Media } from '@/ds/sections/Media'
 import { Quote } from '@/ds/sections/Quote'
 import { Stats } from '@/ds/sections/Stats'
 import { Table } from '@/ds/sections/Table'
 import { Text } from '@/ds/sections/Text'
 
-type Joinable = TextView | StatsView | FactsView | TableView | ListView | CardsView
-type Placed = HeaderView | MediaView | QuoteView | Joinable
+// A list as its filter and its limit leave it, each item with its place in the whole list.
+type Listed = ListView & {
+  items: (ListView['items'][number] & { place: number })[]
+  count: string | null
+  reset: ComponentProps<typeof Items>['reset']
+}
+type Joinable = TextView | StatsView | FactsView | TableView | Listed | CardsView
+export type Placed = HeaderView | MediaView | QuoteView | Joinable
 
 // A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
 // for at the share its column takes.
@@ -35,8 +43,9 @@ const across = (columns: number, width: number) =>
 // its picture is 4:3.
 function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean): CardProps[] {
   const span = Math.ceil(width / across(cards.columns, width))
-  return cards.items.map(({ picture, ...item }, at) => ({
+  return cards.items.map(({ picture, href, ...item }, at) => ({
     ...item,
+    href: href ?? undefined,
     under,
     media: picture
       ? {
@@ -44,6 +53,29 @@ function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean
           picture: { ...picture, span, first: first && at === 0, still: Boolean(picture.live) },
         }
       : undefined,
+  }))
+}
+
+// What an item shows as its row opens asks for its picture at the share the window gives it; the first on screen is
+// neither lazy nor animated.
+function rowsOf(list: Listed, width: number, first: boolean) {
+  return list.items.map(({ preview, ...item }, at) => ({
+    ...item,
+    preview: preview && {
+      text: preview.text,
+      facts: preview.facts,
+      action: preview.action,
+      media: preview.picture
+        ? {
+            picture: {
+              ...preview.picture,
+              span: width,
+              first: first && at === 0,
+              still: Boolean(preview.picture.live),
+            },
+          }
+        : undefined,
+    },
   }))
 }
 
@@ -65,7 +97,7 @@ function Part({ part, width, under }: { part: Joinable; width: number; under: bo
     case 'table':
       return <Rows columns={part.columns} rows={part.rows} />
     case 'list':
-      return <Items {...part} />
+      return <Items {...part} items={rowsOf(part, width, false)} />
     case 'cards':
       return (
         <Grid columns={part.columns === 3 ? 3 : 2} items={cardsOf(part, width, false, under)} />
@@ -195,9 +227,14 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
         )
       case 'list':
         return (
-          <Listed {...lead} key={at} split={lead.split && beside}>
+          <Section
+            {...lead}
+            items={rowsOf(lead, width, lead === first)}
+            key={at}
+            split={lead.split && beside}
+          >
             {parts}
-          </Listed>
+          </Section>
         )
       case 'text':
         return (

@@ -21,6 +21,7 @@ import { cards, type CardsView } from '@/blocks/cards/view'
 import { facts, type FactsView } from '@/blocks/facts/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
 import { list, type ListView } from '@/blocks/list/view'
+import type { Listed, Listing } from '@/blocks/listing'
 import { media, type MediaView } from '@/blocks/media/view'
 import { quote, type QuoteView } from '@/blocks/quote/view'
 import { stats, type StatsView } from '@/blocks/stats/view'
@@ -30,7 +31,7 @@ import { icons } from '@/ds/atoms/icons'
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
-import type { Visitor, Window } from '@/payload-types'
+import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
 import { systemWindows } from '@/system/windows'
 
@@ -39,7 +40,7 @@ import { VISITOR_COOKIE } from './viewer'
 // A part shown in another language than the page's carries that language.
 type Link = { href: string; title: string; lang?: Language }
 
-// The sections the admin placed, and the list of its items a window shows until a List can list them.
+// The sections the admin placed.
 type Section =
   | HeaderView
   | TextView
@@ -50,7 +51,6 @@ type Section =
   | TableView
   | ListView
   | CardsView
-  | { type: 'items'; items: Link[] }
 
 // The sections whose body a joined section can continue under their heading; tiles have none.
 const joinable = new Set(['text', 'stats', 'facts', 'table', 'list', 'cards'])
@@ -113,6 +113,13 @@ const fields = {
   oneSize: true,
   openAtStart: true,
   sections: true,
+  description: true,
+  cover: true,
+  caption: true,
+  headline: true,
+  note: true,
+  facts: true,
+  related: true,
 } as const
 
 type Doc = Pick<Window, keyof typeof fields | 'id'>
@@ -233,6 +240,55 @@ async function views(language: Language, viewer: Viewer) {
     const found = byId.get(typeof value === 'object' && value ? (value as Doc).id : Number(value))
     return found ? link(found) : null
   }
+  // The windows a document relates to that this viewer may see, in their order, as buttons to them.
+  const relatedOf = (docs: Doc[]) =>
+    windows.flatMap((window) => {
+      const to = link(window)
+      return docs.some(({ related }) =>
+        related?.some((one) => typeof one === 'object' && one?.id === window.doc.id),
+      )
+        ? [{ href: to.href, label: to.title, lang: to.lang }]
+        : []
+    })
+  // An item as its parent's lists show it: what its Listing leaves empty comes from its first Header and its first
+  // picture.
+  const listed = (one: Seen): Listed => {
+    const { doc } = one
+    const header = doc.sections?.find((block) => block.blockType === 'header')
+    const pictures = (doc.sections ?? []).flatMap((block) =>
+      block.blockType === 'media' ? block.items.map(({ picture }) => picture) : [],
+    )
+    const picture = [doc.cover, ...pictures].find(
+      (file): file is Media => typeof file === 'object' && !!file?.url,
+    )
+    const { href, lang } = link(one)
+    return {
+      href,
+      lang,
+      name: doc.title,
+      caption: doc.caption || null,
+      title: doc.headline || header?.title || doc.title,
+      note: doc.note || null,
+      text: doc.description || header?.text || null,
+      picture: picture
+        ? {
+            src: picture.url!,
+            alt: picture.alt,
+            position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
+            live: picture.live ?? null,
+          }
+        : null,
+      facts: (doc.facts ?? []).map(({ label, value }) => ({ label, value })),
+      related: relatedOf([doc]),
+      icon: doc.icon ?? null,
+    }
+  }
+  const listing: Listing = (window) => {
+    const found = byId.get(typeof window === 'object' && window ? (window as Doc).id : NaN)
+    if (!found) return null
+    const items = itemsOf(found)
+    return { items: items.map(listed), related: relatedOf(items.map(({ doc }) => doc)) }
+  }
   // To a window under its title when it has no label, to a file, which downloads, or to an address.
   const action = (button: Button): Action | null => {
     const label = button.label ?? ''
@@ -286,12 +342,13 @@ async function views(language: Language, viewer: Viewer) {
       case 'table':
         return table(block)
       case 'cards':
-        return cards(block, action)
+        return cards(block, action, listing)
       case 'list':
         return list(block, {
           to: (window) => linkTo(window)?.href ?? null,
           action,
           here,
+          listing,
           words: { empty: t.empty, share: t.share },
         })
     }
@@ -324,10 +381,7 @@ async function views(language: Language, viewer: Viewer) {
         tile: app.doc.tile ?? null,
         oneSize: app.doc.oneSize ?? undefined,
       },
-      sections: [
-        ...sectionsOf(one),
-        ...(items.length ? [{ type: 'items' as const, items: items.map(link) }] : []),
-      ],
+      sections: sectionsOf(one),
       count: items.length,
       parent: parent ? link(parent) : null,
       counters: parent ? { position: at + 1, total: siblings.length } : null,

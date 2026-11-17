@@ -19,6 +19,14 @@ type Fixture = Partial<
   parent?: string
   title: Words
   description: Words
+  // How it shows as an item of its window, and the windows it relates to, by their slugs.
+  listing?: {
+    caption: Words
+    headline: Words
+    note: Words
+    facts: { en: [string, string][]; de?: [string, string][] }
+    related: string[]
+  }
   // Made once every window has its id, so a section can link to any of them, and once the pictures are there.
   sections?: (ids: Record<string, number>, pictures: Pictures) => { en: Sections; de?: Sections }
 }
@@ -203,6 +211,16 @@ const lists = (ids: Record<string, number>): Sections => [
     items: [{ name: 'A name', caption: 'A caption', title: 'What it says', end: 'An end' }],
   },
   { blockType: 'list', title: 'Still to come', lead: 'none', rows: 'plain' },
+  {
+    blockType: 'list',
+    title: 'Items of a window',
+    source: 'window',
+    from: ids.work,
+    large: true,
+    lead: 'index',
+    rows: 'link',
+    limit: 2,
+  },
 ]
 
 // A document whose rows stand in headed groups, a role and its place beside what was done, a kind at the end.
@@ -274,6 +292,21 @@ const windows: Fixture[] = [
       en: 'A fixture window that lists its items.',
       de: 'Ein Beispielfenster, das seine Einträge auflistet.',
     },
+    // The index of its own items at the heading scale, each opening to its preview, filtered by what they relate to.
+    sections: (ids) => {
+      const index: Sections = [
+        {
+          blockType: 'list',
+          source: 'window',
+          from: ids.work,
+          filter: true,
+          large: true,
+          lead: 'index',
+          rows: 'opens',
+        },
+      ]
+      return { en: index, de: index }
+    },
   },
   {
     slug: 'grow',
@@ -283,6 +316,28 @@ const windows: Fixture[] = [
     description: {
       en: 'A fixture item that every guest may open.',
       de: 'Ein Beispieleintrag, den jeder Gast öffnen darf.',
+    },
+    listing: {
+      caption: { en: 'First item, 2026', de: 'Erster Eintrag, 2026' },
+      headline: {
+        en: 'Which question does the first item answer?',
+        de: 'Welche Frage beantwortet der erste Eintrag?',
+      },
+      note: {
+        en: 'How it was found out, in one line',
+        de: 'Wie es herausgefunden wurde, in einer Zeile',
+      },
+      facts: {
+        en: [
+          ['Role', 'A role'],
+          ['Outcome', 'An outcome'],
+        ],
+        de: [
+          ['Rolle', 'Eine Rolle'],
+          ['Ergebnis', 'Ein Ergebnis'],
+        ],
+      },
+      related: ['services', 'cv'],
     },
     sections: (ids, { still }) => ({
       en: told(ids.contact, still, {
@@ -394,6 +449,16 @@ const windows: Fixture[] = [
     kind: 'case',
     title: { en: 'Field', de: 'Feld' },
     description: { en: 'A second fixture item.', de: 'Ein zweiter Beispieleintrag.' },
+    listing: {
+      caption: { en: 'Second item, 2026', de: 'Zweiter Eintrag, 2026' },
+      headline: {
+        en: 'Which question does the second item answer, in a line long enough to wrap?',
+        de: 'Welche Frage beantwortet der zweite Eintrag, in einer Zeile, die umbricht?',
+      },
+      note: { en: 'How it was found out', de: 'Wie es herausgefunden wurde' },
+      facts: { en: [['Role', 'Another role']], de: [['Rolle', 'Eine andere Rolle']] },
+      related: ['services'],
+    },
     sections: (ids, { still, live }) => ({
       en: [
         {
@@ -484,6 +549,13 @@ const windows: Fixture[] = [
             },
           ],
         },
+        {
+          blockType: 'cards',
+          title: 'Cards of a window',
+          columns: '3',
+          source: 'window',
+          from: ids.work,
+        },
       ],
     }),
   },
@@ -493,6 +565,13 @@ const windows: Fixture[] = [
     kind: 'case',
     title: { en: 'Loop' },
     description: { en: 'A fixture item not yet written in German.' },
+    listing: {
+      caption: { en: 'Third item, 2026' },
+      headline: { en: 'Which question does an item not yet written in German answer?' },
+      note: { en: 'How it was found out' },
+      facts: { en: [['Role', 'A role']] },
+      related: ['cv'],
+    },
     sections: () => ({
       en: [
         {
@@ -514,6 +593,16 @@ const windows: Fixture[] = [
     description: {
       en: 'A fixture item that only an invited visitor may open.',
       de: 'Ein Beispieleintrag, den nur eingeladene Besucher öffnen dürfen.',
+    },
+    listing: {
+      caption: { en: 'Fourth item, 2026', de: 'Vierter Eintrag, 2026' },
+      headline: {
+        en: 'Which question does an item for invited visitors answer?',
+        de: 'Welche Frage beantwortet ein Eintrag für eingeladene Besucher?',
+      },
+      note: { en: 'How it was found out', de: 'Wie es herausgefunden wurde' },
+      facts: { en: [['Role', 'A role']], de: [['Rolle', 'Eine Rolle']] },
+      related: ['archive', 'services'],
     },
   },
   {
@@ -701,7 +790,7 @@ async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Prom
 // Makes the fixture's windows, or brings them back to it, each published in the languages it is written in.
 export async function fill(payload: Payload): Promise<Record<string, number>> {
   const ids: Record<string, number> = {}
-  for (const { slug, parent, title, description, sections: _, ...shared } of windows) {
+  for (const { slug, parent, title, description, listing, sections: _, ...shared } of windows) {
     const {
       docs: [found],
     } = await payload.find({
@@ -715,6 +804,12 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     const words = (language: 'en' | 'de') => ({
       title: title[language],
       description: description[language],
+      ...(listing && {
+        caption: listing.caption[language],
+        headline: listing.headline[language],
+        note: listing.note[language],
+        facts: listing.facts[language]?.map(([label, value]) => ({ label, value })),
+      }),
     })
     const { id } = found
       ? await payload.update({
@@ -744,7 +839,15 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     still: await upload(payload, { alt: 'A sun setting over two hills' }),
     live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
   }
-  for (const { slug, sections } of windows) {
+  for (const { slug, sections, listing } of windows) {
+    if (listing)
+      await payload.update({
+        collection: 'windows',
+        id: ids[slug],
+        data: { related: listing.related.map((one) => ids[one]) },
+        locale: 'en',
+        ...trusted,
+      })
     const { en, de } = sections?.(ids, shown) ?? {}
     for (const [locale, made] of [
       ['en', en],

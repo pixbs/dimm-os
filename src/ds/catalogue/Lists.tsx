@@ -101,6 +101,21 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
     />
   )
 
+  // Two items of a window, the first open to its preview.
+  const previewed = ['a', 'b'].map((key, at) => ({
+    key,
+    name: t.item,
+    caption: t.text,
+    title: at ? t.next : t.says,
+    text: [t.more],
+    preview: {
+      media: { label: <Tag>16:9</Tag> },
+      text: t.sentence,
+      facts: [t.label, t.label].map((label) => ({ label, value: t.value })),
+      action: { href: '#', label: t.label },
+    },
+  }))
+
   return (
     <Doc text={t.doc}>
       <Entry text={t.list}>
@@ -110,6 +125,15 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
             <Stage width={at === 5 ? width.wide : width.measure}>{list}</Stage>
           </Specs>
         ))}
+      </Entry>
+      <Entry text={t.preview}>
+        <Specs caps={t.previewCaps}>
+          <Widths caps={widths}>
+            <div className="stage">
+              <Items items={previewed} large lead="index" opens />
+            </div>
+          </Widths>
+        </Specs>
       </Entry>
       <Entry text={t.table}>
         <Specs caps={[columns3]}>

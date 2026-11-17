@@ -25,8 +25,9 @@ export type CardProps = {
   meta?: ReactNode[]
   foot?: ReactNode
   actions?: To[]
-  // As a link the whole card is pressed.
+  // As a link the whole card is pressed; in the language its words are in where that is not the page's.
   href?: string
+  lang?: string
   state?: 'hover' | 'pressed' | 'focus'
 }
 
@@ -47,6 +48,7 @@ export function Card(props: CardProps) {
       data-state={props.state}
       data-surface={props.surface ?? 'raised'}
       href={href}
+      lang={props.lang}
     >
       {media && <Media {...media} />}
       <div className="card__body">
