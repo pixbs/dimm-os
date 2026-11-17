@@ -254,14 +254,25 @@ export function manager(state: Windows, action: Action): Windows {
     }
     case 'start': {
       if (!state.desk) return { ...state, starting: action.windows }
+      // A window that waits in the taskbar, remembered, opens where it stood.
       const windows = (phone(state) ? action.windows.slice(0, 1) : action.windows).filter(
-        (window) => !find(state, window.path),
+        (window) => !find(state, window.path)?.view,
       )
+      const paths = windows.map((window) => windowOf(window.path))
+      const opened = (one: Entry): Entry => {
+        const window = windows.find((each) => windowOf(each.path) === one.path)
+        return window ? { ...one, at: window.path, view: window, mode: one.was } : one
+      }
       return placed({
         ...state,
         starting: [],
-        open: [...state.open, ...windows.map((window) => entry(window.path, window))],
-        z: [...state.z, ...windows.map((window) => windowOf(window.path)).reverse()],
+        open: [
+          ...state.open.map(opened),
+          ...windows
+            .filter((window) => !find(state, window.path))
+            .map((window) => entry(window.path, window)),
+        ],
+        z: [...state.z.filter((path) => !paths.includes(path)), ...paths.reverse()],
       })
     }
     case 'remember': {

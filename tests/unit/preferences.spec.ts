@@ -115,4 +115,18 @@ describe('Preferences', () => {
     const back = manager(after, { type: 'open', path: '/work/one' })
     expect(back.open.find((one) => one.path === '/work')).toMatchObject({ mode: 'float', box })
   })
+
+  it('opens a remembered window that opens at start where it stood', () => {
+    const box = { x: 320, y: 96, w: 640, h: 400 }
+    const desk: Action[] = [
+      { type: 'remember', windows: [{ at: '/welcome', box }] },
+      { type: 'start', windows: [view('/welcome')] },
+      { type: 'desk', w: 1440, h: 820 },
+    ]
+    const after = desk.reduce(manager, start(null))
+    expect(after.open).toMatchObject([
+      { path: '/welcome', mode: 'float', box, view: { path: '/welcome' } },
+    ])
+    expect(after.z).toEqual(['/welcome'])
+  })
 })

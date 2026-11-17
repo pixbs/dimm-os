@@ -2,8 +2,8 @@
 
 import { useId, useState } from 'react'
 
-import { change, chosen, settings } from '@/ds/atoms/settings'
-import { useSetting } from '@/ds/atoms/useSetting'
+import { change, settings } from '@/ds/atoms/settings'
+import { useChosen, useSetting } from '@/ds/atoms/useSetting'
 import { Bar, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Dial } from '@/ds/molecules/Dial'
@@ -50,15 +50,11 @@ function Body({ t, language, site, path }: Props) {
   const dial = useId()
   const minute = useMinute()
   const zone = useZone(site.timezone)
-  // The server knows no device, so what was chosen is read once the page runs.
-  const ready = theme !== null
-  const at = (values: (string | null)[], name: string) =>
-    values.indexOf(ready ? chosen(name) : null)
+  const themeAt = themes.indexOf(useChosen('theme'))
+  const handAt = hands.indexOf(useChosen('hand'))
   const say = (text: string, values: Record<string, string | number>) =>
     text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key]))
 
-  const themeAt = at(themes, 'theme')
-  const handAt = at(hands, 'hand')
   const time =
     minute === null
       ? ''
@@ -232,7 +228,7 @@ export function preferencesWindow(props: Props & { close: () => void }): Parts {
   return {
     body: <Body {...props} />,
     foot: (
-      <ButtonGroup>
+      <ButtonGroup cells>
         <Button
           label={t.reset}
           onClick={() => change(Object.fromEntries(settings.map((name) => [name, null])))}

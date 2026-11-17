@@ -46,11 +46,17 @@ test.describe('Preferences', () => {
 
     // System hands the setting back to the device, and Reset hands back all of them.
     await choose(page, 'Theme', 'System')
-    expect(await root(page, 'theme')).toBe('dark')
+    // A crossfade writes the root once it has captured the screen before.
+    await expect.poll(() => root(page, 'theme')).toBe('dark')
     expect((await stored(page)).theme).toBeUndefined()
+    // A choice the device already makes stays chosen.
+    await choose(page, 'Theme', 'Dark')
+    await expect(prefs.getByRole('radio', { name: 'Dark' })).toBeChecked()
+    await expect(prefs.getByText('Dark, whatever your device says')).toBeVisible()
+    expect((await stored(page)).theme).toBe('dark')
     await prefs.getByRole('button', { name: 'Reset' }).click()
     expect(await stored(page)).toEqual({})
-    expect(await root(page, 'pitch')).toBe('8')
+    await expect.poll(() => root(page, 'pitch')).toBe('8')
     await expect(prefs.getByRole('radio', { name: 'System' }).first()).toBeChecked()
   })
 
@@ -94,19 +100,19 @@ test.describe('Preferences', () => {
     await win(page, 'Preferences')
       .getByRole('switch', { name: /Remember windows/ })
       .click({ force: true })
-    await page.goto('/work', { waitUntil: 'networkidle' })
+    await page.goto('/hello', { waitUntil: 'networkidle' })
     const places = JSON.parse((await stored(page)).places)
-    expect(places.map((one: { at: string }) => one.at)).toContain('/work')
+    expect(places.map((one: { at: string }) => one.at)).toContain('/hello')
 
     // Another tab of the device has a session of its own.
     const other = await page.context().newPage()
     await other.goto('/', { waitUntil: 'networkidle' })
-    const task = other.getByRole('button', { name: 'work' })
+    const task = other.getByRole('button', { name: 'hello' })
     await expect(task).toBeVisible()
-    await expect(win(other, 'Work')).toBeHidden()
+    await expect(win(other, 'Hello')).toBeHidden()
     await task.press('Enter')
-    await expect(win(other, 'Work')).toHaveAttribute('data-front', '')
-    await expect(win(other, 'Work').locator('.window__view[data-view="/work"]')).toBeVisible()
+    await expect(win(other, 'Hello')).toHaveAttribute('data-front', '')
+    await expect(win(other, 'Hello').locator('.window__view[data-view="/hello"]')).toBeVisible()
 
     await page.goto('/preferences', { waitUntil: 'networkidle' })
     await win(page, 'Preferences')

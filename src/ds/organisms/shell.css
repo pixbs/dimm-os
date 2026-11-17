@@ -561,8 +561,8 @@
   }
 }
 
-/* Monitor: a small copy of the screen it is seen on, drawn with the settings in force; a picture, so it is never
-   reached. A desk is wide, a tablet tall, a phone taller, and its window is a drawer there. */
+/* Monitor: a picture of the screen it is seen on, wide on a desk, tall on a tablet, taller on a phone with a drawer,
+   drawn with the settings in force and never reached. */
 .monitor {
   --monitor-at: var(--monitor-window);
   --wallpaper-at: var(--wallpaper-wide);
