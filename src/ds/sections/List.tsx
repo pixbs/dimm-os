@@ -64,7 +64,7 @@ function row(item: Item, at: number, { large, lead, opens }: Props) {
   return (
     <Row
       current={item.current || undefined}
-      end={href ? (href.startsWith('/') ? 'arrow-right' : 'arrow-up-right') : undefined}
+      end={href ? (/^https?:/.test(href) ? 'arrow-up-right' : 'arrow-right') : undefined}
       href={href ?? undefined}
       key={at}
       {...slots}

@@ -32,7 +32,7 @@ export function List(props: {
         <div className="list__foot">
           <Link href={foot.href} hrefLang={foot.lang} lang={foot.lang}>
             {foot.label}
-            {foot.href.startsWith('/') && <Icon name="arrow-right" size="s" />}
+            {!/^https?:/.test(foot.href) && <Icon name="arrow-right" size="s" />}
           </Link>
         </div>
       )}
