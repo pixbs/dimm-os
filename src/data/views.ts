@@ -18,6 +18,7 @@ import { getPayload } from 'payload'
 import { sanitizeUrl } from 'payload/shared'
 
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
+import { media, type MediaView } from '@/blocks/media/view'
 import { text, type TextView } from '@/blocks/text/view'
 import { icons } from '@/ds/atoms/icons'
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
@@ -33,7 +34,7 @@ import { VISITOR_COOKIE } from './viewer'
 type Link = { href: string; title: string; lang?: Language }
 
 // The sections the admin placed, and the list of its items a window shows until the List section arrives.
-type Section = HeaderView | TextView | { type: 'list'; items: Link[] }
+type Section = HeaderView | TextView | MediaView | { type: 'list'; items: Link[] }
 
 export type WindowView = {
   path: string
@@ -112,7 +113,10 @@ async function read(locale: Language, viewer: Viewer): Promise<Doc[]> {
     locale,
     overrideAccess: false,
     pagination: false,
-    populate: { media: { url: true }, windows: { slug: true } },
+    populate: {
+      media: { url: true, alt: true, focalX: true, focalY: true, live: true },
+      windows: { slug: true },
+    },
     select: fields,
     sort: '_order',
   })
@@ -238,7 +242,13 @@ async function views(language: Language, viewer: Viewer) {
   // A joined section continues a section with a body: a Header has none to share.
   const sectionsOf = (doc: Doc): Section[] =>
     (doc.sections ?? [])
-      .map((block) => (block.blockType === 'header' ? header(block, action) : text(block, html)))
+      .flatMap((block) =>
+        block.blockType === 'header'
+          ? header(block, action)
+          : block.blockType === 'text'
+            ? text(block, html)
+            : (media(block) ?? []),
+      )
       .map((section, at, all) =>
         section.type === 'text' && section.join && all[at - 1]?.type !== 'text'
           ? { ...section, join: false }

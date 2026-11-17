@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 
 import { Picture, type Source } from './Picture'
 
-type Props = {
+export type MediaProps = {
   ratio?: '16:9' | '4:3' | '1:1' | '3:1'
   picture?: Source
   // One of the generated visuals, drawn over its picture once script runs.
@@ -16,7 +16,7 @@ type Props = {
 }
 
 // A box with a fixed ratio that its content fills; empty, it shows the dot grid.
-export function Media(props: Props) {
+export function Media(props: MediaProps) {
   const { ratio, picture, live, cover, label, play, caption } = props
 
   return (

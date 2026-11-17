@@ -14,14 +14,17 @@ export function Section(props: {
   text?: string | null
   split?: boolean
   surface?: Surface
+  // Its body runs to the window's edges; the heading keeps the inset.
+  bleed?: boolean
   children: ReactNode
 }) {
-  const { title, text, split, surface } = props
+  const { title, text, split, surface, bleed } = props
   const part = useEnters()
 
   return (
     <section
       className="section"
+      data-bleed={bleed ? '' : undefined}
       data-layout={split ? 'split' : undefined}
       // On the window's own surface it takes the window's, which may be paper.
       data-surface={surface === 'window' ? undefined : surface}

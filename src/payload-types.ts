@@ -244,7 +244,7 @@ export interface Window {
   id: number;
   _order?: string | null;
   title: string;
-  sections?: (HeaderBlock | TextBlock)[] | null;
+  sections?: (HeaderBlock | TextBlock | MediaBlock)[] | null;
   /**
    * Drawn as a paper record.
    */
@@ -511,6 +511,25 @@ export interface TextBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaBlock".
+ */
+export interface MediaBlock {
+  title?: string | null;
+  text?: string | null;
+  items: {
+    picture: number | Media;
+    caption?: string | null;
+    id?: string | null;
+  }[];
+  columns?: ('1' | '2' | '3') | null;
+  ratio: '16:9' | '4:3' | '1:1';
+  bleed?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'media';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -691,6 +710,7 @@ export interface WindowsSelect<T extends boolean = true> {
     | {
         header?: T | HeaderBlockSelect<T>;
         text?: T | TextBlockSelect<T>;
+        media?: T | MediaBlockSelect<T>;
       };
   paper?: T;
   stamp?: T;
@@ -788,6 +808,26 @@ export interface TextBlockSelect<T extends boolean = true> {
   text?: T;
   split?: T;
   body?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "MediaBlock_select".
+ */
+export interface MediaBlockSelect<T extends boolean = true> {
+  title?: T;
+  text?: T;
+  items?:
+    | T
+    | {
+        picture?: T;
+        caption?: T;
+        id?: T;
+      };
+  columns?: T;
+  ratio?: T;
+  bleed?: T;
   id?: T;
   blockName?: T;
 }

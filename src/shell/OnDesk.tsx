@@ -49,7 +49,8 @@ export function OnDesk(props: {
   // Drawers opened in front of the windows, such as menus on a phone.
   over?: number
   t: Dictionary
-  children: (view: WindowView) => Parts
+  // A window's parts from its view, at the width it stands.
+  children: (view: WindowView, width: number) => Parts
 }) {
   const { desk, dispatch, t } = props
   const ground = useRef<HTMLElement>(null)
@@ -91,7 +92,8 @@ export function OnDesk(props: {
       />
       <AnimatePresence>
         {desk.open.map((entry) => {
-          const parts = entry.view && props.children(entry.view)
+          const box = shown(desk, entry.path)
+          const parts = entry.view && props.children(entry.view, box.w)
           return (
             <Window
               act={(action) => dispatch({ ...action, path: entry.path })}
@@ -100,7 +102,7 @@ export function OnDesk(props: {
               }
               away={entry.mode === 'min'}
               back={back(entry)}
-              box={shown(desk, entry.path)}
+              box={box}
               content={entry.view?.path}
               foot={parts?.foot}
               front={entry.path === front(desk)}
