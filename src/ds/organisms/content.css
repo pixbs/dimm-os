@@ -414,8 +414,8 @@
     height: 100%;
     aspect-ratio: auto;
   }
-  & > .card > .card__body > .hgroup {
-    margin-block: auto;
+  & > .card > .card__body {
+    justify-content: center;
   }
 }
 @container (min-width: 600px) {
