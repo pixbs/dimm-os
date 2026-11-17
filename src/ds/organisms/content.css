@@ -166,7 +166,6 @@
 .list__foot {
   display: flex;
   justify-content: flex-end;
-  gap: var(--s-4);
   padding: var(--s-3) var(--s-4) 0;
   font: var(--f-mono);
   color: var(--muted);

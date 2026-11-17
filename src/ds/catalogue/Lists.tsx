@@ -56,6 +56,7 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
     <Doc text={t.doc}>
       <Entry text={t.list}>
         {lists.map((list, at) => (
+          // A headed list holds three columns, so it has the room of the widest specimen.
           <Specs caps={[t.lists[at]]} key={at}>
             <Stage width={at === 5 ? width.wide : width.measure}>{list}</Stage>
           </Specs>

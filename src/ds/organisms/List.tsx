@@ -12,8 +12,8 @@ import { Message } from './Message'
 // Where a foot leads, in the language its words are in where that is not the page's.
 type To = { href: string; label: string; lang?: string }
 
-// Rows under one another, running past the text on both sides so the hover fill has room. A head names the rows and
-// their end, a foot leads on, and a list with no rows says so in one line. Rows arrive along the spread.
+// Rows under one another, past the text on both sides so the hover fill has room, that arrive along the spread; a head
+// names them and their end, a foot leads on, and a list with no rows says so in one line.
 export function List(props: {
   head?: { title?: string | null; end: string } | null
   foot?: To | null

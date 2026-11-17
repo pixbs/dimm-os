@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 
 type Level = 'hero' | 'display' | 'title' | 'heading' | 'lead'
 
-// The title is plain text, so a heading never mixes weights; the eyebrow says where you are, not what the title says.
-// A message of one line is its text alone.
+// The title is plain text, so a heading never mixes weights; the eyebrow says where you are, and a message of one line
+// has no title.
 export function Heading(props: {
   level?: Level
   eyebrow?: string

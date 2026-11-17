@@ -30,8 +30,8 @@ function arrive(element: HTMLElement) {
   arriving.push(element)
 }
 
-// The parts of what this marks arrive as they are first seen, those seen together as one sweep along the spread;
-// once in place they keep their own transitions. What the server painted is simply there.
+// The parts of what this marks arrive as they are first seen, those seen together in one sweep along the spread, and
+// then keep their own transitions; what the server painted is simply there.
 export function useArrives() {
   const whole = useRef<HTMLDivElement>(null)
   const server = useRef(usePainted())
