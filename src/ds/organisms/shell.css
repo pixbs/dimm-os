@@ -560,3 +560,128 @@
     }
   }
 }
+
+/* Monitor: a picture of the screen it is seen on, wide on a desk, tall on a tablet, taller on a phone with a drawer,
+   drawn with the settings in force and never reached. */
+.monitor {
+  --monitor-at: var(--monitor-window);
+  --wallpaper-at: var(--wallpaper-wide);
+
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: var(--monitor-desk);
+  border: var(--b-1) solid var(--faint);
+}
+:root[data-remember='on'] .monitor {
+  --monitor-at: var(--monitor-kept);
+}
+@media not (pointer: fine) {
+  .monitor {
+    --monitor-at: var(--monitor-window-tablet);
+    --wallpaper-at: var(--wallpaper-tall);
+
+    width: calc(var(--h-regular) * 5);
+    max-width: 100%;
+    aspect-ratio: var(--monitor-tablet);
+  }
+  :root[data-remember='on'] .monitor {
+    --monitor-at: var(--monitor-kept-tablet);
+  }
+}
+/* The wallpaper's form, in dots on the pitch, half its size in a copy. */
+.monitor__wall {
+  --tone: radial-gradient(circle closest-side, var(--ht-light) 0%, var(--ht-none) 100%);
+  --ht-sizes: calc(var(--pitch) / 2) calc(var(--pitch) / 2), auto;
+
+  inset: auto;
+  opacity: var(--a-line);
+
+  :root[data-theme='light'] & {
+    filter: var(--ht-cut) invert(1);
+    mix-blend-mode: multiply;
+  }
+}
+.monitor__bar,
+.monitor__task {
+  position: absolute;
+  inset-inline: 0;
+  display: flex;
+  align-items: center;
+  height: var(--s-4);
+  padding: 0 var(--s-1);
+  background-color: var(--bg);
+}
+.monitor__bar {
+  top: 0;
+  border-bottom: var(--b-1) solid var(--faint);
+}
+.monitor__task {
+  bottom: 0;
+  border-top: var(--b-1) solid var(--faint);
+}
+.monitor__apps {
+  position: absolute;
+  top: var(--s-6);
+  inset-inline-start: var(--s-2);
+  display: grid;
+  gap: var(--s-2);
+}
+/* The window that opens at start: away when none does, elsewhere when windows are remembered. */
+.monitor__win {
+  position: absolute;
+  inset: var(--monitor-at);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--s-1);
+  padding: var(--s-2) var(--s-1) var(--s-1);
+  box-shadow: 0 0 0 var(--b-1) var(--faint);
+  transition:
+    inset var(--m-slow) var(--m-standard),
+    opacity var(--m-slow) var(--m-standard);
+
+  :root[data-start='off'] & {
+    opacity: 0;
+  }
+}
+.monitor__boot {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: var(--s-3);
+}
+@container screen (width < 600px) {
+  .monitor,
+  :root[data-remember='on'] .monitor {
+    --monitor-at: var(--monitor-drawer);
+    /* The form shows above the drawer, where the copy can show it. */
+    --wallpaper-at: var(--monitor-above);
+
+    width: calc(var(--h-regular) * 4);
+    max-width: 100%;
+    aspect-ratio: var(--monitor-phone);
+  }
+  .monitor__apps {
+    inset-inline-end: var(--s-2);
+    grid-auto-flow: column;
+    justify-content: space-between;
+  }
+  .monitor__task {
+    display: none;
+  }
+  .monitor__win {
+    grid-template-columns: minmax(0, 1fr);
+    padding-top: var(--s-3);
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: var(--s-1);
+      inset-inline-start: calc(50% - var(--s-2));
+      width: var(--s-4);
+      height: var(--b-2);
+      background-color: var(--faint);
+    }
+  }
+}

@@ -11,23 +11,39 @@ type Props = {
   labelledBy: string
 }
 
+// The share of a turn from the top to a point, clockwise; a drag that crosses the top from the share before stays
+// at the end it reached, so the value never jumps from one end to the other.
+export function turned(x: number, y: number, before: number | null) {
+  const turn = (((Math.atan2(x, y) / (2 * Math.PI)) % 1) + 1) % 1
+  if (before === null || Math.abs(turn - before) <= 0.5) return turn
+  return before > 0.5 ? 1 : 0
+}
+
 // A knob from its minimum at the top to its maximum once round, set by a press on its scale, a drag or the keys.
 export function Dial({ min, max, onChange, ...props }: Props) {
-  const [value, setValue] = useState(props.value)
+  const keep = (next: number) => Math.min(max, Math.max(min, Math.round(next)))
+  const [value, setValue] = useState(() => keep(props.value))
+  // A new value from outside, a reset, is taken as it comes, inside the range.
+  const [given, setGiven] = useState(props.value)
+  if (given !== props.value) {
+    setGiven(props.value)
+    setValue(keep(props.value))
+  }
   const [turning, setTurning] = useState(false)
-  const held = useRef(false)
+  // The share of the turn while the knob is held, or null.
+  const held = useRef<number | null>(null)
 
   const set = (next: number) => {
-    const kept = Math.min(max, Math.max(min, Math.round(next)))
+    const kept = keep(next)
     setValue(kept)
     onChange?.(kept)
   }
-  const at = (event: PointerEvent<HTMLDivElement>) => {
+  const at = (event: PointerEvent<HTMLDivElement>, before: number | null) => {
     const box = event.currentTarget.getBoundingClientRect()
     const x = event.clientX - (box.left + box.width / 2)
     const y = box.top + box.height / 2 - event.clientY
-    const turn = (((Math.atan2(x, y) / (2 * Math.PI)) % 1) + 1) % 1
-    set(min + turn * (max - min))
+    held.current = turned(x, y, before)
+    set(min + held.current * (max - min))
   }
   const keys: Record<string, number> = {
     ArrowRight: 1,
@@ -54,21 +70,20 @@ export function Dial({ min, max, onChange, ...props }: Props) {
         set(value + keys[event.key])
       }}
       onPointerDown={(event) => {
-        held.current = true
         event.currentTarget.setPointerCapture(event.pointerId)
-        at(event)
+        at(event, null)
       }}
       onPointerMove={(event) => {
-        if (!held.current) return
+        if (held.current === null) return
         setTurning(true)
-        at(event)
+        at(event, held.current)
       }}
       onPointerUp={() => {
-        held.current = false
+        held.current = null
         setTurning(false)
       }}
       onPointerCancel={() => {
-        held.current = false
+        held.current = null
         setTurning(false)
       }}
       role="slider"

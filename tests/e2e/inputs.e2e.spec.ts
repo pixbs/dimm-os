@@ -175,7 +175,7 @@ test.describe('Inputs', () => {
     await dip.focus()
     await page.keyboard.press('Space')
     await expect(dip).toBeChecked()
-    await expect(page.getByText('2 What the second does: on.')).toBeVisible()
+    await expect(page.getByText('What the second does: on')).toBeVisible()
 
     const select = field(page, 'Select').locator('select')
     await select.focus()

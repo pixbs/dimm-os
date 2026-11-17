@@ -1,5 +1,6 @@
 // The wallpaper, run by the dot engine in a worker so the page never waits for it.
 import { engine, TICK } from '../motion/engine'
+import { place, seed } from './form'
 
 // What the page tells it, in CSS pixels: a message may carry any part of it.
 export type Setting = {
@@ -23,8 +24,6 @@ export type Setting = {
 // The grey at which the system's halftone has no dot left, and how far into a cell a full dot reaches.
 const NONE = 122 / 255
 const REACH = 1.22 / Math.SQRT2
-// The field that draws the form where the screen sets it.
-const HOME = 299
 // At most 30 frames a second.
 const FRAME = 1000 / 30
 
@@ -40,21 +39,6 @@ const lean = { x: 0, y: 0 }
 let request = 0
 let last: number | undefined
 let owed = 0
-
-// Every field number gives its own numbers, the same each time.
-const seed = (field: number, k: number) => {
-  const x = Math.sin(field * 12.9898 + k * 78.233) * 43758.5453
-  return x - Math.floor(x)
-}
-
-// The circle, in pixels: where the screen sets it, moved by the field, and as large as its nearest side allows.
-function place({ width, height, at, field }: Setting) {
-  const side = Math.min(width, height)
-  const shift = (k: number) => (seed(field, k) - seed(HOME, k)) * side * 0.25
-  const x = Math.min(Math.max(at[0] * width + shift(3), side / 6), width - side / 6)
-  const y = Math.min(Math.max(at[1] * height + shift(4), side / 6), height - side / 6)
-  return { x, y, r: Math.min(x, width - x, y, height - y) }
-}
 
 function draw() {
   dots?.draw(context, now!.colour, 0)

@@ -13,10 +13,12 @@ import {
 import type { ListView } from '@/blocks/list/view'
 import type { View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
+import { useSetting } from '@/ds/atoms/useSetting'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
+import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
@@ -25,6 +27,7 @@ import { Section } from '@/ds/sections/Section'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
+import { preferencesWindow } from '@/system/Preferences'
 
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
@@ -35,6 +38,8 @@ import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { type Placed, Sections } from './Sections'
 
 const STORE = 'windows'
+// Where the windows stand, kept on the device while windows are remembered.
+const PLACES = 'places'
 
 // A window that moved has a view at another path, which the browser's own load of the address redirects to.
 async function fetchWindow(language: Language, path: string): Promise<WindowView | null> {
@@ -54,6 +59,16 @@ function stored(): string[] | null {
     return Array.isArray(paths) ? paths.filter((path) => typeof path === 'string') : null
   } catch {
     return null
+  }
+}
+
+// The places remembered last time, or none.
+function places(): { at: string; box: Box }[] {
+  try {
+    const kept: unknown = JSON.parse(localStorage.getItem(PLACES) ?? '[]')
+    return Array.isArray(kept) ? kept.filter((one) => typeof one?.at === 'string' && one.box) : []
+  } catch {
+    return []
   }
 }
 
@@ -242,6 +257,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The first render takes its window from the view alone, so it matches the server's HTML at any address.
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
+  // The remembered windows in the taskbar whose views wait until they are brought back.
+  const unloaded = useRef(new Set<string>())
   const top = showing(desk)
   // On a phone the menus that are open are drawers in front of the windows, those of a filter too.
   const [unfolded, setMenus] = useState(0)
@@ -269,6 +286,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     startTransition(() =>
       to({ type: 'open', path, opener, alone: document.documentElement.dataset.single === 'on' }),
     )
+    unloaded.current.delete(windowOf(path))
     if (desk.open.some((entry) => entry.view?.path === path)) return
 
     const opened = await fetchWindow(language, path)
@@ -309,11 +327,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     // The router keeps its page in the entry a document loads in: emptied, that entry is the desk's as well.
     write('replaceState')
 
+    const { single, start, remember } = document.documentElement.dataset
+    // Remembered windows stand where they stood, in a new tab and after a reload alike.
+    const remembers = () => {
+      if (remember !== 'on') return
+      const kept = places()
+      for (const { at } of kept) unloaded.current.add(windowOf(at))
+      dispatch({ type: 'remember', windows: kept })
+    }
     const saved = stored()
     if (!saved) {
       restored.current = true
-      const single = document.documentElement.dataset.single === 'on'
-      dispatch({ type: 'start', windows: single ? view.start.slice(0, 1) : view.start })
+      remembers()
+      const windows = start === 'off' ? [] : view.start
+      dispatch({ type: 'start', windows: single === 'on' ? windows.slice(0, 1) : windows })
       return
     }
     const here = view.window && windowOf(view.window.path)
@@ -321,6 +348,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     void Promise.all(paths.map((path) => fetchWindow(language, path))).then((found) => {
       restored.current = true
       dispatch({ type: 'restore', windows: found.filter((opened) => opened !== null) })
+      remembers()
     })
   }, [language, view])
 
@@ -328,6 +356,38 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (restored.current)
       store(desk.z.map((path) => desk.open.find((one) => one.path === path)!.at))
   }, [desk])
+
+  // A remembered window loads when it is brought back, from the taskbar, a menu or a key; one that is gone closes.
+  const lost = useEffectEvent((path: string) => act({ type: 'close', path }))
+  useEffect(() => {
+    for (const one of desk.open)
+      if (one.view) unloaded.current.delete(one.path)
+      else if (one.mode !== 'min' && unloaded.current.delete(one.path))
+        void fetchWindow(language, one.at).then((opened) =>
+          opened ? dispatch({ type: 'fill', window: opened }) : lost(one.path),
+        )
+  }, [desk, language])
+
+  // Places are written once the desk is measured, only while windows are remembered, and forgotten when they are not;
+  // a window is kept by its own path, and only once its view says it is not hidden, so the taskbar names nothing a
+  // later viewer may not see.
+  const remember = useSetting('remember')
+  useEffect(() => {
+    if (!restored.current || remember === null || !desk.desk) return
+    const kept = desk.open.filter(
+      (one) => one.placed && (one.view ? !one.view.hidden : unloaded.current.has(one.path)),
+    )
+    try {
+      if (remember === 'on')
+        localStorage.setItem(
+          PLACES,
+          JSON.stringify(kept.map(({ path, box }) => ({ at: path, box }))),
+        )
+      else localStorage.removeItem(PLACES)
+    } catch {
+      // A tab without storage remembers nothing past itself.
+    }
+  }, [desk, remember])
 
   // The keys act from wherever the focus is; the switch on the root is read at each press. A key opens its window
   // as the menu's link to it does.
@@ -419,12 +479,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           t={dictionary}
         >
           {(opened, width) =>
-            parts(opened, dictionary, language, width, {
-              chosen: chosen[opened.path] ?? null,
-              choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-              drawer: phone(desk),
-              onDepth: setFiltering,
-            })
+            opened.path === '/preferences'
+              ? preferencesWindow({
+                  t: dictionary,
+                  language,
+                  site: view.site,
+                  path: opened.path,
+                  close: () => act({ type: 'close', path: opened.path }),
+                })
+              : parts(opened, dictionary, language, width, {
+                  chosen: chosen[opened.path] ?? null,
+                  choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                  drawer: phone(desk),
+                  onDepth: setFiltering,
+                })
           }
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
