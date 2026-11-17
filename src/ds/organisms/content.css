@@ -193,7 +193,7 @@
   color: var(--muted);
 }
 .list__count {
-  margin-inline-end: auto;
+  flex-grow: 1;
 }
 
 /* Preview: what an item of a list shows as it opens, keeping the columns of a split row. Compact: one column, media
