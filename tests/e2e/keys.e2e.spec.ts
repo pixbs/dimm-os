@@ -74,14 +74,15 @@ test.describe('Hotkeys on a desk', () => {
       // The key opens the palette, and Esc gives the focus back to what held it.
       await watch(page)
       await hold(page)
-      const count = await page.locator('article').count()
+      // Only Work is left, once the windows closed have gone.
+      await expect(page.locator('article')).toHaveCount(1)
       await page.keyboard.press(`${mod}+k`)
       expect(await taken(page)).toBe(true)
       await expect(page.getByRole('combobox')).toBeFocused()
       await page.keyboard.press('Escape')
       await expect(page.getByRole('combobox')).toBeHidden()
       expect(await held(page)).toBe(true)
-      await expect(page.locator('article')).toHaveCount(count)
+      await expect(page.locator('article')).toHaveCount(1)
     })
   }
 
