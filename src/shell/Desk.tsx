@@ -35,6 +35,7 @@ import { keyAction } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
+import { Search } from './Search'
 import { type Placed, Sections } from './Sections'
 
 const STORE = 'windows'
@@ -265,6 +266,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const [filtering, setFiltering] = useState(0)
   // The filter in force in each window, by its path.
   const [chosen, setChosen] = useState<Record<string, Chosen | null>>({})
+  // Search is open, and what opened it gets the focus back.
+  const [searching, setSearching] = useState<{ opener: Element | null } | null>(null)
+  const search = (opener: Element | null) => setSearching({ opener })
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
@@ -396,9 +400,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const action = keyAction(event, view.keys, single, desk)
     if (!action) return
     event.preventDefault()
-    // Search arrives with the palette: until then its key is the desk's and does nothing, as its row in File.
-    if (action === 'search') return
-    if (action.type === 'open') {
+    if (action === 'search') search(document.activeElement)
+    else if (action.type === 'open') {
       void open(act, action.path, null, () => location.replace(toAddress(language, action.path)))
     } else act(action)
   })
@@ -430,7 +433,15 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         <MenuBar
           drawer={phone(desk)}
           label={dictionary.menuBar}
-          menus={menus({ t: dictionary, language, name: view.site.name, desk, act })}
+          menus={menus({
+            t: dictionary,
+            language,
+            name: view.site.name,
+            desk,
+            act,
+            // Once the menu has closed and given the focus back to its button, which gets it again after.
+            search: () => queueMicrotask(() => search(document.activeElement)),
+          })}
           onDepth={setMenus}
           size="chrome"
           t={dictionary}
@@ -442,9 +453,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             icon="search"
             keyed
             name={dictionary.search}
+            onClick={(event) => search(event.currentTarget)}
             size="chrome"
           />
-          <Button data-for="touch" icon="search" name={dictionary.search} size="chrome" />
+          <Button
+            data-for="touch"
+            icon="search"
+            name={dictionary.search}
+            onClick={(event) => search(event.currentTarget)}
+            size="chrome"
+          />
           <Button
             data-for="desk pointer"
             icon="contrast"
@@ -525,6 +543,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           ))}
         </Taskbar>
       </footer>
+      <Search
+        drawer={phone(desk)}
+        index={view.search}
+        language={language}
+        name={view.site.name}
+        onClose={() => setSearching(null)}
+        open={!!searching}
+        opener={searching?.opener ?? null}
+        t={dictionary}
+      />
     </Screen>
   )
 }
