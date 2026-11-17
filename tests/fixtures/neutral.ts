@@ -61,12 +61,13 @@ const rich = (...parts: Part[]) => ({
   },
 })
 
-// A window told at length: a Header with a lead, text beside its headings, a part that joins the section above,
-// running text without a heading, and a closing call on an accent to another window.
 // A picture with the same caption in every place, one or more times.
 const pictures = (picture: number, caption: string, count = 1) =>
   Array.from({ length: count }, () => ({ picture, caption }))
 
+// A window told at length: a Header with a lead, an inset picture, text beside its headings, a part that joins the
+// section above, a gallery of three, running text without a heading, a picture edge to edge, and a closing call on an
+// accent to another window.
 const told = (
   to: number,
   picture: number,
@@ -353,10 +354,17 @@ async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Prom
     collection: 'media',
     limit: 1,
     where: { alt: { equals: data.alt } },
+    locale: 'en',
     ...trusted,
   })
   if (found) return found.id
-  const { id } = await payload.create({ collection: 'media', data, filePath: file, ...trusted })
+  const { id } = await payload.create({
+    collection: 'media',
+    data,
+    filePath: file,
+    locale: 'en',
+    ...trusted,
+  })
   return id
 }
 

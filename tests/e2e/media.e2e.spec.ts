@@ -74,7 +74,8 @@ test.describe('Media', () => {
     ]
 
     await expect(first).toHaveAttribute('sizes', '(max-width: 599px) 100vw, 720px')
-    await expect(gallery).toHaveAttribute('sizes', '(max-width: 599px) 100vw, 240px')
+    // In a regular window three fold to two across.
+    await expect(gallery).toHaveAttribute('sizes', '(max-width: 599px) 100vw, 360px')
     await work(page).getByRole('button', { name: 'Full screen' }).click()
     await expect(first).toHaveAttribute('sizes', '(max-width: 599px) 100vw, 1440px')
     await expect(gallery).toHaveAttribute('sizes', '(max-width: 599px) 100vw, 480px')

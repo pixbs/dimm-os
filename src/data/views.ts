@@ -251,18 +251,20 @@ async function views(language: Language, viewer: Viewer) {
   // A joined section continues a section with a body: a Header has none to share.
   const sectionsOf = (doc: Doc): Section[] =>
     (doc.sections ?? [])
-      .flatMap((block) =>
+      .map((block) =>
         block.blockType === 'header'
           ? header(block, action)
           : block.blockType === 'text'
             ? text(block, html)
-            : (media(block) ?? []),
+            : media(block),
       )
+      // A Media section with no picture left still stands between two texts, so it is dropped after the join is read.
       .map((section, at, all) =>
-        section.type === 'text' && section.join && all[at - 1]?.type !== 'text'
+        section?.type === 'text' && section.join && all[at - 1]?.type !== 'text'
           ? { ...section, join: false }
           : section,
       )
+      .filter((section) => section !== null)
 
   const view = (one: Seen): WindowView => {
     const { doc, parent } = one

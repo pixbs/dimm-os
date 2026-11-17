@@ -137,7 +137,7 @@ describe('the view of a window', () => {
         bleed: false,
         items: [
           {
-            src: '/api/media/file/picture.jpg',
+            src: expect.stringMatching(/^\/api\/media\/file\/picture(-\d+)?\.jpg$/),
             alt: 'A sun setting over two hills',
             caption: 'A picture inset in the window, with its caption.',
             position: '50% 50%',
@@ -206,7 +206,13 @@ describe('the view of a window', () => {
         { alt: 'Views, kept', live: 'portrait', focalX: 20, focalY: 80 },
         { alt: 'Views, gone' },
       ].map((data) =>
-        payload.create({ collection: 'media', data: data as Media, filePath: file, ...trusted }),
+        payload.create({
+          collection: 'media',
+          data: data as Media,
+          filePath: file,
+          locale: 'en',
+          ...trusted,
+        }),
       ),
     )
     const { id } = await payload.create({
@@ -225,13 +231,15 @@ describe('the view of a window', () => {
             bleed: true,
             items: [{ picture: kept.id, caption: 'Its caption here.' }],
           },
+          { blockType: 'text', body: linked({ linkType: 'custom', url: '/work' }) },
           { blockType: 'media', items: [{ picture: gone.id }] },
+          { blockType: 'text', join: true, body: linked({ linkType: 'custom', url: '/work' }) },
         ],
       } as Window,
       locale: 'en',
       ...trusted,
     })
-    // A section whose pictures are all gone is gone too.
+    // A section whose pictures are all gone is gone too, and the text after it still stands alone.
     await payload.delete({ collection: 'media', id: gone.id, overrideAccess: true })
 
     expect((await view('/views-sections', 'en')).window?.sections).toEqual([
@@ -252,6 +260,8 @@ describe('the view of a window', () => {
           },
         ],
       },
+      expect.objectContaining({ type: 'text', join: false }),
+      expect.objectContaining({ type: 'text', join: false }),
     ])
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
     await payload.delete({ collection: 'media', id: kept.id, overrideAccess: true })

@@ -8,15 +8,20 @@ import { Text } from '@/ds/sections/Text'
 
 type Placed = HeaderView | TextView | MediaView
 
+// A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
+// for at the share its column takes.
+const across = (columns: number, width: number) =>
+  width < 600 ? 1 : width < 960 ? Math.min(columns, 2) : columns
+
 // The sections of a window in their order: a Header that opens it holds the title of the page, and a joined section
-// stands in the body of the one above, under its heading. A picture is asked for at the share of the window's width
-// its column takes, and the first, when only a Header stands before it, is on screen as the window opens.
+// stands in the body of the one above, under its heading.
 export function Sections({ sections, width }: { sections: Placed[]; width: number }) {
   const groups: Placed[][] = []
   for (const section of sections) {
     if (section.type === 'text' && section.join) groups.at(-1)!.push(section)
     else groups.push([section])
   }
+  // The first picture, when only a Header stands before it, is on screen as the window opens.
   const first = sections.find((section) => section.type !== 'header')
 
   return groups.map(([lead, ...joined], at) =>
@@ -32,7 +37,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
             src,
             alt,
             position,
-            span: Math.ceil(width / lead.columns),
+            span: Math.ceil(width / across(lead.columns, width)),
             first: lead === first && index === 0,
             still: Boolean(live),
           },

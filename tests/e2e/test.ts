@@ -2,9 +2,9 @@ import { expect, type Page, test as base } from '@playwright/test'
 
 import { file } from '../fixtures/neutral'
 
-// Every test fails when its page throws or logs an error. Without the store, an upload is a file only the two users
-// may read, so every picture the fixture uploaded is served from the local file it was made from.
+// Every test fails when its page throws or logs an error.
 export const test = base.extend<{ pageErrors: void; uploads: void }>({
+  // Without the store an upload is a file only signed-in users may read, so a picture is served from its local file.
   uploads: [
     async ({ page }, use) => {
       await page.route('**/_next/image?**', (route) =>
