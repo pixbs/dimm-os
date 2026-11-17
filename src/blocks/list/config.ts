@@ -1,4 +1,10 @@
-import type { Block, Condition, Field, NumberFieldSingleValidation } from 'payload'
+import type {
+  Block,
+  Condition,
+  Field,
+  NumberFieldSingleValidation,
+  TextFieldSingleValidation,
+} from 'payload'
 import { number } from 'payload/shared'
 
 import { icons } from '@/ds/atoms/icons'
@@ -27,11 +33,22 @@ const headless = (field: Field): Field => {
   } as Field
 }
 
-// The dots a meter lights, never more than it has.
-const lit: NumberFieldSingleValidation = (value, options) =>
-  value == null || value <= ((options.siblingData as { of?: number }).of ?? 0)
-    ? number(value, options)
-    : 'At most the number of dots.'
+// A row of a link list leads somewhere: to a window, or to an address.
+const leads: TextFieldSingleValidation = (value, options) =>
+  (options.blockData as { rows?: string } | undefined)?.rows === 'link' &&
+  !value &&
+  !(options.siblingData as { window?: unknown }).window
+    ? 'Choose a window or give an address.'
+    : address(value, options)
+
+// A meter counts whole dots, and lights no more than it has.
+const whole: NumberFieldSingleValidation = (value, options) =>
+  value == null || Number.isInteger(value) ? number(value, options) : 'A whole number of dots.'
+const lit: NumberFieldSingleValidation = (value, options) => {
+  const of = (options.siblingData as { of?: number | null }).of
+  if (value != null && of == null) return 'Give the number of dots in all.'
+  return value == null || value <= (of ?? 0) ? whole(value, options) : 'At most the number of dots.'
+}
 
 // Rows of items: steps, navigation, the groups of a record.
 export const List: Block = {
@@ -117,6 +134,7 @@ export const List: Block = {
               type: 'number',
               min: 1,
               max: 12,
+              validate: whole,
               admin: { description: 'Dots in all.', width: '25%' },
             },
           ],
@@ -148,7 +166,7 @@ export const List: Block = {
               name: 'url',
               type: 'text',
               label: 'Address',
-              validate: address,
+              validate: leads,
               admin: {
                 condition: when('rows', 'link'),
                 description: 'Where no window is chosen.',

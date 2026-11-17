@@ -1,6 +1,6 @@
 import { Tag } from '../molecules/Tag'
 import { Gallery } from '../organisms/Gallery'
-import { Items } from '../sections/List'
+import { Items } from '../organisms/List'
 import { Stats } from '../organisms/Stats'
 import { Table } from '../organisms/Table'
 import type { Copy } from './copy/en'

@@ -406,7 +406,7 @@ describe('the view of a window', () => {
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
   })
 
-  it('gives a list its items in one shape, a link to a window the viewer may not see its words alone', async () => {
+  it('gives a list its items in one shape, and leaves out a row about a window the viewer may not see', async () => {
     const { id } = await payload.create({
       collection: 'windows',
       data: {
@@ -435,7 +435,7 @@ describe('the view of a window', () => {
               },
               { title: 'Hidden', window: ids.vault },
               { title: 'Away', url: 'https://example.com' },
-              { caption: 'Shown with a name only', title: 'Unnamed' },
+              { caption: 'Shown with a name only', title: 'Unnamed', url: '/work' },
             ],
             foot: [{ type: 'window', window: ids.vault }],
           },
@@ -498,9 +498,8 @@ describe('the view of a window', () => {
           href: '/work',
           current: false,
         },
-        expect.objectContaining({ title: 'Hidden', href: null, current: false }),
         expect.objectContaining({ title: 'Away', href: 'https://example.com' }),
-        expect.objectContaining({ name: null, caption: null, title: 'Unnamed', href: null }),
+        expect.objectContaining({ name: null, caption: null, title: 'Unnamed', href: '/work' }),
       ],
       foot: null,
       empty: null,

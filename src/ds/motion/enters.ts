@@ -60,10 +60,13 @@ export function useArrives() {
       ;(part as HTMLElement).dataset.enter = 'wait'
       watcher.observe(part)
     }
+    // A part whose arrival is cut short, as its window is minimised, settles all the same.
     element.addEventListener('transitionend', settle)
+    element.addEventListener('transitioncancel', settle)
     return () => {
       watcher.disconnect()
       element.removeEventListener('transitionend', settle)
+      element.removeEventListener('transitioncancel', settle)
     }
   }, [])
 

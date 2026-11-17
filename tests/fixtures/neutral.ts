@@ -194,6 +194,14 @@ const lists = (ids: Record<string, number>): Sections => [
     ],
     foot: [{ type: 'window', window: ids.work }],
   },
+  {
+    blockType: 'list',
+    title: 'Three columns',
+    split: true,
+    lead: 'none',
+    rows: 'plain',
+    items: [{ name: 'A name', caption: 'A caption', title: 'What it says', end: 'An end' }],
+  },
   { blockType: 'list', title: 'Still to come', lead: 'none', rows: 'plain' },
 ]
 

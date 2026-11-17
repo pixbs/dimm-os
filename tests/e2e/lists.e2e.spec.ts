@@ -70,7 +70,10 @@ test.describe('Lists', () => {
     const group = win(page, 'cv').locator('.list[data-headed]').first()
     const [head, row] = [group.locator('.list__head'), group.locator('.row').nth(1)]
 
-    await expect(win(page, 'cv').getByRole('heading', { name: 'A group' })).toHaveCount(0)
+    // Set in mono in its head, the group's title is still its one heading.
+    await expect(
+      win(page, 'cv').getByRole('heading', { name: 'A group', exact: true, level: 2 }),
+    ).toHaveCount(1)
     await expect(head).toHaveText('A groupKind')
     await expect(row.locator('.row__meta')).toHaveText('A kind')
     // The end label is the size of the end texts, and the head is in mono as they are.
@@ -98,7 +101,7 @@ test.describe('Lists', () => {
     ).toBeVisible()
   })
 
-  test('mark the row of the window they are in, and leave one the viewer may not see its words alone', async ({
+  test('mark the row of the window they are in, and leave out one the viewer may not see', async ({
     page,
   }) => {
     await page.goto('/work/field')
@@ -109,7 +112,8 @@ test.describe('Lists', () => {
       'aria-current',
       'page',
     )
-    await expect(beside.locator('.row').last()).toContainText('Vault')
+    await expect(beside.locator('.row')).toHaveCount(3)
+    await expect(beside).not.toContainText('Vault')
     await expect(beside.locator('.row__media img').first()).toHaveAttribute('alt', '')
   })
 
@@ -122,6 +126,18 @@ test.describe('Lists', () => {
     )
     const foot = section(win(page, 'work'), 'Where it is used').locator('.list__foot')
     await expect(foot.getByRole('link')).toHaveAttribute('href', '/work')
+  })
+
+  test('keep their heading above rows that hold a name and an end text, at three columns at most', async ({
+    page,
+  }) => {
+    await page.goto('/work/field')
+
+    await expect(section(win(page, 'work'), 'Where it is used')).toHaveAttribute(
+      'data-layout',
+      'split',
+    )
+    await expect(section(win(page, 'work'), 'Three columns')).not.toHaveAttribute('data-layout')
   })
 
   test('open a row in place and close it again', async ({ page }) => {

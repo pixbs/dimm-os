@@ -4,7 +4,7 @@ import type { ListBlock } from '@/payload-types'
 import { framed } from '../framed'
 import type { Action, Button } from '../header/view'
 
-export type Item = {
+type Item = {
   name: string | null
   caption: string | null
   title: string
@@ -43,41 +43,47 @@ type Ways = {
 
 export function list(block: ListBlock, { to, action, here, words }: Ways): ListView {
   const frame = framed(block)
-  const head = block.endLabel ? { title: frame.title, end: block.endLabel } : null
   const links = block.rows === 'link'
-  const items = (block.items ?? []).map((item): Item => {
+  const items = (block.items ?? []).flatMap((item): Item[] => {
     const { picture } = item
-    // A link to a window this viewer may not see leaves the row its words alone.
     const href = links ? (item.window ? to(item.window) : item.url || null) : null
-    return {
-      name: item.name || null,
-      caption: (item.name && item.caption) || null,
-      title: item.title,
-      text: (item.text ?? '').split('\n').filter((line) => line.trim()),
-      end: item.end || null,
-      meter:
-        item.of && item.share != null
-          ? {
-              on: item.share,
-              of: item.of,
-              label: words.share
-                .replace('{on}', String(item.share))
-                .replace('{of}', String(item.of)),
-            }
-          : null,
-      icon: block.lead === 'icon' ? (item.icon ?? null) : null,
-      picture:
-        block.lead === 'picture' && typeof picture === 'object' && picture?.url
-          ? { src: picture.url, position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%` }
-          : null,
-      href,
-      current: href === here,
-    }
+    // A row of a link list always leads somewhere, so one left with nowhere, as its window is hidden from this viewer, is
+    // absent for them, as in every list, and leaves no gap in a count.
+    if (links && !href) return []
+    return [
+      {
+        name: item.name || null,
+        caption: (item.name && item.caption) || null,
+        title: item.title,
+        text: (item.text ?? '').split('\n').filter((line) => line.trim()),
+        end: item.end || null,
+        meter:
+          item.of && item.share != null
+            ? {
+                on: item.share,
+                of: item.of,
+                label: words.share
+                  .replace('{on}', String(item.share))
+                  .replace('{of}', String(item.of)),
+              }
+            : null,
+        icon: block.lead === 'icon' ? (item.icon ?? null) : null,
+        picture:
+          block.lead === 'picture' && typeof picture === 'object' && picture?.url
+            ? { src: picture.url, position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%` }
+            : null,
+        href,
+        current: href === here,
+      },
+    ]
   })
+  // A headed list holds its title in its head, or over the line that says it has no rows yet, and never beside them.
+  const head = block.endLabel && items.length ? { title: frame.title, end: block.endLabel } : null
   return {
     type: 'list',
     ...frame,
-    ...(head && { title: null, text: null, split: false }),
+    ...(block.endLabel && { text: null, split: false }),
+    ...(head && { title: null }),
     surface: block.surface ?? 'window',
     large: Boolean(block.large),
     lead: block.lead,
