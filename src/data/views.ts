@@ -19,6 +19,7 @@ import { sanitizeUrl } from 'payload/shared'
 
 import { facts, type FactsView } from '@/blocks/facts/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
+import { list, type ListView } from '@/blocks/list/view'
 import { media, type MediaView } from '@/blocks/media/view'
 import { quote, type QuoteView } from '@/blocks/quote/view'
 import { stats, type StatsView } from '@/blocks/stats/view'
@@ -37,7 +38,7 @@ import { VISITOR_COOKIE } from './viewer'
 // A part shown in another language than the page's carries that language.
 type Link = { href: string; title: string; lang?: Language }
 
-// The sections the admin placed, and the list of its items a window shows until the List section arrives.
+// The sections the admin placed, and the list of its items a window shows until a List can list them.
 type Section =
   | HeaderView
   | TextView
@@ -46,10 +47,11 @@ type Section =
   | QuoteView
   | FactsView
   | TableView
-  | { type: 'list'; items: Link[] }
+  | ListView
+  | { type: 'items'; items: Link[] }
 
 // The sections whose body a joined section can continue under their heading.
-const joinable = new Set(['text', 'stats', 'facts', 'table'])
+const joinable = new Set(['text', 'stats', 'facts', 'table', 'list'])
 
 export type WindowView = {
   path: string
@@ -263,7 +265,7 @@ async function views(language: Language, viewer: Viewer) {
       disableIndent: true,
       disableTextAlign: true,
     })
-  const sectionOf = (block: NonNullable<Doc['sections']>[number]) => {
+  const sectionOf = (block: NonNullable<Doc['sections']>[number], here: string) => {
     switch (block.blockType) {
       case 'header':
         return header(block, action)
@@ -279,12 +281,19 @@ async function views(language: Language, viewer: Viewer) {
         return facts(block)
       case 'table':
         return table(block)
+      case 'list':
+        return list(block, {
+          to: (window) => linkTo(window)?.href ?? null,
+          action,
+          here,
+          words: { empty: t.empty, share: t.share },
+        })
     }
   }
   // A joined section continues a section with a heading and a body: a Header, a picture and a quotation share none.
-  const sectionsOf = (doc: Doc): Section[] =>
+  const sectionsOf = ({ doc, path }: Seen): Section[] =>
     (doc.sections ?? [])
-      .map(sectionOf)
+      .map((block) => sectionOf(block, toAddress(language, path)))
       // A Media section with no picture left still stands between two texts, so it is dropped after the join is read.
       .map((section, at, all) =>
         section && 'join' in section && section.join && !joinable.has(all[at - 1]?.type ?? '')
@@ -310,8 +319,8 @@ async function views(language: Language, viewer: Viewer) {
         oneSize: app.doc.oneSize ?? undefined,
       },
       sections: [
-        ...sectionsOf(doc),
-        ...(items.length ? [{ type: 'list' as const, items: items.map(link) }] : []),
+        ...sectionsOf(one),
+        ...(items.length ? [{ type: 'items' as const, items: items.map(link) }] : []),
       ],
       count: items.length,
       parent: parent ? link(parent) : null,

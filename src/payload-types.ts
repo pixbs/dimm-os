@@ -244,7 +244,8 @@ export interface Window {
   id: number;
   _order?: string | null;
   title: string;
-  sections?: (HeaderBlock | TextBlock | MediaBlock | StatsBlock | QuoteBlock | FactsBlock | TableBlock)[] | null;
+  sections?:
+    (HeaderBlock | TextBlock | MediaBlock | StatsBlock | QuoteBlock | FactsBlock | TableBlock | ListBlock)[] | null;
   /**
    * Drawn as a paper record.
    */
@@ -620,6 +621,123 @@ export interface TableBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ListBlock".
+ */
+export interface ListBlock {
+  /**
+   * Shares its heading.
+   */
+  join?: boolean | null;
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  lead: 'none' | 'index' | 'icon' | 'picture';
+  rows: 'plain' | 'link' | 'opens';
+  large?: boolean | null;
+  /**
+   * Heads the end texts, with the title beside it.
+   */
+  endLabel?: string | null;
+  items?:
+    | {
+        name?: string | null;
+        caption?: string | null;
+        title: string;
+        /**
+         * A line each.
+         */
+        text?: string | null;
+        end?: string | null;
+        /**
+         * Dots lit.
+         */
+        share?: number | null;
+        /**
+         * Dots in all.
+         */
+        of?: number | null;
+        icon?:
+          | (
+              | 'arrow-right'
+              | 'arrow-left'
+              | 'arrow-up-right'
+              | 'arrow-down'
+              | 'chevron-right'
+              | 'chevron-down'
+              | 'close'
+              | 'check'
+              | 'plus'
+              | 'minus'
+              | 'search'
+              | 'menu'
+              | 'more'
+              | 'grid'
+              | 'window'
+              | 'folder'
+              | 'file'
+              | 'image'
+              | 'play'
+              | 'mail'
+              | 'phone'
+              | 'link'
+              | 'download'
+              | 'upload'
+              | 'calendar'
+              | 'clock'
+              | 'globe'
+              | 'sun'
+              | 'moon'
+              | 'lock'
+              | 'info'
+              | 'user'
+              | 'sliders'
+              | 'home'
+              | 'power'
+              | 'trash'
+              | 'copy'
+              | 'text'
+              | 'chart'
+              | 'target'
+              | 'contrast'
+              | 'keyboard'
+              | 'expand'
+              | 'star'
+              | 'ab'
+              | 'eye-off'
+            )
+          | null;
+        picture?: (number | null) | Media;
+        window?: (number | null) | Window;
+        /**
+         * Where no window is chosen.
+         */
+        url?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  foot?:
+    | {
+        type?: ('window' | 'media' | 'address') | null;
+        window?: (number | null) | Window;
+        media?: (number | null) | Media;
+        url?: string | null;
+        /**
+         * On a link to a window, empty is its title.
+         */
+        label?: string | null;
+        id?: string | null;
+      }[]
+    | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'list';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -805,6 +923,7 @@ export interface WindowsSelect<T extends boolean = true> {
         quote?: T | QuoteBlockSelect<T>;
         facts?: T | FactsBlockSelect<T>;
         table?: T | TableBlockSelect<T>;
+        list?: T | ListBlockSelect<T>;
       };
   paper?: T;
   stamp?: T;
@@ -999,6 +1118,49 @@ export interface TableBlockSelect<T extends boolean = true> {
         first?: T;
         second?: T;
         third?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ListBlock_select".
+ */
+export interface ListBlockSelect<T extends boolean = true> {
+  join?: T;
+  title?: T;
+  text?: T;
+  split?: T;
+  surface?: T;
+  lead?: T;
+  rows?: T;
+  large?: T;
+  endLabel?: T;
+  items?:
+    | T
+    | {
+        name?: T;
+        caption?: T;
+        title?: T;
+        text?: T;
+        end?: T;
+        share?: T;
+        of?: T;
+        icon?: T;
+        picture?: T;
+        window?: T;
+        url?: T;
+        id?: T;
+      };
+  foot?:
+    | T
+    | {
+        type?: T;
+        window?: T;
+        media?: T;
+        url?: T;
+        label?: T;
         id?: T;
       };
   id?: T;

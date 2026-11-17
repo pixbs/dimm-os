@@ -66,8 +66,9 @@ const pictures = (picture: number, caption: string, count = 1) =>
   Array.from({ length: count }, () => ({ picture, caption }))
 
 // A window told at length: a Header with a lead, an inset picture, facts without a heading, text beside its headings, a
-// part that joins the section above, a quotation on paper, a gallery of three, figures beside their heading, running
-// text without a heading, a picture edge to edge, and a closing call on an accent to another window.
+// part that joins the section above, a quotation on paper, a gallery of three, figures beside their heading, steps
+// with a meter each, running text without a heading, a picture edge to edge, and a closing call on an accent to another
+// window.
 const told = (
   to: number,
   picture: number,
@@ -76,6 +77,7 @@ const told = (
     lead: string
     figure: string
     question: string[]
+    seen: [string, [string, number, string][]]
     changed: [string, string, string]
     joined: string
     facts: [string, string][]
@@ -112,6 +114,14 @@ const told = (
     split: true,
     items: t.figures[1].map(([value, label]) => ({ value, label })),
   },
+  {
+    blockType: 'list',
+    title: t.seen[0],
+    split: true,
+    lead: 'index',
+    rows: 'plain',
+    items: t.seen[1].map(([title, share, text]) => ({ title, share, of: 12, text })),
+  },
   { blockType: 'text', body: rich(...t.closing) },
   { blockType: 'media', ratio: '16:9', bleed: true, items: pictures(picture, '') },
   {
@@ -122,6 +132,92 @@ const told = (
     actions: [{ type: 'window', window: to }],
   },
 ]
+
+// A window that opens with an index at the heading scale, which leads to windows and away and has no heading of its own.
+const indexed = (
+  ids: Record<string, number>,
+  t: { title: string; lead: string; index: [string, string][]; when: string },
+): Sections => [
+  { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
+  {
+    blockType: 'list',
+    large: true,
+    lead: 'index',
+    rows: 'link',
+    items: t.index.map(([name, title], at) => ({
+      name,
+      title,
+      text: t.when,
+      ...(at < 2 ? { window: [ids.work, ids.cv][at] } : { url: 'https://example.com' }),
+    })),
+  },
+]
+
+// Lists under their headings: steps, rows that open in place, a row to an item with a foot that leads on, and a list
+// that is still empty.
+const lists = (ids: Record<string, number>): Sections => [
+  {
+    blockType: 'list',
+    title: 'Steps',
+    split: true,
+    lead: 'index',
+    rows: 'plain',
+    items: ['A first step.', 'A second step.', 'A third step.', 'A last step.'].map((title) => ({
+      title,
+      text: 'What happens in it, in one sentence.',
+    })),
+  },
+  {
+    blockType: 'list',
+    title: 'Questions',
+    split: true,
+    lead: 'none',
+    rows: 'opens',
+    items: [
+      { title: 'A question that opens?', text: 'Its answer, which shows once the row is open.' },
+      { title: 'Another question?', text: 'Another answer.\nIts second line.' },
+    ],
+  },
+  {
+    blockType: 'list',
+    title: 'Where it is used',
+    split: true,
+    lead: 'none',
+    rows: 'link',
+    items: [
+      {
+        name: 'Grow',
+        caption: 'A fixture item',
+        title: 'An item the row leads to',
+        window: ids.grow,
+      },
+    ],
+    foot: [{ type: 'window', window: ids.work }],
+  },
+  {
+    blockType: 'list',
+    title: 'Three columns',
+    split: true,
+    lead: 'none',
+    rows: 'plain',
+    items: [{ name: 'A name', caption: 'A caption', title: 'What it says', end: 'An end' }],
+  },
+  { blockType: 'list', title: 'Still to come', lead: 'none', rows: 'plain' },
+]
+
+// A document whose rows stand in headed groups, a role and its place beside what was done, a kind at the end.
+const record = (t: { title: string; lead: string; end: string; groups: [string, string[][]][] }) =>
+  [
+    { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
+    ...t.groups.map(([title, rows]) => ({
+      blockType: 'list' as const,
+      title,
+      endLabel: t.end,
+      lead: 'none' as const,
+      rows: 'plain' as const,
+      items: rows.map(([name, caption, title, end]) => ({ name, caption, title, end })),
+    })),
+  ] satisfies Sections
 
 // Neutral windows that show every way the desk reads the content, parents before their items.
 const windows: Fixture[] = [
@@ -166,6 +262,18 @@ const windows: Fixture[] = [
           'A paragraph of running text. It says what there is to say in full sentences and wraps at the measure of prose.',
           'A second paragraph, shorter than the first.',
         ],
+        seen: [
+          'What was counted',
+          [
+            ['A thing counted often.', 9, 'Counted 9 times of 12.'],
+            [
+              'A thing counted less often, in a line long enough to wrap.',
+              7,
+              'Counted 7 times of 12.',
+            ],
+            ['A thing counted almost every time.', 11, 'Counted 11 times of 12.'],
+          ],
+        ],
         changed: [
           'What changed',
           'A heading inside the text',
@@ -203,6 +311,18 @@ const windows: Fixture[] = [
           'Die Frage',
           'Ein Absatz Fließtext. Er sagt in ganzen Sätzen, was zu sagen ist, und bricht am Maß des Fließtexts um.',
           'Ein zweiter Absatz, kürzer als der erste.',
+        ],
+        seen: [
+          'Was gezählt wurde',
+          [
+            ['Etwas, das oft gezählt wurde.', 9, '9 von 12 Mal gezählt.'],
+            [
+              'Etwas, das seltener gezählt wurde, in einer Zeile, die umbricht.',
+              7,
+              '7 von 12 Mal gezählt.',
+            ],
+            ['Etwas, das fast jedes Mal gezählt wurde.', 11, '11 von 12 Mal gezählt.'],
+          ],
         ],
         changed: [
           'Was sich geändert hat',
@@ -242,7 +362,7 @@ const windows: Fixture[] = [
     kind: 'case',
     title: { en: 'Field', de: 'Feld' },
     description: { en: 'A second fixture item.', de: 'Ein zweiter Beispieleintrag.' },
-    sections: (_, { still, live }) => ({
+    sections: (ids, { still, live }) => ({
       en: [
         {
           blockType: 'media',
@@ -290,6 +410,19 @@ const windows: Fixture[] = [
           columns: [{ label: 'Item' }, { label: 'Kind' }, { label: 'Place' }],
           rows: [{ first: 'A joined row', second: 'A kind', third: 'Here' }],
         },
+        {
+          blockType: 'list',
+          title: 'Beside it',
+          lead: 'picture',
+          rows: 'link',
+          items: ['Grow', 'Field', 'Loop', 'Vault'].map((title) => ({
+            title,
+            text: 'An item of the same window.',
+            picture: still,
+            window: ids[title.toLowerCase()],
+          })),
+        },
+        ...lists(ids),
       ],
     }),
   },
@@ -332,25 +465,33 @@ const windows: Fixture[] = [
       en: 'A fixture window for a second app.',
       de: 'Ein Beispielfenster für eine zweite App.',
     },
-    sections: () => ({
-      en: [
-        {
-          blockType: 'header',
-          level: 'title',
-          surface: 'window',
-          title: 'Services',
-          text: 'A fixture window for a second app. Its lead paragraph opens the window and says what the visitor will find in it.',
-        },
-      ],
-      de: [
-        {
-          blockType: 'header',
-          level: 'title',
-          surface: 'window',
-          title: 'Leistungen',
-          text: 'Ein Beispielfenster für eine zweite App. Sein Vorspann öffnet das Fenster und sagt, was Besucher darin finden.',
-        },
-      ],
+    sections: (ids) => ({
+      en: indexed(ids, {
+        title: 'Services',
+        lead: 'A fixture window for a second app. Its lead paragraph opens the window and says what the visitor will find in it.',
+        index: [
+          ['A first part', 'Which question does the first part answer?'],
+          [
+            'A second part',
+            'Which question does the second part answer, in a line long enough to wrap?',
+          ],
+          ['A third part', 'Which question leads away from the site?'],
+        ],
+        when: 'When it fits, in one sentence.\nWhat it holds, as a list of words',
+      }),
+      de: indexed(ids, {
+        title: 'Leistungen',
+        lead: 'Ein Beispielfenster für eine zweite App. Sein Vorspann öffnet das Fenster und sagt, was Besucher darin finden.',
+        index: [
+          ['Ein erster Teil', 'Welche Frage beantwortet der erste Teil?'],
+          [
+            'Ein zweiter Teil',
+            'Welche Frage beantwortet der zweite Teil, in einer Zeile, die umbricht?',
+          ],
+          ['Ein dritter Teil', 'Welche Frage führt von der Seite weg?'],
+        ],
+        when: 'Wann er passt, in einem Satz.\nWas er enthält, als Liste von Wörtern',
+      }),
     }),
   },
   {
@@ -364,6 +505,51 @@ const windows: Fixture[] = [
       en: 'A fixture window for a document.',
       de: 'Ein Beispielfenster für ein Dokument.',
     },
+    sections: () => ({
+      en: record({
+        title: 'CV',
+        lead: 'A fixture window for a document, its rows in headed groups.',
+        end: 'Kind',
+        groups: [
+          [
+            'A group',
+            [
+              [
+                'A role',
+                'A place',
+                'What was done there, in a sentence long enough to wrap in a narrow window.',
+                'A kind',
+              ],
+              ['Another role', 'Another place', 'What was done there.', 'Another kind'],
+            ],
+          ],
+          ['Another group', [['A third role', 'A third place', 'What was done there.', 'A kind']]],
+        ],
+      }),
+      de: record({
+        title: 'Lebenslauf',
+        lead: 'Ein Beispielfenster für ein Dokument, seine Zeilen in Gruppen mit Kopf.',
+        end: 'Art',
+        groups: [
+          [
+            'Eine Gruppe',
+            [
+              [
+                'Eine Rolle',
+                'Ein Ort',
+                'Was dort getan wurde, in einem Satz, der in einem schmalen Fenster umbricht.',
+                'Eine Art',
+              ],
+              ['Eine andere Rolle', 'Ein anderer Ort', 'Was dort getan wurde.', 'Eine andere Art'],
+            ],
+          ],
+          [
+            'Eine andere Gruppe',
+            [['Eine dritte Rolle', 'Ein dritter Ort', 'Was dort getan wurde.', 'Eine Art']],
+          ],
+        ],
+      }),
+    }),
   },
   {
     slug: 'contact',

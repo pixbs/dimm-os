@@ -2,11 +2,12 @@ import type { ReactNode } from 'react'
 
 type Level = 'hero' | 'display' | 'title' | 'heading' | 'lead'
 
-// The title is plain text, so a heading never mixes weights; the eyebrow says where you are, not what the title says.
+// The title is plain text, so a heading never mixes weights; the eyebrow says where you are, and a message of one line
+// has no title.
 export function Heading(props: {
   level?: Level
   eyebrow?: string
-  title: string
+  title?: string
   text?: ReactNode
   // The title of the page, which a window holds once.
   page?: boolean
@@ -17,7 +18,7 @@ export function Heading(props: {
   return (
     <div className="hgroup" data-level={level === 'title' ? undefined : level}>
       {eyebrow && <p className="hgroup__eyebrow">{eyebrow}</p>}
-      <Title className="hgroup__title">{title}</Title>
+      {title && <Title className="hgroup__title">{title}</Title>}
       {text && <p className="hgroup__text">{text}</p>}
     </div>
   )

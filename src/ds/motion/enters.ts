@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 import { usePainted } from './vocabulary'
 
@@ -28,6 +28,49 @@ function arrive(element: HTMLElement) {
     })
   }
   arriving.push(element)
+}
+
+// The parts of what this marks arrive as they are first seen, those seen together in one sweep along the spread, and
+// then keep their own transitions; what the server painted is simply there.
+export function useArrives() {
+  const whole = useRef<HTMLDivElement>(null)
+  const server = useRef(usePainted())
+
+  // Before paint, so a part is never seen before it arrives.
+  useLayoutEffect(() => {
+    const element = whole.current
+    if (!element || server.current) return
+    const watcher = new IntersectionObserver(
+      (entries) => {
+        for (const { isIntersecting, target } of entries) {
+          if (!isIntersecting) continue
+          watcher.unobserve(target)
+          arrive(target as HTMLElement)
+        }
+      },
+      { root: scroller(element) },
+    )
+    const settle = ({ target }: Event) => {
+      const part = target as HTMLElement
+      if (part.parentElement !== element || part.dataset.enter !== 'in') return
+      delete part.dataset.enter
+      part.style.transitionDelay = ''
+    }
+    for (const part of element.children) {
+      ;(part as HTMLElement).dataset.enter = 'wait'
+      watcher.observe(part)
+    }
+    // A part whose arrival is cut short, as its window is minimised, settles all the same.
+    element.addEventListener('transitionend', settle)
+    element.addEventListener('transitioncancel', settle)
+    return () => {
+      watcher.disconnect()
+      element.removeEventListener('transitionend', settle)
+      element.removeEventListener('transitioncancel', settle)
+    }
+  }, [])
+
+  return whole
 }
 
 // The part this marks enters by scroll and plays once, as it comes into view; in view as it arrives it comes with

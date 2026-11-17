@@ -27,7 +27,7 @@ async function view(path: string, language: 'en' | 'de', viewer: Visitor | null 
 
 const titles = (view: View) =>
   view.window?.sections.flatMap((section) =>
-    section.type === 'list' ? section.items.map((item) => item.title) : [],
+    section.type === 'items' ? section.items.map((item) => item.title) : [],
   )
 
 beforeAll(async () => {
@@ -184,6 +184,7 @@ describe('the view of a window', () => {
         false,
         false,
         true,
+        false,
         false,
         false,
         false,
@@ -403,6 +404,124 @@ describe('the view of a window', () => {
       false,
     ])
     await payload.delete({ collection: 'windows', id, overrideAccess: true })
+  })
+
+  it('gives a list its items in one shape, and leaves out a row about a window the viewer may not see', async () => {
+    const { id } = await payload.create({
+      collection: 'windows',
+      data: {
+        title: 'Sections',
+        slug: 'views-sections',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'list',
+            title: 'A list',
+            text: 'Not shown in a headed list.',
+            endLabel: 'End',
+            lead: 'index',
+            rows: 'link',
+            large: true,
+            items: [
+              {
+                name: 'Name',
+                caption: 'Caption',
+                title: 'Title',
+                text: 'A line\n\nAnother line',
+                end: 'End text',
+                share: 9,
+                of: 12,
+                window: ids.work,
+              },
+              { title: 'Hidden', window: ids.vault },
+              { title: 'Away', url: 'https://example.com' },
+              { caption: 'Shown with a name only', title: 'Unnamed', url: '/work' },
+            ],
+            foot: [{ type: 'window', window: ids.vault }],
+          },
+          {
+            blockType: 'list',
+            join: true,
+            lead: 'none',
+            rows: 'plain',
+            items: [{ title: 'Joined' }],
+          },
+        ],
+      } as Window,
+      locale: 'en',
+      ...trusted,
+    })
+    // A row that leads to the window it is in, which has an id only once it is made.
+    await payload.update({
+      collection: 'windows',
+      id,
+      data: {
+        title: 'Abschnitte',
+        _status: 'published',
+        sections: [
+          {
+            blockType: 'list',
+            lead: 'none',
+            rows: 'link',
+            items: [{ title: 'Here', window: id }],
+            foot: [{ type: 'window', window: ids.work, label: 'All of it' }],
+          },
+          { blockType: 'list', join: true, lead: 'none', rows: 'plain', items: [] },
+        ],
+      } as Window,
+      locale: 'de',
+      ...trusted,
+    })
+
+    const [list, joined] = (await view('/views-sections', 'en')).window!.sections
+    expect(list).toEqual({
+      type: 'list',
+      title: null,
+      text: null,
+      split: false,
+      join: false,
+      surface: 'window',
+      large: true,
+      lead: 'index',
+      opens: false,
+      head: { title: 'A list', end: 'End' },
+      items: [
+        {
+          name: 'Name',
+          caption: 'Caption',
+          title: 'Title',
+          text: ['A line', 'Another line'],
+          end: 'End text',
+          meter: { on: 9, of: 12, label: '9 of 12' },
+          icon: null,
+          picture: null,
+          href: '/work',
+          current: false,
+        },
+        expect.objectContaining({ title: 'Away', href: 'https://example.com' }),
+        expect.objectContaining({ name: null, caption: null, title: 'Unnamed', href: '/work' }),
+      ],
+      foot: null,
+      empty: null,
+    })
+    expect(joined).toMatchObject({ type: 'list', join: true, items: [{ title: 'Joined' }] })
+
+    const [here, none] = (await view('/views-sections', 'de')).window!.sections
+    expect(here).toMatchObject({
+      head: null,
+      items: [{ title: 'Here', href: '/de/views-sections', current: true }],
+      foot: { href: '/de/work', label: 'All of it' },
+    })
+    expect(none).toMatchObject({ items: [], empty: 'Hier ist noch nichts.' })
+    await payload.delete({ collection: 'windows', id, overrideAccess: true })
+
+    // A meter reads as a share in the page's language.
+    const steps = (language: 'en' | 'de') =>
+      view('/work/grow', language).then(({ window }) =>
+        window!.sections.find((section) => section.type === 'list'),
+      )
+    expect(await steps('en')).toMatchObject({ items: [{ meter: { label: '9 of 12' } }, {}, {}] })
+    expect(await steps('de')).toMatchObject({ items: [{ meter: { label: '9 von 12' } }, {}, {}] })
   })
 
   it.each(languages)(

@@ -1,24 +1,26 @@
 import type { FactsView } from '@/blocks/facts/view'
 import type { HeaderView } from '@/blocks/header/view'
+import type { ListView } from '@/blocks/list/view'
 import type { MediaView } from '@/blocks/media/view'
 import type { QuoteView } from '@/blocks/quote/view'
 import type { StatsView } from '@/blocks/stats/view'
 import type { TableView } from '@/blocks/table/view'
 import type { TextView } from '@/blocks/text/view'
 import { Row } from '@/ds/molecules/Row'
-import { List } from '@/ds/organisms/List'
+import { Items, List } from '@/ds/organisms/List'
 import { Prose } from '@/ds/organisms/Prose'
 import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
 import { Facts } from '@/ds/sections/Facts'
 import { Header } from '@/ds/sections/Header'
+import { List as Listed } from '@/ds/sections/List'
 import { Media } from '@/ds/sections/Media'
 import { Quote } from '@/ds/sections/Quote'
 import { Stats } from '@/ds/sections/Stats'
 import { Table } from '@/ds/sections/Table'
 import { Text } from '@/ds/sections/Text'
 
-type Joinable = TextView | StatsView | FactsView | TableView
+type Joinable = TextView | StatsView | FactsView | TableView | ListView
 type Placed = HeaderView | MediaView | QuoteView | Joinable
 
 // A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
@@ -43,6 +45,8 @@ function Part({ part }: { part: Joinable }) {
       )
     case 'table':
       return <Rows columns={part.columns} rows={part.rows} />
+    case 'list':
+      return <Items {...part} />
   }
 }
 
@@ -59,8 +63,13 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
 
   return groups.map(([lead, ...joined], at) => {
     const parts = joined.map((part, index) => <Part key={index} part={part} />)
-    // A table takes the whole width it has, so the section it joins keeps its heading above, at three columns at most.
-    const beside = !joined.some((part) => part.type === 'table')
+    // A table, or a list whose rows hold a name and an end text, takes three columns of its own, so the section it
+    // stands in keeps its heading above, at three columns at most.
+    const beside = ![lead, ...joined].some(
+      (part) =>
+        part.type === 'table' ||
+        (part.type === 'list' && part.items.some(({ name, end }) => name && end)),
+    )
     switch (lead.type) {
       case 'header':
         return <Header key={at} {...lead} page={at === 0} />
@@ -135,6 +144,12 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           >
             {parts}
           </Table>
+        )
+      case 'list':
+        return (
+          <Listed {...lead} key={at} split={lead.split && beside}>
+            {parts}
+          </Listed>
         )
       case 'text':
         return (
