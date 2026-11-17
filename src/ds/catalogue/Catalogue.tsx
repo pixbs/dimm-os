@@ -4,6 +4,7 @@ import { type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
 
 import { Actions } from './Actions'
+import { Collections } from './Collections'
 import { Colour } from './Colour'
 import { Content } from './Content'
 import { Icons } from './Icons'
@@ -39,6 +40,7 @@ export const pages = [
   'lists',
   'records',
   'sections',
+  'collections',
 ] as const
 
 type Name = (typeof pages)[number]
@@ -91,6 +93,7 @@ export async function Catalogue({ language, name }: { language: Language; name: 
       {name === 'lists' && <Lists t={t.lists} widths={t.sections.widths} />}
       {name === 'records' && <Records t={t.records} />}
       {name === 'sections' && <Sections t={t.sections} />}
+      {name === 'collections' && <Collections t={t.collections} widths={t.sections.widths} />}
     </main>
   )
 }

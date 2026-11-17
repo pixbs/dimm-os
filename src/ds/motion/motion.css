@@ -7,9 +7,10 @@
   transition-property: var(--m-fades) !important;
 }
 
-/* The real text and what flickers over it share one place. */
+/* The real text and what flickers over it share one place, and take no more height than the line they stand in. */
 .decipher {
   display: inline-grid;
+  vertical-align: top;
 
   & > * {
     grid-area: 1 / 1;

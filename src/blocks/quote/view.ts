@@ -7,7 +7,7 @@ export type QuoteView = {
   name: string
   role: string | null
   // A picture this viewer may not read, or one without a file, leaves the avatar empty.
-  avatar: { src: string; alt: string; position: string } | null
+  avatar: { src: string; position: string } | null
 }
 
 export function quote(block: QuoteBlock): QuoteView {
@@ -22,7 +22,6 @@ export function quote(block: QuoteBlock): QuoteView {
       typeof avatar === 'object' && avatar?.url
         ? {
             src: avatar.url,
-            alt: avatar.alt,
             position: `${avatar.focalX ?? 50}% ${avatar.focalY ?? 50}%`,
           }
         : null,

@@ -43,11 +43,11 @@ export function Media(props: MediaProps) {
 }
 
 // The box at a control size, or twice the regular one for whom a screen is about; named by initials or a glyph on its
-// own surface, or filled by a picture.
+// own surface, or filled by a picture, which says nothing the name beside it does not.
 export function Avatar(props: {
   size?: 'compact' | 'large'
   surface?: 'raised' | 'paper'
-  picture?: { src: string; alt: string; position?: string }
+  picture?: { src: string; position?: string }
   children?: ReactNode
 }) {
   const { picture } = props
@@ -64,7 +64,7 @@ export function Avatar(props: {
       {picture && (
         // The smallest width of the short list is wider than the largest avatar, so that one is asked for.
         <Image
-          alt={picture.alt}
+          alt=""
           fill
           sizes="96px"
           src={picture.src}

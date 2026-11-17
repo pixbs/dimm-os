@@ -921,6 +921,16 @@ const en = {
       'heading: title · text | items: 1 or more | columns: 1 · 2 · 3 | ratio: 16:9 · 4:3 · 1:1 | width: inset · edge to edge',
       'One picture, or a gallery of them. A caption belongs to this use of the picture, not to its file. Edge to edge, the pictures run to the edges of the window; the heading and the captions keep the inset.',
     ],
+    stats: [
+      'Stats',
+      'heading: title · text | layout: stack · split | surface: window · paper · orange · blue · mint | join: continues the section above | items: 1 to 3 across',
+      'Figures and what they count. Split, the heading takes one column of three, so three figures stand two across.',
+    ],
+    quote: [
+      'Quote',
+      'surface: window · paper · orange · blue · mint | parts: text · name · role · avatar',
+      'One quotation and who said it. It has no heading, and a surface of its own.',
+    ],
     widths: ['compact · 376', 'regular · 720', 'wide · 1040'],
     caps: [
       'surface: paper, orange',
@@ -930,6 +940,10 @@ const en = {
       'split',
       'stack, no heading',
       'one, edge to edge · three in a gallery',
+      'stack',
+      'split',
+      'surface: paper',
+      'surface: window',
     ],
     title: 'Heading of the section',
     sentence: 'Text that says in a sentence or two what this is about.',
@@ -950,10 +964,43 @@ const en = {
       'A paragraph of running text. It says what there is to say in full sentences and wraps at the measure, wherever the window ends.',
     holds: ['A second paragraph. It can hold', 'strong words', 'and a', 'link'],
     caption: 'Caption.',
+    figures: [
+      { value: '12', label: 'things counted' },
+      { value: '48 %', label: 'of something' },
+      { value: '3×', label: 'as many' },
+    ],
+    quotation:
+      'A sentence someone else said, quoted in full and set large enough to be read first.',
+    name: 'Name',
+    role: 'Role, organisation',
+  },
+  collections: {
+    doc: [
+      'Templates / Sections: collections',
+      'The sections that list things, each one organism in the shared frame. Every section is shown in a compact, a regular and a wide window.',
+    ],
+    facts: [
+      'Facts',
+      'heading: title · text | layout: stack · split | surface: window · paper · orange · blue · mint | join: continues the section above | items: label · value',
+      'Pairs of label and value. The label takes a third of the row.',
+    ],
+    table: [
+      'Table',
+      'heading: title · text | layout: stack | surface: window · paper · orange · blue · mint | join: continues the section above | columns: 2 · 3',
+      'Rows with columns, three at most, so it cannot be split. Column labels are the size of the cells. Folds in a compact window: the first cell becomes the title of its row, the others stand beside their column labels.',
+    ],
+    caps: ['split', 'three columns'],
+    title: 'Heading of the section',
+    label: 'Label',
+    value: 'Value',
+    long: 'A value that is long enough to wrap',
+    column: 'Column',
+    cell: 'Cell',
+    wraps: 'Cell that is long enough to wrap',
   },
   lists: {
     doc: [
-      'Organisms / Content: media',
+      'Organisms / Content: lists, media',
       'What goes inside a window. Each one is a way to arrange molecules, and each answers to the width of the window it is in. None of them is named after what it will hold.',
     ],
     gallery: [
@@ -961,11 +1008,32 @@ const en = {
       'columns: 1 · 2 · 3 | ratio: one per gallery',
       'Media in a grid, each with its caption. Where three become two, the third starts the next row. A picture is asked for at the width its column takes; the first on screen is neither lazy nor animated, the others resolve in dots.',
     ],
+    table: [
+      'Table',
+      'columns: 2 · 3 | parts: head · rows',
+      'A list whose rows have columns, never more than three. Column labels are Body, like the cells under them. In a compact window a row folds: the first cell becomes the title, the others become label and value.',
+    ],
+    stats: [
+      'Stats',
+      'count: 1 to 3 across',
+      'Stat molecules on a hairline each, as many across as the window has room for. A count deciphers as it is first seen.',
+    ],
     caps: [
       'three across in a wide window, two in a regular one, one in a compact one',
       'columns: 2',
+      'columns: 3',
+      'columns: 2',
+      'three figures',
     ],
     caption: 'Caption.',
+    column: 'Column',
+    cell: 'Cell',
+    wraps: 'Cell that is long enough to wrap',
+    figures: [
+      { value: '12', label: 'things counted' },
+      { value: '48 %', label: 'of something' },
+      { value: '3×', label: 'as many' },
+    ],
   },
   records: {
     doc: [
@@ -977,7 +1045,16 @@ const en = {
       'blocks: h2 · h3 · h4 · p · ul · ol · quote · rule | inline: strong · link · code',
       'Running text as the editor produces it and the server makes into HTML. A paragraph keeps to the measure of prose, 560; headings, lists and quotations to the wider one, 640. Headings inside it start at Heading: the page title belongs to the Header.',
     ],
-    caps: ['everything the editor can produce'],
+    quoted: [
+      'Quote',
+      'parts: text · avatar · name · role',
+      'Words that are not the author’s, in Heading, with who said them. Without a picture the avatar shows the dot grid.',
+    ],
+    caps: ['everything the editor can produce', 'without a picture'],
+    quotation:
+      'A sentence someone else said, quoted in full and set large enough to be read first.',
+    name: 'Name',
+    role: 'Role, organisation',
     two: 'Heading two',
     paragraph: [
       'A paragraph of running text. It can hold',

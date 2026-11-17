@@ -1,8 +1,10 @@
 import { Prose } from '../organisms/Prose'
+import { Quote } from '../organisms/Quote'
 import type { Copy } from './copy/en'
 import { Doc, Entry, Specs, u } from './parts'
 
 export function Records({ t }: { t: Copy['records'] }) {
+  const [everything, bare] = t.caps
   const [before, strong, between, link, and, code, after] = t.paragraph
   const list = (tag: 'ul' | 'ol', items: string[]) =>
     `<${tag}>${items.map((item) => `<li>${item}</li>`).join('')}</${tag}>`
@@ -22,10 +24,19 @@ export function Records({ t }: { t: Copy['records'] }) {
   return (
     <Doc text={t.doc}>
       <Entry text={t.prose}>
-        <Specs caps={t.caps}>
+        <Specs caps={[everything]}>
           <div className="cq" style={{ width: u(90) }}>
             <div className="stage" data-surface="window">
               <Prose html={html} />
+            </div>
+          </div>
+        </Specs>
+      </Entry>
+      <Entry text={t.quoted}>
+        <Specs caps={[bare]}>
+          <div className="cq" style={{ width: u(90) }}>
+            <div className="stage" data-surface="window">
+              <Quote name={t.name} role={t.role} text={t.quotation} />
             </div>
           </div>
         </Specs>
