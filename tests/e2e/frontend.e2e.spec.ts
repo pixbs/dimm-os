@@ -103,7 +103,9 @@ test.describe('Frontend', () => {
     await mark(page)
     const work = page.locator('#window-work')
     // A window with items counts them in its toolbar.
-    await expect(work.locator('.window__content > .bar').nth(1)).toHaveText('3 items')
+    await expect(work.locator('.window__content > .bar').nth(1).getByRole('status')).toHaveText(
+      '3 items',
+    )
 
     await work.getByRole('link', { name: 'Grow' }).click()
     await expect(page).toHaveURL('/work/grow')
@@ -194,10 +196,10 @@ test.describe('Frontend', () => {
     page,
   }) => {
     await page.goto('/de/work')
-    await expect(page.locator('#window-work').getByRole('link', { name: 'Loop' })).toHaveAttribute(
-      'lang',
-      'en',
-    )
+    const item = page.locator('#window-work .list__item').nth(2)
+    await expect(item).toHaveAttribute('lang', 'en')
+    await item.getByRole('button').first().click()
+    await expect(item.getByRole('link', { name: 'Loop' })).toHaveAttribute('hreflang', 'en')
 
     await page.goto('/de/work/loop')
     const loop = page.locator('#window-work')

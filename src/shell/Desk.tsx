@@ -75,20 +75,35 @@ const pad = (number: number) => String(number).padStart(2, '0')
 
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
 // neighbours, which ends its body.
-function Body({ view, sections, width }: { view: WindowView; sections: Placed[]; width: number }) {
+function Body(props: {
+  view: WindowView
+  width: number
+  // The list its filter filters, and every list keeps to its limit.
+  filtering?: ListView
+  filter: Filter
+  t: Dictionary
+}) {
+  const { view, width, filtering, filter, t } = props
   const { parent, neighbours } = view
   const before = neighbours.previous ?? parent
+  const sections = view.sections.map((section): Placed => {
+    if (section.type !== 'list') return section
+    const chosen = section === filtering ? filter.chosen : null
+    const shown = filtered(section, chosen, t)
+    return {
+      ...shown,
+      reset:
+        shown.empty && chosen ? { label: t.showAll, onClick: () => filter.choose(null) } : null,
+    }
+  })
   const [first] = sections
   return (
     <>
       <div lang={view.lang}>
-        {/* A window that opens with neither a Header, nor tiles, nor the list of its own items, which its bar names and
-            its toolbar counts, still holds its title once. */}
-        {first?.type !== 'header' &&
-          !(first?.type === 'cards' && first.tiles) &&
-          !(first?.type === 'list' && first.here) && (
-            <Header level="title" page title={view.frame.title} />
-          )}
+        {/* A window that opens with neither a Header nor tiles still holds its title once. */}
+        {first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
+          <Header level="title" page title={view.frame.title} />
+        )}
         {sections.length > 0 && <Sections sections={sections} width={width} />}
       </div>
       {before && (
@@ -148,22 +163,11 @@ function parts(
       '{count}',
       String(count),
     )
-  // The first list that filters is the one the toolbar counts and filters; every list keeps to its limit.
+  // The first list that filters is the one the toolbar counts and filters.
   const filtering = view.sections.find(
     (section): section is ListView => section.type === 'list' && !!section.filter,
   )
-  let count = view.count
-  const sections = view.sections.map((section): Placed => {
-    if (section.type !== 'list') return section
-    const chosen = section === filtering ? filter.chosen : null
-    const shown = filtered(section, chosen, t)
-    if (section === filtering) count = shown.matching
-    return {
-      ...shown,
-      reset:
-        shown.empty && chosen ? { label: t.showAll, onClick: () => filter.choose(null) } : null,
-    }
-  })
+  const count = filtering ? filtered(filtering, filter.chosen, t).matching : view.count
   const choices = filtering?.filter ?? []
   const toolbar = parent ? (
     <Bar line="below">
@@ -226,7 +230,11 @@ function parts(
     </Bar>
   )
 
-  return { toolbar, status, body: <Body sections={sections} view={view} width={width} /> }
+  return {
+    toolbar,
+    status,
+    body: <Body filter={filter} filtering={filtering} t={t} view={view} width={width} />,
+  }
 }
 
 export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View }) {

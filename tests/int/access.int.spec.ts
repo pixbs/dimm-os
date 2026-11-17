@@ -4,6 +4,8 @@ import path from 'path'
 import { getPayload, handleEndpoints, type Payload, type Where } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
+import type { ListView } from '@/blocks/list/view'
+import { getWindowView, type View } from '@/data/views'
 import type { Media, User, Visitor, Window } from '@/payload-types'
 
 let payload: Payload
@@ -140,6 +142,29 @@ beforeAll(async () => {
   })
   await make('access-other-secret', { hidden: true })
   await make('access-unpublished')
+  // The work window lists its own items, filtered by the windows they relate to.
+  for (const locale of languages)
+    await payload.update({
+      collection: 'windows',
+      id: made['access-work'].id,
+      data: {
+        sections: [
+          {
+            blockType: 'list',
+            source: 'window',
+            from: made['access-work'].id,
+            filter: true,
+            lead: 'none',
+            rows: 'opens',
+          },
+        ],
+      },
+      depth: 0,
+      draft: false,
+      fallbackLocale: false,
+      locale,
+      overrideAccess: true,
+    })
 
   const visitor = (name: string, password: string, windows: number[], expires?: string) =>
     payload.create({
@@ -222,6 +247,21 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
         ...site(null, locale),
       }),
     ).rejects.toThrow()
+  })
+
+  it('appear in no row, count or filter of a list of their window', async () => {
+    const { window } = (await getWindowView('/access-work', locale, null)) as View
+    const [list] = window!.sections as ListView[]
+
+    expect(list.items.map(({ name }) => name)).toEqual([titles['access-grow'][locale]])
+    expect(list.filter).toEqual([
+      {
+        href: locale === 'en' ? '/access-work' : '/de/access-work',
+        label: titles['access-work'][locale],
+        count: 1,
+      },
+    ])
+    expect(window!.count).toBe(1)
   })
 
   it('appear in no populated relation, not even as a bare id', async () => {

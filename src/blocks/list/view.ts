@@ -45,10 +45,9 @@ export type ListView = ReturnType<typeof framed> & {
   head: { title: string | null; end: string } | null
   items: Item[]
   // A list of the items of a window can be filtered by what they relate to, each choice with its count, and holds
-  // its rows to a limit; it may stand in the window it lists.
+  // its rows to a limit.
   filter: (Action & { count: number })[] | null
   limit: number | null
-  here: boolean
   foot: Action | null
   // The one line an empty list shows.
   empty: string | null
@@ -162,7 +161,6 @@ export function list(block: ListBlock, ways: Ways): ListView | null {
           }))
         : null,
     limit: (of && block.limit) || null,
-    here: Boolean(of) && to(block.from) === here,
     foot: foot && action(foot),
     empty: items.length ? null : words.empty,
   }
