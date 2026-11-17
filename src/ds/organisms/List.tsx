@@ -27,6 +27,8 @@ type Reset = { label: string; onClick: () => void }
 // one line, which appears as it comes.
 export function List(props: {
   head?: { title?: string | null; end: string } | null
+  // Rows under a head that are checked one by one, not read through, keep their lines.
+  lines?: boolean
   foot?: To | null
   count?: string | null
   empty?: string | null
@@ -45,7 +47,11 @@ export function List(props: {
       </Origin>
     )
   return (
-    <div className="list" data-headed={head ? '' : undefined} ref={props.moving ? undefined : list}>
+    <div
+      className="list"
+      data-headed={head ? (props.lines ? 'lines' : '') : undefined}
+      ref={props.moving ? undefined : list}
+    >
       {head && (
         <Row
           className="row list__head"
@@ -131,6 +137,7 @@ type Props = {
   lead?: 'none' | 'index' | 'icon' | 'picture'
   opens?: boolean
   head?: { title?: string | null; end: string } | null
+  lines?: boolean
   items: Item[]
   foot?: To | null
   count?: string | null
@@ -327,6 +334,7 @@ export function Items(props: Props) {
       empty={props.empty}
       foot={props.foot}
       head={props.head}
+      lines={props.lines}
       reset={props.reset}
     >
       {props.items.map((item, at) => row(item, at, props))}

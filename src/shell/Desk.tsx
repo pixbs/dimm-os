@@ -417,9 +417,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
     const single = document.documentElement.dataset.shortcuts !== 'off'
     const action = keyAction(event, view.keys, single, desk)
-    if (!action) return
+    const key = pressed(event, view.keys, single)
+    if (!action || !key) return
     event.preventDefault()
-    const key = pressed(event, view.keys, single)!
     light(typeof key === 'string' ? key : key.path)
     run(action, document.activeElement)
   })

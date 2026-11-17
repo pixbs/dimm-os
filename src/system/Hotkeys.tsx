@@ -83,7 +83,7 @@ function Body({ t, language, name, apps, lit, run, light }: Props) {
     <>
       <div data-for="desk">
         <Section>
-          <List head={{ title: t.open, end: '' }}>
+          <List head={{ title: t.open, end: '' }} lines>
             {opens.map(command)}
             {apps.map((app) =>
               row(app.path, app.title, [app.key], {
@@ -92,7 +92,7 @@ function Body({ t, language, name, apps, lit, run, light }: Props) {
               }),
             )}
           </List>
-          <List head={{ title: t.windows, end: '' }}>
+          <List head={{ title: t.windows, end: '' }} lines>
             {windows.map(command)}
             {row('move', t.hotkeysMove, ['arrows'], null)}
             {row('resize', t.hotkeysResize, ['shift', 'arrows'], null)}

@@ -178,6 +178,23 @@
     color: var(--muted);
   }
 }
+/* A head over rows that are checked one by one: in the type of its rows, over a faint line on the keyline, and every
+   row keeps its own line. */
+.list[data-headed='lines'] > .row {
+  --row-line: var(--line);
+}
+.list[data-headed='lines'] > .list__head {
+  --row-lh: var(--lh-body);
+  --row-line: var(--faint);
+
+  background-position: var(--s-4) 100%;
+  background-size: calc(100% - var(--s-4) * 2) var(--b-1);
+
+  & .row__title,
+  & > .row__meta {
+    font: var(--f-body);
+  }
+}
 /* In a compact window a headed row keeps its name above its caption, with the end beside the name. */
 @container (width < 600px) {
   .list[data-headed] > .row[data-layout='split'] > .row__side,
