@@ -90,7 +90,6 @@ const fields = {
   key: true,
   oneSize: true,
   openAtStart: true,
-  description: true,
   sections: true,
 } as const
 

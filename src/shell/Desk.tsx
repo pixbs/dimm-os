@@ -80,11 +80,9 @@ function Body({ view }: { view: WindowView }) {
   return (
     <>
       <div lang={view.lang}>
-        {placed.length ? (
-          <Sections sections={placed} />
-        ) : (
-          <Header level="title" page title={view.frame.title} />
-        )}
+        {/* A window that does not open with a Header still holds its title once. */}
+        {placed[0]?.type !== 'header' && <Header level="title" page title={view.frame.title} />}
+        {placed.length > 0 && <Sections sections={placed} />}
         {items.length > 0 && (
           <Section>
             <ul>

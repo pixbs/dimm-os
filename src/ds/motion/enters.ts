@@ -39,7 +39,8 @@ export function useEnters() {
   useEffect(() => {
     const element = part.current
     const view = element && scroller(element)
-    if (!element || !view || server.current) return
+    // A window not laid out yet has no height to scroll: it shows its sections as it shows itself.
+    if (!element || !view || server.current || !view.clientHeight) return
     if (top(element) - top(view) - view.scrollTop < view.clientHeight) return
 
     element.dataset.enter = 'wait'
