@@ -116,9 +116,17 @@
   --b-2: 2px;
   --b-6: 6px;
 
-  /* depth: the shadow of what floats, and the scrim behind a drawer */
-  --e-window: 0 24px 64px color-mix(in srgb, var(--ink-1) 64%, transparent);
-  --e-popover: 0 8px 24px color-mix(in srgb, var(--ink-1) 48%, transparent);
+  /* depth: the shadow of what floats, and the scrim behind a drawer; on paper a shadow is lighter, so it does not smudge */
+  --e-window: 0 24px 64px
+    light-dark(
+      color-mix(in srgb, var(--ink-1) var(--a-line), transparent),
+      color-mix(in srgb, var(--ink-1) 64%, transparent)
+    );
+  --e-popover: 0 8px 24px
+    light-dark(
+      color-mix(in srgb, var(--ink-1) var(--a-line), transparent),
+      color-mix(in srgb, var(--ink-1) 48%, transparent)
+    );
   --scrim: color-mix(in srgb, var(--ink-1) var(--a-muted), transparent);
   /* the order of what overlaps: a part that rises over its neighbours */
   --z-above: 1;
@@ -147,6 +155,9 @@
   --screw-slot: -32deg;
   --screw-turn: -540deg;
   --screw-out: 1.9;
+  /* a postmark: how far it is turned, and the size it falls from */
+  --postmark-turn: -8deg;
+  --postmark-from: 1.5;
   /* what animates on the page itself, and what may still change over time with reduced motion */
   --m-moves: transform, opacity;
   --m-fades:

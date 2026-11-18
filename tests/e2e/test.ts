@@ -1,9 +1,31 @@
 import { expect, type Page, test as base } from '@playwright/test'
 
+import { version } from '../../src/consent/registry'
 import { file } from '../fixtures/neutral'
 
 // Every test fails when its page throws or logs an error.
-export const test = base.extend<{ pageErrors: void; uploads: void }>({
+export const test = base.extend<{
+  pageErrors: void
+  uploads: void
+  asked: boolean
+  answered: void
+}>({
+  // A guest who has answered already, so a test meets the desk without being asked, unless it asks to be.
+  asked: [false, { option: true }],
+  answered: [
+    async ({ page, asked }, use) => {
+      if (!asked)
+        await page.addInitScript((current) => {
+          if (!localStorage.getItem('consent'))
+            localStorage.setItem(
+              'consent',
+              JSON.stringify({ version: current, at: new Date().toISOString(), on: [] }),
+            )
+        }, version)
+      await use()
+    },
+    { auto: true },
+  ],
   // Without the store an upload is a file only signed-in users may read, so a picture is served from its local file.
   uploads: [
     async ({ page }, use) => {

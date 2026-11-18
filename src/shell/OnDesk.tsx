@@ -26,8 +26,10 @@ export type Parts = {
 // is here; its taskbar button shows that end. The kind is never part of the path.
 const segmentsOf = ({ at, view }: Entry) => {
   const segments = (view?.asked ?? view?.path ?? at).split('/').slice(1)
+  // The kind of a system window names its app, as cookies.sys / preferences; an item's kind names the item.
+  const kinded = view?.frame.kind === 'sys' ? 0 : segments.length - 1
   return segments.map((segment, index) =>
-    index === segments.length - 1 && view?.frame.kind ? `${segment}.${view.frame.kind}` : segment,
+    index === kinded && view?.frame.kind ? `${segment}.${view.frame.kind}` : segment,
   )
 }
 const named = (entry: Entry) => segmentsOf(entry).at(-1)!

@@ -14,6 +14,7 @@ import { Row } from '@/ds/molecules/Row'
 import { type CardProps, Cards as Grid, Tiles } from '@/ds/organisms/Card'
 import type { FormWords } from '@/ds/organisms/Form'
 import { Items, List } from '@/ds/organisms/List'
+import { Live } from '@/ds/organisms/Live'
 import { Prose } from '@/ds/organisms/Prose'
 import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
@@ -54,6 +55,7 @@ function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean
       ? {
           ratio: cards.tiles ? undefined : '4:3',
           picture: { ...picture, span, first: first && at === 0, still: Boolean(picture.live) },
+          live: picture.live ? <Live name={picture.live} /> : undefined,
         }
       : undefined,
   }))
@@ -76,6 +78,7 @@ function rowsOf(list: Listed, width: number, first: boolean) {
               first: first && at === 0,
               still: Boolean(preview.picture.live),
             },
+            live: preview.picture.live ? <Live name={preview.picture.live} /> : undefined,
           }
         : undefined,
     },
@@ -176,6 +179,7 @@ export function Sections(props: {
                 first: lead === first && index === 0,
                 still: Boolean(live),
               },
+              live: live ? <Live name={live} /> : undefined,
             }))}
             key={at}
             ratio={lead.ratio}
@@ -285,6 +289,7 @@ export function Sections(props: {
             surface={lead.surface ?? undefined}
             text={lead.text}
             title={lead.title}
+            place={lead.place ?? ''}
             to={lead.to ?? ''}
             words={props.forms.words}
           />

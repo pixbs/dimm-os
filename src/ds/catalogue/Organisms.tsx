@@ -25,17 +25,9 @@ const box = (width: number, children: React.ReactNode) => (
   </div>
 )
 
-// A window body of a width the page answers to, which its sections fill.
-const body = (width: number, children: React.ReactNode) => (
-  <div className="cq box" data-surface="window" key={width} style={{ width: u(width) }}>
-    {children}
-  </div>
-)
-
 // Forms of each kind of field and at each state, as the form builder gives them.
 export function Forms({ t, language }: { t: Records; language: string }) {
   const w = t.formWords
-  const words = { ...w, again: w.again }
   const text = (half: boolean, value: string | null = null): FormField => ({
     kind: 'text',
     name: 'text',
@@ -83,10 +75,11 @@ export function Forms({ t, language }: { t: Records; language: string }) {
     form: 0,
     lang: language,
     note: null,
+    place: w.place,
     privacy: { href: '#', title: w.link },
     submit: w.send,
     to: 'name@example.com',
-    words,
+    words: w,
   }
   const [half, plain, compact, missing, sending, failed, sent] = t.formCaps
 

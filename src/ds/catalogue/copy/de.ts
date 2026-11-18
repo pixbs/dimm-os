@@ -1176,6 +1176,21 @@ const de: Copy = {
       'Organismen / Inhalt: Akten, Text, Formulare, Meldungen',
       'Was in ein Fenster gehört. Jedes ordnet Moleküle auf seine Weise an, und jedes folgt der Breite des Fensters, in dem es steht. Keines ist nach dem benannt, was es einmal enthält.',
     ],
+    split: [
+      'Geteilte Ansicht',
+      'Teile: Liste · Bereich | Spalten: kompakt 1 · normal und breit 2 | Zeile: ein Button · ein Bedienelement an ihrem Ende',
+      'Eine Liste an der Seite und daneben, was der gewählte Eintrag enthält. Ein Druck auf eine Zeile bringt ihren Eintrag in den Bereich und hält die Zeile gedrückt. Ein Bedienelement, das zu einem Eintrag gehört, etwa ein Schalter, sitzt am Ende seiner Zeile und wird für sich gedrückt. Ein kompaktes Fenster hat keine Seite: Dort öffnet sich der Eintrag an Ort und Stelle, unter seiner Zeile.',
+    ],
+    splitCaps: [
+      'normal und breit: die Liste an der Seite, der gewählte Eintrag daneben',
+      'kompakt: der Eintrag öffnet sich an Ort und Stelle',
+    ],
+    pane: [
+      'Titel',
+      'Ein Text, der sagt, was dieser Eintrag ist, so lang wie nötig.',
+      'Spalte',
+      'Zelle',
+    ],
     record: [
       'Akte',
       'Fläche: Papier | Form: Karte · Fenster · Schublade | Teile: Leiste · Stempelzeile · Titel · schwere Linie · Inhalt · Fuß · Aktionen | Liste: liniert · mit Kopf',
@@ -1224,6 +1239,9 @@ const de: Copy = {
       sent: 'Titel, der bestätigt',
       reply: 'Text, der sagt, was als Nächstes geschieht, an {email}.',
       again: 'Angabe',
+      place: 'Ort',
+      postmark: 'Poststempel: {place}, gesendet am {date}',
+      received: '{place} · Nachricht erhalten',
     },
     message: [
       'Meldung',
