@@ -24,5 +24,6 @@ export const systemIcons = {
 // The system windows of one size, and that size on a desk.
 export const oneSize: Partial<Record<keyof typeof systemWindows, { w: number; h: number }>> = {
   '/preferences': { w: 1040, h: 1024 },
+  '/about': { w: 940, h: 690 },
   '/hotkeys': { w: 400, h: 760 },
 }
