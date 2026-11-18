@@ -52,6 +52,12 @@ export function Lists({ t, widths }: { t: Copy['lists']; widths: string[] }) {
       items={thrice(() => ({ name: t.name, caption: t.about, title: t.about, end: t.meta }))}
       key="headed"
     />,
+    <Items
+      head={{ title: t.group, end: '' }}
+      items={thrice(() => ({ title: t.item, end: t.meta }))}
+      key="lines"
+      lines
+    />,
     <Items items={thrice(() => ({ title: t.item, text: [t.about] }))} key="opens" opens />,
     <Items empty={t.empty} items={[]} key="empty" />,
   ]

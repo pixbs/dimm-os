@@ -89,9 +89,10 @@ test.describe('Actions', () => {
         { useInnerText: true },
       )
       // The table names every key on both devices.
-      await expect(keys.locator('.dl')).toContainText('Apple⌘⌥⇧⏎↑↓←→Esc')
+      const arrows = language ? 'Pfeiltasten' : 'Arrows'
+      await expect(keys.locator('.dl')).toContainText(`Apple⌘⌥${arrows}⇧⏎↑↓←→Esc`)
       await expect(keys.locator('.dl')).toContainText(
-        language ? 'AndereStrgAlt⇧⏎↑↓←→Esc' : 'OthersCtrlAlt⇧⏎↑↓←→Esc',
+        language ? `AndereStrgAlt${arrows}⇧⏎↑↓←→Esc` : `OthersCtrlAlt${arrows}⇧⏎↑↓←→Esc`,
       )
     }
   })

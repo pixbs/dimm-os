@@ -1078,6 +1078,7 @@ const de: Copy = {
       'Anfänge: ein Symbol, ein Bild',
       'eine Anzeige über dem Text',
       'mit Kopf: die Endbeschriftung am Ende des Kopfes',
+      'mit Kopf, Zeilen einzeln geprüft: jede behält ihre Linie',
       'Zeilen, die sich an Ort und Stelle öffnen',
       'leer: eine Zeile',
     ],

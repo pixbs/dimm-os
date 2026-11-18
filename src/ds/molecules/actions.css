@@ -218,6 +218,13 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-1);
+  transition-property: var(--m-fades);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-standard);
+
+  &[data-off] {
+    opacity: var(--a-faint);
+  }
 }
 /* A name that differs by device: the page holds both, and the nearest setting shows one. */
 [data-keys='apple'] {

@@ -135,12 +135,12 @@ beforeAll(async () => {
     related: [made['access-vault'].id, made['access-work'].id],
     actions: [{ type: 'window', window: made['access-vault'].id, label: 'Open' }],
   })
-  await make('access-secret', { hidden: true })
+  await make('access-secret', { hidden: true, key: 'Q' })
   await make('access-secret-item', {
     parent: made['access-secret'].id,
     related: [made['access-secret'].id],
   })
-  await make('access-other-secret', { hidden: true })
+  await make('access-other-secret', { hidden: true, key: 'X' })
   await make('access-unpublished')
   // The work window lists its own items, filtered by the windows they relate to.
   for (const locale of languages)
@@ -320,6 +320,9 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
     for (const title of hidden) expect(JSON.stringify(view)).not.toContain(title)
     for (const slug of ['access-vault', 'access-secret', 'access-other-secret'])
       expect(JSON.stringify(view)).not.toContain(`/${slug}`)
+    // Nor their keys, which the hotkeys window lists.
+    expect(view.keys.map((one) => one.key)).not.toContain('Q')
+    expect(view.keys.map((one) => one.key)).not.toContain('X')
   })
 
   it('appear in no media listing or API answer', async () => {
@@ -393,6 +396,11 @@ describe.each(languages)('a visitor, in %s', (locale) => {
     for (const slug of ['access-vault', 'access-other-secret'] as const)
       for (const language of languages)
         expect(JSON.stringify(view)).not.toContain(titles[slug][language])
+    // The key of a window on their list is theirs, with its title; another's is not.
+    expect(view.keys).toContainEqual(
+      expect.objectContaining({ key: 'Q', title: titles['access-secret'][locale] }),
+    )
+    expect(view.keys.map((one) => one.key)).not.toContain('X')
   })
 
   it('whose invitation ran out sees what a guest sees', async () => {
