@@ -114,7 +114,7 @@ function Body(props: {
   const sections = view.sections.map((section): Placed => {
     if (section.type !== 'list') return section
     const chosen = section === filtering ? filter.chosen : null
-    const shown = filtered(section, chosen, t)
+    const shown = filtered(section, chosen, t, props.language)
     return {
       ...shown,
       reset:
@@ -278,13 +278,13 @@ function parts(
   const counted = (count: number) =>
     (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
       '{count}',
-      String(count),
+      count.toLocaleString(language),
     )
   // The first list that filters is the one the toolbar counts and filters.
   const filtering = view.sections.find(
     (section): section is ListView => section.type === 'list' && !!section.filter,
   )
-  const count = filtering ? filtered(filtering, filter.chosen, t).matching : view.count
+  const count = filtering ? filtered(filtering, filter.chosen, t, language).matching : view.count
   const choices = filtering?.filter ?? []
   const toolbar = parent ? (
     <Bar line="below">
