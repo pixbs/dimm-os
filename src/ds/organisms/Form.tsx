@@ -84,8 +84,11 @@ export function Submit(props: {
   words: FormWords
   label?: string | null
   said?: boolean
+  // A state shown at rest, for the catalogue.
+  state?: 'sending'
 }) {
-  const state = useFormState(props.form)
+  const live = useFormState(props.form)
+  const state = props.state ?? live
   const now = useSaid(props.form)
   if (state === 'leaving' || state === 'sent') return null
   const button = (
@@ -124,11 +127,15 @@ export function Form(props: {
   slip?: { stamp?: { code: string; note?: string } }
   lang: string
   words: FormWords
+  // A state shown at rest, and the fields it marks, for the catalogue.
+  state?: 'sending' | 'failed' | 'sent'
+  missing?: string[]
 }) {
   const { id, fields, words, slip } = props
-  const state = useFormState(id)
+  const live = useFormState(id)
+  const state = props.state ?? live
   const [marked, setMarked] = useState<{ missing: string[]; invalid: string[] }>({
-    missing: [],
+    missing: props.missing ?? [],
     invalid: [],
   })
   const [reply, setReply] = useState('')
@@ -348,7 +355,14 @@ export function Form(props: {
             {props.privacy.title}
           </Link>
         )}
-        {!slip && <Submit form={id} label={props.submit} words={words} />}
+        {!slip && (
+          <Submit
+            form={id}
+            label={props.submit}
+            state={state === 'sending' ? state : undefined}
+            words={words}
+          />
+        )}
       </div>
     </form>
   )
