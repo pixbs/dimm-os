@@ -1,5 +1,7 @@
 'use client'
 
+import './aside.css'
+
 import { type MouseEvent, type ReactNode, type RefObject, useEffect, useRef, useState } from 'react'
 
 import type { WindowView } from '@/data/views'
