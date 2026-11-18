@@ -3,8 +3,9 @@ import { getPayload, type Payload } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { ListView } from '@/blocks/list/view'
-import { getWindowView, type View } from '@/data/views'
+import { getGuestAddresses, getWindowView, type View } from '@/data/views'
 import type { Media, Visitor, Window } from '@/payload-types'
+import { systemWindows } from '@/system/windows'
 
 import { file, fill } from '../fixtures/neutral'
 
@@ -683,7 +684,10 @@ describe('the view of a window', () => {
       items: [
         { title: 'Which question does the first item answer?', href: '/work/grow' },
         { href: '/work/field' },
-        { href: '/work/loop', picture: null },
+        {
+          href: '/work/loop',
+          picture: expect.objectContaining({ alt: 'A sun setting over two hills' }),
+        },
       ],
     })
 
@@ -975,6 +979,28 @@ describe.each(languages)('a visitor, in %s', (language) => {
   })
 })
 
+describe.each(languages)('the metadata, in %s', (language) => {
+  it('gives every published fixture window a title, a description and its share image', async () => {
+    const { [language]: shown } = await getGuestAddresses()
+    // The fixture's own windows, and the hidden ones a visitor may see.
+    const paths = [
+      ...shown.filter((path) => path.split('/').pop()! in ids && !(path in systemWindows)),
+      '/work/vault',
+      '/archive',
+      '/archive/old-notes',
+    ]
+    expect(paths.length).toBeGreaterThan(10)
+    for (const path of paths) {
+      const { window } = await view(path, language, invited)
+      expect(window?.meta, path).toMatchObject({
+        title: expect.any(String),
+        description: expect.any(String),
+        image: { url: expect.stringMatching(/-1200x630\.\w+$/), width: 1200, height: 630 },
+      })
+    }
+  })
+})
+
 describe('German that is not written yet', () => {
   it('shows the English, and says so on every part that is English', async () => {
     const work = await view('/work', 'de')
@@ -1058,7 +1084,7 @@ describe('About', () => {
     const about = (await view('/about', 'en')).window?.about
     expect(about?.facts[0]).toEqual({ label: 'Made in', value: 'Somewhere' })
     expect(about?.inside).toMatchObject({
-      picture: { alt: 'A sun drawn in dots', live: true },
+      picture: { alt: 'A sun drawn in dots', live: 'portrait' },
       title: 'A heading behind the plate.',
       actions: [
         { href: '/contact', label: 'Write' },

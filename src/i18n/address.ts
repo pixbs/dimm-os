@@ -26,3 +26,12 @@ export function toAddress(language: Language, path: string): string {
 export function toRoute(language: Language, path: string): string {
   return `/${language}${path === '/' ? '' : path}`
 }
+
+// Where the site answers, as Vercel names the deployment, so that a shared link and the sitemap are absolute.
+export function origin(): URL {
+  const host =
+    process.env.VERCEL_ENV === 'production'
+      ? process.env.VERCEL_PROJECT_PRODUCTION_URL
+      : process.env.VERCEL_BRANCH_URL || process.env.VERCEL_URL
+  return new URL(host ? `https://${host}` : `http://localhost:${process.env.PORT || 3000}`)
+}

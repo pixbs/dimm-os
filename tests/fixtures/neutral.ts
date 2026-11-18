@@ -9,8 +9,8 @@ type Words = { en: string; de?: string }
 
 type Sections = NonNullable<Window['sections']>
 
-// A picture, and the same file as a live picture, whose upload is its still.
-type Pictures = { still: number; live: number }
+// A picture, and the same file as live pictures, whose upload is their still.
+type Pictures = { still: number; live: number; lost: number }
 
 // A foot button to a window by its slug, to the fixture's file, or to an address.
 type Button = { window?: string; file?: true; url?: string; label?: Words }
@@ -910,6 +910,9 @@ const windows: Fixture[] = [
     slug: '404',
     title: { en: 'Not found', de: 'Nicht gefunden' },
     description: { en: 'Nothing is at this address.', de: 'Unter dieser Adresse ist nichts.' },
+    sections: (ids, { lost }) => ({
+      en: [{ blockType: 'media', columns: '1', ratio: '16:9', items: [{ picture: lost }] }],
+    }),
   },
 ]
 
@@ -1118,16 +1121,20 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
   const shown = {
     still: await upload(payload, { alt: 'A sun setting over two hills' }),
     live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
+    lost: await upload(payload, { alt: 'The numerals 404 in dots', live: 'not-found' }),
   }
   for (const { slug, sections, listing } of windows) {
-    if (listing)
-      await payload.update({
-        collection: 'windows',
-        id: ids[slug],
-        data: { related: listing.related.map((one) => ids[one]) },
-        locale: 'en',
-        ...trusted,
-      })
+    // Every window has a picture to share.
+    await payload.update({
+      collection: 'windows',
+      id: ids[slug],
+      data: {
+        cover: shown.still,
+        ...(listing && { related: listing.related.map((one) => ids[one]) }),
+      },
+      locale: 'en',
+      ...trusted,
+    })
     const { en, de } = sections?.(ids, shown) ?? {}
     for (const [locale, made] of [
       ['en', en],

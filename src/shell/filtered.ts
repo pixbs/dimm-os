@@ -10,6 +10,8 @@ export function filtered(
   list: ListView,
   chosen: Chosen | null,
   t: Pick<Dictionary, 'share' | 'nothingIn'>,
+  // Numbers are written as the page's language writes them.
+  language = 'en',
 ) {
   const kept = list.items
     .map((item, place) => ({ ...item, place }))
@@ -21,7 +23,9 @@ export function filtered(
     matching: kept.length,
     count:
       items.length < kept.length
-        ? t.share.replace('{on}', String(items.length)).replace('{of}', String(kept.length))
+        ? t.share
+            .replace('{on}', items.length.toLocaleString(language))
+            .replace('{of}', kept.length.toLocaleString(language))
         : null,
     empty: kept.length ? null : chosen ? t.nothingIn.replace('{filter}', chosen.label) : list.empty,
   }

@@ -16,6 +16,7 @@ import { revalidateTag, unstable_cache } from 'next/cache'
 import { cookies } from 'next/headers'
 import { getPayload } from 'payload'
 import { sanitizeUrl } from 'payload/shared'
+import { cache } from 'react'
 
 import { cards, type CardsView } from '@/blocks/cards/view'
 import { facts, type FactsView } from '@/blocks/facts/view'
@@ -35,7 +36,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
-import { oneSize, sized, systemIcons, systemWindows } from '@/system/windows'
+import { oneSize, paper, sized, systemIcons, systemWindows } from '@/system/windows'
 
 import { VISITOR_COOKIE } from './viewer'
 
@@ -67,7 +68,7 @@ export type AboutView = {
   memory: string | null
   facts: { label: string; value: string }[]
   inside: {
-    picture: { src: string; alt: string; position: string; live: boolean } | null
+    picture: { src: string; alt: string; position: string; live: Media['live'] } | null
     title: string | null
     text: string | null
     actions: Action[]
@@ -86,8 +87,16 @@ export type FootButton = {
   hrefLang?: Language
 }
 
+// What a search engine and a shared link see of a window: the picture is its stored share size.
+export type Meta = {
+  title: string
+  description: string | null
+  image: { url: string; width: number; height: number; alt: string } | null
+}
+
 export type WindowView = {
   path: string
+  meta?: Meta
   // The address the 404 window answers, which its bar shows.
   asked?: string
   lang?: Language
@@ -139,6 +148,8 @@ export type View = {
   // The window of the address; at / there is none, and the windows marked to open at start.
   window: WindowView | null
   start: WindowView[]
+  // A signed-in visitor, who is never asked for consent.
+  visitor: boolean
 }
 
 // Null is a guest; a visitor carries the hidden windows the invitation opens.
@@ -220,6 +231,7 @@ async function read(locale: Language, viewer: Viewer): Promise<Doc[]> {
         focalX: true,
         focalY: true,
         live: true,
+        variants: { share: true },
       },
       windows: { slug: true },
     },
@@ -318,6 +330,7 @@ async function views(language: Language, viewer: Viewer) {
       kind: 'sys',
       title: word === 'about' ? t.about.replace('{name}', about.name) : t[word],
       oneSize: path in oneSize,
+      paper: (paper as string[]).includes(path),
       width: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.w,
       height: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.h,
     } as Doc,
@@ -353,26 +366,48 @@ async function views(language: Language, viewer: Viewer) {
         ? [{ href: to.href, label: to.title, lang: to.lang }]
         : []
     })
-  // An item as its parent's lists show it: what its Listing leaves empty comes from its first Header and its first
-  // picture.
-  const listed = (one: Seen): Listed => {
-    const { doc } = one
+  // A window's Listing, where what it leaves empty comes from its first Header and its first picture.
+  const firsts = (doc: Doc) => {
     const header = doc.sections?.find((block) => block.blockType === 'header')
     const pictures = (doc.sections ?? []).flatMap((block) =>
       block.blockType === 'media' ? block.items.map(({ picture }) => picture) : [],
     )
-    const picture = [doc.cover, ...pictures].find(
-      (file): file is Media => typeof file === 'object' && !!file?.url,
-    )
+    return {
+      title: doc.headline || header?.title || doc.title,
+      text: doc.description || header?.text || null,
+      pictures: [doc.cover, ...pictures].filter(
+        (file): file is Media => typeof file === 'object' && !!file?.url,
+      ),
+    }
+  }
+  // The share size is stored at upload, so the first picture that has one is shared.
+  const metaOf = (doc: Doc): Meta => {
+    const { title, text, pictures } = firsts(doc)
+    const shared = pictures.find((file) => file.variants?.share?.url)
+    const size = shared?.variants?.share
+    return {
+      title,
+      description: text,
+      image:
+        shared && size?.url
+          ? { url: size.url, width: size.width ?? 0, height: size.height ?? 0, alt: shared.alt }
+          : null,
+    }
+  }
+  // An item as its parent's lists show it.
+  const listed = (one: Seen): Listed => {
+    const { doc } = one
+    const { title, text, pictures } = firsts(doc)
+    const [picture] = pictures
     const { href, lang } = link(one)
     return {
       href,
       lang,
       name: doc.title,
       caption: doc.caption || null,
-      title: doc.headline || header?.title || doc.title,
+      title,
       note: doc.note || null,
-      text: doc.description || header?.text || null,
+      text,
       picture: picture
         ? {
             src: picture.url!,
@@ -459,7 +494,7 @@ async function views(language: Language, viewer: Viewer) {
         })
       case 'form': {
         const made = form(block, (words) => html(words as SerializedEditorState))
-        return made && { ...made, to: own.email ?? '', privacy }
+        return made && { ...made, to: own.email ?? '', place: about.place, privacy }
       }
     }
   }
@@ -526,7 +561,7 @@ async function views(language: Language, viewer: Viewer) {
                 src: picture.url,
                 alt: picture.alt,
                 position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-                live: Boolean(picture.live),
+                live: picture.live ?? null,
               }
             : null,
         title: title || null,
@@ -556,20 +591,23 @@ async function views(language: Language, viewer: Viewer) {
       timeZone: about.timezone,
     })
     const app = parent ?? one
+    const boxed = one.path in systemWindows ? one : app
     const items = itemsOf(one)
     const siblings = parent ? itemsOf(parent) : []
     const at = siblings.indexOf(one)
     const beside = (step: number) => (siblings[at + step] ? link(siblings[at + step]) : null)
     return {
       path: one.path,
+      meta: metaOf(doc),
       lang: other(one.lang),
       hidden: app.doc.hidden || undefined,
       frame: {
         title: doc.title,
         kind: doc.kind ?? null,
         tile: app.doc.tile ?? null,
-        oneSize: app.doc.oneSize ?? undefined,
-        size: { w: app.doc.width ?? undefined, h: app.doc.height ?? undefined },
+        // A system window has a size of its own, as an item of another does not.
+        oneSize: boxed.doc.oneSize ?? undefined,
+        size: { w: boxed.doc.width ?? undefined, h: boxed.doc.height ?? undefined },
         paper: doc.paper ?? undefined,
         // A card beside the content carries the stamp of a window that is not paper itself.
         stamp:
@@ -636,6 +674,7 @@ async function views(language: Language, viewer: Viewer) {
       doc.key ? [{ key: doc.key, path, title: doc.title, lang: other(lang) }] : [],
     ),
     search,
+    visitor: viewer !== null,
   }
   const at = (window: WindowView | null, start: WindowView[] = []): View => ({
     ...desk,
@@ -680,31 +719,42 @@ const getGuestMissing = unstable_cache(
 // Holding the cookie names no visitor until the login arrives: its holder reads as a guest, uncached.
 const visiting = async () => (await cookies()).has(VISITOR_COOKIE)
 
-// The view for whoever asks, from a route's segments: cached for a guest, made anew for a visitor.
-export async function getView(lang: string, segments: string[] = []) {
+// The view for whoever asks, from a route's segments: cached for a guest, made anew for a visitor. Once per request,
+// as the page and its metadata both ask.
+export const getView = cache(async (lang: string, segments: string[] = []) => {
   if (!hasLanguage(lang)) return null
 
   const path = `/${segments.join('/')}`
   return (await visiting()) ? getWindowView(path, lang, null) : getGuestView(path, lang)
-}
+})
 
 // The desk with the 404 window.
 export async function getMissingView(language: Language): Promise<View> {
   return (await visiting()) ? (await views(language, null)).missing() : getGuestMissing(language)
 }
 
-// Every address a guest can open, so that the build renders it ahead of the first request.
-export async function generateStaticParams() {
-  const all = await Promise.all(
+// Every address a guest can open, in each language: the desk, the windows and the system's.
+export async function getGuestAddresses(): Promise<Record<Language, string[]>> {
+  const [en, de] = await Promise.all(
     languages.map(async (lang) => {
       const { paths } = await views(lang, null)
-      return ['/', ...paths, ...Object.keys(systemWindows)].map((path) => ({
-        lang,
-        path: path.split('/').filter(Boolean),
-      }))
+      return ['/', ...paths, ...Object.keys(systemWindows)]
     }),
   )
-  return all.flat()
+  return { en, de }
+}
+
+// The addresses the sitemap lists, which a change makes anew like every view.
+export const getSitemapAddresses = unstable_cache(getGuestAddresses, [...key, 'addresses'], {
+  tags: [TAG],
+})
+
+// Every address a guest can open, so that the build renders it ahead of the first request.
+export async function generateStaticParams() {
+  const addresses = await getGuestAddresses()
+  return languages.flatMap((lang) =>
+    addresses[lang].map((path) => ({ lang, path: path.split('/').filter(Boolean) })),
+  )
 }
 
 // No view outlives a change, so a window hidden or unpublished is gone at the next request.
