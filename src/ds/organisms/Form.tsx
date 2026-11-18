@@ -49,6 +49,9 @@ const useFormState = (id: string) =>
 
 const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
+// How long a form has been open, on the device's own steady clock.
+const since = (start: number) => performance.now() - start
+
 // The submit of a form, at its own bar or at the foot of the window it is the slip of; gone once it has sent.
 export function Submit(props: { form: string; words: FormWords; label?: string | null }) {
   const state = useFormState(props.form)
@@ -93,7 +96,7 @@ export function Form(props: {
   const element = useRef<HTMLFormElement>(null)
 
   useEffect(() => {
-    opened.current = Date.now()
+    opened.current = performance.now()
     return () => void states.delete(id)
   }, [id])
 
@@ -169,7 +172,7 @@ export function Form(props: {
           lang: props.lang,
           values: typed,
           trap,
-          opened: opened.current,
+          waited: since(opened.current),
         }),
       })
       if (response.status === 422) {
@@ -191,7 +194,7 @@ export function Form(props: {
 
   function again() {
     setMarked({ missing: [], invalid: [] })
-    opened.current = Date.now()
+    opened.current = performance.now()
     setState(id, 'idle')
   }
 
@@ -291,7 +294,7 @@ export function Form(props: {
       {props.note && <p className="form__note">{props.note}</p>}
       <p
         className="form__note"
-        data-error={says && state !== 'sending' ? '' : undefined}
+        data-error={(says && state !== 'sending') || state === 'failed' ? '' : undefined}
         role="status"
       >
         {status && <span className="dot" data-tone="signal" />}

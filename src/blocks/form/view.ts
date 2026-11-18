@@ -50,13 +50,12 @@ function field(block: Block, html: (words: unknown) => string): FormField | null
           'defaultValue' in block && block.defaultValue != null ? String(block.defaultValue) : null,
       }
     case 'select':
-    case 'radio':
-      return {
-        ...base,
-        kind: block.blockType,
-        options: (block.options ?? []).map(({ label, value }) => ({ label, value })),
-        value: block.defaultValue ?? null,
-      }
+    case 'radio': {
+      const options = (block.options ?? []).map(({ label, value }) => ({ label, value }))
+      // A choice is drawn and sent by its label, so the default the builder keeps as a value is named by its label.
+      const chosen = options.find(({ value }) => value === block.defaultValue)
+      return { ...base, kind: block.blockType, options, value: chosen?.label ?? null }
+    }
     case 'checkbox':
       return { ...base, kind: 'check', value: Boolean(block.defaultValue) }
     default:

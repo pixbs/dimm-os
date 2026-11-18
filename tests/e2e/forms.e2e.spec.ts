@@ -5,8 +5,8 @@ import { expect, test } from './test'
 
 const slip = (page: Page, name: string) => page.locator(`article[aria-label="${name}"]`)
 
-// The form opened long enough ago for a person to have filled it.
-const earlier = (page: Page) => page.clock.install({ time: Date.now() - 10_000 })
+// The device's clock runs two minutes ahead of the server's, which takes nothing from the time a person fills it in.
+const ahead = (page: Page) => page.clock.install({ time: Date.now() + 120_000 })
 
 test.describe('Forms', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -72,13 +72,14 @@ test.describe('Forms', () => {
 
   test('a message is sent, kept as a submission, and confirmed', async ({ page }) => {
     const text = `Hello from the end-to-end test, ${Date.now()}.`
-    await earlier(page)
+    await ahead(page)
     await page.goto('/contact', { waitUntil: 'networkidle' })
     const window = slip(page, 'Contact')
     await window.getByLabel('Name').fill('Ana')
     await window.getByLabel('Email').fill('ana@example.com')
     await window.getByText('A second subject').click()
     await window.getByLabel('Message').fill(text)
+    await page.clock.fastForward(10_000)
     await window.getByRole('button', { name: 'Send' }).click()
 
     await expect(window.getByRole('status')).toContainText(

@@ -14,16 +14,17 @@ const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 export type Sent = { ok: true } | { ok: false; missing: string[]; invalid: string[] }
 
 // A message from a form: checked against the form's own fields, kept as a submission of what was typed alone, and
-// mailed to Site's address. What a bot fills, or sends too soon, is answered as sent and dropped.
+// mailed to Site's address. What a bot fills, or sends too soon, is answered as sent and dropped; how long the form
+// was open is measured on the visitor's own clock, so a device whose clock differs from the server's is no bot.
 export async function send(input: {
   form: unknown
   lang: Language
   values: Record<string, unknown>
   trap: unknown
-  opened: unknown
+  waited: unknown
 }): Promise<Sent | null> {
-  const elapsed = Date.now() - Number(input.opened)
-  if (input.trap || !(elapsed >= QUICKEST && elapsed <= LONGEST)) return { ok: true }
+  const waited = Number(input.waited)
+  if (input.trap || !(waited >= QUICKEST && waited <= LONGEST)) return { ok: true }
 
   const payload = await getPayload({ config })
   // The site's own code reads and writes, for a guest.

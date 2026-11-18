@@ -16,8 +16,8 @@ const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess:
 const rest = (route: string, init?: RequestInit) =>
   handleEndpoints({ config, request: new Request(`http://localhost:3000/api${route}`, init) })
 
-// Opened long enough ago for a person to have typed it.
-const opened = () => Date.now() - 10_000
+// Open as long as a person takes to type it.
+const waited = 10_000
 
 const stored = async () =>
   (
@@ -67,7 +67,7 @@ describe('a message sent through a form', () => {
       lang: 'en',
       values: { name: 'Ana', email: 'ana@', message: '' },
       trap: '',
-      opened: opened(),
+      waited,
     })
     expect(sent).toEqual({ ok: false, missing: ['message'], invalid: ['email'] })
     expect(await stored()).toHaveLength(0)
@@ -79,7 +79,7 @@ describe('a message sent through a form', () => {
       lang: 'en',
       values: { name: '', email: 'ana@example.com', message: 'Hello', extra: 'not a field' },
       trap: '',
-      opened: opened(),
+      waited,
     })
     expect(sent).toEqual({ ok: true })
     const [one] = await stored()
@@ -100,10 +100,10 @@ describe('a message sent through a form', () => {
     const before = (await stored()).length
     const values = { email: 'bot@example.com', message: 'Buy' }
     const base = { form: form.id, lang: 'en' as const, values }
-    expect(await send({ ...base, trap: 'https://spam.example', opened: opened() })).toEqual({
+    expect(await send({ ...base, trap: 'https://spam.example', waited })).toEqual({
       ok: true,
     })
-    expect(await send({ ...base, trap: '', opened: Date.now() })).toEqual({ ok: true })
+    expect(await send({ ...base, trap: '', waited: 0 })).toEqual({ ok: true })
     expect(await stored()).toHaveLength(before)
   })
 })
