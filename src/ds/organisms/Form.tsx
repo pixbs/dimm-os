@@ -251,7 +251,7 @@ export function Form(props: {
     return (
       <div className="form__sent" role="status">
         <Message
-          action={{ label: words.again, onClick: again }}
+          action={{ label: words.again, onClick: again, end: 'arrow-right' }}
           text={reply ? words.reply.replace('{email}', reply) : ''}
           title={words.sent}
         />
