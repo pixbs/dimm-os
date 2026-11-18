@@ -2,6 +2,7 @@ import type { ComponentProps } from 'react'
 
 import type { CardsView } from '@/blocks/cards/view'
 import type { FactsView } from '@/blocks/facts/view'
+import type { FormView } from '@/blocks/form/view'
 import type { HeaderView } from '@/blocks/header/view'
 import type { ListView } from '@/blocks/list/view'
 import type { MediaView } from '@/blocks/media/view'
@@ -11,12 +12,14 @@ import type { TableView } from '@/blocks/table/view'
 import type { TextView } from '@/blocks/text/view'
 import { Row } from '@/ds/molecules/Row'
 import { type CardProps, Cards as Grid, Tiles } from '@/ds/organisms/Card'
+import type { FormWords } from '@/ds/organisms/Form'
 import { Items, List } from '@/ds/organisms/List'
 import { Prose } from '@/ds/organisms/Prose'
 import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
 import { Cards } from '@/ds/sections/Cards'
 import { Facts } from '@/ds/sections/Facts'
+import { Form } from '@/ds/sections/Form'
 import { Header } from '@/ds/sections/Header'
 import { List as Section } from '@/ds/sections/List'
 import { Media } from '@/ds/sections/Media'
@@ -32,7 +35,7 @@ type Listed = ListView & {
   reset: ComponentProps<typeof Items>['reset']
 }
 type Joinable = TextView | StatsView | FactsView | TableView | Listed | CardsView
-export type Placed = HeaderView | MediaView | QuoteView | Joinable
+export type Placed = HeaderView | MediaView | QuoteView | FormView | Joinable
 
 // A gallery folds to the window's width, one across when compact and two at most when regular, and a picture is asked
 // for at the share its column takes.
@@ -122,6 +125,8 @@ export function Sections(props: {
   record?: { stamp?: { code: string; note?: string } }
   // What the addresses of the chapters start with.
   chapters?: string
+  // What forms say, in the language of the window; the first form of a slip has its button at the window's foot.
+  forms: { words: FormWords; lang: string; slip?: string }
 }) {
   const { sections, width, paper } = props
   const numbered = props.chapters ? chapters(sections) : []
@@ -263,6 +268,28 @@ export function Sections(props: {
             {parts}
           </Section>
         )
+      case 'form': {
+        const slip = props.forms.slip && lead === sections.find(({ type }) => type === 'form')
+        return (
+          <Form
+            fields={lead.fields}
+            form={lead.id}
+            id={slip ? props.forms.slip! : `form-${at}-${lead.id}`}
+            key={at}
+            lang={props.forms.lang}
+            note={lead.note}
+            privacy={lead.privacy ?? null}
+            slip={slip ? { stamp: props.record?.stamp } : undefined}
+            split={lead.split}
+            submit={lead.submit}
+            surface={lead.surface ?? undefined}
+            text={lead.text}
+            title={lead.title}
+            to={lead.to ?? ''}
+            words={props.forms.words}
+          />
+        )
+      }
       case 'text': {
         const chapter = numbered.indexOf(lead)
         return (

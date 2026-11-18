@@ -1,4 +1,6 @@
 import { postgresAdapter } from '@payloadcms/db-postgres'
+import { resendAdapter } from '@payloadcms/email-resend'
+import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
@@ -7,6 +9,7 @@ import path from 'path'
 import { buildConfig } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { forms } from './collections/Forms'
 import { Media } from './collections/Media'
 import { Users } from './collections/Users'
 import { Visitors } from './collections/Visitors'
@@ -25,6 +28,14 @@ export default buildConfig({
   },
   collections: [Windows, Media, Users, Visitors],
   editor: lexicalEditor(),
+  // Without a key, as in a local sandbox, Payload writes the mail to its log.
+  email: process.env.RESEND_API_KEY
+    ? resendAdapter({
+        apiKey: process.env.RESEND_API_KEY,
+        defaultFromAddress: process.env.RESEND_FROM_ADDRESS || '',
+        defaultFromName: process.env.RESEND_FROM_NAME || '',
+      })
+    : undefined,
   globals: [Site],
   graphQL: { disable: true },
   secret: process.env.PAYLOAD_SECRET || '',
@@ -59,7 +70,7 @@ export default buildConfig({
     const { createFirstAdmin } = await import('./data/first-admin')
     await createFirstAdmin(payload)
   },
-  plugins: [mcpPlugin({})],
+  plugins: [formBuilderPlugin(forms), mcpPlugin({})],
   // Without a token, as in a local sandbox, files stay on the disk.
   storage: [
     vercelBlobStorage({

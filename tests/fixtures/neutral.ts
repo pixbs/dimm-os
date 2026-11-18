@@ -804,6 +804,10 @@ const windows: Fixture[] = [
       en: 'A fixture window for a form.',
       de: 'Ein Beispielfenster für ein Formular.',
     },
+    sections: (ids) => ({
+      en: [{ blockType: 'form', form: ids.form }],
+      de: [{ blockType: 'form', form: ids.form }],
+    }),
   },
   {
     slug: 'archive',
@@ -912,6 +916,81 @@ const windows: Fixture[] = [
 const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
 
 const FILE = 'fixture.txt'
+
+// One form in both languages: its fields are shared, their labels are written in each.
+const FORM = 'A fixture form'
+const formFields = {
+  en: { name: 'Name', email: 'Email', subject: 'Subject', message: 'Message' },
+  de: { name: 'Name', email: 'E-Mail', subject: 'Betreff', message: 'Nachricht' },
+}
+const subjects = {
+  en: ['A first subject', 'A second subject', 'A third subject', 'Something else'],
+  de: ['Ein erster Betreff', 'Ein zweiter Betreff', 'Ein dritter Betreff', 'Etwas anderes'],
+}
+
+async function fixtureForm(payload: Payload): Promise<number> {
+  const {
+    docs: [found],
+  } = await payload.find({
+    collection: 'forms',
+    limit: 1,
+    locale: 'en',
+    pagination: false,
+    where: { title: { equals: FORM } },
+    ...trusted,
+  })
+  const fields = (language: 'en' | 'de', ids?: (string | null | undefined)[]) => {
+    const label = formFields[language]
+    return [
+      { blockType: 'text' as const, name: 'name', label: label.name, width: 100 },
+      { blockType: 'email' as const, name: 'email', label: label.email, required: true },
+      {
+        blockType: 'radio' as const,
+        name: 'subject',
+        label: label.subject,
+        options: subjects[language].map((one, at) => ({ label: one, value: `subject-${at}` })),
+      },
+      { blockType: 'textarea' as const, name: 'message', label: label.message, required: true },
+    ].map((field, at) => ({ ...field, id: ids?.[at] }))
+  }
+  const english = { title: FORM, fields: fields('en'), submitButtonLabel: 'Send' }
+  const made = found
+    ? await payload.update({
+        collection: 'forms',
+        id: found.id,
+        data: english,
+        locale: 'en',
+        ...trusted,
+      })
+    : await payload.create({ collection: 'forms', data: english, locale: 'en', ...trusted })
+  // The blocks are kept by their ids, so the German labels land on the same fields.
+  const ids = (made.fields ?? []).map(({ id }) => id)
+  const options = (made.fields ?? []).map((field) =>
+    field.blockType === 'radio' ? (field.options ?? []).map(({ id }) => id) : [],
+  )
+  await payload.update({
+    collection: 'forms',
+    id: made.id,
+    data: {
+      title: FORM,
+      submitButtonLabel: 'Senden',
+      fields: fields('de', ids).map((field, at) =>
+        field.blockType === 'radio'
+          ? {
+              ...field,
+              options: field.options.map((option, index) => ({
+                ...option,
+                id: options[at][index],
+              })),
+            }
+          : field,
+      ),
+    },
+    locale: 'de',
+    ...trusted,
+  })
+  return made.id
+}
 
 // One neutral file for a button to download, made once.
 async function document(payload: Payload): Promise<number> {
@@ -1035,6 +1114,7 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
       })
     ids[slug] = id
   }
+  ids.form = await fixtureForm(payload)
   const shown = {
     still: await upload(payload, { alt: 'A sun setting over two hills' }),
     live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),

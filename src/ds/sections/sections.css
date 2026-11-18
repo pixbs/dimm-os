@@ -178,3 +178,8 @@
     }
   }
 }
+
+/* A slip's stamp line stands at the top of its window. */
+.section:has(> .section__body > .form > .form__fields[data-ruled]) {
+  padding-block-start: 0;
+}
