@@ -12,3 +12,7 @@ trustPolicyExclude:
 overrides:
   # monaco-editor, under @payloadcms/ui, pins a version with a critical advisory.
   dompurify@<3.4.17: 3.4.17
+auditConfig:
+  ignoreGhsas:
+    # picomatch ReDoS, no patched version; reached only through Payload's type generation, never visitor input.
+    - GHSA-fc5q-39xc-vjpf
