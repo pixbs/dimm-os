@@ -126,8 +126,8 @@
     opacity: 0;
     transition: none;
   }
-  /* A live picture draws itself over the still it was before script ran. */
-  &[data-live] > img {
+  /* A live picture draws itself over the still it was before script ran, once it has something to draw. */
+  &[data-live]:has(> .media__live :is(svg, canvas)) > img {
     opacity: 0;
     transition: opacity var(--m-fast-exit) var(--m-exit);
   }
@@ -146,6 +146,13 @@
 .media__live {
   position: absolute;
   inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  & > .postmark {
+    height: 100%;
+  }
 }
 
 /* Avatar: the box at a control size, or twice the regular one, named on a surface of its own when it has no picture. */
