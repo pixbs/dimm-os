@@ -825,6 +825,15 @@
     display: none;
   }
 }
+/* On a slip it stands at the window's foot, above Send, where the body's scroll never hides it. */
+.window__main > .form__note {
+  flex: none;
+  padding-block: var(--s-3);
+
+  &:empty {
+    padding: 0;
+  }
+}
 .form .row:has(.input[aria-invalid='true']) > .row__label > .dot {
   @starting-style {
     transform: scale(0);

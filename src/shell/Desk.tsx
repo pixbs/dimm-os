@@ -357,6 +357,7 @@ function parts(
           <Submit
             form={slip}
             label={view.sections[0]?.type === 'form' ? view.sections[0].submit : null}
+            said
             words={formWords(t)}
           />
         )}

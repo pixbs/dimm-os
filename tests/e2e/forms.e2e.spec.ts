@@ -40,6 +40,8 @@ test.describe('Forms', () => {
       await window.getByRole('button', { name: button }).click()
 
       await expect(window.getByRole('status')).toHaveText(said)
+      // On a slip the message stands above Send, where the window's scroll never hides it.
+      await expect(window.getByRole('status')).toBeInViewport({ ratio: 1 })
       const field = window.getByLabel(email)
       await expect(field).toHaveAttribute('aria-invalid', 'true')
       await expect(field).toBeFocused()

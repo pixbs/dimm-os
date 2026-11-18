@@ -47,16 +47,48 @@ const useFormState = (id: string) =>
     () => 'idle' as State,
   )
 
+// What a form says of itself, which a slip shows at the window's foot, above its button, where no scroll hides it.
+type Said = { text: string; error: boolean }
+const quiet: Said = { text: '', error: false }
+const said = new Map<string, Said>()
+function setSaid(id: string, now: Said) {
+  said.set(id, now)
+  listeners.forEach((listener) => listener())
+}
+const useSaid = (id: string) =>
+  useSyncExternalStore(
+    subscribe,
+    () => said.get(id) ?? quiet,
+    () => quiet,
+  )
+
+// Something missing or wrong, sending, or a send that failed, announced as it changes; an error pops the signal dot.
+function Status({ text, error }: Said) {
+  return (
+    <p className="form__note" data-error={error ? '' : undefined} role="status">
+      {text && <span className="dot" data-tone="signal" />}
+      {text}
+    </p>
+  )
+}
+
 const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // How long a form has been open, on the device's own steady clock.
 const since = (start: number) => performance.now() - start
 
-// The submit of a form, at its own bar or at the foot of the window it is the slip of; gone once it has sent.
-export function Submit(props: { form: string; words: FormWords; label?: string | null }) {
+// The submit of a form, at its own bar or at the foot of the window it is the slip of, there under what the form
+// says; gone once it has sent.
+export function Submit(props: {
+  form: string
+  words: FormWords
+  label?: string | null
+  said?: boolean
+}) {
   const state = useFormState(props.form)
+  const now = useSaid(props.form)
   if (state === 'leaving' || state === 'sent') return null
-  return (
+  const button = (
     <Button
       busy={state === 'sending' ? <Dots count={3} label={props.words.sending} on={2} /> : undefined}
       end="arrow-right"
@@ -66,6 +98,14 @@ export function Submit(props: { form: string; words: FormWords; label?: string |
       tone="solid"
       type="submit"
     />
+  )
+  return props.said ? (
+    <>
+      <Status {...now} />
+      {button}
+    </>
+  ) : (
+    button
   )
 }
 
@@ -97,7 +137,10 @@ export function Form(props: {
 
   useEffect(() => {
     opened.current = performance.now()
-    return () => void states.delete(id)
+    return () => {
+      states.delete(id)
+      said.delete(id)
+    }
   }, [id])
 
   const named = fields.flatMap((field) => (field.kind === 'words' ? [] : [field]))
@@ -116,6 +159,12 @@ export function Form(props: {
       : state === 'failed'
         ? words.failed.replace('{email}', props.to)
         : says
+  const error = Boolean((says && state !== 'sending') || state === 'failed')
+  const onSlip = Boolean(slip)
+
+  useEffect(() => {
+    if (onSlip) setSaid(id, { text: status, error })
+  }, [id, onSlip, status, error])
 
   function values() {
     const data = new FormData(element.current!)
@@ -292,14 +341,7 @@ export function Form(props: {
       {/* Left empty by people, whom it is hidden from; a bot fills it. */}
       <input aria-hidden autoComplete="off" className="form__trap" name="website" tabIndex={-1} />
       {props.note && <p className="form__note">{props.note}</p>}
-      <p
-        className="form__note"
-        data-error={(says && state !== 'sending') || state === 'failed' ? '' : undefined}
-        role="status"
-      >
-        {status && <span className="dot" data-tone="signal" />}
-        {status}
-      </p>
+      {!slip && <Status error={error} text={status} />}
       <div className="form__bar">
         {props.privacy && (
           <Link href={props.privacy.href} hrefLang={props.privacy.lang} lang={props.privacy.lang}>
