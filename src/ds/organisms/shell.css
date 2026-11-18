@@ -355,6 +355,10 @@
   & > * {
     flex: none;
   }
+  /* A bay fills the window, so what it holds stands in its middle. */
+  & > .bay {
+    flex-grow: 1;
+  }
   /* What holds tiles grows with the view, so they fill the window at any size. */
   & > :has(> .tiles) {
     flex: 1 0 auto;

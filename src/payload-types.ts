@@ -1520,6 +1520,27 @@ export interface Site {
         id?: string | null;
       }[]
     | null;
+  inside?: {
+    picture?: (number | null) | Media;
+    title?: string | null;
+    text?: string | null;
+    /**
+     * The first is the main one.
+     */
+    actions?:
+      | {
+          type?: ('window' | 'media' | 'address') | null;
+          window?: (number | null) | Window;
+          media?: (number | null) | Media;
+          url?: string | null;
+          /**
+           * On a link to a window, empty is its title.
+           */
+          label?: string | null;
+          id?: string | null;
+        }[]
+      | null;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -1547,6 +1568,23 @@ export interface SiteSelect<T extends boolean = true> {
         label?: T;
         value?: T;
         id?: T;
+      };
+  inside?:
+    | T
+    | {
+        picture?: T;
+        title?: T;
+        text?: T;
+        actions?:
+          | T
+          | {
+              type?: T;
+              window?: T;
+              media?: T;
+              url?: T;
+              label?: T;
+              id?: T;
+            };
       };
   updatedAt?: T;
   createdAt?: T;

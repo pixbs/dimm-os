@@ -35,6 +35,8 @@ export function List(props: {
   reset?: Reset | null
   // Rows that move by themselves as they change.
   moving?: boolean
+  // On a record every row closes with a line in the foreground, edge to edge.
+  ruled?: boolean
   children: ReactNode
 }) {
   const { head, foot, count, empty } = props
@@ -50,6 +52,7 @@ export function List(props: {
     <div
       className="list"
       data-headed={head ? (props.lines ? 'lines' : '') : undefined}
+      data-ruled={props.ruled ? '' : undefined}
       ref={props.moving ? undefined : list}
     >
       {head && (

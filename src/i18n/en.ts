@@ -1,5 +1,21 @@
 const en = {
   about: 'About {name}',
+  aboutClose: 'Close it up',
+  aboutField: 'Field no. {field}',
+  aboutFoot: 'Do not open. No user-serviceable parts inside.',
+  // The marks stamped on the plate, each a name and what it says.
+  aboutMarks: [
+    ['Evidence Star', 'Data-driven'],
+    ['A/B tested', 'In two versions'],
+    ['Rejected ideas', 'All kept'],
+    ['No trackers', 'Until you say so'],
+  ],
+  aboutMemory: 'Memory',
+  aboutModel: 'Model',
+  aboutRevision: 'Rev. {version}',
+  aboutSerial: 'Serial',
+  aboutTagline: 'Portfolio operating system',
+  aboutVersion: '{name} v{version}',
   accessibility: 'Accessibility',
   all: 'All',
   apps: 'Apps',
@@ -47,7 +63,13 @@ const en = {
   item: '{count} item',
   items: '{count} items',
   // The kinds a window can be typed as; one it does not know shows as typed.
-  kinds: { case: { one: 'Case study', other: 'Case studies' } },
+  kinds: {
+    case: {
+      one: 'Case study',
+      other: 'Case studies',
+      counted: { one: '{count} case study', other: '{count} case studies' },
+    },
+  },
   language: 'Language: English',
   leftHalf: 'Left half',
   light: 'Light',
@@ -63,6 +85,7 @@ const en = {
   nothingIn: 'Nothing in {filter}.',
   nothingMatches: 'Nothing matches “{q}”. Try fewer letters.',
   open: 'Open',
+  plate: 'Type plate of {name}',
   preferences: 'Preferences',
   prefsBoot: 'Play the boot screen',
   prefsClock: 'Clock',
@@ -101,6 +124,12 @@ const en = {
   resultList: 'Results',
   results: '{count} results',
   rightHalf: 'Right half',
+  screws: [
+    'Take out the top left screw',
+    'Take out the top right screw',
+    'Take out the bottom left screw',
+    'Take out the bottom right screw',
+  ],
   search: 'Search',
   searchField: 'Search {name}',
   share: '{on} of {of}',

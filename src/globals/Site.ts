@@ -3,6 +3,7 @@ import { defaultTimezones } from 'payload/shared'
 
 import { signedIn, signedInOrSite } from '@/access'
 import { facts } from '@/fields/facts'
+import { buttons } from '@/fields/link'
 import { dropBareIdsOfGlobal } from '@/hooks/relations'
 import { revalidateGlobal } from '@/hooks/revalidate'
 
@@ -60,6 +61,18 @@ export const Site: GlobalConfig = {
       ],
     },
     { ...facts('about', 'About plate'), localized: true },
+    {
+      name: 'inside',
+      type: 'group',
+      label: 'Behind the About plate',
+      fields: [
+        { name: 'picture', type: 'upload', relationTo: 'media' },
+        { name: 'title', type: 'text', localized: true },
+        { name: 'text', type: 'textarea', localized: true },
+        // The plate's own button that puts it back follows these.
+        { ...buttons('actions'), localized: true, maxRows: 2 },
+      ],
+    },
   ],
   hooks: { afterChange: [revalidateGlobal], afterRead: [dropBareIdsOfGlobal] },
   versions: false,
