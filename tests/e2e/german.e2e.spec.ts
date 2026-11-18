@@ -29,7 +29,15 @@ const said = (page: Page) =>
     return text
   })
 
-const screens = ['/de', '/de/hotkeys', '/de/preferences', '/de/about', '/de/accessibility']
+const screens = [
+  '/de',
+  '/de/hotkeys',
+  '/de/preferences',
+  '/de/about',
+  '/de/accessibility',
+  '/de/cookies',
+  '/de/cookies/preferences',
+]
 
 test.describe('German interface', () => {
   for (const [width, height] of [

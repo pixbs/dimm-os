@@ -75,7 +75,7 @@ const de: Dictionary = {
     off: 'Aus',
     necessary: 'Notwendig',
     necessaryText: 'Ihre Wahl, Einstellungen, offene Fenster',
-    note: '{purpose} zählt {company}, {country}; die Daten liegen in {stored}. Das Cookie hält {kept}. Sie können die Einwilligung jederzeit unter {cookies} widerrufen.',
+    note: 'Für die {purpose} zählt {company}, {country}; die Daten liegen in {stored}. Das Cookie bleibt {kept}. Sie können die Einwilligung jederzeit unter {cookies} widerrufen.',
     decline: 'Ablehnen',
     accept: 'Akzeptieren',
     details: 'Details',
