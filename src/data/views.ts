@@ -35,7 +35,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
-import { oneSize, systemIcons, systemWindows } from '@/system/windows'
+import { oneSize, sized, systemIcons, systemWindows } from '@/system/windows'
 
 import { VISITOR_COOKIE } from './viewer'
 
@@ -131,7 +131,7 @@ export type WindowView = {
 
 export type View = {
   language: Language
-  site: { name: string; timezone: string; place: string }
+  site: { name: string; email: string; timezone: string; place: string }
   shortcuts: Shortcut[]
   keys: AppKey[]
   // What search finds: the windows this viewer may see, and the system's apps.
@@ -301,7 +301,12 @@ async function views(language: Language, viewer: Viewer) {
     site(language, viewer),
     getDictionary(language),
   ])
-  const about = { name: own.name ?? '', timezone: own.timezone ?? 'UTC', place: own.place ?? '' }
+  const about = {
+    name: own.name ?? '',
+    email: own.email ?? '',
+    timezone: own.timezone ?? 'UTC',
+    place: own.place ?? '',
+  }
   const kinds = t.kinds as Record<
     string,
     { one: string; counted?: { one: string; other: string } } | undefined
@@ -313,8 +318,8 @@ async function views(language: Language, viewer: Viewer) {
       kind: 'sys',
       title: word === 'about' ? t.about.replace('{name}', about.name) : t[word],
       oneSize: path in oneSize,
-      width: oneSize[path as keyof typeof oneSize]?.w,
-      height: oneSize[path as keyof typeof oneSize]?.h,
+      width: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.w,
+      height: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.h,
     } as Doc,
     lang: language,
     path,
