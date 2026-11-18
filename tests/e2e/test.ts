@@ -7,8 +7,9 @@ export const test = base.extend<{ pageErrors: void; uploads: void; intro: boolea
   // A tab has seen the intro unless a test asks for it, so the desk at / is there at once.
   intro: [false, { option: true }],
   played: [
-    async ({ page, intro }, use) => {
-      if (!intro) await page.addInitScript(() => sessionStorage.setItem('intro', 'played'))
+    async ({ context, intro }, use) => {
+      // Every tab of the context, a second one too.
+      if (!intro) await context.addInitScript(() => sessionStorage.setItem('intro', 'played'))
       await use()
     },
     { auto: true },
