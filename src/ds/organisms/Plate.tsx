@@ -6,6 +6,7 @@ import type { IconName } from '../atoms/Icon'
 import { Heading } from '../molecules/Heading'
 import { Row } from '../molecules/Row'
 import { List } from './List'
+import { Stamp } from './Record'
 
 const corners = ['tl', 'tr', 'bl', 'br'] as const
 type Corner = (typeof corners)[number]
@@ -77,13 +78,7 @@ export function Plate(props: PlateProps) {
         style={{ '--hang': `${hang}deg` } as CSSProperties}
       >
         <div className="plate__head">
-          <p className="plate__stamp">
-            <span className="plate__code">
-              <span aria-hidden className="barcode" />
-              {props.stamp.code}
-            </span>
-            {props.stamp.note && <span>{props.stamp.note}</span>}
-          </p>
+          <Stamp code={props.stamp.code} note={props.stamp.note} />
           <Heading level="hero" page text={props.text} title={props.title} />
           <hr className="plate__rule" />
         </div>

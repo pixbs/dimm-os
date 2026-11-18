@@ -621,8 +621,11 @@
   flex-direction: column;
   gap: var(--s-3);
   padding-top: var(--s-4);
+
+  & > .record__stamp {
+    padding: 0;
+  }
 }
-.plate__stamp,
 .plate__foot {
   display: flex;
   flex-wrap: wrap;
@@ -630,15 +633,6 @@
   gap: var(--s-1) var(--s-3);
   margin: 0;
   font: var(--f-mono);
-}
-.plate__stamp {
-  align-items: center;
-  color: var(--muted);
-}
-.plate__code {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--s-3);
 }
 .plate__rule {
   height: var(--b-6);
