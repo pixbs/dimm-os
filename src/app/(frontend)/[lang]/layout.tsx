@@ -4,24 +4,26 @@ import '@/ds/organisms/index.css'
 import '@/ds/sections/index.css'
 
 import type { Metadata } from 'next'
-import { Inter_Tight, JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import { apply } from '@/ds/atoms/settings'
 import { Motion } from '@/ds/motion/Motion'
 import { origin } from '@/i18n/address'
 
-const sans = Inter_Tight({
-  subsets: ['latin'],
+// The site serves its typefaces itself, in the latin subset, so no build fetches them.
+const sans = localFont({
+  src: [
+    { path: './inter-tight-latin.woff2', weight: '400' },
+    { path: './inter-tight-latin.woff2', weight: '500' },
+  ],
   variable: '--font-inter-tight',
-  weight: ['400', '500'],
 })
-const mono = JetBrains_Mono({
-  subsets: ['latin'],
+const mono = localFont({
+  src: './jetbrains-mono-latin.woff2',
   variable: '--font-jetbrains-mono',
   weight: '400',
 })
-// Google ships these key glyphs of the mono font in no subset, so the site serves them itself.
+// The key glyphs of the mono font, which no subset of it holds.
 const monoKeys = localFont({
   src: './jetbrains-mono-keys.woff2',
   variable: '--font-jetbrains-mono-keys',

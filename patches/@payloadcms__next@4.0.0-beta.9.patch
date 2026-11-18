@@ -1,0 +1,50 @@
+diff --git a/dist/adapters/layout.d.ts b/dist/adapters/layout.d.ts
+index 8f0556aa886fb4959d0488e633d17ff56eb6b0e8..afa21bac237f6833547cecf85ff8079ae1a54175 100644
+--- a/dist/adapters/layout.d.ts
++++ b/dist/adapters/layout.d.ts
+@@ -2,6 +2,6 @@ import { RootLayout as UIRootLayout } from '@payloadcms/ui/layouts';
+ import React from 'react';
+ import '@payloadcms/ui/css/app.css';
+ export { metadata } from '@payloadcms/ui/layouts';
+-type Props = Omit<React.ComponentProps<typeof UIRootLayout>, 'additionalDependencyChecks' | 'fonts' | 'initAdminContext' | 'RouterAdapter'>;
++type Props = Omit<React.ComponentProps<typeof UIRootLayout>, 'additionalDependencyChecks' | 'initAdminContext' | 'RouterAdapter'>;
+ export declare const RootLayout: (props: Props) => React.JSX.Element;
+ //# sourceMappingURL=layout.d.ts.map
+\ No newline at end of file
+diff --git a/dist/adapters/layout.js b/dist/adapters/layout.js
+index 03675657765353e53274cc6c4dc7fc58e2c06ac9..7694d73744291de5da5f076749f2e4453001aab8 100644
+--- a/dist/adapters/layout.js
++++ b/dist/adapters/layout.js
+@@ -1,18 +1,8 @@
+ import { jsx as _jsx } from "react/jsx-runtime";
+ import { RootLayout as UIRootLayout } from '@payloadcms/ui/layouts';
+-// @ts-expect-error - TS6 NodeNext rejects deep imports into `next` (no `exports` field), but Next.js compiler requires this exact specifier
+-import { Inter, Roboto_Mono } from 'next/font/google';
+ import React from 'react';
+ import { initAdminContext } from '../utilities/initAdminContext.js';
+ import { NextRouterAdapter } from './router.js';
+-const inter = Inter({
+-  subsets: ['latin'],
+-  variable: '--font-family-sans'
+-});
+-const robotoMono = Roboto_Mono({
+-  subsets: ['latin'],
+-  variable: '--font-family-mono'
+-});
+ const nextDependencyChecks = {
+   dependencyVersions: {
+     next: {
+@@ -25,13 +15,6 @@ export { metadata } from '@payloadcms/ui/layouts';
+ export const RootLayout = props => /*#__PURE__*/_jsx(UIRootLayout, {
+   ...props,
+   additionalDependencyChecks: nextDependencyChecks,
+-  fonts: [{
+-    className: inter.className,
+-    variable: inter.variable
+-  }, {
+-    className: robotoMono.className,
+-    variable: robotoMono.variable
+-  }],
+   initAdminContext: initAdminContext,
+   RouterAdapter: NextRouterAdapter
+ });
