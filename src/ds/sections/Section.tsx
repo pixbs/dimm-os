@@ -16,9 +16,12 @@ export function Section(props: {
   surface?: Surface
   // Its body runs to the window's edges; the heading keeps the inset.
   bleed?: boolean
+  // Its number in the index of its window, which a link to it moves the focus to.
+  eyebrow?: string
+  id?: string
   children: ReactNode
 }) {
-  const { title, text, split, surface, bleed } = props
+  const { title, text, split, surface, bleed, eyebrow, id } = props
   const part = useEnters()
 
   return (
@@ -28,11 +31,13 @@ export function Section(props: {
       data-layout={split ? 'split' : undefined}
       // On the window's own surface it takes the window's, which may be paper.
       data-surface={surface === 'window' ? undefined : surface}
+      id={id}
       ref={part}
+      tabIndex={id ? -1 : undefined}
     >
       {title && (
         <div className="section__head">
-          <Heading level="heading" text={text} title={title} />
+          <Heading eyebrow={eyebrow} level="heading" text={text} title={title} />
         </div>
       )}
       <div className="section__body">{props.children}</div>

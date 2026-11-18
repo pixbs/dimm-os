@@ -5,6 +5,7 @@ import {
   startTransition,
   useEffect,
   useEffectEvent,
+  useId,
   useReducer,
   useRef,
   useState,
@@ -22,7 +23,7 @@ import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration } from '@/ds/motion/vocabulary'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
-import { Stamp } from '@/ds/organisms/Record'
+import { RecordFoot } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
 import { Section } from '@/ds/sections/Section'
@@ -33,6 +34,7 @@ import { aboutWindow } from '@/system/About'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
 
+import { Page } from './Aside'
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
 import { commandAction, keyAction, pressed } from './keys'
@@ -40,7 +42,7 @@ import { type Action, front, manager, phone, showing, stack, start, windowOf } f
 import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
-import { type Placed, Sections } from './Sections'
+import { chapters, numberOf, type Placed, Sections } from './Sections'
 
 const STORE = 'windows'
 // Where the windows stand, kept on the device while windows are remembered.
@@ -94,7 +96,8 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
 const pad = (number: number) => String(number).padStart(2, '0')
 
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
-// neighbours, which ends its body.
+// neighbours, which ends its body. On paper its head is a record's and its foot says when it was updated; beside it
+// stands its aside.
 function Body(props: {
   view: WindowView
   width: number
@@ -117,17 +120,57 @@ function Body(props: {
     }
   })
   const [first] = sections
-  const { stamp } = view.frame
+  const { stamp, paper } = view.frame
+  const note = stamp && { code: stamp.code, note: stamp.place }
+  const record = paper ? { stamp: note } : undefined
+  const prefix = useId()
+  const { aside } = view
+  const contents = aside?.type === 'contents'
+  const index = contents
+    ? chapters(sections).map(({ title }, at) => ({
+        id: `${prefix}-${numberOf(at)}`,
+        number: numberOf(at),
+        title: title!,
+      }))
+    : []
+  const content = (
+    <>
+      {/* A window that opens with neither a Header nor tiles still holds its title once. */}
+      {first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
+        <Header level="title" page record={record} title={view.frame.title} />
+      )}
+      {sections.length > 0 && (
+        <Sections
+          chapters={contents ? prefix : undefined}
+          paper={paper}
+          record={record}
+          sections={sections}
+          width={width}
+        />
+      )}
+      {paper && view.updated && (
+        <Section>
+          <RecordFoot start={view.updated} />
+        </Section>
+      )}
+    </>
+  )
   return (
     <>
-      {stamp && <Stamp code={stamp.code} note={stamp.place} />}
-      <div lang={view.lang}>
-        {/* A window that opens with neither a Header nor tiles still holds its title once. */}
-        {first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
-          <Header level="title" page title={view.frame.title} />
-        )}
-        {sections.length > 0 && <Sections sections={sections} width={width} />}
-      </div>
+      {aside ? (
+        <Page
+          aside={aside}
+          chapters={index}
+          foot={aside.type === 'record' && <Foot buttons={aside.actions} />}
+          lang={view.lang}
+          stamp={note}
+          t={t}
+        >
+          {content}
+        </Page>
+      ) : (
+        <div lang={view.lang}>{content}</div>
+      )}
       {before && (
         <Section>
           <nav>

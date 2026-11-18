@@ -6,7 +6,7 @@ import type { IconName } from '../atoms/Icon'
 import { Heading } from '../molecules/Heading'
 import { Row } from '../molecules/Row'
 import { List } from './List'
-import { Stamp } from './Record'
+import { RecordHead } from './Record'
 
 const corners = ['tl', 'tr', 'bl', 'br'] as const
 type Corner = (typeof corners)[number]
@@ -77,11 +77,9 @@ export function Plate(props: PlateProps) {
         role="group"
         style={{ '--hang': `${hang}deg` } as CSSProperties}
       >
-        <div className="plate__head">
-          <Stamp code={props.stamp.code} note={props.stamp.note} />
+        <RecordHead stamp={props.stamp}>
           <Heading level="hero" page text={props.text} title={props.title} />
-          <hr className="plate__rule" />
-        </div>
+        </RecordHead>
         <div className="grid" data-columns="2">
           {[props.facts.slice(0, half), props.facts.slice(half)].map((facts, column) => (
             <List key={column} ruled>

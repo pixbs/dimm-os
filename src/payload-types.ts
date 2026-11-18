@@ -290,6 +290,7 @@ export interface Window {
     | null;
   aside?: {
     type?: ('none' | 'contents' | 'record') | null;
+    title?: string | null;
     facts?:
       | {
           label: string;
@@ -1016,6 +1017,7 @@ export interface WindowsSelect<T extends boolean = true> {
     | T
     | {
         type?: T;
+        title?: T;
         facts?:
           | T
           | {

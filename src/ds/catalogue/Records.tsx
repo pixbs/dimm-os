@@ -1,5 +1,10 @@
+import { Heading } from '../molecules/Heading'
+import { ButtonGroup, ButtonLink } from '../molecules/Button'
+import { Row } from '../molecules/Row'
+import { List } from '../organisms/List'
 import { Prose } from '../organisms/Prose'
 import { Quote } from '../organisms/Quote'
+import { RecordCard, RecordFoot, RecordHead } from '../organisms/Record'
 import type { Copy } from './copy/en'
 import { Doc, Entry, Specs, u } from './parts'
 
@@ -21,8 +26,60 @@ export function Records({ t }: { t: Copy['records'] }) {
     `<p>${t.after}</p>`,
   ].join('')
 
+  const { card } = t
+  const head = (
+    <RecordHead stamp={{ code: card.code, note: card.note }}>
+      <Heading level="heading" title={card.title} />
+    </RecordHead>
+  )
+
   return (
     <Doc text={t.doc}>
+      <Entry text={t.record}>
+        <Specs caps={t.recordCaps}>
+          <div className="cq" style={{ width: u(47) }}>
+            <RecordCard
+              foot={
+                <ButtonGroup cells>
+                  {t.labels.map((label, at) => (
+                    <ButtonLink end="arrow-right" href="#" key={at} label={label} tone="outline" />
+                  ))}
+                </ButtonGroup>
+              }
+              head={head}
+              label={card.title}
+              name={card.name}
+            >
+              <List ruled>
+                {t.facts.map(([label, value], at) => (
+                  <Row key={at} label={label} value={value} />
+                ))}
+              </List>
+            </RecordCard>
+          </div>
+          <div className="cq" style={{ width: u(36) }}>
+            <RecordCard
+              foot={<RecordFoot end={t.index[3]} />}
+              head={head}
+              label={card.title}
+              name={card.name}
+            >
+              <List head={{ title: t.index[0], end: t.index[1] }} ruled>
+                {['01', '02', '03', '04'].map((number, at) => (
+                  <Row
+                    current={at === 0}
+                    href="#"
+                    key={number}
+                    meta={number}
+                    size="compact"
+                    title={t.index[2]}
+                  />
+                ))}
+              </List>
+            </RecordCard>
+          </div>
+        </Specs>
+      </Entry>
       <Entry text={t.prose}>
         <Specs caps={[everything]}>
           <div className="cq" style={{ width: u(90) }}>

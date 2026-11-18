@@ -151,6 +151,9 @@
     box-shadow, opacity;
   /* a part that moves as it changes colour, a knob that slides over */
   --m-shifts: var(--m-fades), transform;
+  /* a part that appears and leaves in place: it moves, and is shown or not until its move is over */
+  --m-shows: var(--m-moves), display;
+  --m-discrete: allow-discrete;
 }
 
 /* more contrast: every strength below full steps up by one */

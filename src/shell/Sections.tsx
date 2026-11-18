@@ -79,8 +79,15 @@ function rowsOf(list: Listed, width: number, first: boolean) {
   }))
 }
 
-// The body of a section that joins the one above, under that section's heading.
-function Part({ part, width, under }: { part: Joinable; width: number; under: boolean }) {
+// The sections a contents index lists: each text under a heading of its own, numbered by its place among them.
+export const chapters = (sections: Placed[]) =>
+  sections.filter((section): section is TextView => section.type === 'text' && !!section.title)
+
+export const numberOf = (at: number) => String(at + 1).padStart(2, '0')
+
+// The body of a section that joins the one above, under that section's heading; on paper facts are ruled.
+function Part(props: { part: Joinable; width: number; under: boolean; paper?: boolean }) {
+  const { part, width, under } = props
   switch (part.type) {
     case 'text':
       return <Prose html={part.html} />
@@ -88,7 +95,7 @@ function Part({ part, width, under }: { part: Joinable; width: number; under: bo
       return <Figures items={part.items} />
     case 'facts':
       return (
-        <List>
+        <List ruled={props.paper}>
           {part.items.map(({ label, value }, at) => (
             <Row key={at} label={label} value={value} />
           ))}
@@ -106,8 +113,18 @@ function Part({ part, width, under }: { part: Joinable; width: number; under: bo
 }
 
 // The sections of a window in their order: a Header that opens it holds the title of the page, and a joined section
-// stands in the body of the one above, under its heading.
-export function Sections({ sections, width }: { sections: Placed[]; width: number }) {
+// stands in the body of the one above, under its heading. On paper the opening Header is the head of the record and
+// its lists are a record's; under an index each chapter carries its number and an address the index leads to.
+export function Sections(props: {
+  sections: Placed[]
+  width: number
+  paper?: boolean
+  record?: { stamp?: { code: string; note?: string } }
+  // What the addresses of the chapters start with.
+  chapters?: string
+}) {
+  const { sections, width, paper } = props
+  const numbered = props.chapters ? chapters(sections) : []
   const groups: [Placed, ...Joinable[]][] = []
   for (const section of sections) {
     if ('join' in section && section.join) groups.at(-1)!.push(section)
@@ -119,7 +136,13 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
   return groups.map(([lead, ...joined], at) => {
     // A joined card ranks below the heading it stands under, where there is one.
     const parts = joined.map((part, index) => (
-      <Part key={index} part={part} under={'title' in lead && Boolean(lead.title)} width={width} />
+      <Part
+        key={index}
+        paper={paper}
+        part={part}
+        under={'title' in lead && Boolean(lead.title)}
+        width={width}
+      />
     ))
     // A table, or a list whose rows hold a name and an end text, takes three columns of its own, so the section it
     // stands in keeps its heading above, at three columns at most.
@@ -130,7 +153,9 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
     )
     switch (lead.type) {
       case 'header':
-        return <Header key={at} {...lead} page={at === 0} />
+        return (
+          <Header key={at} {...lead} page={at === 0} record={at === 0 ? props.record : undefined} />
+        )
       case 'media':
         return (
           <Media
@@ -182,6 +207,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
           <Facts
             items={lead.items}
             key={at}
+            paper={paper}
             split={lead.split && beside}
             surface={lead.surface}
             text={lead.text}
@@ -231,15 +257,19 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
             {...lead}
             items={rowsOf(lead, width, lead === first)}
             key={at}
+            paper={paper}
             split={lead.split && beside}
           >
             {parts}
           </Section>
         )
-      case 'text':
+      case 'text': {
+        const chapter = numbered.indexOf(lead)
         return (
           <Text
+            eyebrow={chapter < 0 ? undefined : numberOf(chapter)}
             html={lead.html}
+            id={chapter < 0 ? undefined : `${props.chapters}-${numberOf(chapter)}`}
             key={at}
             split={lead.split && beside}
             text={lead.text}
@@ -248,6 +278,7 @@ export function Sections({ sections, width }: { sections: Placed[]; width: numbe
             {parts}
           </Text>
         )
+      }
     }
   })
 }

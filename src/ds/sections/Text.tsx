@@ -9,10 +9,18 @@ export function Text(props: {
   text?: string | null
   split?: boolean
   html: string
+  eyebrow?: string
+  id?: string
   children?: ReactNode
 }) {
   return (
-    <Section split={props.split} text={props.text} title={props.title}>
+    <Section
+      eyebrow={props.eyebrow}
+      id={props.id}
+      split={props.split}
+      text={props.text}
+      title={props.title}
+    >
       <Prose html={props.html} />
       {props.children}
     </Section>

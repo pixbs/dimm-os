@@ -180,7 +180,12 @@ export const Windows: CollectionConfig = {
                 {
                   name: 'stamp',
                   type: 'text',
-                  admin: { condition: (data) => Boolean(data?.paper), width: '50%' },
+                  // A card beside the content is paper too.
+                  admin: {
+                    condition: (data) =>
+                      Boolean(data?.paper) || ['contents', 'record'].includes(data?.aside?.type),
+                    width: '50%',
+                  },
                 },
               ],
             },
@@ -245,6 +250,12 @@ export const Windows: CollectionConfig = {
                     { label: 'Record card, at the end', value: 'record' },
                   ],
                   admin: { layout: 'horizontal' },
+                },
+                {
+                  name: 'title',
+                  type: 'text',
+                  label: 'Title',
+                  admin: { condition: (_, siblingData) => siblingData?.type === 'record' },
                 },
                 ...[facts('facts', 'Facts'), buttons('actions')].map((field) => ({
                   ...field,

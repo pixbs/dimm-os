@@ -1167,6 +1167,22 @@ const de: Copy = {
       'Organismen / Inhalt: Akten, Text, Formulare, Meldungen',
       'Was in ein Fenster gehört. Jedes ordnet Moleküle auf seine Weise an, und jedes folgt der Breite des Fensters, in dem es steht. Keines ist nach dem benannt, was es einmal enthält.',
     ],
+    record: [
+      'Akte',
+      'Fläche: Papier | Form: Karte · Fenster · Schublade | Teile: Leiste · Stempelzeile · Titel · schwere Linie · Inhalt · Fuß · Aktionen | Liste: liniert · mit Kopf',
+      'Papier, das etwas festhält. Es beginnt mit einer Stempelzeile: dem Strichcode, einem Code und einer Notiz an ihrem Ende. Dann ein Titel und die schwere Linie, die sich von ihrem Anfang her zieht, wenn die Akte gedruckt wird und der Stempel landet. Ihre Listen sind liniert, jede Zeile schließt mit einer vollen Linie im Vordergrund, oder sie haben einen Kopf, wo sie gelesen werden. Eine Karte neben dem Inhalt eines Fensters bleibt, wo die Seite sie hinstellt: Sie hat keinen Griff, an dem man sie bewegt.',
+    ],
+    recordCaps: [
+      'eine Karte: Leiste, Stempelzeile, Titel, schwere Linie, linierte Angaben, Aktionen',
+      'ein Verzeichnis: kompakte Zeilen, die aktuelle gehalten, ein Fuß',
+    ],
+    card: { name: 'name', code: 'CODE/XXX.01', note: 'Notiz', title: 'Titel' },
+    facts: [
+      ['Angabe', 'Wert'],
+      ['Angabe', 'Ein Wert, der in dieser Breite auf eine zweite Zeile läuft'],
+    ],
+    labels: ['Angabe', 'Angabe'],
+    index: ['Spalte', 'Nr.', 'Titel', '01 / 04'],
     prose: [
       'Fließtext',
       'Blöcke: h2 · h3 · h4 · p · ul · ol · Zitat · Linie | im Text: kräftig · Link · Code',
