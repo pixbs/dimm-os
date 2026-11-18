@@ -256,7 +256,7 @@ export function Form(props: {
 
   if (state === 'sent')
     return (
-      <div className="form__sent" role="status">
+      <div className="form__sent" data-rest={props.state ? '' : undefined} role="status">
         <Message
           action={{ label: words.again, onClick: again }}
           text={reply ? words.reply.replace('{email}', reply) : ''}
@@ -271,6 +271,7 @@ export function Form(props: {
   return (
     <form
       className="form"
+      data-rest={props.state || props.missing ? '' : undefined}
       data-above={above ? '' : undefined}
       data-state={state === 'leaving' ? 'leaving' : undefined}
       id={id}

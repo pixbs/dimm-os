@@ -852,6 +852,11 @@
   opacity: 0;
   pointer-events: none;
 }
+/* A state shown at rest is simply there: nothing in it arrives. */
+:is(.form, .form__sent)[data-rest]
+  :is(.form__note, .form__note > .dot, .row__label > .dot, .message) {
+  transition: none;
+}
 .form__sent > .message {
   transition-property: var(--m-moves);
   transition-duration: var(--m-slow);
