@@ -407,11 +407,11 @@ function Shutdown({ view, t }: Props) {
       </div>
       <footer>
         <Bar line="above">
-          {view.boot.email && (
+          {view.site.email && (
             <BarText>
               {t.shutDownTalk}{' '}
-              <a className="link" href={`mailto:${view.boot.email}`}>
-                {view.boot.email}
+              <a className="link" href={`mailto:${view.site.email}`}>
+                {view.site.email}
               </a>
             </BarText>
           )}
