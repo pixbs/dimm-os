@@ -32,6 +32,7 @@ import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 import { aboutWindow } from '@/system/About'
+import { accessibilityWindow } from '@/system/Accessibility'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
 
@@ -665,14 +666,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
                     path: opened.path,
                     close: () => act({ type: 'close', path: opened.path }),
                   })
-                : opened.about
-                  ? aboutWindow({ t: dictionary, about: opened.about, width })
-                  : parts(opened, dictionary, language, width, {
-                      chosen: chosen[opened.path] ?? null,
-                      choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                      drawer: phone(desk),
-                      onDepth: setFiltering,
+                : opened.path === '/accessibility'
+                  ? accessibilityWindow({
+                      t: dictionary,
+                      language,
+                      email: view.site.email,
+                      close: () => act({ type: 'close', path: opened.path }),
                     })
+                  : opened.about
+                    ? aboutWindow({ t: dictionary, about: opened.about, width })
+                    : parts(opened, dictionary, language, width, {
+                        chosen: chosen[opened.path] ?? null,
+                        choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                        drawer: phone(desk),
+                        onDepth: setFiltering,
+                      })
           }
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
