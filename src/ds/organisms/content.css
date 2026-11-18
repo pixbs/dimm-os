@@ -231,8 +231,10 @@
     transition-duration: var(--m-slow);
     transition-timing-function: var(--m-standard);
 
-    @starting-style {
-      opacity: 0;
+    &[data-fade] {
+      @starting-style {
+        opacity: 0;
+      }
     }
   }
 }

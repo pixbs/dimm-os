@@ -19,6 +19,8 @@ type Item = {
 export function SplitView(props: { items: Item[]; label: string; ruled?: boolean }) {
   const { items } = props
   const [open, setOpen] = useState<string | null>(items[0]?.key ?? null)
+  // What the server painted is simply there; an item brought into the pane fades in.
+  const [changed, setChanged] = useState(false)
   const shown = items.find((item) => item.key === open) ?? items[0]
 
   return (
@@ -37,7 +39,10 @@ export function SplitView(props: { items: Item[]; label: string; ruled?: boolean
                 <Row
                   aria-expanded={opened}
                   icon={opened ? 'minus' : 'plus'}
-                  onClick={() => setOpen(opened ? null : item.key)}
+                  onClick={() => {
+                    setOpen(opened ? null : item.key)
+                    setChanged(true)
+                  }}
                   text={item.text}
                   title={item.title}
                   trail={item.end && <span className="list__space" />}
@@ -52,7 +57,7 @@ export function SplitView(props: { items: Item[]; label: string; ruled?: boolean
         })}
       </div>
       {shown && (
-        <div className="splitview__pane" key={shown.key}>
+        <div className="splitview__pane" data-fade={changed ? '' : undefined} key={shown.key}>
           {shown.pane}
         </div>
       )}
