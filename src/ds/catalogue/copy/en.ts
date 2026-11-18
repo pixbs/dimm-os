@@ -1136,6 +1136,22 @@ const en = {
       'Organisms / Content: records, text, forms, messages',
       'What goes inside a window. Each one is a way to arrange molecules, and each answers to the width of the window it is in. None of them is named after what it will hold.',
     ],
+    record: [
+      'Record',
+      'surface: paper | form: card · window · drawer | parts: bar · stamp line · title · heavy rule · body · foot · actions | list: ruled · headed',
+      'Paper that keeps something on record. It opens with a stamp line: the barcode, a code, and a note at its end. Then a title and the heavy rule, which draws from its start as the record prints while the stamp lands. Its lists are ruled, every row closing with a full line in the foreground, or headed where they are read. A card beside the content of a window stays where the page puts it: it has no handle to move it by.',
+    ],
+    recordCaps: [
+      'a card: bar, stamp line, title, heavy rule, ruled facts, actions',
+      'an index: compact rows, the current one held, a foot',
+    ],
+    card: { name: 'name', code: 'CODE/XXX.01', note: 'Note', title: 'Title' },
+    facts: [
+      ['Label', 'Value'],
+      ['Label', 'A value that runs onto a second line in this width'],
+    ],
+    labels: ['Label', 'Label'],
+    index: ['Column', 'No.', 'Title', '01 / 04'],
     prose: [
       'Rich text',
       'blocks: h2 · h3 · h4 · p · ul · ol · quote · rule | inline: strong · link · code',

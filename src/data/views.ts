@@ -91,6 +91,14 @@ export type WindowView = {
   }
   sections: Section[]
   actions: FootButton[]
+  // What stands beside its content: an index of its chapters at the start, or a record card at the end; a system window
+  // has neither that nor a document.
+  aside?:
+    | { type: 'contents' }
+    | { type: 'record'; facts: { label: string; value: string }[]; actions: FootButton[] }
+    | null
+  // When its document last changed, in words, as a record states it at its foot.
+  updated?: string | null
   // How many items it has, and as an item, which shows in its parent's window: the way back, its place among
   // the items, and the items beside it.
   count: number
@@ -120,6 +128,9 @@ const TAG = 'views'
 // German that is not written yet shows the English, except in the two legal windows.
 const english: Language = 'en'
 const legal = ['imprint', 'privacy-policy']
+
+// The month and year a document changed in, as the browser's Intl writes them in each language.
+const locales = { en: 'en-GB', de: 'de' }
 
 // The 404 window answers every address that has nothing, and has none of its own.
 const missing = '404'
@@ -154,6 +165,8 @@ const fields = {
   width: true,
   height: true,
   actions: true,
+  aside: true,
+  updatedAt: true,
 } as const
 
 type Doc = Pick<Window, keyof typeof fields | 'id'>
@@ -435,6 +448,22 @@ async function views(language: Language, viewer: Viewer) {
 
   const view = (one: Seen): WindowView => {
     const { doc, parent } = one
+    const kept = doc.aside?.type ?? 'none'
+    const aside: WindowView['aside'] | null =
+      kept === 'contents'
+        ? { type: 'contents' }
+        : kept === 'record'
+          ? {
+              type: 'record',
+              facts: (doc.aside?.facts ?? []).map(({ label, value }) => ({ label, value })),
+              actions: (doc.aside?.actions ?? []).flatMap(button(one.lang)),
+            }
+          : null
+    const month = new Intl.DateTimeFormat(locales[language], {
+      month: 'long',
+      year: 'numeric',
+      timeZone: about.timezone,
+    })
     const app = parent ?? one
     const items = itemsOf(one)
     const siblings = parent ? itemsOf(parent) : []
@@ -451,9 +480,15 @@ async function views(language: Language, viewer: Viewer) {
         oneSize: app.doc.oneSize ?? undefined,
         size: { w: app.doc.width ?? undefined, h: app.doc.height ?? undefined },
         paper: doc.paper ?? undefined,
-        stamp: doc.paper && doc.stamp ? { code: doc.stamp, place: about.place } : undefined,
+        // A card beside the content carries the stamp of a window that is not paper itself.
+        stamp:
+          (doc.paper || aside) && doc.stamp ? { code: doc.stamp, place: about.place } : undefined,
       },
       actions: (doc.actions ?? []).flatMap(button(one.lang)),
+      aside,
+      updated: doc.updatedAt
+        ? t.updated.replace('{date}', month.format(new Date(doc.updatedAt)))
+        : null,
       sections: sectionsOf(one),
       count: items.length,
       parent: parent ? link(parent) : null,

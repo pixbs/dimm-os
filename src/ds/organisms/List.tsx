@@ -29,6 +29,8 @@ export function List(props: {
   head?: { title?: string | null; end: string } | null
   // Rows under a head that are checked one by one, not read through, keep their lines.
   lines?: boolean
+  // The list of a record: every row, the head too, closes with a full line in the foreground.
+  ruled?: boolean
   foot?: To | null
   count?: string | null
   empty?: string | null
@@ -49,7 +51,8 @@ export function List(props: {
   return (
     <div
       className="list"
-      data-headed={head ? (props.lines ? 'lines' : '') : undefined}
+      data-headed={head && !props.ruled ? (props.lines ? 'lines' : '') : undefined}
+      data-ruled={props.ruled ? '' : undefined}
       ref={props.moving ? undefined : list}
     >
       {head && (
@@ -138,6 +141,7 @@ type Props = {
   opens?: boolean
   head?: { title?: string | null; end: string } | null
   lines?: boolean
+  ruled?: boolean
   items: Item[]
   foot?: To | null
   count?: string | null
@@ -272,6 +276,7 @@ function Moving(props: Props) {
       lines={props.lines}
       moving
       reset={props.reset}
+      ruled={props.ruled}
     >
       <AnimatePresence initial={false} mode="popLayout">
         <m.div
@@ -337,6 +342,7 @@ export function Items(props: Props) {
       head={props.head}
       lines={props.lines}
       reset={props.reset}
+      ruled={props.ruled}
     >
       {props.items.map((item, at) => row(item, at, props))}
     </List>

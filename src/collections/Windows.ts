@@ -180,7 +180,12 @@ export const Windows: CollectionConfig = {
                 {
                   name: 'stamp',
                   type: 'text',
-                  admin: { condition: (data) => Boolean(data?.paper), width: '50%' },
+                  // A card beside the content is paper too.
+                  admin: {
+                    condition: (data) =>
+                      Boolean(data?.paper) || ['contents', 'record'].includes(data?.aside?.type),
+                    width: '50%',
+                  },
                 },
               ],
             },

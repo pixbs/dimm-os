@@ -6,7 +6,6 @@
   justify-content: space-between;
   gap: var(--s-1) var(--s-3);
   margin: 0;
-  padding: var(--s-4) var(--s-4) 0;
   color: var(--muted);
   font: var(--f-mono);
 }
@@ -14,4 +13,86 @@
   display: inline-flex;
   align-items: center;
   gap: var(--s-3);
+}
+/* Its head: the stamp line, the title and the heavy rule, a step apart. */
+.record__head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+.record__rule {
+  height: var(--b-6);
+  background-color: var(--fg);
+  transform-origin: 0 50%;
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-long);
+  transition-timing-function: var(--m-enter);
+
+  &:dir(rtl) {
+    transform-origin: 100% 50%;
+  }
+}
+/* A record that arrives prints: the stamp lands from just above the paper and the rule draws from its start. With reduced
+   motion both are there at once. */
+.record__head[data-print] {
+  & > .record__stamp {
+    transition-property: var(--m-moves);
+    transition-duration: var(--m-slow);
+    transition-timing-function: var(--m-drop);
+
+    @starting-style {
+      opacity: 0;
+      transform: translateY(calc(var(--s-2) * -1));
+    }
+  }
+  & > .record__rule {
+    @starting-style {
+      transform: scaleX(0);
+    }
+  }
+}
+/* Its foot: what it says at its start and at its end, in mono. */
+.record__foot {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin: 0;
+  font: var(--f-mono);
+}
+
+/* As a card beside the content of a window: on paper, raised off the window, its bar and its edges in the foreground. */
+.record[data-surface='paper'] {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  box-shadow: var(--e-popover);
+
+  & > .bar {
+    border-bottom: var(--b-2) solid var(--fg);
+
+    & > .bar__text {
+      color: var(--fg);
+    }
+  }
+  & > .record__head {
+    padding: var(--s-4) var(--s-4) 0;
+  }
+  & > .list {
+    margin: 0;
+  }
+  & > .record__foot {
+    padding: var(--s-3) var(--s-4);
+  }
+  & > .btngroup > .btn {
+    border-color: var(--fg);
+    border-top-width: var(--b-2);
+    border-bottom-width: 0;
+
+    &:first-child {
+      border-inline-start-width: 0;
+    }
+    &:last-child {
+      border-inline-end-width: 0;
+    }
+  }
 }

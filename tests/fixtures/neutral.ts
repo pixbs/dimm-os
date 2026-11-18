@@ -36,6 +36,14 @@ type Fixture = Partial<
   title: Words
   description: Words
   actions?: Button[]
+  // What stands beside its content: its chapters, or a record card of facts and buttons to addresses.
+  aside?:
+    | { type: 'contents' }
+    | {
+        type: 'record'
+        facts: { en: [string, string][]; de: [string, string][] }
+        actions: { url: string; label: Words }[]
+      }
   // How it shows as an item of its window, and the windows it relates to, by their slugs.
   listing?: {
     caption: Words
@@ -241,7 +249,13 @@ const lists = (ids: Record<string, number>): Sections => [
 ]
 
 // A document whose rows stand in headed groups, a role and its place beside what was done, a kind at the end.
-const record = (t: { title: string; lead: string; end: string; groups: [string, string[][]][] }) =>
+const record = (t: {
+  title: string
+  lead: string
+  end: string
+  groups: [string, string[][]][]
+  facts: [string, [string, string][]]
+}) =>
   [
     { blockType: 'header', level: 'title', surface: 'window', title: t.title, text: t.lead },
     ...t.groups.map(([title, rows]) => ({
@@ -252,6 +266,36 @@ const record = (t: { title: string; lead: string; end: string; groups: [string, 
       rows: 'plain' as const,
       items: rows.map(([name, caption, title, end]) => ({ name, caption, title, end })),
     })),
+    {
+      blockType: 'facts' as const,
+      title: t.facts[0],
+      items: t.facts[1].map(([label, value]) => ({ label, value })),
+    },
+  ] satisfies Sections
+
+// A window of chapters: a Header, facts in short, then each chapter a text under its heading with facts joined to it.
+const chaptered = (t: { title: string; lead: string; short: string; chapters: string[] }) =>
+  [
+    { blockType: 'header', level: 'display', surface: 'window', title: t.title, text: t.lead },
+    {
+      blockType: 'facts',
+      title: t.short,
+      split: false,
+      items: [{ label: t.short, value: t.lead }],
+    },
+    ...t.chapters.flatMap((title) => [
+      {
+        blockType: 'text' as const,
+        title,
+        split: false,
+        body: rich(`${title}: ${t.lead}`, t.lead, t.lead),
+      },
+      {
+        blockType: 'facts' as const,
+        join: true,
+        items: [{ label: title, value: t.lead }],
+      },
+    ]),
   ] satisfies Sections
 
 // Neutral windows that show every way the desk reads the content, parents before their items.
@@ -704,6 +748,13 @@ const windows: Fixture[] = [
           ],
           ['Another group', [['A third role', 'A third place', 'What was done there.', 'A kind']]],
         ],
+        facts: [
+          'A group of facts',
+          [
+            ['A label', 'Its value'],
+            ['Another label', 'Another value'],
+          ],
+        ],
       }),
       de: record({
         title: 'Lebenslauf',
@@ -725,6 +776,13 @@ const windows: Fixture[] = [
           [
             'Eine andere Gruppe',
             [['Eine dritte Rolle', 'Ein dritter Ort', 'Was dort getan wurde.', 'Eine Art']],
+          ],
+        ],
+        facts: [
+          'Eine Gruppe von Angaben',
+          [
+            ['Eine Angabe', 'Ihr Wert'],
+            ['Eine andere Angabe', 'Ein anderer Wert'],
           ],
         ],
       }),
@@ -770,20 +828,77 @@ const windows: Fixture[] = [
   {
     slug: 'imprint',
     kind: 'txt',
+    stamp: 'FIX/IMP.01',
+    width: 1000,
+    height: 992,
     title: { en: 'Imprint', de: 'Impressum' },
     description: {
       en: 'A placeholder: the imprint is written in the admin.',
       de: 'Ein Platzhalter: Das Impressum entsteht im Admin.',
     },
+    aside: {
+      type: 'record',
+      facts: {
+        en: [
+          ['A label', 'Its value'],
+          ['Another label', 'A value long enough to wrap onto a second line in a narrow card'],
+        ],
+        de: [
+          ['Eine Angabe', 'Ihr Wert'],
+          ['Eine andere Angabe', 'Ein Wert, lang genug, um in einer schmalen Karte umzubrechen'],
+        ],
+      },
+      actions: [
+        { url: 'mailto:site@example.com', label: { en: 'Write', de: 'Schreiben' } },
+        { url: 'tel:+10000000000', label: { en: 'Call', de: 'Anrufen' } },
+      ],
+    },
+    sections: () => ({
+      en: chaptered({
+        title: 'Imprint',
+        lead: 'A placeholder: the imprint is written in the admin.',
+        short: 'A group of facts',
+        chapters: [],
+      }),
+      de: chaptered({
+        title: 'Impressum',
+        lead: 'Ein Platzhalter: Das Impressum entsteht im Admin.',
+        short: 'Eine Gruppe von Angaben',
+        chapters: [],
+      }),
+    }),
   },
   {
     slug: 'privacy-policy',
     kind: 'txt',
+    stamp: 'FIX/PRV.01',
+    width: 1120,
+    height: 900,
     title: { en: 'Privacy', de: 'Datenschutz' },
     description: {
       en: 'A placeholder: the privacy policy is written in the admin.',
       de: 'Ein Platzhalter: Die Datenschutzerklärung entsteht im Admin.',
     },
+    aside: { type: 'contents' },
+    sections: () => ({
+      en: chaptered({
+        title: 'Privacy',
+        lead: 'A placeholder: the privacy policy is written in the admin.',
+        short: 'In short',
+        chapters: ['A first chapter', 'A second chapter', 'A third chapter', 'A fourth chapter'],
+      }),
+      de: chaptered({
+        title: 'Datenschutz',
+        lead: 'Ein Platzhalter: Die Datenschutzerklärung entsteht im Admin.',
+        short: 'Kurz gesagt',
+        chapters: [
+          'Ein erstes Kapitel',
+          'Ein zweites Kapitel',
+          'Ein drittes Kapitel',
+          'Ein viertes Kapitel',
+        ],
+      }),
+    }),
   },
   {
     slug: '404',
@@ -856,6 +971,7 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     listing,
     sections: _sections,
     actions: _actions,
+    aside,
     ...shared
   } of windows) {
     const {
@@ -871,6 +987,20 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     const words = (language: 'en' | 'de') => ({
       title: title[language],
       description: description[language],
+      ...(aside && {
+        aside:
+          aside.type === 'record'
+            ? {
+                type: aside.type,
+                facts: aside.facts[language].map(([label, value]) => ({ label, value })),
+                actions: aside.actions.map(({ url, label }) => ({
+                  type: 'address' as const,
+                  url,
+                  label: label[language],
+                })),
+              }
+            : aside,
+      }),
       ...(listing && {
         caption: listing.caption[language],
         headline: listing.headline[language],
