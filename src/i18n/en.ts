@@ -36,6 +36,16 @@ const en = {
   file: 'File',
   fill: 'Fill',
   filter: 'Filter',
+  // What a form says, in five patterns: something missing, something wrong, the system failed, waiting, done.
+  formAddress: 'Enter an email address like name@example.com.',
+  formFailed: 'Not sent. Try again, or write to {email}.',
+  formMissing: 'Still missing: {list}.',
+  formNew: 'New message',
+  formReply: 'I will reply to {email}.',
+  formSend: 'Send',
+  formSending: 'Sending…',
+  formSent: 'Message sent.',
+  formTo: 'To',
   fullScreen: 'Full screen',
   gestures: 'Gestures',
   // What a finger does on a phone, which has no keys: what, then how.

@@ -19,6 +19,7 @@ import { sanitizeUrl } from 'payload/shared'
 
 import { cards, type CardsView } from '@/blocks/cards/view'
 import { facts, type FactsView } from '@/blocks/facts/view'
+import { form, type FormView } from '@/blocks/form/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
 import { list, type ListView } from '@/blocks/list/view'
 import type { Listed, Listing } from '@/blocks/listing'
@@ -52,6 +53,7 @@ type Section =
   | TableView
   | ListView
   | CardsView
+  | FormView
 
 // The sections whose body a joined section can continue under their heading; tiles have none.
 const joinable = new Set(['text', 'stats', 'facts', 'table', 'list', 'cards'])
@@ -280,7 +282,15 @@ const site = async (language: Language, viewer: Viewer) => {
       },
       windows: { slug: true },
     },
-    select: { name: true, timezone: true, place: true, counted: true, about: true, inside: true },
+    select: {
+      name: true,
+      email: true,
+      timezone: true,
+      place: true,
+      counted: true,
+      about: true,
+      inside: true,
+    },
   })
 }
 
@@ -413,6 +423,9 @@ async function views(language: Language, viewer: Viewer) {
       disableIndent: true,
       disableTextAlign: true,
     })
+  // Every form leads to the privacy policy, as this viewer sees it.
+  const policy = windows.find(({ doc }) => doc.slug === 'privacy-policy')
+  const privacy = policy ? link(policy) : null
   const sectionOf = (block: NonNullable<Doc['sections']>[number], here: string) => {
     switch (block.blockType) {
       case 'header':
@@ -439,6 +452,10 @@ async function views(language: Language, viewer: Viewer) {
           listing,
           words: { empty: t.empty, share: t.share },
         })
+      case 'form': {
+        const made = form(block, (words) => html(words as SerializedEditorState))
+        return made && { ...made, to: own.email ?? '', privacy }
+      }
     }
   }
   // A joined section continues a section with a heading and a body: a Header, a picture and a quotation share none.

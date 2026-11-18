@@ -50,6 +50,6 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Payload's routes, the framework's files and any file with an extension pass untouched.
-  matcher: ['/((?!(?:api|admin|_next)(?:/|$)|.*\\.).*)'],
+  // Payload's routes, the framework's files, what forms post to and any file with an extension pass untouched.
+  matcher: ['/((?!(?:api|admin|_next|send)(?:/|$)|.*\\.).*)'],
 }
