@@ -156,7 +156,7 @@ const entry = (path: string, view: WindowView | null, opener?: Element | null): 
   mode: 'float',
   was: 'float',
   // A system window keeps its one size before its view arrives.
-  box: { x: 0, y: 0, ...(oneSize[windowOf(path) as keyof typeof oneSize] ?? sizeOf(view)) },
+  box: { x: 0, y: 0, ...(oneSize[path as keyof typeof oneSize] ?? sizeOf(view)) },
   placed: false,
 })
 

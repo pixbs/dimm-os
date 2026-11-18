@@ -12,6 +12,10 @@
   animation-duration: var(--m-slow);
   animation-timing-function: var(--m-standard);
 }
+/* While it plays, no part changes on its own, so nothing arrives late. */
+:root:active-view-transition * {
+  transition: none !important;
+}
 
 [data-surface] {
   --bg: var(--surface);
@@ -75,6 +79,12 @@
 [data-surface='inverted'] {
   --bg: var(--on-surface);
   --fg: var(--surface);
+}
+/* On an accent it keeps the accent's loudness: the accent as text on ink is never muted or faint. */
+:is([data-surface='orange'], [data-surface='blue'], [data-surface='mint'])
+  [data-surface='inverted'] {
+  --muted: var(--fg);
+  --faint: var(--fg);
 }
 
 ::selection {

@@ -1136,6 +1136,21 @@ const en = {
       'Organisms / Content: records, text, forms, messages',
       'What goes inside a window. Each one is a way to arrange molecules, and each answers to the width of the window it is in. None of them is named after what it will hold.',
     ],
+    split: [
+      'Split view',
+      'parts: list · pane | columns: compact 1 · regular and wide 2 | row: a button · a control on its end',
+      'A list at the side and, beside it, what the item in use holds. Pressing a row puts its item in the pane and holds the row pressed. A control that belongs to an item, like a switch, sits on the end of its row and is pressed on its own. A compact window has no side: there the item opens in place, under its row.',
+    ],
+    splitCaps: [
+      'regular and wide: the list at the side, the item in use beside it',
+      'compact: the item opens in place',
+    ],
+    pane: [
+      'Title',
+      'Text that says what this item is, as long as it needs to be.',
+      'Column',
+      'Cell',
+    ],
     record: [
       'Record',
       'surface: paper | form: card · window · drawer | parts: bar · stamp line · title · heavy rule · body · foot · actions | list: ruled · headed',

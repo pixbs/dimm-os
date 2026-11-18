@@ -5,6 +5,7 @@ import { useSetting } from '@/ds/atoms/useSetting'
 import { Button, ButtonLink } from '@/ds/molecules/Button'
 import { Heading } from '@/ds/molecules/Heading'
 import { Card } from '@/ds/organisms/Card'
+import { Live } from '@/ds/organisms/Live'
 import { Plate } from '@/ds/organisms/Plate'
 import type { Dictionary } from '@/i18n/en'
 import type { Parts } from '@/shell/OnDesk'
@@ -47,8 +48,9 @@ function Body({ t, about, width }: Props) {
                   alt: picture.alt,
                   position: picture.position,
                   span: Math.ceil(width / 2),
-                  still: picture.live,
+                  still: Boolean(picture.live),
                 },
+                live: picture.live ? <Live name={picture.live} /> : undefined,
               }}
               meta={[code, about.place]}
               surface="paper"

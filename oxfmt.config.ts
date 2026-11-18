@@ -9,6 +9,8 @@ export default {
     'tsconfig.json',
     '.claude/**',
     'scripts/**',
+    // The portrait's drawing is data, kept as small as it is fetched.
+    'src/ds/motion/portrait.json',
   ],
   printWidth: 100,
   semi: false,

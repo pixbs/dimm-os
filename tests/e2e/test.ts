@@ -1,15 +1,39 @@
 import { expect, type Page, test as base } from '@playwright/test'
 
+import { version } from '../../src/consent/registry'
 import { file } from '../fixtures/neutral'
 
 // Every test fails when its page throws or logs an error.
-export const test = base.extend<{ pageErrors: void; uploads: void; intro: boolean; played: void }>({
+export const test = base.extend<{
+  pageErrors: void
+  uploads: void
+  intro: boolean
+  played: void
+  asked: boolean
+  answered: void
+}>({
   // A tab has seen the intro unless a test asks for it, so the desk at / is there at once.
   intro: [false, { option: true }],
   played: [
     async ({ context, intro }, use) => {
       // Every tab of the context, a second one too.
       if (!intro) await context.addInitScript(() => sessionStorage.setItem('intro', 'played'))
+      await use()
+    },
+    { auto: true },
+  ],
+  // A guest who has answered already, so a test meets the desk without being asked, unless it asks to be.
+  asked: [false, { option: true }],
+  answered: [
+    async ({ context, asked }, use) => {
+      if (!asked)
+        await context.addInitScript((current) => {
+          if (!localStorage.getItem('consent'))
+            localStorage.setItem(
+              'consent',
+              JSON.stringify({ version: current, at: new Date().toISOString(), on: [] }),
+            )
+        }, version)
       await use()
     },
     { auto: true },

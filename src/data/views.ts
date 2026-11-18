@@ -36,7 +36,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
-import { oneSize, sized, systemIcons, systemWindows } from '@/system/windows'
+import { oneSize, paper, sized, systemIcons, systemWindows } from '@/system/windows'
 
 import { VISITOR_COOKIE } from './viewer'
 
@@ -68,7 +68,7 @@ export type AboutView = {
   memory: string | null
   facts: { label: string; value: string }[]
   inside: {
-    picture: { src: string; alt: string; position: string; live: boolean } | null
+    picture: { src: string; alt: string; position: string; live: Media['live'] } | null
     title: string | null
     text: string | null
     actions: Action[]
@@ -141,7 +141,7 @@ export type WindowView = {
 export type View = {
   language: Language
   site: { name: string; email: string; timezone: string; place: string }
-  // Who came by a personal link; named once visitors sign in.
+  // A visitor signed in by a personal link, named, who is never asked for consent; null is a guest.
   visitor: { name: string } | null
   // What the boot screen checks and counts: the rows of Site, and the counted window's items.
   boot: {
@@ -336,6 +336,7 @@ async function views(language: Language, viewer: Viewer) {
       kind: 'sys',
       title: word === 'about' ? t.about.replace('{name}', about.name) : t[word],
       oneSize: path in oneSize,
+      paper: (paper as string[]).includes(path),
       width: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.w,
       height: (oneSize[path as keyof typeof oneSize] ?? sized[path as keyof typeof sized])?.h,
     } as Doc,
@@ -499,7 +500,7 @@ async function views(language: Language, viewer: Viewer) {
         })
       case 'form': {
         const made = form(block, (words) => html(words as SerializedEditorState))
-        return made && { ...made, to: own.email ?? '', privacy }
+        return made && { ...made, to: own.email ?? '', place: about.place, privacy }
       }
     }
   }
@@ -569,7 +570,7 @@ async function views(language: Language, viewer: Viewer) {
                 src: picture.url,
                 alt: picture.alt,
                 position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-                live: Boolean(picture.live),
+                live: picture.live ?? null,
               }
             : null,
         title: title || null,
@@ -599,6 +600,7 @@ async function views(language: Language, viewer: Viewer) {
       timeZone: about.timezone,
     })
     const app = parent ?? one
+    const boxed = one.path in systemWindows ? one : app
     const items = itemsOf(one)
     const siblings = parent ? itemsOf(parent) : []
     const at = siblings.indexOf(one)
@@ -612,8 +614,9 @@ async function views(language: Language, viewer: Viewer) {
         title: doc.title,
         kind: doc.kind ?? null,
         tile: app.doc.tile ?? null,
-        oneSize: app.doc.oneSize ?? undefined,
-        size: { w: app.doc.width ?? undefined, h: app.doc.height ?? undefined },
+        // A system window has a size of its own, as an item of another does not.
+        oneSize: boxed.doc.oneSize ?? undefined,
+        size: { w: boxed.doc.width ?? undefined, h: boxed.doc.height ?? undefined },
         paper: doc.paper ?? undefined,
         // A card beside the content carries the stamp of a window that is not paper itself.
         stamp:
@@ -680,7 +683,7 @@ async function views(language: Language, viewer: Viewer) {
   const desk = {
     language,
     site: about,
-    visitor: null,
+    visitor: viewer && { name: viewer.name },
     boot,
     shortcuts,
     keys: shown.flatMap(({ doc, path, lang }) =>

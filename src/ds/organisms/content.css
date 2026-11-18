@@ -159,6 +159,86 @@
     }
   }
 }
+/* A control that belongs to an item but is not its row's button sits on the end of the row, pressed on its own; the row
+   keeps the room for it. */
+.list__row {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+.list__end {
+  position: absolute;
+  inset-inline-end: var(--s-4);
+  top: var(--s-3);
+  display: flex;
+  align-items: center;
+  min-height: var(--lh-body);
+}
+.list__space {
+  flex: none;
+  width: var(--h-regular);
+}
+
+/* Split view: a list at the side and, beside it, what the item in use holds. Compact, the item opens in place under its
+   row; from a regular window on, the side holds the rows, pressed for the one in the pane. */
+.splitview__panel,
+.splitview__pane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  min-width: 0;
+}
+.splitview__panel {
+  padding: var(--s-2) var(--s-4) var(--s-6);
+}
+.splitview__pane {
+  display: none;
+}
+@container (width < 600px) {
+  .list__item[data-open] > .list__row > .row {
+    --row-line: transparent;
+  }
+}
+@container (min-width: 600px) {
+  .splitview {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  }
+  .splitview__list {
+    margin: 0;
+    border-inline-end: var(--b-1) solid var(--line);
+
+    &[data-ruled] {
+      border-inline-end: var(--b-2) solid var(--fg);
+    }
+    & .row__lead,
+    & .splitview__panel {
+      display: none;
+    }
+    & > .list__item[data-open] {
+      background: none;
+
+      & > .list__row > .row {
+        --state: var(--pressed);
+      }
+    }
+  }
+  /* The item that comes into the pane fades in. */
+  .splitview__pane {
+    display: flex;
+    padding: var(--s-6);
+    transition-property: var(--m-fades);
+    transition-duration: var(--m-slow);
+    transition-timing-function: var(--m-standard);
+
+    &[data-fade] {
+      @starting-style {
+        opacity: 0;
+      }
+    }
+  }
+}
+
 /* Headed: the head names the rows and their end in mono, over one line in the foreground from edge to edge; a group
    that is read needs no line between its rows. */
 .list[data-headed] > .row,
@@ -536,11 +616,16 @@
    the head names the rows and their end in mono. */
 .list[data-ruled] {
   & > .row,
-  & > .list__rows > .list__item > .row {
+  & > .list__rows > .list__item > .row,
+  & > .list__item > .list__row > .row {
     --row-line: var(--fg);
 
     background-position: 0 100%;
     background-size: 100% var(--b-1);
+  }
+  /* An item open in place carries the line under all it shows. */
+  & > .list__item[data-open] {
+    background: linear-gradient(var(--fg), var(--fg)) no-repeat 0 100% / 100% var(--b-1);
   }
   /* A compact row keeps the inset of the list, and so does the dot of the current one. */
   & > .row[data-size='compact'] {
@@ -852,10 +937,17 @@
   opacity: 0;
   pointer-events: none;
 }
+.form__sent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+/* The confirmation follows the postmark once it has landed and its dots have splashed. */
 .form__sent > .message {
   transition-property: var(--m-moves);
   transition-duration: var(--m-slow);
   transition-timing-function: var(--m-enter);
+  transition-delay: calc(var(--m-slow) + var(--m-spread));
 
   @starting-style {
     opacity: 0;
@@ -939,4 +1031,76 @@
   .grid[data-columns='3'] > .grid__stack:not(:first-child) {
     display: contents;
   }
+}
+
+/* Postmark: rings and waves in dots, words and a date in text, turned a little; it falls into place. */
+.postmark {
+  position: relative;
+  flex: none;
+  align-self: stretch;
+  height: calc(var(--h-regular) * 5);
+  color: var(--signal);
+}
+.postmark__ink {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 100%;
+  max-width: calc(var(--h-regular) * 12);
+  height: 100%;
+  overflow: hidden;
+  transform: rotate(var(--postmark-turn));
+  transform-origin: calc(var(--h-regular) * 2.5) 50%;
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-slow);
+  transition-timing-function: var(--m-drop);
+
+  @starting-style {
+    opacity: 0;
+    transform: rotate(var(--postmark-turn)) scale(var(--postmark-from));
+  }
+}
+.postmark__dots,
+.postmark__liquid {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+}
+.postmark__dots {
+  width: 100%;
+  height: 100%;
+
+  /* Once the engine holds the dots, the drawn ones step aside. */
+  [data-poured] > & {
+    visibility: hidden;
+  }
+}
+.postmark__liquid {
+  max-width: none;
+}
+.postmark__words,
+.postmark__date {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: calc(var(--h-regular) * 5);
+  height: 100%;
+  pointer-events: none;
+}
+.postmark__around {
+  font: var(--f-mono);
+  fill: currentColor;
+}
+.postmark__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.postmark__day {
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+}
+.postmark__year {
+  font: var(--f-mono);
 }
