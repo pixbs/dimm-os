@@ -1047,6 +1047,7 @@ const en = {
       'leads: an icon, a picture',
       'a meter over the text',
       'headed: the end label at the end of the head',
+      'headed, rows checked one by one: each keeps its line',
       'rows that open in place',
       'empty: one line',
     ],

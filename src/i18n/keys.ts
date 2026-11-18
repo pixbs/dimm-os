@@ -6,12 +6,12 @@ const symbols = { shift: '⇧', enter: '⏎', up: '↑', down: '↓', left: '←
 // The name of each key, per language and device: mod is the key that commands, ⌘ on an Apple device.
 export const keyNames = {
   en: {
-    apple: { mod: '⌘', alt: '⌥', ...symbols },
-    other: { mod: 'Ctrl', alt: 'Alt', ...symbols },
+    apple: { mod: '⌘', alt: '⌥', arrows: 'Arrows', ...symbols },
+    other: { mod: 'Ctrl', alt: 'Alt', arrows: 'Arrows', ...symbols },
   },
   de: {
-    apple: { mod: '⌘', alt: '⌥', ...symbols },
-    other: { mod: 'Strg', alt: 'Alt', ...symbols },
+    apple: { mod: '⌘', alt: '⌥', arrows: 'Pfeiltasten', ...symbols },
+    other: { mod: 'Strg', alt: 'Alt', arrows: 'Pfeiltasten', ...symbols },
   },
 } satisfies Record<Language, Record<Device, Record<string, string>>>
 

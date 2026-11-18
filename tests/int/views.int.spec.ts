@@ -833,9 +833,13 @@ describe('the view of a window', () => {
       icon: 'grid',
       tile: 'orange',
     })
-    expect(en.keys).toEqual(
-      ['W', 'S', 'C', 'K'].map((key, at) => ({ key, path: en.shortcuts[at].href })),
-    )
+    // A key carries the title of its window, which the hotkeys window shows.
+    expect(en.keys).toEqual([
+      { key: 'W', path: '/work', title: 'Work' },
+      { key: 'S', path: '/services', title: 'Services' },
+      { key: 'C', path: '/cv', title: 'CV' },
+      { key: 'K', path: '/contact', title: 'Contact' },
+    ])
     expect(index(de)).toMatchObject({
       items: [{ key: '/de/work/grow' }, { key: '/de/work/field' }, { key: '/de/work/loop' }],
     })

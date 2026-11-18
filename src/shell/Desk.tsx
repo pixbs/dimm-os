@@ -20,6 +20,7 @@ import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
+import { duration } from '@/ds/motion/vocabulary'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { Stamp } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
@@ -28,11 +29,12 @@ import { Section } from '@/ds/sections/Section'
 import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
+import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
 
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
-import { keyAction } from './keys'
+import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
@@ -426,25 +428,46 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     }
   }, [desk, remember])
 
-  // The keys act from wherever the focus is; the switch on the root is read at each press. A key opens its window
-  // as the menu's link to it does.
-  const keyDown = useEffectEvent((event: KeyboardEvent) => {
-    const single = document.documentElement.dataset.shortcuts !== 'off'
-    const action = keyAction(event, view.keys, single, desk)
+  // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
+  function run(action: Action | 'search' | null, opener: Element | null) {
     if (!action) return
-    event.preventDefault()
-    if (action === 'search') search(document.activeElement)
+    if (action === 'search') search(opener)
     else if (action.type === 'open') {
       void open(act, action.path, null, () => location.replace(toAddress(language, action.path)))
     } else act(action)
+  }
+
+  // The row of the hotkeys window that a key or a press lit, for a moment.
+  const [lit, setLit] = useState<string | null>(null)
+  const unlit = useRef<ReturnType<typeof setTimeout>>(undefined)
+  function light(row: string) {
+    setLit(row)
+    clearTimeout(unlit.current)
+    unlit.current = setTimeout(() => setLit(null), duration('hold') * 1000)
+  }
+
+  // The keys act from wherever the focus is; the switch on the root is read at each press.
+  const keyDown = useEffectEvent((event: KeyboardEvent) => {
+    const single = document.documentElement.dataset.shortcuts !== 'off'
+    const action = keyAction(event, view.keys, single, desk)
+    const key = pressed(event, view.keys, single)
+    if (!action || !key) return
+    event.preventDefault()
+    // A row lights where the window that shows it is open, or opens with it.
+    if (key === 'hotkeys' || desk.open.some((one) => one.path === '/hotkeys'))
+      light(typeof key === 'string' ? key : key.path)
+    run(action, document.activeElement)
   })
   useEffect(() => {
     addEventListener('keydown', keyDown)
     return () => removeEventListener('keydown', keyDown)
   }, [])
 
-  // In the taskbar a window goes by the name its bar shows, in the dock by its title.
+  // In the taskbar a window goes by the name its bar shows, in the dock by its title; on a phone the hotkeys are
+  // gestures.
   const tasks = tasksOf(desk)
+  const titleOf = (path: string, title: string) =>
+    path === '/hotkeys' && phone(desk) ? dictionary.gestures : title
   const pick = (index: number, opener: Element) =>
     act({ type: 'task', path: desk.open[index].path, opener })
 
@@ -530,20 +553,33 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           t={dictionary}
         >
           {(opened, width) =>
-            opened.path === '/preferences'
-              ? preferencesWindow({
-                  t: dictionary,
-                  language,
-                  site: view.site,
-                  path: opened.path,
-                  close: () => act({ type: 'close', path: opened.path }),
-                })
-              : parts(opened, dictionary, language, width, {
-                  chosen: chosen[opened.path] ?? null,
-                  choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                  drawer: phone(desk),
-                  onDepth: setFiltering,
-                })
+            opened.path === '/hotkeys'
+              ? {
+                  ...hotkeysWindow({
+                    t: dictionary,
+                    language,
+                    name: view.site.name,
+                    apps: view.keys,
+                    lit,
+                    run: (command, opener) => run(commandAction(command, desk), opener),
+                    light,
+                  }),
+                  title: titleOf(opened.path, opened.frame.title),
+                }
+              : opened.path === '/preferences'
+                ? preferencesWindow({
+                    t: dictionary,
+                    language,
+                    site: view.site,
+                    path: opened.path,
+                    close: () => act({ type: 'close', path: opened.path }),
+                  })
+                : parts(opened, dictionary, language, width, {
+                    chosen: chosen[opened.path] ?? null,
+                    choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                    drawer: phone(desk),
+                    onDepth: setFiltering,
+                  })
           }
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
@@ -558,7 +594,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               onPick={pick}
               tasks={tasks.map((task, index) => ({
                 ...task,
-                name: desk.open[index].view?.frame.title ?? task.name,
+                name: desk.open[index].view
+                  ? titleOf(desk.open[index].path, desk.open[index].view!.frame.title)
+                  : task.name,
               }))}
             />
           )}

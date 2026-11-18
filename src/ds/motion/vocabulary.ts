@@ -1,6 +1,6 @@
 import { useSyncExternalStore } from 'react'
 
-type Time = 'fast' | 'slow' | 'long' | 'fast-exit' | 'slow-exit' | 'spread' | 'wait'
+type Time = 'fast' | 'slow' | 'long' | 'fast-exit' | 'slow-exit' | 'spread' | 'wait' | 'hold'
 type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop'
 
 let probe: HTMLElement | undefined

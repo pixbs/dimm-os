@@ -15,7 +15,7 @@ const view = (path: string, oneSize = false): WindowView => ({
   neighbours: { previous: null, next: null },
 })
 
-const apps = [{ key: 'W', path: '/work' }]
+const apps = [{ key: 'W', path: '/work', title: 'Work' }]
 const after = (state: Windows, ...actions: Action[]) => actions.reduce(manager, state)
 const mode = (state: Windows, path: string) =>
   state.open.find((window) => window.path === path)?.mode
