@@ -737,3 +737,57 @@
     }
   }
 }
+
+/* Specimen: a small window on a small desk, inset from its edges, over the wallpaper's dots. */
+.specimen {
+  position: relative;
+  padding: var(--s-4);
+  background-color: var(--bg);
+  outline: var(--b-1) solid var(--line);
+  outline-offset: calc(var(--b-1) * -1);
+  pointer-events: none;
+  user-select: none;
+}
+.specimen__wall {
+  position: absolute;
+  inset: 0;
+  opacity: var(--a-wallpaper);
+}
+.specimen__window {
+  position: relative;
+  outline: var(--b-1) solid var(--line);
+}
+.specimen__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  margin: 0;
+  padding: var(--s-2) var(--s-4);
+  border-bottom: var(--b-1) solid var(--line);
+  font: var(--f-mono);
+}
+.specimen__name {
+  margin-inline-start: var(--s-2);
+}
+.specimen__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+  padding: var(--s-4);
+
+  & > p {
+    margin: 0;
+  }
+}
+
+/* A grid whose first column leads: where three columns become two, the others stack beside it. */
+.grid__stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gutter);
+}
+@container (min-width: 960px) {
+  .grid[data-columns='3'] > .grid__stack:not(:first-child) {
+    display: contents;
+  }
+}

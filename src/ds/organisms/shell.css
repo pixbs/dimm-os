@@ -139,7 +139,7 @@
     left: calc(var(--s-3) * -1);
     width: calc(100% + var(--s-3) * 2);
     height: calc(100% + var(--s-3) * 2);
-    opacity: var(--a-line);
+    opacity: var(--a-wallpaper);
   }
 }
 
@@ -607,7 +607,7 @@
   --ht-sizes: calc(var(--pitch) / 2) calc(var(--pitch) / 2), auto;
 
   inset: auto;
-  opacity: var(--a-line);
+  opacity: var(--a-wallpaper);
 
   :root[data-theme='light'] & {
     filter: var(--ht-cut) invert(1);
