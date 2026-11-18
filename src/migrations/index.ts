@@ -10,6 +10,7 @@ import * as migration_20261117_084432_collections_in_sections from './20261117_0
 import * as migration_20261117_231451_about from './20261117_231451_about';
 import * as migration_20261118_165306_record_card_title from './20261118_165306_record_card_title';
 import * as migration_20261118_173904_forms from './20261118_173904_forms';
+import * as migration_20261118_211252_message_limit from './20261118_211252_message_limit';
 
 export const migrations = [
   {
@@ -70,6 +71,11 @@ export const migrations = [
   {
     up: migration_20261118_173904_forms.up,
     down: migration_20261118_173904_forms.down,
-    name: '20261118_173904_forms'
+    name: '20261118_173904_forms',
+  },
+  {
+    up: migration_20261118_211252_message_limit.up,
+    down: migration_20261118_211252_message_limit.down,
+    name: '20261118_211252_message_limit'
   },
 ];

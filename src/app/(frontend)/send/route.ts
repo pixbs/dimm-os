@@ -13,7 +13,13 @@ export async function POST(request: Request) {
   )
     return new Response(null, { status: 400 })
 
-  const sent = await send(body)
+  // The first address the proxy in front names is the device's own.
+  const sender =
+    request.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+    request.headers.get('x-real-ip') ||
+    null
+  const sent = await send({ ...body, sender })
   if (!sent) return new Response(null, { status: 404 })
+  if (!sent.ok && 'limited' in sent) return new Response(null, { status: 429 })
   return Response.json(sent, { status: sent.ok ? 200 : 422 })
 }
