@@ -97,10 +97,11 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
 }
 
 // Whether this page opened with the intro, as the head decided before first paint, and whether its address is an
-// invitation's link; the server knows neither.
+// invitation's link, both read once since the desk then clears the address; the server knows neither.
 let opened: boolean | undefined
 const intro = () => (opened ??= document.documentElement.dataset.intro === 'play')
-const invitation = () => new URLSearchParams(location.search).has('p')
+let invite: boolean | undefined
+const invitation = () => (invite ??= new URLSearchParams(location.search).has('p'))
 const never = () => () => {}
 
 const pad = (number: number) => String(number).padStart(2, '0')
