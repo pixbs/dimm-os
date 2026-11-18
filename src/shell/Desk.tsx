@@ -468,11 +468,18 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
 
-  // A guest who has not answered, or whose answer has run out, is asked before anything else.
+  // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
+  // the start stand on the measured desk, so the question opens in front of them.
+  const asking = useRef(false)
   const ask = useEffectEvent(() => {
     const here = view.window && windowOf(view.window.path) === '/cookies'
     if (!view.visitor && !here && !answered()) void open(dispatch, '/cookies', null, () => {})
   })
+  useEffect(() => {
+    if (!asking.current || !desk.desk || desk.starting.length) return
+    asking.current = false
+    ask()
+  }, [desk])
 
   // Back and Forward bring the window of their address to the front, opening it again if it was closed since.
   const arrive = useEffectEvent(() => {
@@ -504,7 +511,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       remembers()
       const windows = start === 'off' ? [] : view.start
       dispatch({ type: 'start', windows: single === 'on' ? windows.slice(0, 1) : windows })
-      ask()
+      asking.current = true
       return
     }
     const here = view.window && windowOf(view.window.path)
@@ -513,7 +520,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       restored.current = true
       dispatch({ type: 'restore', windows: found.filter((opened) => opened !== null) })
       remembers()
-      ask()
+      asking.current = true
     })
   }, [language, view])
 
