@@ -85,4 +85,20 @@ test.describe('Consent', () => {
     await details.getByRole('button', { name: 'Save' }).click()
     expect((await consent(page)).on).toEqual(['analytics'])
   })
+
+  test('a switch left unsaved is forgotten when the window closes', async ({ page }) => {
+    await page.goto('/cookies/preferences', { waitUntil: 'networkidle' })
+    const details = page.locator('#window-cookies')
+    await details.getByRole('switch', { name: 'Analytics' }).check()
+    await details.getByRole('button', { name: 'Close' }).click()
+    await expect(details).toHaveCount(0)
+    expect((await consent(page)).on).toEqual([])
+
+    await page
+      .locator('footer[data-for="desk"]')
+      .getByRole('link', { name: 'Cookies', exact: true })
+      .click()
+    await page.locator('#window-cookies').getByRole('link', { name: 'Details' }).click()
+    await expect(details.getByRole('switch', { name: 'Analytics' })).not.toBeChecked()
+  })
 })

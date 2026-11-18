@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useSyncExternalStore } from 'react'
+import { type ReactNode, useEffect, useSyncExternalStore } from 'react'
 
 import { decide, useChoice } from '@/consent/choice'
 import { necessary, registry, version } from '@/consent/registry'
@@ -107,9 +107,16 @@ function Preferences(props: Props) {
   const c = t.consent
   const choice = useChoice()
   const on = useDraft(choice?.on ?? [])
-  const state = choice
-    ? `${c.given.replace('{date}', new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(choice.at)))} · ${c.optional.replace('{on}', String(choice.on.length)).replace('{of}', String(all.length))}`
+  // Switches left unsaved are forgotten when the window goes, however it goes.
+  useEffect(() => () => redraft(null), [])
+  // The stamp line says when consent was given and counts what the switches have on.
+  const given = choice
+    ? c.given.replace(
+        '{date}',
+        new Intl.DateTimeFormat(language, { dateStyle: 'medium' }).format(new Date(choice.at)),
+      )
     : c.none
+  const state = `${given} · ${c.optional.replace('{on}', String(on.length)).replace('{of}', String(all.length))}`
   const pane = (title: string, purpose: string, tables: ReactNode) => (
     <>
       <Heading level="heading" title={title} />
@@ -202,18 +209,13 @@ function Save({ props }: { props: Props }) {
 // cookies.sys/preferences: one purpose at a time, Necessary always on, and the answer: no, yes, or what the switches say.
 export function cookiePreferencesWindow(props: Props): Parts {
   const c = props.t.consent
-  const close = () => {
-    redraft(null)
-    props.close()
-  }
-  const closing = { ...props, close }
   return {
-    body: <Preferences {...closing} />,
+    body: <Preferences {...props} />,
     foot: (
       <ButtonGroup cells>
-        <Button label={c.decline} onClick={answer(closing, [])} tone="outline" />
-        <Button label={c.accept} onClick={answer(closing, all)} tone="outline" />
-        <Save props={closing} />
+        <Button label={c.decline} onClick={answer(props, [])} tone="outline" />
+        <Button label={c.accept} onClick={answer(props, all)} tone="outline" />
+        <Save props={props} />
       </ButtonGroup>
     ),
   }
