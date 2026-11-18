@@ -132,6 +132,14 @@ export type WindowView = {
 export type View = {
   language: Language
   site: { name: string; timezone: string; place: string }
+  // What the boot screen checks, and counts: the rows of Site, the counted window's items, and the address to write to.
+  // Who came by a personal link; named once visitors sign in.
+  visitor: { name: string } | null
+  boot: {
+    rows: { label: string; value: string; status: string }[]
+    counted: { total: number; one: string; other: string } | null
+    email: string
+  }
   shortcuts: Shortcut[]
   keys: AppKey[]
   // What search finds: the windows this viewer may see, and the system's apps.
@@ -288,6 +296,7 @@ const site = async (language: Language, viewer: Viewer) => {
       timezone: true,
       place: true,
       counted: true,
+      boot: true,
       about: true,
       inside: true,
     },
@@ -500,11 +509,14 @@ async function views(language: Language, viewer: Viewer) {
     }
 
   // The counted window's items are of one kind, which names them, or are items.
+  const countedWords = (counted: Seen) => {
+    const [kind, ...others] = new Set(itemsOf(counted).map(({ doc }) => doc.kind ?? ''))
+    return (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+  }
   const plate = (): AboutView => {
     const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
     const items = counted ? itemsOf(counted) : []
-    const [kind, ...others] = new Set(items.map(({ doc }) => doc.kind ?? ''))
-    const words = (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+    const words = counted ? countedWords(counted) : { one: t.item, other: t.items }
     const plural = new Intl.PluralRules(language).select(items.length) === 'one' ? 'one' : 'other'
     const { picture, title, text, actions } = own.inside ?? {}
     return {
@@ -623,9 +635,17 @@ async function views(language: Language, viewer: Viewer) {
       find(app, t.system, t.system, systemIcons[app.path as keyof typeof systemIcons]),
     ),
   ]
+  const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
+  const boot = {
+    rows: (own.boot ?? []).map(({ label, value, status }) => ({ label, value, status })),
+    counted: counted ? { total: itemsOf(counted).length, ...countedWords(counted) } : null,
+    email: own.email ?? '',
+  }
   const desk = {
     language,
     site: about,
+    visitor: null,
+    boot,
     shortcuts,
     keys: shown.flatMap(({ doc, path, lang }) =>
       doc.key ? [{ key: doc.key, path, title: doc.title, lang: other(lang) }] : [],

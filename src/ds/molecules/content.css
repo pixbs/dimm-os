@@ -111,6 +111,33 @@
 }
 .media__form {
   --tone: radial-gradient(circle closest-side at 68% 50%, var(--ht-light) 0%, var(--ht-none) 100%);
+
+  /* In ink the dots are the foreground on the surface: the cut halftone turned over and laid on it. */
+  .media__fill[data-ink] + & {
+    filter: var(--ht-cut) invert(1);
+    mix-blend-mode: multiply;
+  }
+  /* A hill, and a star of six arms over it, cut out of an even field of dots. */
+  &[data-form='star'] {
+    --ht-even: color-mix(in srgb, var(--ht-light) 72%, var(--ht-none));
+    --tone:
+      radial-gradient(
+        circle calc(var(--s-12) * 2 + var(--s-4)) at 27% 64%,
+        var(--ht-none) 0%,
+        var(--ht-even) 100%
+      ),
+      conic-gradient(
+        from 60deg at 70% 46%,
+        var(--ht-light) 0deg,
+        var(--ht-none) 60deg,
+        var(--ht-light) 120deg,
+        var(--ht-none) 180deg,
+        var(--ht-light) 240deg,
+        var(--ht-none) 300deg,
+        var(--ht-light) 360deg
+      );
+    --ht-sizes: var(--pitch) var(--pitch), auto, auto;
+  }
 }
 
 /* A picture that arrives after the page waits on the dot grid, resolves in dots and fades in under them, then the dots leave. */
@@ -204,6 +231,11 @@
 
 /* App icon: an icon on a tile with its name under it; the states lie over the tile, and selected inverts the name. */
 .app {
+  /* An app that acts where it stands is a button, drawn as one that leads. */
+  appearance: none;
+  border: 0;
+  background: none;
+  cursor: pointer;
   display: inline-flex;
   flex-direction: column;
   align-items: center;
@@ -373,6 +405,10 @@
     font: var(--f-small);
     font-weight: var(--w-medium);
   }
+}
+/* A mark before the name stands a step from it. */
+.bar__title > .mark {
+  margin-inline-end: var(--s-2);
 }
 .bar__text {
   display: inline-flex;

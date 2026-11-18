@@ -3,7 +3,16 @@ import { expect, type Page, test as base } from '@playwright/test'
 import { file } from '../fixtures/neutral'
 
 // Every test fails when its page throws or logs an error.
-export const test = base.extend<{ pageErrors: void; uploads: void }>({
+export const test = base.extend<{ pageErrors: void; uploads: void; intro: boolean; played: void }>({
+  // A tab has seen the intro unless a test asks for it, so the desk at / is there at once.
+  intro: [false, { option: true }],
+  played: [
+    async ({ page, intro }, use) => {
+      if (!intro) await page.addInitScript(() => sessionStorage.setItem('intro', 'played'))
+      await use()
+    },
+    { auto: true },
+  ],
   // Without the store an upload is a file only signed-in users may read, so a picture is served from its local file.
   uploads: [
     async ({ page }, use) => {

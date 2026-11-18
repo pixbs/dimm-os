@@ -6,7 +6,9 @@ import { usePainted } from '../motion/vocabulary'
 type Props = {
   name: string
   icon: IconName
-  href: string
+  // Without an address the app acts where it stands.
+  href?: string
+  onClick?: () => void
   // The language of its name, where it is not the page's.
   lang?: string
   tile?: 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
@@ -24,6 +26,7 @@ export function App({
   name,
   icon,
   href,
+  onClick,
   lang,
   tile = 'raised',
   size,
@@ -33,15 +36,18 @@ export function App({
 }: Props) {
   // A dot the server painted is there already; one that comes later pops.
   const painted = usePainted()
+  const Root = href ? 'a' : 'button'
 
   return (
-    <a
+    <Root
       aria-label={size ? name : undefined}
       className="app"
       data-size={size}
       data-state={state}
       href={href}
       lang={lang}
+      onClick={onClick}
+      type={href ? undefined : 'button'}
     >
       <span className="app__tile" data-surface={tile}>
         <Icon name={icon} size={size ? 's' : undefined} />
@@ -54,6 +60,6 @@ export function App({
           {name}
         </span>
       )}
-    </a>
+    </Root>
   )
 }
