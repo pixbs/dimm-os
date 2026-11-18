@@ -16,6 +16,9 @@
   --a-line: 16%;
   --a-faint: 48%;
   --a-muted: 64%;
+  /* the halftone of the wallpaper, and the weight and colour of a link's line */
+  --a-wallpaper: var(--a-line);
+  --link-weight: var(--b-1);
 
   /* type: two families, two weights, eight styles */
   --font-sans: var(--font-inter-tight), system-ui, sans-serif;
@@ -167,6 +170,17 @@
 [data-spacing='wide'] {
   --k-wide: 0.12em;
   --ws-wide: 0.16em;
+}
+
+/* plain wallpaper: the halftone is gone */
+[data-plain='on'] {
+  --a-wallpaper: 0%;
+}
+
+/* underlined links: a full line in the text colour */
+[data-underline='on'] {
+  --link-line: currentColor;
+  --link-weight: var(--b-2);
 }
 
 /* reduced motion: what comes as many comes at once */

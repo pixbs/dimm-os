@@ -158,8 +158,8 @@
 .link {
   color: inherit;
   text-decoration: underline;
-  text-decoration-thickness: var(--b-1);
-  text-decoration-color: var(--faint);
+  text-decoration-thickness: var(--link-weight);
+  text-decoration-color: var(--link-line, var(--faint));
   text-underline-offset: var(--s-1);
   cursor: pointer;
 
