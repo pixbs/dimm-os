@@ -13,7 +13,7 @@ type To = { href: string; label: string; lang?: string; download?: boolean }
 
 export type CardProps = {
   surface?: 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
-  title: string
+  title?: string
   text?: string | null
   level?: 'display' | 'title' | 'heading' | 'lead'
   page?: boolean
@@ -59,13 +59,15 @@ export function Card(props: CardProps) {
             ))}
           </div>
         )}
-        <Heading
-          level={props.level ?? 'lead'}
-          page={props.page}
-          text={props.text}
-          title={props.title}
-          under={props.under}
-        />
+        {(props.title || props.text) && (
+          <Heading
+            level={props.level ?? 'lead'}
+            page={props.page}
+            text={props.text}
+            title={props.title}
+            under={props.under}
+          />
+        )}
         {props.foot && <div className="card__foot">{props.foot}</div>}
       </div>
       {/* Two at most, they stay side by side at every width. */}

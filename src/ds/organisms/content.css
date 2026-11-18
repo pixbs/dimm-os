@@ -556,3 +556,184 @@
     }
   }
 }
+/* Bay and plate: a record over what it covers, in one cell, which swings on its last screw until its middle hangs under
+   it (--hang, measured from its size) and then drops out of the bay, or with reduced motion stays straight and fades. */
+.bay {
+  position: relative;
+  display: grid;
+  overflow: hidden;
+
+  & > * {
+    grid-area: 1 / 1;
+  }
+}
+.bay__inside {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--sect) var(--inset);
+  outline: none;
+
+  & > .grid {
+    align-items: center;
+  }
+}
+.plate {
+  position: relative;
+  z-index: var(--z-above);
+  display: flex;
+  flex-direction: column;
+  margin: var(--s-3);
+  padding: var(--s-8) var(--s-4);
+  background-color: var(--bg);
+  color: var(--fg);
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-slow);
+  transition-timing-function: var(--m-enter);
+  /* It turns about the middle of a screw, which is as wide as a finger. */
+  --screw-at: calc(var(--h-regular) / 2);
+
+  &[data-by='tl'] {
+    transform-origin: var(--screw-at) var(--screw-at);
+  }
+  &[data-by='tr'] {
+    transform-origin: calc(100% - var(--screw-at)) var(--screw-at);
+  }
+  &[data-by='bl'] {
+    transform-origin: var(--screw-at) calc(100% - var(--screw-at));
+  }
+  &[data-by='br'] {
+    transform-origin: calc(100% - var(--screw-at)) calc(100% - var(--screw-at));
+  }
+  &[data-state='hanging'] {
+    transform: rotate(var(--hang));
+    transition-duration: var(--m-long);
+    transition-timing-function: var(--m-swing);
+  }
+  &[data-state='fallen'] {
+    position: absolute;
+    inset: 0 0 auto;
+    transform: translateY(calc(var(--h-regular) * 30)) rotate(var(--hang));
+    transition-duration: var(--m-long);
+    transition-timing-function: var(--m-drop);
+  }
+  [data-motion='reduce'] &[data-state] {
+    transform: none;
+  }
+  [data-motion='reduce'] &[data-state='fallen'] {
+    opacity: 0;
+    transition-duration: var(--m-slow);
+    transition-timing-function: var(--m-standard);
+  }
+  & > .record__head {
+    padding-top: var(--s-4);
+  }
+  /* What it carries is stamped in ink, its marks too, on a grid that keeps no gap between its ruled lists, which keep to
+     its keyline. */
+  & .row__lead {
+    color: var(--fg);
+  }
+  & .list[data-ruled] {
+    margin-inline: 0;
+  }
+  & > .grid {
+    row-gap: 0;
+  }
+}
+.plate__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--s-1) var(--s-3);
+  margin: 0;
+  font: var(--f-mono);
+}
+.plate__marks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+
+  & > .row {
+    --row-line: transparent;
+  }
+}
+.plate__foot {
+  padding-top: var(--s-3);
+}
+/* A screw: a round head with a slot, a finger high to press; out, it turns away and leaves its hole as a dot. */
+.screw {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: var(--h-regular);
+  height: var(--h-regular);
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--r-full);
+  background: none;
+  cursor: pointer;
+
+  &[data-corner='tl'] {
+    inset: 0 auto auto 0;
+  }
+  &[data-corner='tr'] {
+    inset: 0 0 auto auto;
+  }
+  &[data-corner='bl'] {
+    inset: auto auto 0 0;
+  }
+  &[data-corner='br'] {
+    inset: auto 0 0 auto;
+  }
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    border-radius: var(--r-full);
+    background-color: var(--fg);
+    transition-property: var(--m-moves);
+  }
+  &::before {
+    width: var(--dot);
+    height: var(--dot);
+    opacity: 0;
+    transition-duration: var(--m-fast);
+    transition-timing-function: var(--m-standard);
+    transition-delay: var(--m-slow);
+  }
+  &::after {
+    width: calc(var(--s-4) + var(--s-1));
+    height: calc(var(--s-4) + var(--s-1));
+    outline: var(--b-2) solid transparent;
+    outline-offset: var(--b-2);
+    background-image: linear-gradient(
+      var(--screw-slot),
+      transparent calc(50% - var(--b-1)),
+      var(--bg) calc(50% - var(--b-1)),
+      var(--bg) calc(50% + var(--b-1)),
+      transparent calc(50% + var(--b-1))
+    );
+    transition-duration: var(--m-slow);
+    transition-timing-function: var(--m-standard);
+  }
+  /* Under the pointer and the focus a ring in orange stands around the head. */
+  &:hover::after,
+  &:focus-visible::after {
+    outline-color: var(--signal);
+  }
+  &:focus-visible {
+    outline: none;
+  }
+  &[data-out] {
+    pointer-events: none;
+
+    &::before {
+      opacity: 100%;
+    }
+    &::after {
+      transform: rotate(var(--screw-turn)) scale(var(--screw-out));
+      opacity: 0;
+    }
+  }
+}
