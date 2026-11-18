@@ -12,6 +12,7 @@ import {
 } from 'react'
 
 import type { ListView } from '@/blocks/list/view'
+import { Analytics } from '@/consent/Analytics'
 import { chosen as answered, decide } from '@/consent/choice'
 import type { FootButton, View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
@@ -590,6 +591,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   return (
     <Screen fill onClick={follow}>
+      <Analytics visitor={view.visitor} />
       <header data-surface="desktop">
         {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
         <MenuBar
