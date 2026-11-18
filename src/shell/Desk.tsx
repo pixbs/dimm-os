@@ -12,6 +12,7 @@ import {
 } from 'react'
 
 import type { ListView } from '@/blocks/list/view'
+import { chosen as answered, decide } from '@/consent/choice'
 import type { FootButton, View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { useSetting } from '@/ds/atoms/useSetting'
@@ -33,6 +34,7 @@ import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 import { aboutWindow } from '@/system/About'
 import { accessibilityWindow } from '@/system/Accessibility'
+import { cookiePreferencesWindow, cookiesWindow } from '@/system/Cookies'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
 
@@ -398,6 +400,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
+    // Putting away a window of consent before answering it is a no.
+    const away = ['close', 'minimise', 'escape'].includes(action.type)
+    const of = ('path' in action && action.path) || front(desk)
+    if (away && of && windowOf(of) === '/cookies' && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
     if (action.type === 'desk' || after === desk) return
@@ -440,6 +446,12 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
 
+  // A guest who has not answered, or whose answer has run out, is asked before anything else.
+  const ask = useEffectEvent(() => {
+    const here = view.window && windowOf(view.window.path) === '/cookies'
+    if (!view.visitor && !here && !answered()) void open(dispatch, '/cookies', null, () => {})
+  })
+
   // Back and Forward bring the window of their address to the front, opening it again if it was closed since.
   const arrive = useEffectEvent(() => {
     const { path } = fromAddress(location.pathname)
@@ -470,6 +482,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       remembers()
       const windows = start === 'off' ? [] : view.start
       dispatch({ type: 'start', windows: single === 'on' ? windows.slice(0, 1) : windows })
+      ask()
       return
     }
     const here = view.window && windowOf(view.window.path)
@@ -478,6 +491,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       restored.current = true
       dispatch({ type: 'restore', windows: found.filter((opened) => opened !== null) })
       remembers()
+      ask()
     })
   }, [language, view])
 
@@ -671,14 +685,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
                       email: view.site.email,
                       close: () => act({ type: 'close', path: opened.path }),
                     })
-                  : opened.about
-                    ? aboutWindow({ t: dictionary, about: opened.about, width })
-                    : parts(opened, dictionary, language, width, {
-                        chosen: chosen[opened.path] ?? null,
-                        choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                        drawer: phone(desk),
-                        onDepth: setFiltering,
+                  : opened.path === '/cookies' || opened.path === '/cookies/preferences'
+                    ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                        t: dictionary,
+                        language,
+                        name: view.site.name,
+                        close: () => act({ type: 'close', path: windowOf(opened.path) }),
                       })
+                    : opened.about
+                      ? aboutWindow({ t: dictionary, about: opened.about, width })
+                      : parts(opened, dictionary, language, width, {
+                          chosen: chosen[opened.path] ?? null,
+                          choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                          drawer: phone(desk),
+                          onDepth: setFiltering,
+                        })
           }
         </OnDesk>
         <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
