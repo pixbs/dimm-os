@@ -363,6 +363,17 @@ test.describe('Wallpaper', () => {
     expect(draws[0].dots).toBeGreaterThan(500)
     expect(draws.length).toBeLessThan(4)
   })
+
+  test('is drawn at once and still while generated visuals are paused', async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.addInitScript(() => localStorage.setItem('pause', 'on'))
+    await open(page)
+    await page.waitForTimeout(1000)
+    const draws = await drawn(page)
+
+    expect(draws[0].dots).toBeGreaterThan(500)
+    expect(draws.length).toBeLessThan(4)
+  })
 })
 
 // A phone of the middle range, as its own browser would open the page.
