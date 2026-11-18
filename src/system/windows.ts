@@ -27,3 +27,8 @@ export const oneSize: Partial<Record<keyof typeof systemWindows, { w: number; h:
   '/about': { w: 940, h: 690 },
   '/hotkeys': { w: 400, h: 760 },
 }
+
+// The system windows that can be resized, and their size on a desk, which is a maximum.
+export const sized: Partial<Record<keyof typeof systemWindows, { w: number; h: number }>> = {
+  '/accessibility': { w: 1100, h: 927 },
+}
