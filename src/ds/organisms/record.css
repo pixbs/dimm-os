@@ -86,13 +86,13 @@
   & > .btngroup > .btn {
     border-color: var(--fg);
     border-top-width: var(--b-2);
-    border-bottom-width: 0;
+    border-block-end-style: none;
 
     &:first-child {
-      border-inline-start-width: 0;
+      border-inline-start-style: none;
     }
     &:last-child {
-      border-inline-end-width: 0;
+      border-inline-end-style: none;
     }
   }
 }
