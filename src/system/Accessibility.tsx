@@ -39,14 +39,11 @@ const names = [
 ]
 const themes = [null, 'dark', 'light']
 
-// What the device asks for, which the server does not know.
+// What the device asks for, which the server does not know: read once, as the settings are, with no listener.
+const unchanging = () => () => {}
 const useAsks = (feature: string) =>
   useSyncExternalStore(
-    (changed) => {
-      const query = matchMedia(`(${feature})`)
-      query.addEventListener('change', changed)
-      return () => query.removeEventListener('change', changed)
-    },
+    unchanging,
     () => matchMedia(`(${feature})`).matches,
     () => null,
   )
