@@ -521,10 +521,8 @@
   }
 }
 
-/* Bay and plate: a record screwed onto what it describes, and under it what it covers, in one cell. A screw that comes
-   out turns and leaves its hole; with one left the plate swings until its middle hangs under it (--hang, measured from
-   its size), and with none it drops out of the bay, which then takes the height of what it holds. With reduced motion
-   it stays straight and fades. */
+/* Bay and plate: a record over what it covers, in one cell, which swings on its last screw until its middle hangs under
+   it (--hang, measured from its size) and then drops out of the bay, or with reduced motion stays straight and fades. */
 .bay {
   position: relative;
   display: grid;
@@ -557,18 +555,20 @@
   transition-property: var(--m-moves);
   transition-duration: var(--m-slow);
   transition-timing-function: var(--m-enter);
+  /* It turns about the middle of a screw, which is as wide as a finger. */
+  --screw-at: calc(var(--h-regular) / 2);
 
   &[data-by='tl'] {
-    transform-origin: var(--s-6) var(--s-6);
+    transform-origin: var(--screw-at) var(--screw-at);
   }
   &[data-by='tr'] {
-    transform-origin: calc(100% - var(--s-6)) var(--s-6);
+    transform-origin: calc(100% - var(--screw-at)) var(--screw-at);
   }
   &[data-by='bl'] {
-    transform-origin: var(--s-6) calc(100% - var(--s-6));
+    transform-origin: var(--screw-at) calc(100% - var(--screw-at));
   }
   &[data-by='br'] {
-    transform-origin: calc(100% - var(--s-6)) calc(100% - var(--s-6));
+    transform-origin: calc(100% - var(--screw-at)) calc(100% - var(--screw-at));
   }
   &[data-state='hanging'] {
     transform: rotate(var(--hang));

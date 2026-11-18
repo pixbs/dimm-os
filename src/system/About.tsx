@@ -55,7 +55,9 @@ function Body({ t, about, width }: Props) {
             />
           )}
           <div className="message">
-            {title && <Heading level="display" text={text} title={title} />}
+            {(title || text) && (
+              <Heading level="display" text={text ?? undefined} title={title ?? undefined} />
+            )}
             <div className="actions">
               {actions.map(({ href, label, lang, download }, at) => (
                 <ButtonLink

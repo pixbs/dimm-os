@@ -10,7 +10,7 @@ import { List } from './List'
 const corners = ['tl', 'tr', 'bl', 'br'] as const
 type Corner = (typeof corners)[number]
 
-export type PlateProps = {
+type PlateProps = {
   label: string
   // What each screw does when pressed, from the top left to the bottom right.
   screws: string[]
@@ -24,8 +24,8 @@ export type PlateProps = {
   inside: (close: () => void) => ReactNode
 }
 
-// A record screwed onto what it describes, in a bay. Each screw comes out when pressed; with one left the plate swings
-// until its middle is straight under it, with none it falls, and the bay shows what it holds until it is put back.
+// A record screwed onto what it describes, in a bay: each screw comes out when pressed, with one left the plate swings
+// until its middle is straight under it, and with none it falls and the bay shows what it holds until it is put back.
 export function Plate(props: PlateProps) {
   const [out, setOut] = useState<Corner[]>([])
   const [hang, setHang] = useState(0)
