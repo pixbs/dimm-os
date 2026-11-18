@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* A screen keeps its layers to itself, so a screen laid over it covers all of it, a phone's drawers too. */
+  isolation: isolate;
   container: screen / inline-size;
 
   /* The bars stand over the desk, so nothing on it reaches them, not even a window in full screen. */

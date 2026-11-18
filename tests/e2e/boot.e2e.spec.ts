@@ -98,3 +98,23 @@ test.describe('Boot, login and shut down', () => {
     })
   })
 })
+
+test.describe('Lock screen on a phone', () => {
+  test.use({ asked: true, viewport: { width: 390, height: 844 } })
+
+  test('covers every drawer, the one in front too', async ({ page }) => {
+    await page.goto('/', { waitUntil: 'networkidle' })
+    await expect(page.locator('#window-cookies')).toHaveAttribute('data-front')
+    await page.getByRole('menubar').getByRole('menuitem', { name: 'Dimm OS' }).click()
+    await page.getByRole('menuitem', { name: 'Lock screen' }).click()
+    await expect(boot(page)).toBeVisible()
+    // Hit testing passes over what is inert, so the desk is let back in to find what lies on top.
+    const covered = await page.evaluate(() => {
+      document.querySelector('.screen[inert]')!.removeAttribute('inert')
+      const box = document.querySelector('#window-cookies')!.getBoundingClientRect()
+      const top = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)
+      return Boolean(top?.closest('[data-waiting]'))
+    })
+    expect(covered).toBe(true)
+  })
+})
