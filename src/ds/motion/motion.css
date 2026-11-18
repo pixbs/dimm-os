@@ -39,3 +39,32 @@
   opacity: 0;
   transform: translateY(var(--s-6));
 }
+
+/* The portrait, in the colours of the surface it stands on: line and shirt in its foreground, skin in its background,
+   hair at the strength of a line, flattened so that overlapping locks stay opaque. */
+.portrait {
+  --line-flat: color-mix(in srgb, var(--fg) var(--a-line), var(--bg));
+  --line-color: var(--fg);
+  --pupil-color: var(--fg);
+  --line-width: var(--stroke);
+  --skin-left-color: var(--bg);
+  --skin-right-color: var(--bg);
+  --shirt-left-color: var(--fg);
+  --shirt-right-color: var(--fg);
+  --hair-left-color: var(--line-flat);
+  --hair-right-color: var(--line-flat);
+  --hair-shadow-color: var(--line-flat);
+  --hair-accent-color: var(--line-flat);
+  --ear-left-color: var(--bg);
+  --ear-right-color: var(--bg);
+
+  position: absolute;
+  inset: 0;
+
+  & > svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    fill: none;
+  }
+}

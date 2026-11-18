@@ -101,12 +101,15 @@ test.describe('Media', () => {
     await expect(later.locator('canvas.media__dots')).toHaveCount(1)
   })
 
-  test('shows the still of a live picture, which no dots resolve', async ({ page }) => {
+  test('a live picture is no still that dots resolve: it draws itself over it', async ({
+    page,
+  }) => {
     await page.goto('/work/field')
     const live = work(page).getByRole('figure').filter({ hasText: 'A live picture' })
 
     await expect(live.locator('img')).toHaveAttribute('alt', 'A sun drawn in dots')
-    await expect(live.locator('img')).toHaveCSS('opacity', '1')
-    await expect(live.locator('canvas')).toHaveCount(0)
+    await expect(live.locator('canvas.media__dots')).toHaveCount(0)
+    await expect(live.locator('.media__live svg')).toBeVisible()
+    await expect(live.locator('img')).toHaveCSS('opacity', '0')
   })
 })

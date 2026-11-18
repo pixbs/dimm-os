@@ -68,7 +68,7 @@ export type AboutView = {
   memory: string | null
   facts: { label: string; value: string }[]
   inside: {
-    picture: { src: string; alt: string; position: string; live: boolean } | null
+    picture: { src: string; alt: string; position: string; live: Media['live'] } | null
     title: string | null
     text: string | null
     actions: Action[]
@@ -494,7 +494,7 @@ async function views(language: Language, viewer: Viewer) {
         })
       case 'form': {
         const made = form(block, (words) => html(words as SerializedEditorState))
-        return made && { ...made, to: own.email ?? '', privacy }
+        return made && { ...made, to: own.email ?? '', place: about.place, privacy }
       }
     }
   }
@@ -561,7 +561,7 @@ async function views(language: Language, viewer: Viewer) {
                 src: picture.url,
                 alt: picture.alt,
                 position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-                live: Boolean(picture.live),
+                live: picture.live ?? null,
               }
             : null,
         title: title || null,

@@ -933,10 +933,17 @@
   opacity: 0;
   pointer-events: none;
 }
+.form__sent {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+/* The confirmation follows the postmark once it has landed and its dots have splashed. */
 .form__sent > .message {
   transition-property: var(--m-moves);
   transition-duration: var(--m-slow);
   transition-timing-function: var(--m-enter);
+  transition-delay: calc(var(--m-slow) + var(--m-spread));
 
   @starting-style {
     opacity: 0;
@@ -1020,4 +1027,76 @@
   .grid[data-columns='3'] > .grid__stack:not(:first-child) {
     display: contents;
   }
+}
+
+/* Postmark: rings and waves in dots, words and a date in text, turned a little; it falls into place. */
+.postmark {
+  position: relative;
+  flex: none;
+  align-self: stretch;
+  height: calc(var(--h-regular) * 5);
+  color: var(--signal);
+}
+.postmark__ink {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: 100%;
+  max-width: calc(var(--h-regular) * 12);
+  height: 100%;
+  overflow: hidden;
+  transform: rotate(var(--postmark-turn));
+  transform-origin: calc(var(--h-regular) * 2.5) 50%;
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-slow);
+  transition-timing-function: var(--m-drop);
+
+  @starting-style {
+    opacity: 0;
+    transform: rotate(var(--postmark-turn)) scale(var(--postmark-from));
+  }
+}
+.postmark__dots,
+.postmark__liquid {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+}
+.postmark__dots {
+  width: 100%;
+  height: 100%;
+
+  /* Once the engine holds the dots, the drawn ones step aside. */
+  [data-poured] > & {
+    visibility: hidden;
+  }
+}
+.postmark__liquid {
+  max-width: none;
+}
+.postmark__words,
+.postmark__date {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: calc(var(--h-regular) * 5);
+  height: 100%;
+  pointer-events: none;
+}
+.postmark__around {
+  font: var(--f-mono);
+  fill: currentColor;
+}
+.postmark__date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.postmark__day {
+  font: var(--f-heading);
+  letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+}
+.postmark__year {
+  font: var(--f-mono);
 }
