@@ -5,7 +5,7 @@ import { getPayload, handleEndpoints, type Payload, type Where } from 'payload'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 
 import type { ListView } from '@/blocks/list/view'
-import { getWindowView, type View } from '@/data/views'
+import { getGuestAddresses, getWindowView, type View } from '@/data/views'
 import type { Media, User, Visitor, Window } from '@/payload-types'
 
 let payload: Payload
@@ -323,6 +323,20 @@ describe.each(languages)('as a guest, in %s, a hidden window and its items', (lo
     // Nor their keys, which the hotkeys window lists.
     expect(view.keys.map((one) => one.key)).not.toContain('Q')
     expect(view.keys.map((one) => one.key)).not.toContain('X')
+  })
+
+  it('appear in no sitemap, which lists every window a guest may see', async () => {
+    const { [locale]: addresses } = await getGuestAddresses()
+    expect(addresses).toEqual(expect.arrayContaining(['/access-work', '/access-work/access-grow']))
+    const slugs = addresses.flatMap((address) => address.split('/'))
+    for (const slug of [
+      'access-vault',
+      'access-secret',
+      'access-secret-item',
+      'access-other-secret',
+      'access-unpublished',
+    ])
+      expect(slugs, slug).not.toContain(slug)
   })
 
   it('appear in no media listing or API answer', async () => {
