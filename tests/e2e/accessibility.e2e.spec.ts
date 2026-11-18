@@ -40,7 +40,7 @@ test.describe('Accessibility', () => {
     ]
     for (const [name, attribute, value] of settings) {
       await toggle(page, name).click()
-      expect(await root(page, attribute)).toBe(value)
+      await expect.poll(() => root(page, attribute)).toBe(value)
     }
     await toggle(page, /^Single-key shortcuts/).click()
     expect(await root(page, 'shortcuts')).toBe('off')
@@ -56,7 +56,8 @@ test.describe('Accessibility', () => {
 
     await win(page).getByRole('button', { name: 'Reset' }).click()
     expect(await page.evaluate(() => ({ ...localStorage }))).toEqual({})
-    expect(await root(page, 'motion')).toBe('full')
+    // A crossfade writes the root once it has captured the screen before.
+    await expect.poll(() => root(page, 'motion')).toBe('full')
     expect(await root(page, 'shortcuts')).toBe('on')
     await expect(win(page).locator('.tag', { hasText: 'System' })).toHaveCount(4)
   })
