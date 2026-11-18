@@ -155,6 +155,32 @@ export type LexicalNodes_AF65A089 =
   | SerializedHeadingNode<LexicalNodes_AF65A089, 'h2' | 'h3' | 'h4'>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "LexicalNodes_4F2EC95E".
+ */
+export type LexicalNodes_4F2EC95E =
+  | SerializedTextNode
+  | SerializedTabNode
+  | SerializedLineBreakNode
+  | SerializedParagraphNode<LexicalNodes_4F2EC95E>
+  | SerializedHorizontalRuleNode
+  | SerializedUploadNode<'media'>
+  | SerializedQuoteNode<LexicalNodes_4F2EC95E>
+  | SerializedRelationshipNode<
+      | 'windows'
+      | 'users'
+      | 'visitors'
+      | 'payload-kv'
+      | 'payload-locked-documents'
+      | 'payload-preferences'
+      | 'payload-migrations'
+    >
+  | SerializedAutoLinkNode<LexicalNodes_4F2EC95E, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_4F2EC95E, LexicalLinkFields>
+  | SerializedListNode<LexicalNodes_4F2EC95E>
+  | SerializedListItemNode<LexicalNodes_4F2EC95E>
+  | SerializedHeadingNode<LexicalNodes_4F2EC95E>;
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "LexicalNodes_3DE324E4".
  */
 export type LexicalNodes_3DE324E4 =
@@ -176,6 +202,8 @@ export interface Config {
     media: Media;
     users: User;
     visitors: Visitor;
+    forms: Form;
+    'form-submissions': FormSubmission;
     'payload-kv': PayloadKv;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -188,6 +216,8 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     visitors: VisitorsSelect<false> | VisitorsSelect<true>;
+    forms: FormsSelect<false> | FormsSelect<true>;
+    'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -255,6 +285,7 @@ export interface Window {
         | TableBlock
         | ListBlock
         | CardsBlock
+        | FormBlock
       )[]
     | null;
   /**
@@ -809,6 +840,172 @@ export interface CardsBlock {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FormBlock".
+ */
+export interface FormBlock {
+  title?: string | null;
+  text?: string | null;
+  /**
+   * In a wide window.
+   */
+  split?: boolean | null;
+  surface?: ('window' | 'paper' | 'orange' | 'blue' | 'mint') | null;
+  form: number | Form;
+  note?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'form';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms".
+ */
+export interface Form {
+  id: number;
+  title: string;
+  fields?: (Checkbox | Email | Message | Number | Select | Text | Textarea | Date | Radio)[] | null;
+  submitButtonLabel?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Checkbox".
+ */
+export interface Checkbox {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  required?: boolean | null;
+  defaultValue?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'checkbox';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Email".
+ */
+export interface Email {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'email';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Message".
+ */
+export interface Message {
+  message?: LexicalRichText<LexicalNodes_4F2EC95E> | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'message';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Number".
+ */
+export interface Number {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  defaultValue?: number | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'number';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Select".
+ */
+export interface Select {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  defaultValue?: string | null;
+  placeholder?: string | null;
+  options?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'select';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Text".
+ */
+export interface Text {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  defaultValue?: string | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'text';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Textarea".
+ */
+export interface Textarea {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  defaultValue?: string | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'textarea';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Date".
+ */
+export interface Date {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  required?: boolean | null;
+  defaultValue?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'date';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "Radio".
+ */
+export interface Radio {
+  name: string;
+  label?: string | null;
+  width?: number | null;
+  defaultValue?: string | null;
+  options?:
+    | {
+        label: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  required?: boolean | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'radio';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "users".
  */
 export interface User {
@@ -875,6 +1072,23 @@ export interface Visitor {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions".
+ */
+export interface FormSubmission {
+  id: number;
+  form: number | Form;
+  submissionData?:
+    | {
+        field: string;
+        value: string;
+        id?: string | null;
+      }[]
+    | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv".
  */
 export interface PayloadKv {
@@ -912,6 +1126,14 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'visitors';
         value: number | Visitor;
+      } | null)
+    | ({
+        relationTo: 'forms';
+        value: number | Form;
+      } | null)
+    | ({
+        relationTo: 'form-submissions';
+        value: number | FormSubmission;
       } | null);
   globalSlug?: string | null;
   user: {
@@ -996,6 +1218,7 @@ export interface WindowsSelect<T extends boolean = true> {
         table?: T | TableBlockSelect<T>;
         list?: T | ListBlockSelect<T>;
         cards?: T | CardsBlockSelect<T>;
+        form?: T | FormBlockSelect<T>;
       };
   paper?: T;
   stamp?: T;
@@ -1281,6 +1504,20 @@ export interface CardsBlockSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "FormBlock_select".
+ */
+export interface FormBlockSelect<T extends boolean = true> {
+  title?: T;
+  text?: T;
+  split?: T;
+  surface?: T;
+  form?: T;
+  note?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "media_select".
  */
 export interface MediaSelect<T extends boolean = true> {
@@ -1387,6 +1624,145 @@ export interface VisitorsSelect<T extends boolean = true> {
   hash?: T;
   windows?: T;
   expires?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "forms_select".
+ */
+export interface FormsSelect<T extends boolean = true> {
+  title?: T;
+  fields?:
+    | T
+    | {
+        checkbox?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              required?: T;
+              defaultValue?: T;
+              id?: T;
+              blockName?: T;
+            };
+        email?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        message?:
+          | T
+          | {
+              message?: T;
+              id?: T;
+              blockName?: T;
+            };
+        number?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        select?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              placeholder?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        text?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        textarea?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+        date?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              required?: T;
+              defaultValue?: T;
+              id?: T;
+              blockName?: T;
+            };
+        radio?:
+          | T
+          | {
+              name?: T;
+              label?: T;
+              width?: T;
+              defaultValue?: T;
+              options?:
+                | T
+                | {
+                    label?: T;
+                    value?: T;
+                    id?: T;
+                  };
+              required?: T;
+              id?: T;
+              blockName?: T;
+            };
+      };
+  submitButtonLabel?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "form-submissions_select".
+ */
+export interface FormSubmissionsSelect<T extends boolean = true> {
+  form?: T;
+  submissionData?:
+    | T
+    | {
+        field?: T;
+        value?: T;
+        id?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }
@@ -1619,7 +1995,7 @@ export interface CollectionsWidget {
 export interface CollectionQueryWidget {
   data?: {
     title?: string | null;
-    relatedCollection: 'windows' | 'media' | 'users' | 'visitors';
+    relatedCollection: 'windows' | 'media' | 'users' | 'visitors' | 'forms' | 'form-submissions';
     where?:
       | {
           [k: string]: unknown;
@@ -1641,7 +2017,7 @@ export interface CollectionQueryWidget {
  */
 export interface ActivityWidget {
   data?: {
-    excludedCollections?: ('windows' | 'media' | 'users' | 'visitors')[] | null;
+    excludedCollections?: ('windows' | 'media' | 'users' | 'visitors' | 'forms' | 'form-submissions')[] | null;
   };
   width: 'small' | 'medium' | 'large' | 'x-large' | 'full';
 }
@@ -1778,6 +2154,32 @@ export interface LexicalRichText<TNode> {
     version: number;
   };
 }
+
+export type SerializedUploadNode<TSlugs extends keyof Config['collections'], TFields = { [k: string]: unknown }> = {
+  type: 'upload';
+  format: LexicalElementFormat;
+  id: string;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+  fields: TFields;
+} & {
+  [TSlug in TSlugs]: {
+    relationTo: TSlug;
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
+  };
+}[TSlugs];
+
+export type SerializedRelationshipNode<TSlugs extends keyof Config['collections']> = {
+  type: 'relationship';
+  format: LexicalElementFormat;
+  /** @deprecated Ignored when loading. Typed as required only to match Lexical's types: rich text sent through the API, CLI or MCP may not contain it. */
+  version: number;
+} & {
+  [TSlug in TSlugs]: {
+    relationTo: TSlug;
+    value: Config['collections'][TSlug]['id'] | Config['collections'][TSlug];
+  };
+}[TSlugs];
 
 
 declare module 'payload' {

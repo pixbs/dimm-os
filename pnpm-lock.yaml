@@ -14,9 +14,15 @@ importers:
       '@payloadcms/db-postgres':
         specifier: 4.0.0-beta.9
         version: 4.0.0-beta.9(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(supports-color@7.2.0)
+      '@payloadcms/email-resend':
+        specifier: 4.0.0-beta.9
+        version: 4.0.0-beta.9(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))
       '@payloadcms/next':
         specifier: 4.0.0-beta.9
         version: 4.0.0-beta.9(@types/react@19.3.0)(graphql@16.15.0)(monaco-editor@0.57.0)(next@16.4.2(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
+      '@payloadcms/plugin-form-builder':
+        specifier: 4.0.0-beta.9
+        version: 4.0.0-beta.9(@types/react@19.3.0)(monaco-editor@0.57.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
       '@payloadcms/plugin-mcp':
         specifier: 4.0.0-beta.9
         version: 4.0.0-beta.9(@payloadcms/ui@4.0.0-beta.9(@types/react@19.3.0)(monaco-editor@0.57.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))
@@ -1531,6 +1537,12 @@ packages:
     peerDependencies:
       payload: 4.0.0-beta.9
 
+  '@payloadcms/email-resend@4.0.0-beta.9':
+    resolution: {integrity: sha512-JxvG0r/zsSiwcHVN2AODIXVfq94TK01VZA4JQCMZ29bzZTvS/zQQHKHw4myWuihdxBE3ERHWwDAWYeupasp28A==}
+    engines: {node: ^24.22.3 || >=26.13.1}
+    peerDependencies:
+      payload: 4.0.0-beta.9
+
   '@payloadcms/graphql@4.0.0-beta.9':
     resolution: {integrity: sha512-0hd1aQbqPLiLCzECyuKv77FjXsM0mFYVQDWWZThkiuZRbbsKtV9N5BRjLWZ/KopjTkhmAR4s3msqeoIbwXtBsg==}
     hasBin: true
@@ -1548,6 +1560,13 @@ packages:
 
   '@payloadcms/plugin-cloud-storage@4.0.0-beta.9':
     resolution: {integrity: sha512-K3zoSwZwW40HYJGUK9coxQtjwjwHIk2zze/WQ6/8lgq4AamASiluKLjwvxjIvFw76AG1D0Xua1KZiuZ5VcyCTA==}
+    peerDependencies:
+      payload: 4.0.0-beta.9
+      react: ^19.3.1
+      react-dom: ^19.3.1
+
+  '@payloadcms/plugin-form-builder@4.0.0-beta.9':
+    resolution: {integrity: sha512-/wkGOi6B5VaxLpwpJKzN0H86MPdmTHPOm+B3oQkHYwJjQJLXQzUU0ybg1RdJJt9RT3RMr6HRepgQ2E25spBizA==}
     peerDependencies:
       payload: 4.0.0-beta.9
       react: ^19.3.1
@@ -5976,6 +5995,10 @@ snapshots:
       - sql.js
       - sqlite3
 
+  '@payloadcms/email-resend@4.0.0-beta.9(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))':
+    dependencies:
+      payload: 4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3)
+
   '@payloadcms/graphql@4.0.0-beta.9(graphql@16.15.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(typescript@6.0.3)':
     dependencies:
       graphql: 16.15.0
@@ -6022,6 +6045,21 @@ snapshots:
       find-node-modules: 2.1.3
       payload: 4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3)
       range-parser: 1.2.1
+      react: 19.3.1
+      react-dom: 19.3.1(react@19.3.1)
+    transitivePeerDependencies:
+      - '@types/react'
+      - date-fns-tz
+      - monaco-editor
+      - supports-color
+      - typescript
+
+  '@payloadcms/plugin-form-builder@4.0.0-beta.9(@types/react@19.3.0)(monaco-editor@0.57.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)':
+    dependencies:
+      '@payloadcms/translations': 4.0.0-beta.9
+      '@payloadcms/ui': 4.0.0-beta.9(@types/react@19.3.0)(monaco-editor@0.57.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
+      escape-html: 1.0.3
+      payload: 4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3)
       react: 19.3.1
       react-dom: 19.3.1(react@19.3.1)
     transitivePeerDependencies:

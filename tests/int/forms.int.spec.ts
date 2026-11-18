@@ -1,0 +1,136 @@
+import config from '@payload-config'
+import { getPayload, handleEndpoints, type Payload } from 'payload'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
+import { send } from '@/data/send'
+import type { Form } from '@/payload-types'
+
+let payload: Payload
+let form: Form
+
+const TITLE = 'Forms, a test form'
+const EMAIL = 'forms-content@example.com'
+const KEY = 'a-local-api-key-for-the-forms-content-user'
+const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
+
+const rest = (route: string, init?: RequestInit) =>
+  handleEndpoints({ config, request: new Request(`http://localhost:3000/api${route}`, init) })
+
+// Opened long enough ago for a person to have typed it.
+const opened = () => Date.now() - 10_000
+
+const stored = async () =>
+  (
+    await payload.find({
+      collection: 'form-submissions',
+      where: { form: { equals: form.id } },
+      ...trusted,
+    })
+  ).docs
+
+async function clean() {
+  const { docs } = await payload.find({
+    collection: 'forms',
+    where: { title: { equals: TITLE } },
+    ...trusted,
+  })
+  const ids = docs.map(({ id }) => id)
+  await payload.delete({ collection: 'form-submissions', where: { form: { in: ids } }, ...trusted })
+  await payload.delete({ collection: 'forms', where: { id: { in: ids } }, ...trusted })
+  await payload.delete({ collection: 'users', where: { email: { equals: EMAIL } }, ...trusted })
+}
+
+beforeAll(async () => {
+  payload = await getPayload({ config })
+  await clean()
+  form = await payload.create({
+    collection: 'forms',
+    data: {
+      title: TITLE,
+      fields: [
+        { blockType: 'text', name: 'name', label: 'Name' },
+        { blockType: 'email', name: 'email', label: 'Email', required: true },
+        { blockType: 'textarea', name: 'message', label: 'Message', required: true },
+      ],
+    },
+    locale: 'en',
+    ...trusted,
+  })
+})
+
+afterAll(clean)
+
+describe('a message sent through a form', () => {
+  it('names what is missing and what is not an address, and keeps nothing', async () => {
+    const sent = await send({
+      form: form.id,
+      lang: 'en',
+      values: { name: 'Ana', email: 'ana@', message: '' },
+      trap: '',
+      opened: opened(),
+    })
+    expect(sent).toEqual({ ok: false, missing: ['message'], invalid: ['email'] })
+    expect(await stored()).toHaveLength(0)
+  })
+
+  it('is kept as what was typed and nothing else', async () => {
+    const sent = await send({
+      form: form.id,
+      lang: 'en',
+      values: { name: '', email: 'ana@example.com', message: 'Hello', extra: 'not a field' },
+      trap: '',
+      opened: opened(),
+    })
+    expect(sent).toEqual({ ok: true })
+    const [one] = await stored()
+    expect(one.submissionData?.map(({ field, value }) => [field, value])).toEqual([
+      ['email', 'ana@example.com'],
+      ['message', 'Hello'],
+    ])
+    expect(Object.keys(one).sort()).toEqual([
+      'createdAt',
+      'form',
+      'id',
+      'submissionData',
+      'updatedAt',
+    ])
+  })
+
+  it('is answered as sent and dropped when the hidden field is filled or it comes too soon', async () => {
+    const before = (await stored()).length
+    const values = { email: 'bot@example.com', message: 'Buy' }
+    const base = { form: form.id, lang: 'en' as const, values }
+    expect(await send({ ...base, trap: 'https://spam.example', opened: opened() })).toEqual({
+      ok: true,
+    })
+    expect(await send({ ...base, trap: '', opened: Date.now() })).toEqual({ ok: true })
+    expect(await stored()).toHaveLength(before)
+  })
+})
+
+describe('the content user', () => {
+  it('edits forms and reads no submission', async () => {
+    await payload.create({
+      collection: 'users',
+      data: { email: EMAIL, password: 'a-local-password', role: 'content', apiKey: KEY },
+      ...trusted,
+    })
+    const headers = { Authorization: `users API-Key ${KEY}` }
+    expect((await rest(`/forms/${form.id}?depth=0`, { headers })).status).toBe(200)
+    expect((await rest('/form-submissions?depth=0', { headers })).status).toBe(403)
+    const [one] = await stored()
+    expect((await rest(`/form-submissions/${one.id}?depth=0`, { headers })).status).toBe(403)
+  })
+
+  it('a guest of the API writes no submission', async () => {
+    const response = await rest('/form-submissions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        form: form.id,
+        submissionData: [{ field: 'email', value: 'a@b.co' }],
+      }),
+    })
+    expect(response.status).toBe(403)
+  })
+})

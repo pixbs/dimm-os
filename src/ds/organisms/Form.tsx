@@ -1,0 +1,310 @@
+'use client'
+
+import { type FormEvent, useEffect, useRef, useState, useSyncExternalStore } from 'react'
+
+import type { FormField } from '@/blocks/form/view'
+
+import { Button } from '../molecules/Button'
+import { Dots } from '../molecules/Dots'
+import { Field } from '../molecules/Field'
+import { Link } from '../molecules/Link'
+import { Row } from '../molecules/Row'
+import { Choices, Toggle } from '../molecules/Toggle'
+import { duration } from '../motion/vocabulary'
+import { Message } from './Message'
+import { Prose } from './Prose'
+import { Stamp } from './Record'
+
+export type FormWords = {
+  to: string
+  send: string
+  sending: string
+  missing: string
+  address: string
+  failed: string
+  sent: string
+  reply: string
+  again: string
+}
+
+type State = 'idle' | 'sending' | 'failed' | 'leaving' | 'sent'
+
+// A slip's button stands at the window's foot, outside the form, so it reads the form's state from here.
+const states = new Map<string, State>()
+const listeners = new Set<() => void>()
+function setState(id: string, state: State) {
+  states.set(id, state)
+  listeners.forEach((listener) => listener())
+}
+const subscribe = (listener: () => void) => {
+  listeners.add(listener)
+  return () => void listeners.delete(listener)
+}
+const useFormState = (id: string) =>
+  useSyncExternalStore(
+    subscribe,
+    () => states.get(id) ?? 'idle',
+    () => 'idle' as State,
+  )
+
+const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// The submit of a form, at its own bar or at the foot of the window it is the slip of; gone once it has sent.
+export function Submit(props: { form: string; words: FormWords; label?: string | null }) {
+  const state = useFormState(props.form)
+  if (state === 'leaving' || state === 'sent') return null
+  return (
+    <Button
+      busy={state === 'sending' ? <Dots count={3} label={props.words.sending} on={2} /> : undefined}
+      end="arrow-right"
+      fill
+      form={props.form}
+      label={props.label || props.words.send}
+      tone="solid"
+      type="submit"
+    />
+  )
+}
+
+// Fields from the form builder in its order, a note, and its submit. It checks what is required and what must be an
+// address, names what is missing from the form's own labels, keeps what was typed when a send fails, and after a
+// send its rows leave and a message takes their place. On a slip it opens with the locked To row.
+export function Form(props: {
+  id: string
+  form: number
+  fields: FormField[]
+  note: string | null
+  submit: string | null
+  privacy: { href: string; title: string; lang?: string } | null
+  to: string
+  // A slip opens with its record's stamp line and the locked To row.
+  slip?: { stamp?: { code: string; note?: string } }
+  lang: string
+  words: FormWords
+}) {
+  const { id, fields, words, slip } = props
+  const state = useFormState(id)
+  const [marked, setMarked] = useState<{ missing: string[]; invalid: string[] }>({
+    missing: [],
+    invalid: [],
+  })
+  const [reply, setReply] = useState('')
+  const opened = useRef(0)
+  const element = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    opened.current = Date.now()
+    return () => void states.delete(id)
+  }, [id])
+
+  const named = fields.flatMap((field) => (field.kind === 'words' ? [] : [field]))
+  const labelOf = (name: string) => named.find((field) => field.name === name)?.label ?? name
+  const list = new Intl.ListFormat(props.lang, { type: 'conjunction' })
+  const says = [
+    marked.missing.length &&
+      words.missing.replace('{list}', list.format(marked.missing.map(labelOf))),
+    marked.invalid.length && words.address,
+  ]
+    .filter(Boolean)
+    .join(' ')
+  const status =
+    state === 'sending'
+      ? words.sending
+      : state === 'failed'
+        ? words.failed.replace('{email}', props.to)
+        : says
+
+  function values() {
+    const data = new FormData(element.current!)
+    return Object.fromEntries(
+      named.map(({ name, kind }) => [
+        name,
+        kind === 'check' ? data.get(name) === 'on' : String(data.get(name) ?? '').trim(),
+      ]),
+    )
+  }
+  function check(typed: Record<string, unknown>) {
+    return {
+      missing: named
+        .filter(({ name, required }) => required && !typed[name])
+        .map(({ name }) => name),
+      invalid: named
+        .filter(
+          ({ name, kind }) => kind === 'email' && typed[name] && !address.test(String(typed[name])),
+        )
+        .map(({ name }) => name),
+    }
+  }
+
+  // A mark goes as soon as its row is filled.
+  function onInput() {
+    if (!marked.missing.length && !marked.invalid.length) return
+    const now = check(values())
+    setMarked({
+      missing: marked.missing.filter((name) => now.missing.includes(name)),
+      invalid: marked.invalid.filter((name) => now.invalid.includes(name)),
+    })
+  }
+
+  async function onSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    if (state === 'sending') return
+    const typed = values()
+    const found = check(typed)
+    setMarked(found)
+    // The first row to fix takes the focus, and the note says what is wrong.
+    const [first] = [...found.missing, ...found.invalid]
+    if (first) {
+      element.current!.querySelector<HTMLElement>(`[name="${CSS.escape(first)}"]`)?.focus()
+      return
+    }
+    setState(id, 'sending')
+    const trap = new FormData(element.current!).get('website')
+    try {
+      const response = await fetch('/send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          form: props.form,
+          lang: props.lang,
+          values: typed,
+          trap,
+          opened: opened.current,
+        }),
+      })
+      if (response.status === 422) {
+        setMarked(await response.json())
+        setState(id, 'idle')
+        return
+      }
+      if (!response.ok) throw new Error(String(response.status))
+    } catch {
+      setState(id, 'failed')
+      return
+    }
+    setReply(
+      String(named.map(({ name, kind }) => kind === 'email' && typed[name]).find(Boolean) || ''),
+    )
+    setState(id, 'leaving')
+    setTimeout(() => setState(id, 'sent'), duration('slow-exit') * 1000)
+  }
+
+  function again() {
+    setMarked({ missing: [], invalid: [] })
+    opened.current = Date.now()
+    setState(id, 'idle')
+  }
+
+  if (state === 'sent')
+    return (
+      <div className="form__sent" role="status">
+        <Message
+          action={{ label: words.again, onClick: again }}
+          text={reply ? words.reply.replace('{email}', reply) : ''}
+          title={words.sent}
+        />
+      </div>
+    )
+
+  const wrong = (name: string) => marked.missing.includes(name) || marked.invalid.includes(name)
+  const above = named.some(({ half }) => half)
+
+  return (
+    <form
+      className="form"
+      data-above={above ? '' : undefined}
+      data-state={state === 'leaving' ? 'leaving' : undefined}
+      id={id}
+      noValidate
+      onInput={onInput}
+      onSubmit={onSubmit}
+      ref={element}
+    >
+      {slip?.stamp && <Stamp {...slip.stamp} />}
+      <div className="list form__fields" data-ruled={slip ? '' : undefined}>
+        {slip && <Field kind="text" label={words.to} locked value={props.to} />}
+        {fields.map((field, at) => {
+          if (field.kind === 'words') return <Prose html={field.html} key={at} />
+          const shared = {
+            label: field.label,
+            name: field.name,
+            required: field.required,
+            invalid: wrong(field.name),
+          }
+          const half = field.half ? 'half' : undefined
+          switch (field.kind) {
+            case 'check':
+              return (
+                <Row
+                  data-width={half}
+                  key={field.name}
+                  lead={<Toggle defaultChecked={field.value} kind="check" name={field.name} />}
+                  title={field.label}
+                  toggles
+                />
+              )
+            case 'radio':
+              return (
+                <div data-width={half} key={field.name}>
+                  <Field {...shared}>
+                    {(labelledBy) => (
+                      <Choices
+                        columns={2}
+                        labelledBy={labelledBy}
+                        name={field.name}
+                        options={field.options.map(({ label }) => label)}
+                        value={field.value ?? undefined}
+                      />
+                    )}
+                  </Field>
+                </div>
+              )
+            case 'select':
+              return (
+                <div data-width={half} key={field.name}>
+                  <Field
+                    {...shared}
+                    kind="select"
+                    options={field.options.map(({ label }) => label)}
+                    placeholder=""
+                    value={field.value ?? undefined}
+                  />
+                </div>
+              )
+            default:
+              return (
+                <div data-width={half} key={field.name}>
+                  <Field
+                    {...shared}
+                    above={field.kind === 'area' && Boolean(slip)}
+                    kind={field.kind}
+                    ruled={field.kind === 'area' && Boolean(slip)}
+                    value={field.value ?? undefined}
+                  />
+                </div>
+              )
+          }
+        })}
+      </div>
+      {/* Left empty by people, whom it is hidden from; a bot fills it. */}
+      <input aria-hidden autoComplete="off" className="form__trap" name="website" tabIndex={-1} />
+      {props.note && <p className="form__note">{props.note}</p>}
+      <p
+        className="form__note"
+        data-error={says && state !== 'sending' ? '' : undefined}
+        role="status"
+      >
+        {status && <span className="dot" data-tone="signal" />}
+        {status}
+      </p>
+      <div className="form__bar">
+        {props.privacy && (
+          <Link href={props.privacy.href} hrefLang={props.privacy.lang} lang={props.privacy.lang}>
+            {props.privacy.title}
+          </Link>
+        )}
+        {!slip && <Submit form={id} label={props.submit} words={words} />}
+      </div>
+    </form>
+  )
+}

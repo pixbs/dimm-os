@@ -23,6 +23,7 @@ import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration } from '@/ds/motion/vocabulary'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
+import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
@@ -105,6 +106,7 @@ function Body(props: {
   filtering?: ListView
   filter: Filter
   t: Dictionary
+  language: Language
 }) {
   const { view, width, filtering, filter, t } = props
   const { parent, neighbours } = view
@@ -123,6 +125,8 @@ function Body(props: {
   const { stamp, paper } = view.frame
   const note = stamp && { code: stamp.code, note: stamp.place }
   const record = paper ? { stamp: note } : undefined
+  // A paper window that opens with a form is a slip, which holds the stamp line alone.
+  const slip = slipOf(view)
   const prefix = useId()
   const { aside } = view
   const contents = aside?.type === 'contents'
@@ -136,19 +140,20 @@ function Body(props: {
   const content = (
     <>
       {/* A window that opens with neither a Header nor tiles still holds its title once. */}
-      {first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
+      {!slip && first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
         <Header level="title" page record={record} title={view.frame.title} />
       )}
       {sections.length > 0 && (
         <Sections
           chapters={contents ? prefix : undefined}
+          forms={{ words: formWords(t), lang: view.lang ?? props.language, slip }}
           paper={paper}
           record={record}
           sections={sections}
           width={width}
         />
       )}
-      {paper && view.updated && (
+      {paper && !slip && view.updated && (
         <Section>
           <RecordFoot start={view.updated} />
         </Section>
@@ -202,6 +207,24 @@ function Body(props: {
     </>
   )
 }
+
+// The id of the form a slip holds, whose button stands at the window's foot.
+const slipOf = (view: WindowView) =>
+  view.frame.paper && view.sections[0]?.type === 'form'
+    ? `slip${view.path.replace(/[^\w-]/g, '-')}`
+    : undefined
+
+const formWords = (t: Dictionary): FormWords => ({
+  to: t.formTo,
+  send: t.formSend,
+  sending: t.formSending,
+  missing: t.formMissing,
+  address: t.formAddress,
+  failed: t.formFailed,
+  sent: t.formSent,
+  reply: t.formReply,
+  again: t.formNew,
+})
 
 // Where a foot button leads shows at its end: a window, a download, or an address, out of the site or in it.
 const ends = (button: FootButton) =>
@@ -317,6 +340,7 @@ function parts(
       </Bar>
     )
   )
+  const slip = slipOf(view)
   const says = view.lang ? t.inEnglish : view.asked ? t.notFound : null
   const status = says && (
     <Bar line="above" size="compact">
@@ -327,8 +351,28 @@ function parts(
   return {
     toolbar,
     status,
-    foot: view.actions.length > 0 && <Foot buttons={view.actions} />,
-    body: <Body filter={filter} filtering={filtering} t={t} view={view} width={width} />,
+    foot: (slip || view.actions.length > 0) && (
+      <>
+        {slip && (
+          <Submit
+            form={slip}
+            label={view.sections[0]?.type === 'form' ? view.sections[0].submit : null}
+            words={formWords(t)}
+          />
+        )}
+        {view.actions.length > 0 && <Foot buttons={view.actions} />}
+      </>
+    ),
+    body: (
+      <Body
+        filter={filter}
+        filtering={filtering}
+        language={language}
+        t={t}
+        view={view}
+        width={width}
+      />
+    ),
   }
 }
 
