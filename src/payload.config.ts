@@ -55,6 +55,25 @@ export default buildConfig({
         (Boolean(process.env.CRON_SECRET) &&
           req.headers.get('authorization') === `Bearer ${process.env.CRON_SECRET}`),
     },
+    tasks: [
+      {
+        slug: 'cleanup',
+        // Queued by the daily cron's call for its next day, and run by the call of that day.
+        schedule: [{ cron: '0 3 * * *', queue: 'default' }],
+        outputSchema: [
+          { name: 'submissions', type: 'number', required: true },
+          { name: 'visitors', type: 'number', required: true },
+        ],
+        handler: async ({ req }) => {
+          const { cleanup } = await import('./data/cleanup')
+          return { output: await cleanup(req) }
+        },
+        onFail: async ({ job, req }) => {
+          const { cleanupFailed } = await import('./data/cleanup')
+          await cleanupFailed(req, job.id)
+        },
+      },
+    ],
   },
   localization: {
     locales: [
