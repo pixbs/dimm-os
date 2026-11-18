@@ -69,12 +69,13 @@ export function ButtonLink({
   icon,
   lead,
   end,
+  hint,
   tone,
   size,
   fill,
   ...rest
 }: AnchorHTMLAttributes<HTMLAnchorElement> &
-  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'size' | 'tone' | 'fill'>) {
+  Pick<Props, 'label' | 'name' | 'icon' | 'lead' | 'end' | 'hint' | 'size' | 'tone' | 'fill'>) {
   return (
     <a
       aria-disabled={rest.href ? undefined : true}
@@ -91,9 +92,15 @@ export function ButtonLink({
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
       {label && <span className="btn__label">{label}</span>}
-      {end && (
+      {(end || hint) && (
         <span className="btn__end">
-          <Icon name={end} size="s" />
+          {/* Its key, where keys are pressed, stands in place of its end and is not part of its name. */}
+          {hint && (
+            <span aria-hidden className="btn__key" data-for="desk pointer keys">
+              <ForDevice text={hint} />
+            </span>
+          )}
+          {end && <Icon name={end} size="s" />}
         </span>
       )}
       {!label && name && <Tip label={name} />}

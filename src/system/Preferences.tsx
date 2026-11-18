@@ -24,7 +24,7 @@ import type { Parts } from '@/shell/OnDesk'
 type Props = {
   t: Dictionary
   language: Language
-  site: { name: string; timezone: string }
+  site: { name: string; timezone: string; place: string }
   // The address the window stands at, which the other language loads.
   path: string
 }
@@ -63,7 +63,7 @@ function Body({ t, language, site, path }: Props) {
           minute: '2-digit',
           timeZone: zone,
         }).format(new Date(minute * 60000))
-  const place = site.timezone.split('/').pop()!.replaceAll('_', ' ')
+  const { place } = site
   const other = languages.find((one) => one !== language)!
 
   const left = (

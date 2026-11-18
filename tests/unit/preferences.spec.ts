@@ -32,6 +32,7 @@ const view = (path: string): WindowView => ({
   path,
   frame: { title: path, kind: null, tile: null },
   sections: [],
+  actions: [],
   count: 0,
   parent: null,
   counters: null,
@@ -114,6 +115,8 @@ describe('Preferences', () => {
 
     const back = manager(after, { type: 'open', path: '/work/one' })
     expect(back.open.find((one) => one.path === '/work')).toMatchObject({ mode: 'float', box })
+    const filled = manager(back, { type: 'fill', window: view('/work/one') })
+    expect(filled.open.find((one) => one.path === '/work')).toMatchObject({ box })
   })
 
   it('opens a remembered window that opens at start where it stood', () => {
