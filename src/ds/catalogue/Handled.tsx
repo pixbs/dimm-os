@@ -34,6 +34,7 @@ export function Handled({ t, words }: Props) {
           path,
           frame: { title: name, kind: null, tile: tiles[at] ?? null },
           sections: [],
+          actions: [],
           count: 0,
           parent: null,
           counters: null,

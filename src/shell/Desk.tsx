@@ -11,7 +11,7 @@ import {
 } from 'react'
 
 import type { ListView } from '@/blocks/list/view'
-import type { View, WindowView } from '@/data/views'
+import type { FootButton, View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { useSetting } from '@/ds/atoms/useSetting'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
@@ -22,6 +22,7 @@ import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration } from '@/ds/motion/vocabulary'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
+import { Stamp } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
 import { Section } from '@/ds/sections/Section'
@@ -115,8 +116,10 @@ function Body(props: {
     }
   })
   const [first] = sections
+  const { stamp } = view.frame
   return (
     <>
+      {stamp && <Stamp code={stamp.code} note={stamp.place} />}
       <div lang={view.lang}>
         {/* A window that opens with neither a Header nor tiles still holds its title once. */}
         {first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
@@ -153,6 +156,35 @@ function Body(props: {
         </Section>
       )}
     </>
+  )
+}
+
+// Where a foot button leads shows at its end: a window, a download, or an address, out of the site or in it.
+const ends = (button: FootButton) =>
+  button.to === 'media'
+    ? 'arrow-down'
+    : button.to === 'address' && /^https?:/i.test(button.href)
+      ? 'arrow-up-right'
+      : 'arrow-right'
+
+// The buttons at a window's foot, the main one first, side by side at every width; a file downloads.
+function Foot({ buttons }: { buttons: FootButton[] }) {
+  return (
+    <ButtonGroup cells>
+      {buttons.map((button, index) => (
+        <ButtonLink
+          download={button.to === 'media' || undefined}
+          end={ends(button)}
+          hint={button.key}
+          href={button.href}
+          hrefLang={button.hrefLang}
+          key={index}
+          label={button.label}
+          lang={button.lang}
+          tone="outline"
+        />
+      ))}
+    </ButtonGroup>
   )
 }
 
@@ -251,6 +283,7 @@ function parts(
   return {
     toolbar,
     status,
+    foot: view.actions.length > 0 && <Foot buttons={view.actions} />,
     body: <Body filter={filter} filtering={filtering} t={t} view={view} width={width} />,
   }
 }

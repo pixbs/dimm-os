@@ -407,9 +407,10 @@ export function Window(props: Props) {
         <m.div
           className="window__frame"
           data-surface={props.surface ?? 'window'}
-          // It moves and sizes to the desk as one piece, and steps back as a drawer, unless motion is reduced.
+          // It moves and sizes to the desk as one piece, steps back as a drawer, and takes the size its view
+          // brings, unless motion is reduced.
           layout={!painted && !reduced()}
-          layoutDependency={`${full} ${props.back}`}
+          layoutDependency={`${full} ${props.back} ${waiting}`}
           transition={travels}
         >
           <m.div animate={turn[1]} className="window__content" variants={fades}>
