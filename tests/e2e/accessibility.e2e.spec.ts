@@ -56,7 +56,11 @@ test.describe('Accessibility', () => {
 
     await win(page).getByRole('button', { name: 'Reset' }).click()
     // Nothing is left of the settings, beside the answer to consent the harness gives every test.
-    expect(await page.evaluate(() => ({ ...localStorage, consent: undefined }))).toEqual({})
+    expect(
+      await page.evaluate(() =>
+        Object.fromEntries(Object.entries(localStorage).filter(([name]) => name !== 'consent')),
+      ),
+    ).toEqual({})
     // A crossfade writes the root once it has captured the screen before.
     await expect.poll(() => root(page, 'motion')).toBe('full')
     expect(await root(page, 'shortcuts')).toBe('on')
