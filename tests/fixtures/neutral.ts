@@ -1120,14 +1120,17 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
     live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
   }
   for (const { slug, sections, listing } of windows) {
-    if (listing)
-      await payload.update({
-        collection: 'windows',
-        id: ids[slug],
-        data: { related: listing.related.map((one) => ids[one]) },
-        locale: 'en',
-        ...trusted,
-      })
+    // Every window has a picture to share.
+    await payload.update({
+      collection: 'windows',
+      id: ids[slug],
+      data: {
+        cover: shown.still,
+        ...(listing && { related: listing.related.map((one) => ids[one]) }),
+      },
+      locale: 'en',
+      ...trusted,
+    })
     const { en, de } = sections?.(ids, shown) ?? {}
     for (const [locale, made] of [
       ['en', en],
