@@ -3,11 +3,13 @@ import '@/ds/molecules/index.css'
 import '@/ds/organisms/index.css'
 import '@/ds/sections/index.css'
 
+import type { Metadata } from 'next'
 import { Inter_Tight, JetBrains_Mono } from 'next/font/google'
 import localFont from 'next/font/local'
 
 import { apply } from '@/ds/atoms/settings'
 import { Motion } from '@/ds/motion/Motion'
+import { origin } from '@/i18n/address'
 
 const sans = Inter_Tight({
   subsets: ['latin'],
@@ -31,10 +33,9 @@ const monoKeys = localFont({
   ],
 })
 
-export const metadata = {
-  title: 'Dimm OS',
-  // The real icon comes with the metadata; an empty one keeps the browser from asking for a missing file.
-  icons: { icon: 'data:,' },
+export const metadata: Metadata = {
+  metadataBase: origin(),
+  title: { default: 'Dimm OS', template: '%s · Dimm OS' },
 }
 
 export default async function RootLayout({ children, params }: LayoutProps<'/[lang]'>) {
