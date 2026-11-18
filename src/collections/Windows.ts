@@ -4,6 +4,7 @@ import {
   type CollectionBeforeOperationHook,
   type CollectionConfig,
   type Condition,
+  type TextFieldSingleValidation,
   type Where,
 } from 'payload'
 import { relationship } from 'payload/shared'
@@ -43,6 +44,26 @@ const fixed = ['404', ...legal]
 const systemLetters: string[] = Object.values(systemKeys).flatMap((keys) =>
   keys.length === 1 && /^[A-Z]$/.test(keys[0]) ? [keys[0]] : [],
 )
+
+// One letter opens one window, and none the system answers to.
+const keyOnce: TextFieldSingleValidation = async (value, { id, req }) => {
+  if (!value) return true
+  const letter = value.toUpperCase()
+  if (!/^[A-Z]$/.test(letter) || systemLetters.includes(letter))
+    return `One letter, other than ${systemLetters.join(', ')}.`
+  const { totalDocs } = await req.payload.count({
+    collection: 'windows',
+    ...nested(req),
+    overrideAccess: true,
+    where: {
+      and: [
+        { key: { in: [letter, value.toLowerCase()] } },
+        ...(id ? [{ id: { not_equals: id } }] : []),
+      ],
+    },
+  })
+  return totalDocs ? `Another window opens with ${letter}.` : true
+}
 
 const onItem: Condition = (data) => Boolean(data?.parent)
 const onWindow: Condition = (data) => !data?.parent
@@ -262,10 +283,7 @@ export const Windows: CollectionConfig = {
                   name: 'key',
                   type: 'text',
                   hooks: { beforeChange: [({ value }) => value?.toUpperCase()] },
-                  validate: (value: null | string | undefined) =>
-                    !value ||
-                    (/^[a-z]$/i.test(value) && !systemLetters.includes(value.toUpperCase())) ||
-                    `One letter, other than ${systemLetters.join(', ')}.`,
+                  validate: keyOnce,
                   admin: { description: 'The letter that opens the window.', width: '33%' },
                 },
               ],

@@ -18,10 +18,14 @@ type Entry = {
   // Floating on the desk, taking the whole desk, or put away in the taskbar, and what it comes back as.
   mode: 'float' | 'full' | 'min'
   was: 'float' | 'full'
-  // Its size is a maximum, and its place is given once the desk is measured.
+  // Its size is a maximum, and its place is given once the desk is measured; pulled, the size is the visitor's.
   box: Box
   placed: boolean
+  pulled?: boolean
 }
+
+// Where windows open: the span of the desk beside its apps.
+type Room = { x: number; w: number }
 
 export type Windows = {
   // In the order they opened, which is their order in the page: coming forward moves no element.
@@ -29,6 +33,7 @@ export type Windows = {
   // Their paths, back to front.
   z: string[]
   desk: Size | null
+  room: Room | null
   // The window whose edge is held, which shows its size.
   sizing: string | null
   // The windows that open at start wait for the desk to be measured, since a phone opens only the first.
@@ -36,7 +41,7 @@ export type Windows = {
 }
 
 export type Action =
-  | ({ type: 'desk' } & Size)
+  | ({ type: 'desk'; room?: Room } & Size)
   // It opens at once, in front, and its view follows; alone, it closes the ones before.
   | { type: 'open'; path: string; opener?: Element | null; alone?: boolean }
   | { type: 'fill'; window: WindowView }
@@ -104,19 +109,37 @@ function pulled(box: Box, edge: Edge, dx: number, dy: number, desk: Size): Box {
   return { x, y, w, h }
 }
 
-// A window that has no place yet stands in the middle of the desk, a step further for each one before it.
+// The size a window's view asks for, or the one it has until its view arrives.
+const sizeOf = (view: WindowView | null): Size => ({
+  w: view?.frame.size?.w ?? SIZE.w,
+  h: view?.frame.size?.h ?? SIZE.h,
+})
+
+// Where windows float, the room beside the apps; a phone's drawers have none, and keep their own size for later.
+const roomIn = (state: Windows): Room | null =>
+  state.desk && !compact(state) ? (state.room ?? { x: 0, w: state.desk.w }) : null
+
+// A window that has no place yet stands in the middle of the room beside the apps, at the room's width at most, a
+// step further for each one before it.
 function placed(state: Windows): Windows {
   const { desk } = state
   if (!desk) return state
+  const room = roomIn(state)
+  const at = room ?? { x: 0, w: desk.w }
 
   const open = state.open.map((entry, nth) => {
     if (entry.placed) return entry
-    const { w, h } = fit(entry.box, desk)
-    const middle = (room: number) => clamp(Math.round(room / 2) + nth * CASCADE, 0, room)
+    const kept = { ...entry.box, w: Math.min(entry.box.w, room?.w ?? entry.box.w) }
+    const { w, h } = fit(kept, desk)
+    const step = nth * CASCADE
     return {
       ...entry,
       placed: true,
-      box: { ...entry.box, x: middle(desk.w - w), y: middle(desk.h - h) },
+      box: {
+        ...kept,
+        x: clamp(at.x + Math.round((at.w - w) / 2) + step, 0, desk.w - w),
+        y: clamp(Math.round((desk.h - h) / 2) + step, 0, desk.h - h),
+      },
     }
   })
   return { ...state, open }
@@ -132,7 +155,8 @@ const entry = (path: string, view: WindowView | null, opener?: Element | null): 
   opener,
   mode: 'float',
   was: 'float',
-  box: { x: 0, y: 0, ...(oneSize[windowOf(path) as keyof typeof oneSize] ?? SIZE) },
+  // A system window keeps its one size before its view arrives.
+  box: { x: 0, y: 0, ...(oneSize[windowOf(path) as keyof typeof oneSize] ?? sizeOf(view)) },
   placed: false,
 })
 
@@ -140,6 +164,7 @@ export const start = (window: WindowView | null): Windows => ({
   open: window ? [entry(window.path, window)] : [],
   z: window ? [windowOf(window.path)] : [],
   desk: null,
+  room: null,
   sizing: null,
   starting: [],
 })
@@ -193,8 +218,9 @@ export function manager(state: Windows, action: Action): Windows {
   switch (action.type) {
     case 'desk': {
       const desk = { w: action.w, h: action.h }
+      const room = action.room ?? null
       const before = state.desk
-      if (before?.w === desk.w && before.h === desk.h) return state
+      if (before?.w === desk.w && before.h === desk.h && state.room?.x === room?.x) return state
       // A window that stood inside the desk stays inside it when the desk shrinks.
       const kept = (at: number, size: number, room: number, left: number) =>
         at >= 0 && at + size <= room ? clamp(at, 0, left) : at
@@ -206,7 +232,7 @@ export function manager(state: Windows, action: Action): Windows {
         const y = kept(was.y, was.h, before.h, desk.h - now.h)
         return { ...one, box: { ...one.box, x, y } }
       })
-      const measured = placed({ ...state, open, desk })
+      const measured = placed({ ...state, open, desk, room })
       return state.starting.length
         ? manager(measured, { type: 'start', windows: state.starting })
         : measured
@@ -237,7 +263,23 @@ export function manager(state: Windows, action: Action): Windows {
     // A view that comes after its window went elsewhere is not shown.
     case 'fill': {
       const one = find(state, action.window.path)
-      return one?.at === action.window.path ? change(one.path, { view: action.window }) : state
+      if (one?.at !== action.window.path) return state
+      if (one.pulled) return change(one.path, { view: action.window })
+      // Until the visitor sizes it, the window takes the size its view asks for, about the same middle once placed.
+      const asked = sizeOf(action.window)
+      const { desk } = state
+      if (!desk || !one.placed)
+        return change(one.path, { view: action.window, box: { ...one.box, ...asked } })
+      const room = roomIn(state)
+      const kept = { ...one.box, ...asked, w: Math.min(asked.w, room?.w ?? asked.w) }
+      const was = fit(one.box, desk)
+      const { w, h } = fit(kept, desk)
+      const box = {
+        ...kept,
+        x: clamp(was.x + Math.round((was.w - w) / 2), 0, desk.w - w),
+        y: clamp(was.y + Math.round((was.h - h) / 2), 0, desk.h - h),
+      }
+      return change(one.path, { view: action.window, box })
     }
     case 'restore': {
       // One entry a window, though a tab may have kept two paths of it.
@@ -277,8 +319,9 @@ export function manager(state: Windows, action: Action): Windows {
     }
     case 'remember': {
       const box = (path: string) => action.windows.find((one) => windowOf(one.at) === path)?.box
+      // A remembered box is the visitor's, which no view's size replaces.
       const kept = (one: Entry): Entry =>
-        box(one.path) ? { ...one, box: box(one.path)!, placed: true } : one
+        box(one.path) ? { ...one, box: box(one.path)!, placed: true, pulled: true } : one
       const back = action.windows
         .filter(
           (one, at, all) =>
@@ -357,7 +400,7 @@ export function manager(state: Windows, action: Action): Windows {
         state.desk!,
       )
       return {
-        ...change(action.path, { box }, [...others(action.path), action.path]),
+        ...change(action.path, { box, pulled: true }, [...others(action.path), action.path]),
         sizing: null,
       }
     }
@@ -383,7 +426,8 @@ export function manager(state: Windows, action: Action): Windows {
       }[action.where]
       // A window of one size can only be centred.
       if (target.view?.frame.oneSize && action.where !== 'centre') return state
-      return change(target.path, { box, mode: 'float' })
+      // Where the visitor puts it, the size is theirs.
+      return change(target.path, { box, mode: 'float', pulled: true })
     }
   }
 }
