@@ -1058,7 +1058,7 @@ describe('About', () => {
     const about = (await view('/about', 'en')).window?.about
     expect(about?.facts[0]).toEqual({ label: 'Made in', value: 'Somewhere' })
     expect(about?.inside).toMatchObject({
-      picture: { alt: 'A sun drawn in dots', live: true },
+      picture: { alt: 'A sun drawn in dots', live: 'portrait' },
       title: 'A heading behind the plate.',
       actions: [
         { href: '/contact', label: 'Write' },
