@@ -21,6 +21,8 @@ export type FormView = ReturnType<typeof framed> & {
   note: string | null
   // Where the message goes, which a slip shows, and the privacy policy every form leads to.
   to?: string
+  // Where the postmark of a sent slip says it was received.
+  place?: string
   privacy?: { href: string; title: string; lang?: 'en' | 'de' } | null
 }
 

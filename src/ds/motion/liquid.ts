@@ -3,7 +3,8 @@ import { duration, still } from './vocabulary'
 
 export type { Picture } from './engine'
 
-// Draws the picture and lets the pointer stir it until left alone, and returns what stops it.
+// Draws the picture and lets the pointer stir it until left alone, and returns what stops it, which can also splash it
+// from a point in its cells.
 export function pour(canvas: HTMLCanvasElement, picture: Picture) {
   const { step } = picture
   const dots = engine(picture)
@@ -112,7 +113,7 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
   canvas.addEventListener('pointerdown', onDown)
   canvas.addEventListener('pointerleave', onLeave)
 
-  return () => {
+  const stop = () => {
     cancelAnimationFrame(request)
     watcher.disconnect()
     settings.disconnect()
@@ -121,4 +122,11 @@ export function pour(canvas: HTMLCanvasElement, picture: Picture) {
     canvas.removeEventListener('pointerdown', onDown)
     canvas.removeEventListener('pointerleave', onLeave)
   }
+  return Object.assign(stop, {
+    splash(x: number, y: number) {
+      if (still()) return
+      dots.splash(x, y)
+      stirred()
+    },
+  })
 }

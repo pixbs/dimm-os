@@ -222,6 +222,8 @@ const formWords = (t: Dictionary): FormWords => ({
   address: t.formAddress,
   failed: t.formFailed,
   sent: t.formSent,
+  received: t.formReceived,
+  postmark: t.formPostmark,
   reply: t.formReply,
   again: t.formNew,
 })

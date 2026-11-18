@@ -12,6 +12,7 @@ import { Row } from '../molecules/Row'
 import { Choices, Toggle } from '../molecules/Toggle'
 import { duration } from '../motion/vocabulary'
 import { Message } from './Message'
+import { Postmark } from './Postmark'
 import { Prose } from './Prose'
 import { Stamp } from './Record'
 
@@ -23,6 +24,8 @@ export type FormWords = {
   address: string
   failed: string
   sent: string
+  received: string
+  postmark: string
   reply: string
   again: string
 }
@@ -120,6 +123,7 @@ export function Form(props: {
   submit: string | null
   privacy: { href: string; title: string; lang?: string } | null
   to: string
+  place: string
   // A slip opens with its record's stamp line and the locked To row.
   slip?: { stamp?: { code: string; note?: string } }
   lang: string
@@ -132,6 +136,7 @@ export function Form(props: {
     invalid: [],
   })
   const [reply, setReply] = useState('')
+  const [sentOn, setSentOn] = useState(new Date(0))
   const opened = useRef(0)
   const element = useRef<HTMLFormElement>(null)
 
@@ -237,6 +242,7 @@ export function Form(props: {
     setReply(
       String(named.map(({ name, kind }) => kind === 'email' && typed[name]).find(Boolean) || ''),
     )
+    setSentOn(new Date())
     setState(id, 'leaving')
     setTimeout(() => setState(id, 'sent'), duration('slow-exit') * 1000)
   }
@@ -247,9 +253,20 @@ export function Form(props: {
     setState(id, 'idle')
   }
 
+  // A slip is stamped with the day it was sent, the day before the month, as a postmark has it.
+  const stamp = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(props.lang, options).format(sentOn)
+  const day = `${stamp({ day: 'numeric' })} ${stamp({ month: 'short' })}`
+  const year = stamp({ year: 'numeric' })
+  const on = (words: string) =>
+    words.replace('{place}', props.place).replace('{date}', `${day} ${year}`)
+
   if (state === 'sent')
     return (
       <div className="form__sent" role="status">
+        {slip && (
+          <Postmark date={{ day, year }} label={on(words.postmark)} words={on(words.received)} />
+        )}
         <Message
           action={{ label: words.again, onClick: again }}
           text={reply ? words.reply.replace('{email}', reply) : ''}

@@ -144,6 +144,9 @@
   --screw-slot: -32deg;
   --screw-turn: -540deg;
   --screw-out: 1.9;
+  /* a postmark: how far it is turned, and the size it falls from */
+  --postmark-turn: -8deg;
+  --postmark-from: 1.5;
   /* what animates on the page itself, and what may still change over time with reduced motion */
   --m-moves: transform, opacity;
   --m-fades:
