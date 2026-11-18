@@ -9,7 +9,7 @@ let payload: Payload
 let form: Form
 
 const TITLE = 'Forms, a test form'
-const EMAIL = 'forms-content@example.com'
+const EMAILS = ['forms-admin@example.com', 'forms-content@example.com']
 const KEY = 'a-local-api-key-for-the-forms-content-user'
 const trusted = { depth: 0, draft: false, fallbackLocale: false, overrideAccess: true } as const
 
@@ -37,7 +37,7 @@ async function clean() {
   const ids = docs.map(({ id }) => id)
   await payload.delete({ collection: 'form-submissions', where: { form: { in: ids } }, ...trusted })
   await payload.delete({ collection: 'forms', where: { id: { in: ids } }, ...trusted })
-  await payload.delete({ collection: 'users', where: { email: { equals: EMAIL } }, ...trusted })
+  await payload.delete({ collection: 'users', where: { email: { in: EMAILS } }, ...trusted })
 }
 
 beforeAll(async () => {
@@ -110,11 +110,15 @@ describe('a message sent through a form', () => {
 
 describe('the content user', () => {
   it('edits forms and reads no submission', async () => {
-    await payload.create({
-      collection: 'users',
-      data: { email: EMAIL, password: 'a-local-password', role: 'content', apiKey: KEY },
-      ...trusted,
-    })
+    const user = (email: string, role: 'admin' | 'content', apiKey?: string) =>
+      payload.create({
+        collection: 'users',
+        data: { email, password: 'a-local-password', role, ...(apiKey ? { apiKey } : {}) },
+        ...trusted,
+      })
+    // The admin first, since the first user of an empty database is always the admin.
+    await user(EMAILS[0], 'admin')
+    expect((await user(EMAILS[1], 'content', KEY)).role).toBe('content')
     const headers = { Authorization: `users API-Key ${KEY}` }
     expect((await rest(`/forms/${form.id}?depth=0`, { headers })).status).toBe(200)
     expect((await rest('/form-submissions?depth=0', { headers })).status).toBe(403)
