@@ -135,10 +135,10 @@ export function Page(props: {
       foot={props.foot}
       head={
         <RecordHead stamp={props.stamp}>
-          <Heading level="heading" title={t.madeBy} />
+          {aside.title && <Heading level="heading" title={aside.title} />}
         </RecordHead>
       }
-      label={t.madeBy}
+      label={aside.title ?? undefined}
       name="record"
     >
       <List ruled>

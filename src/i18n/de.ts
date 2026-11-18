@@ -79,7 +79,6 @@ const de: Dictionary = {
   leftHalf: 'Linke Hälfte',
   light: 'Hell',
   lock: 'Bildschirm sperren',
-  madeBy: 'Anbieter',
   menu: 'Menü',
   menuBar: 'Menüleiste',
   minimise: 'Minimieren',

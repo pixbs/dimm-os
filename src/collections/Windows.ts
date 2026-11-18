@@ -251,6 +251,12 @@ export const Windows: CollectionConfig = {
                   ],
                   admin: { layout: 'horizontal' },
                 },
+                {
+                  name: 'title',
+                  type: 'text',
+                  label: 'Title',
+                  admin: { condition: (_, siblingData) => siblingData?.type === 'record' },
+                },
                 ...[facts('facts', 'Facts'), buttons('actions')].map((field) => ({
                   ...field,
                   admin: {

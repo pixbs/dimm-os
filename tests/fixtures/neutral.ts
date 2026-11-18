@@ -41,6 +41,7 @@ type Fixture = Partial<
     | { type: 'contents' }
     | {
         type: 'record'
+        title: Words
         facts: { en: [string, string][]; de: [string, string][] }
         actions: { url: string; label: Words }[]
       }
@@ -838,6 +839,7 @@ const windows: Fixture[] = [
     },
     aside: {
       type: 'record',
+      title: { en: 'A record', de: 'Ein Vermerk' },
       facts: {
         en: [
           ['A label', 'Its value'],
@@ -992,6 +994,7 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
           aside.type === 'record'
             ? {
                 type: aside.type,
+                title: aside.title[language],
                 facts: aside.facts[language].map(([label, value]) => ({ label, value })),
                 actions: aside.actions.map(({ url, label }) => ({
                   type: 'address' as const,

@@ -76,7 +76,6 @@ const en = {
   leftHalf: 'Left half',
   light: 'Light',
   lock: 'Lock screen',
-  madeBy: 'Made by',
   menu: 'Menu',
   menuBar: 'Menu bar',
   minimise: 'Minimise',

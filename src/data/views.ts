@@ -109,7 +109,12 @@ export type WindowView = {
   // has neither that nor a document.
   aside?:
     | { type: 'contents' }
-    | { type: 'record'; facts: { label: string; value: string }[]; actions: FootButton[] }
+    | {
+        type: 'record'
+        title: string | null
+        facts: { label: string; value: string }[]
+        actions: FootButton[]
+      }
     | null
   // When its document last changed, in words, as a record states it at its foot.
   updated?: string | null
@@ -518,6 +523,7 @@ async function views(language: Language, viewer: Viewer) {
         : kept === 'record'
           ? {
               type: 'record',
+              title: doc.aside?.title || null,
               facts: (doc.aside?.facts ?? []).map(({ label, value }) => ({ label, value })),
               actions: (doc.aside?.actions ?? []).flatMap(button(one.lang)),
             }

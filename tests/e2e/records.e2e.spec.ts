@@ -35,7 +35,7 @@ test.describe('Paper and aside', () => {
     page,
   }) => {
     await page.goto('/imprint', { waitUntil: 'networkidle' })
-    const card = win(page, 'Imprint').getByRole('region', { name: 'Made by' })
+    const card = win(page, 'Imprint').getByRole('region', { name: 'A record' })
 
     await expect(card.locator('.record__stamp')).toContainText('FIX/IMP.01')
     await expect(card.locator('.list[data-ruled] .row__label')).toHaveText([

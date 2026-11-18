@@ -51,7 +51,7 @@ export function RecordFoot({ start, end }: { start?: ReactNode; end?: ReactNode 
 // actions. It stays where the page puts it.
 export function RecordCard(props: {
   name: string
-  label: string
+  label?: string
   head: ReactNode
   children: ReactNode
   foot?: ReactNode
