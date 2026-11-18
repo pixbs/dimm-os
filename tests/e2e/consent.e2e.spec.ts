@@ -2,8 +2,6 @@ import type { Page } from '@playwright/test'
 
 import { expect, test } from './test'
 
-const win = (page: Page) =>
-  page.locator('article[aria-label="Cookies"], article[aria-label^="cookies"]').first()
 const consent = (page: Page) =>
   page.evaluate(() => JSON.parse(localStorage.getItem('consent') ?? 'null'))
 // What analytics would leave on the device: a cookie or a stored value of its own.
