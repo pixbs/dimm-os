@@ -9,6 +9,7 @@ import * as migration_20261117_063327_cards from './20261117_063327_cards';
 import * as migration_20261117_084432_collections_in_sections from './20261117_084432_collections_in_sections';
 import * as migration_20261117_231451_about from './20261117_231451_about';
 import * as migration_20261118_165306_record_card_title from './20261118_165306_record_card_title';
+import * as migration_20261118_173904_forms from './20261118_173904_forms';
 
 export const migrations = [
   {
@@ -64,6 +65,11 @@ export const migrations = [
   {
     up: migration_20261118_165306_record_card_title.up,
     down: migration_20261118_165306_record_card_title.down,
-    name: '20261118_165306_record_card_title'
+    name: '20261118_165306_record_card_title',
+  },
+  {
+    up: migration_20261118_173904_forms.up,
+    down: migration_20261118_173904_forms.down,
+    name: '20261118_173904_forms'
   },
 ];

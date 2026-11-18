@@ -72,7 +72,7 @@ export function Field(props: Props) {
       data-state={props.state}
     >
       <Label className="row__label" htmlFor={kind ? id : undefined} id={`${id}-label`}>
-        {error && <span className="dot" data-tone="signal" />}
+        {(error || props.invalid) && <span className="dot" data-tone="signal" />}
         <span>
           {label}
           {required && <span aria-hidden="true">{' *'}</span>}

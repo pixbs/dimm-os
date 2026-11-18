@@ -12,6 +12,7 @@ import { relationship } from 'payload/shared'
 import { signedIn } from '@/access'
 import { Cards } from '@/blocks/cards/config'
 import { Facts } from '@/blocks/facts/config'
+import { Form } from '@/blocks/form/config'
 import { Header } from '@/blocks/header/config'
 import { List } from '@/blocks/list/config'
 import { Media } from '@/blocks/media/config'
@@ -33,7 +34,7 @@ import { systemWindows } from '@/system/windows'
 const reserved = [
   ...Object.keys(systemWindows).map((path) => path.split('/')[1]),
   ...languages,
-  ...['login', 'admin', 'api', 'licenses', 'view', 'catalogue'],
+  ...['login', 'admin', 'api', 'licenses', 'view', 'catalogue', 'send'],
 ]
 
 // The system links to these three ordinary windows by their slugs; the two legal ones stay shown and published.
@@ -162,7 +163,7 @@ export const Windows: CollectionConfig = {
               type: 'blocks',
               localized: true,
               labels: { singular: 'Section', plural: 'Sections' },
-              blocks: [Header, Text, Media, Stats, Quote, Facts, Table, List, Cards],
+              blocks: [Header, Text, Media, Stats, Quote, Facts, Table, List, Cards, Form],
             },
           ],
         },
