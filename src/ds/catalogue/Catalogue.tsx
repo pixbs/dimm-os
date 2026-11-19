@@ -91,9 +91,15 @@ export async function Catalogue({ language, name }: { language: Language; name: 
         <Shell language={language} t={t.shell} words={await getDictionary(language)} />
       )}
       {name === 'lists' && <Lists t={t.lists} widths={t.sections.widths} />}
-      {name === 'records' && <Records t={t.records} />}
+      {name === 'records' && <Records language={language} t={t.records} />}
       {name === 'sections' && <Sections t={t.sections} />}
-      {name === 'collections' && <Collections t={t.collections} widths={t.sections.widths} />}
+      {name === 'collections' && (
+        <Collections
+          t={t.collections}
+          widths={t.sections.widths}
+          words={await getDictionary(language)}
+        />
+      )}
     </main>
   )
 }

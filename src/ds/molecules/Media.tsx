@@ -9,7 +9,10 @@ export type MediaProps = {
   // One of the generated visuals, drawn over its picture once script runs.
   live?: ReactNode
   // A cover that is drawn, not uploaded: an accent under the halftone.
-  cover?: 'orange' | 'blue' | 'mint'
+  cover?: 'orange' | 'blue' | 'mint' | 'ink'
+  // The form its halftone draws, and what it shows in words.
+  form?: 'star'
+  alt?: string
   // A tag at its foot, and the button that plays a video or an embed.
   label?: ReactNode
   play?: ReactNode
@@ -18,7 +21,7 @@ export type MediaProps = {
 
 // A box with a fixed ratio that its content fills; empty, it shows the dot grid.
 export function Media(props: MediaProps) {
-  const { ratio, picture, live, cover, label, play, caption } = props
+  const { ratio, picture, live, cover, form, alt, label, play, caption } = props
 
   return (
     <figure
@@ -29,8 +32,18 @@ export function Media(props: MediaProps) {
       <span className="media__box">
         {cover && (
           <>
-            <span className="media__fill" data-surface={cover} />
-            <span className="halftone media__form" data-mask="" />
+            <span
+              className="media__fill"
+              data-ink={cover === 'ink' ? '' : undefined}
+              data-surface={cover === 'ink' ? undefined : cover}
+            />
+            <span
+              aria-label={alt}
+              className="halftone media__form"
+              data-form={form}
+              data-mask=""
+              role={alt ? 'img' : undefined}
+            />
           </>
         )}
         {picture && <Picture {...picture} live={live} />}
@@ -46,7 +59,7 @@ export function Media(props: MediaProps) {
 // own surface, or filled by a picture, which says nothing the name beside it does not.
 export function Avatar(props: {
   size?: 'compact' | 'large'
-  surface?: 'raised' | 'paper'
+  surface?: 'raised' | 'paper' | 'orange'
   picture?: { src: string; position?: string }
   children?: ReactNode
 }) {

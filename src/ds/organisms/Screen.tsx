@@ -2,7 +2,7 @@
 
 import { AnimatePresence } from 'motion/react'
 import * as m from 'motion/react-m'
-import type { ComponentProps, HTMLAttributes, ReactNode } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 
 import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
@@ -18,18 +18,27 @@ export type Tile = 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
 // from 600 px wide and a phone below; filling the browser's window, that is the window's width.
 export function Screen({
   fill,
+  waiting,
+  wallpaper = true,
   className,
   children,
   ...rest
-}: HTMLAttributes<HTMLDivElement> & { fill?: boolean }) {
+}: ComponentProps<'div'> & {
+  fill?: boolean
+  // A screen that waits (starting up, locked, shut down) stands over the desk until it hands over.
+  waiting?: boolean
+  // Its wallpaper pours in when it arrives.
+  wallpaper?: boolean
+}) {
   return (
     <div
       {...rest}
       className={className ? `screen ${className}` : 'screen'}
       data-fill={fill ? '' : undefined}
       data-surface="desktop"
+      data-waiting={waiting ? '' : undefined}
     >
-      <Wallpaper />
+      {wallpaper && <Wallpaper />}
       {children}
     </div>
   )

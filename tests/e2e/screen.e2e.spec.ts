@@ -5,9 +5,18 @@ import { emptyDesk, expect, test } from './test'
 const desk = { width: 1280, height: 720 }
 const phone = { width: 390, height: 844 }
 
+// Each link and the heading of the window it opens; Cookies opens the consent.
 const legal = {
-  '': ['Imprint', 'Privacy', 'Cookies'],
-  '/de': ['Impressum', 'Datenschutz', 'Cookies'],
+  '': [
+    ['Imprint', 'Imprint'],
+    ['Privacy', 'Privacy'],
+    ['Cookies', 'Your consent'],
+  ],
+  '/de': [
+    ['Impressum', 'Impressum'],
+    ['Datenschutz', 'Datenschutz'],
+    ['Cookies', 'Ihre Einwilligung'],
+  ],
 }
 
 type Draw = { at: number; dots: number; ink: number; x: number; y: number }
@@ -199,11 +208,11 @@ test.describe('Screen without script', () => {
   }) => {
     for (const size of [desk, phone]) {
       for (const [language, names] of Object.entries(legal)) {
-        for (const name of names) {
+        for (const [name, heading] of names) {
           await page.setViewportSize(size)
           await page.goto(`${language}/`)
           await page.getByRole('link', { name, exact: true }).click()
-          await expect(page.locator('article h1')).toHaveText(name)
+          await expect(page.locator('article h1')).toHaveText(heading)
           await expect(page.locator('html')).toHaveAttribute('lang', language ? 'de' : 'en')
         }
       }

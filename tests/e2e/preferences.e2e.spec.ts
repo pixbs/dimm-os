@@ -5,7 +5,11 @@ import { emptyDesk, expect, test } from './test'
 const win = (page: Page, name: string) => page.locator(`article[aria-label="${name}"]`)
 const root = (page: Page, name: string) =>
   page.evaluate((name) => document.documentElement.dataset[name], name)
-const stored = (page: Page) => page.evaluate(() => ({ ...localStorage }))
+// What the settings stored, beside the answer to consent the harness gives every test.
+const stored = (page: Page) =>
+  page.evaluate(() =>
+    Object.fromEntries(Object.entries(localStorage).filter(([name]) => name !== 'consent')),
+  )
 const choose = (page: Page, group: string, option: string) =>
   win(page, 'Preferences').getByRole('radiogroup', { name: group }).getByText(option).click()
 

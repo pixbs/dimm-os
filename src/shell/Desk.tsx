@@ -9,9 +9,11 @@ import {
   useReducer,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react'
 
 import type { ListView } from '@/blocks/list/view'
+import { chosen as answered, decide } from '@/consent/choice'
 import type { FootButton, View, WindowView } from '@/data/views'
 import { change } from '@/ds/atoms/settings'
 import { useSetting } from '@/ds/atoms/useSetting'
@@ -21,7 +23,7 @@ import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
-import { duration } from '@/ds/motion/vocabulary'
+import { duration, reduced } from '@/ds/motion/vocabulary'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
@@ -33,6 +35,7 @@ import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 import { aboutWindow } from '@/system/About'
 import { accessibilityWindow } from '@/system/Accessibility'
+import { cookiePreferencesWindow, cookiesWindow } from '@/system/Cookies'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
 
@@ -45,6 +48,7 @@ import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
+import { legalOf, shutDown, type Waiting, WaitingScreen } from './Waiting'
 
 const STORE = 'windows'
 // Where the windows stand, kept on the device while windows are remembered.
@@ -95,6 +99,14 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
   History.prototype[method].call(history, null, '', address)
 }
 
+// Whether this page opened with the intro, as the head decided before first paint, and whether its address is an
+// invitation's link, both read once since the desk then clears the address; the server knows neither.
+let opened: boolean | undefined
+const intro = () => (opened ??= document.documentElement.dataset.intro === 'play')
+let invite: boolean | undefined
+const invitation = () => (invite ??= new URLSearchParams(location.search).has('p'))
+const never = () => () => {}
+
 const pad = (number: number) => String(number).padStart(2, '0')
 
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
@@ -115,7 +127,7 @@ function Body(props: {
   const sections = view.sections.map((section): Placed => {
     if (section.type !== 'list') return section
     const chosen = section === filtering ? filter.chosen : null
-    const shown = filtered(section, chosen, t)
+    const shown = filtered(section, chosen, t, props.language)
     return {
       ...shown,
       reset:
@@ -223,6 +235,8 @@ const formWords = (t: Dictionary): FormWords => ({
   address: t.formAddress,
   failed: t.formFailed,
   sent: t.formSent,
+  received: t.formReceived,
+  postmark: t.formPostmark,
   reply: t.formReply,
   again: t.formNew,
 })
@@ -279,13 +293,13 @@ function parts(
   const counted = (count: number) =>
     (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
       '{count}',
-      String(count),
+      count.toLocaleString(language),
     )
   // The first list that filters is the one the toolbar counts and filters.
   const filtering = view.sections.find(
     (section): section is ListView => section.type === 'list' && !!section.filter,
   )
-  const count = filtering ? filtered(filtering, filter.chosen, t).matching : view.count
+  const count = filtering ? filtered(filtering, filter.chosen, t, language).matching : view.count
   const choices = filtering?.filter ?? []
   const toolbar = parent ? (
     <Bar line="below">
@@ -394,10 +408,24 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // Search is open, and what opened it gets the focus back.
   const [searching, setSearching] = useState<{ opener: Element | null } | null>(null)
   const search = (opener: Element | null) => setSearching({ opener })
+  // The screen that waits over the desk, if one does; an invitation's link stands between the boot and the desk, and
+  // the intro is not replayed where motion is reduced.
+  const [asked, setWaiting] = useState<Waiting | null>()
+  const opening = useSyncExternalStore(never, intro, () => false)
+  const invited = useSyncExternalStore(never, invitation, () => false) && !!view.visitor
+  const waiting = asked !== undefined ? asked : opening ? 'boot' : invited ? 'link' : null
+  function go(next: Waiting | null) {
+    const linking = next === null && waiting === 'boot' && invited && asked === undefined
+    setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
+  }
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
+    // Putting away a window of consent before answering it is a no.
+    const away = ['close', 'minimise', 'escape'].includes(action.type)
+    const of = ('path' in action && action.path) || front(desk)
+    if (away && of && windowOf(of) === '/cookies' && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
     if (action.type === 'desk' || after === desk) return
@@ -440,6 +468,19 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
 
+  // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
+  // the start stand on the measured desk, so the question opens in front of them.
+  const asking = useRef(false)
+  const ask = useEffectEvent(() => {
+    const here = view.window && windowOf(view.window.path) === '/cookies'
+    if (!view.visitor && !here && !answered()) void open(dispatch, '/cookies', null, () => {})
+  })
+  useEffect(() => {
+    if (!asking.current || !desk.desk || desk.starting.length) return
+    asking.current = false
+    ask()
+  }, [desk])
+
   // Back and Forward bring the window of their address to the front, opening it again if it was closed since.
   const arrive = useEffectEvent(() => {
     const { path } = fromAddress(location.pathname)
@@ -470,6 +511,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       remembers()
       const windows = start === 'off' ? [] : view.start
       dispatch({ type: 'start', windows: single === 'on' ? windows.slice(0, 1) : windows })
+      asking.current = true
       return
     }
     const here = view.window && windowOf(view.window.path)
@@ -478,6 +520,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       restored.current = true
       dispatch({ type: 'restore', windows: found.filter((opened) => opened !== null) })
       remembers()
+      asking.current = true
     })
   }, [language, view])
 
@@ -538,6 +581,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   // The keys act from wherever the focus is; the switch on the root is read at each press.
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
+    if (waiting) return
     const single = document.documentElement.dataset.shortcuts !== 'off'
     const action = keyAction(event, view.keys, single, desk)
     const key = pressed(event, view.keys, single)
@@ -562,167 +606,179 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     act({ type: 'task', path: desk.open[index].path, opener })
 
   const other = languages.find((one) => one !== language)!
-  const legal = (
-    [
-      ['/imprint', dictionary.imprint],
-      ['/privacy-policy', dictionary.privacy],
-      ['/cookies', dictionary.cookies],
-    ] as const
-  ).map(([path, label]) => ({ href: toAddress(language, path), label }))
+  const legal = legalOf(dictionary, language)
   const preferences = { href: toAddress(language, '/preferences'), label: dictionary.preferences }
   const [before, after] = dictionary.hotkeyHint.split('{key}')
 
   return (
-    <Screen fill onClick={follow}>
-      <header data-surface="desktop">
-        {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
-        <MenuBar
-          drawer={phone(desk)}
-          label={dictionary.menuBar}
-          menus={menus({
-            t: dictionary,
-            language,
-            name: view.site.name,
-            desk,
-            act,
-            // Once the menu has closed and given the focus back to its button, which gets it again after.
-            search: () => queueMicrotask(() => search(document.activeElement)),
-          })}
-          onDepth={setMenus}
-          size="chrome"
-          t={dictionary}
-        >
-          <BarSpace />
-          <Button
-            data-for="pointer"
-            hint={named(language, systemKeys.search)}
-            icon="search"
-            keyed
-            name={dictionary.search}
-            onClick={(event) => search(event.currentTarget)}
+    <>
+      <Screen fill inert={waiting !== null} onClick={follow}>
+        <header data-surface="desktop">
+          {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
+          <MenuBar
+            drawer={phone(desk)}
+            label={dictionary.menuBar}
+            menus={menus({
+              t: dictionary,
+              language,
+              name: view.site.name,
+              desk,
+              act,
+              lock: () => go('login'),
+              shutDown: () => void shutDown(go),
+              // Once the menu has closed and given the focus back to its button, which gets it again after.
+              search: () => queueMicrotask(() => search(document.activeElement)),
+            })}
+            onDepth={setMenus}
             size="chrome"
-          />
-          <Button
-            data-for="touch"
-            icon="search"
-            name={dictionary.search}
-            onClick={(event) => search(event.currentTarget)}
-            size="chrome"
-          />
-          <Button
-            data-for="desk pointer"
-            icon="contrast"
-            name={dictionary.theme}
-            onClick={() =>
-              change({
-                theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light',
-              })
-            }
-            size="chrome"
-          />
-          <ButtonLink
-            aria-label={dictionary.language}
-            data-for="desk"
-            href={toAddress(other, top ?? '/')}
-            hrefLang={other}
-            label={language.toUpperCase()}
-            size="chrome"
-          />
-          <Button label={dictionary.guest} lead={<Tag>{dictionary.guest[0]}</Tag>} size="chrome" />
-          <Clock language={language} zone={view.site.timezone} />
-        </MenuBar>
-      </header>
-      {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
-      <div className="screen__main">
-        <OnDesk
-          apps={view.shortcuts}
-          desk={desk}
-          dispatch={act}
-          label={dictionary.apps}
-          over={phone(desk) ? unfolded + filtering : 0}
-          t={dictionary}
-        >
-          {(opened, width) =>
-            opened.path === '/hotkeys'
-              ? {
-                  ...hotkeysWindow({
-                    t: dictionary,
-                    language,
-                    name: view.site.name,
-                    apps: view.keys,
-                    lit,
-                    run: (command, opener) => run(commandAction(command, desk), opener),
-                    light,
-                  }),
-                  title: titleOf(opened.path, opened.frame.title),
-                }
-              : opened.path === '/preferences'
-                ? preferencesWindow({
-                    t: dictionary,
-                    language,
-                    site: view.site,
-                    path: opened.path,
-                    close: () => act({ type: 'close', path: opened.path }),
-                  })
-                : opened.path === '/accessibility'
-                  ? accessibilityWindow({
+            t={dictionary}
+          >
+            <BarSpace />
+            <Button
+              data-for="pointer"
+              hint={named(language, systemKeys.search)}
+              icon="search"
+              keyed
+              name={dictionary.search}
+              onClick={(event) => search(event.currentTarget)}
+              size="chrome"
+            />
+            <Button
+              data-for="touch"
+              icon="search"
+              name={dictionary.search}
+              onClick={(event) => search(event.currentTarget)}
+              size="chrome"
+            />
+            <Button
+              data-for="desk pointer"
+              icon="contrast"
+              name={dictionary.theme}
+              onClick={() =>
+                change({
+                  theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light',
+                })
+              }
+              size="chrome"
+            />
+            <ButtonLink
+              aria-label={dictionary.language}
+              data-for="desk"
+              href={toAddress(other, top ?? '/')}
+              hrefLang={other}
+              label={language.toUpperCase()}
+              size="chrome"
+            />
+            <Button
+              data-visitor
+              label={dictionary.guest}
+              lead={<Tag>{dictionary.guest[0]}</Tag>}
+              onClick={() => go('login')}
+              size="chrome"
+            />
+            <Clock language={language} zone={view.site.timezone} />
+          </MenuBar>
+        </header>
+        {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
+        <div className="screen__main">
+          <OnDesk
+            apps={view.shortcuts}
+            desk={desk}
+            dispatch={act}
+            label={dictionary.apps}
+            over={phone(desk) ? unfolded + filtering : 0}
+            t={dictionary}
+          >
+            {(opened, width) =>
+              opened.path === '/hotkeys'
+                ? {
+                    ...hotkeysWindow({
                       t: dictionary,
                       language,
-                      email: view.site.email,
+                      name: view.site.name,
+                      apps: view.keys,
+                      lit,
+                      run: (command, opener) => run(commandAction(command, desk), opener),
+                      light,
+                    }),
+                    title: titleOf(opened.path, opened.frame.title),
+                  }
+                : opened.path === '/preferences'
+                  ? preferencesWindow({
+                      t: dictionary,
+                      language,
+                      site: view.site,
+                      path: opened.path,
                       close: () => act({ type: 'close', path: opened.path }),
                     })
-                  : opened.about
-                    ? aboutWindow({ t: dictionary, about: opened.about, width })
-                    : parts(opened, dictionary, language, width, {
-                        chosen: chosen[opened.path] ?? null,
-                        choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                        drawer: phone(desk),
-                        onDepth: setFiltering,
+                  : opened.path === '/accessibility'
+                    ? accessibilityWindow({
+                        t: dictionary,
+                        language,
+                        email: view.site.email,
+                        close: () => act({ type: 'close', path: opened.path }),
                       })
-          }
-        </OnDesk>
-        <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
-          <Bar>
-            {legal.map((link) => (
-              <ButtonLink key={link.href} {...link} />
+                    : opened.path === '/cookies' || opened.path === '/cookies/preferences'
+                      ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                          t: dictionary,
+                          language,
+                          name: view.site.name,
+                          close: () => act({ type: 'close', path: windowOf(opened.path) }),
+                        })
+                      : opened.about
+                        ? aboutWindow({ t: dictionary, about: opened.about, width })
+                        : parts(opened, dictionary, language, width, {
+                            chosen: chosen[opened.path] ?? null,
+                            choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                            drawer: phone(desk),
+                            onDepth: setFiltering,
+                          })
+            }
+          </OnDesk>
+          <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
+            <Bar>
+              {legal.map((link) => (
+                <ButtonLink key={link.href} {...link} />
+              ))}
+            </Bar>
+            {tasks.length > 0 && (
+              <Dock
+                label={dictionary.windows}
+                onPick={pick}
+                tasks={tasks.map((task, index) => ({
+                  ...task,
+                  name: desk.open[index].view
+                    ? titleOf(desk.open[index].path, desk.open[index].view!.frame.title)
+                    : task.name,
+                }))}
+              />
+            )}
+          </footer>
+        </div>
+        <footer data-for="desk" data-surface="desktop">
+          <Taskbar onPick={pick} size="chrome" tasks={tasks}>
+            <BarText data-for="wide pointer keys">
+              {before}
+              <Key name={named(language, systemKeys.hotkeys)} />
+              {after}
+            </BarText>
+            {[...legal, preferences].map((link) => (
+              <ButtonLink key={link.href} {...link} size="chrome" />
             ))}
-          </Bar>
-          {tasks.length > 0 && (
-            <Dock
-              label={dictionary.windows}
-              onPick={pick}
-              tasks={tasks.map((task, index) => ({
-                ...task,
-                name: desk.open[index].view
-                  ? titleOf(desk.open[index].path, desk.open[index].view!.frame.title)
-                  : task.name,
-              }))}
-            />
-          )}
+          </Taskbar>
         </footer>
-      </div>
-      <footer data-for="desk" data-surface="desktop">
-        <Taskbar onPick={pick} size="chrome" tasks={tasks}>
-          <BarText data-for="wide pointer keys">
-            {before}
-            <Key name={named(language, systemKeys.hotkeys)} />
-            {after}
-          </BarText>
-          {[...legal, preferences].map((link) => (
-            <ButtonLink key={link.href} {...link} size="chrome" />
-          ))}
-        </Taskbar>
-      </footer>
-      <Search
-        drawer={phone(desk)}
-        index={view.search}
-        language={language}
-        name={view.site.name}
-        onClose={() => setSearching(null)}
-        open={!!searching}
-        opener={searching?.opener ?? null}
-        t={dictionary}
-      />
-    </Screen>
+        <Search
+          drawer={phone(desk)}
+          index={view.search}
+          language={language}
+          name={view.site.name}
+          onClose={() => setSearching(null)}
+          open={!!searching}
+          opener={searching?.opener ?? null}
+          t={dictionary}
+        />
+      </Screen>
+      {waiting && <WaitingScreen at={waiting} go={go} t={dictionary} view={view} />}
+    </>
   )
 }

@@ -6,7 +6,7 @@ import { Upload } from './Upload'
 type Props = {
   label: ReactNode
   // One control the field holds; without one, the children are a group the label names.
-  kind?: 'text' | 'email' | 'number' | 'date' | 'area' | 'select' | 'upload'
+  kind?: 'text' | 'email' | 'password' | 'number' | 'date' | 'area' | 'select' | 'upload'
   children?: (labelId: string) => ReactNode
   name?: string
   value?: string
@@ -84,7 +84,11 @@ export function Field(props: Props) {
         </Upload>
       ) : (
         <span className="row__value">
-          {(kind === 'text' || kind === 'email' || kind === 'number' || kind === 'date') && (
+          {(kind === 'text' ||
+            kind === 'email' ||
+            kind === 'password' ||
+            kind === 'number' ||
+            kind === 'date') && (
             <input {...shared} defaultValue={value} placeholder={placeholder} type={kind} />
           )}
           {kind === 'area' && (
