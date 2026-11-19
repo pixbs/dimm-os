@@ -47,4 +47,19 @@ test.describe('A visitor in the admin', () => {
     await expect(page.locator('#field-name')).toHaveValue(`Visitor ${stamp}`)
     await expect(page.locator('#field-link')).toHaveCount(0)
   })
+
+  test('saved again with a new password, has an empty password field', async ({ page }) => {
+    const response = await page.request.post('/api/visitors', {
+      data: { name: `Again ${stamp}`, password: `a-first-password-${stamp}` },
+    })
+    const { id } = (await response.json()).doc
+    made.push(`/api/visitors/${id}`)
+
+    await page.goto(`/admin/collections/visitors/${id}`)
+    await page.fill('#field-password', `a-second-password-${stamp}`)
+    await page.click('#action-save')
+
+    await expect(page.locator('#field-link')).toHaveValue(/\/login#p=a-second-password-/)
+    await expect(page.locator('#field-password')).toHaveValue('')
+  })
 })

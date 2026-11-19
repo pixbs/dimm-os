@@ -1,9 +1,38 @@
 'use client'
 
-import { useEffect, useId, useRef } from 'react'
+import { useContext, useEffect, useId, useRef, useSyncExternalStore } from 'react'
 
 import { pour } from '../motion/liquid'
 import { duration } from '../motion/vocabulary'
+import { Stamping } from './Live'
+
+// A postmark's date: the day before the month, as a postmark has it, and the year.
+export function dateOf(lang: string | undefined, on: Date) {
+  const part = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat(lang, options).format(on)
+  return {
+    day: `${part({ day: 'numeric' })} ${part({ month: 'short' })}`,
+    year: part({ year: 'numeric' }),
+  }
+}
+
+const never = () => () => {}
+
+// The postmark as a picture, dated the visitor's today, which only their device knows, so a page stays static.
+export function Today() {
+  const stamping = useContext(Stamping)
+  const today = useSyncExternalStore(
+    never,
+    () => new Date().toDateString(),
+    () => '',
+  )
+  return (
+    <Postmark
+      date={today ? dateOf(stamping?.lang, new Date(today)) : undefined}
+      words={stamping?.words}
+    />
+  )
+}
 
 // The drawing's own space: two rings around one centre, and the waves of a cancel running off beside them.
 const WIDTH = 576

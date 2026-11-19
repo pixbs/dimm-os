@@ -5,6 +5,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import { revalidateViews } from '@/data/views'
 import type { User, Window } from '@/payload-types'
 
+import { fill } from '../fixtures/neutral'
+
 vi.mock('@/data/views', () => ({ revalidateViews: vi.fn() }))
 
 let payload: Payload
@@ -37,6 +39,15 @@ const signedIn: User = {
 
 type Data = Partial<Window>
 
+const clean = () =>
+  payload.delete({
+    collection: 'windows',
+    depth: 0,
+    locale: 'en',
+    overrideAccess: true,
+    where: { slug: { in: slugs } },
+  })
+
 const create = (data: Data & Pick<Window, 'title'>, locale: 'en' | 'de' = 'en') =>
   payload.create({
     collection: 'windows',
@@ -60,16 +71,16 @@ const read = (id: number, locale: 'en' | 'de', draft: boolean) =>
     overrideAccess: true,
   })
 
+// The two legal windows are the fixture's too, so it is brought back once the tests' own are gone.
+afterAll(async () => {
+  await clean()
+  await fill(payload)
+})
+
 describe('a window', () => {
   beforeAll(async () => {
     payload = await getPayload({ config })
-    await payload.delete({
-      collection: 'windows',
-      depth: 0,
-      locale: 'en',
-      overrideAccess: true,
-      where: { slug: { in: slugs } },
-    })
+    await clean()
   })
 
   it('is valid with a title alone', async () => {
