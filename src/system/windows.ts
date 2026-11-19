@@ -26,9 +26,14 @@ export const oneSize: Partial<Record<keyof typeof systemWindows, { w: number; h:
   '/preferences': { w: 1040, h: 1024 },
   '/about': { w: 940, h: 690 },
   '/hotkeys': { w: 400, h: 760 },
+  '/cookies': { w: 440, h: 670 },
 }
 
 // The system windows that can be resized, and their size on a desk, which is a maximum.
 export const sized: Partial<Record<keyof typeof systemWindows, { w: number; h: number }>> = {
   '/accessibility': { w: 1100, h: 927 },
+  '/cookies/preferences': { w: 840, h: 736 },
 }
+
+// The system windows drawn as paper records.
+export const paper: (keyof typeof systemWindows)[] = ['/cookies', '/cookies/preferences']

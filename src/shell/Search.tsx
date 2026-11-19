@@ -42,7 +42,7 @@ export function Search(props: {
   const key = (...keys: string[]) => named(language, keys)
   const counted = (
     new Intl.PluralRules(language).select(list.length) === 'one' ? t.result : t.results
-  ).replace('{count}', String(list.length))
+  ).replace('{count}', list.length.toLocaleString(language))
 
   function choose() {
     flushSync(() => setChosen(true))
