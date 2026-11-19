@@ -88,6 +88,10 @@ test.describe('Forms', () => {
       'Message sent.I will reply to ana@example.com.',
     )
     await expect(window.getByRole('button', { name: 'Send' })).toHaveCount(0)
+    // It leads to a new slip, as its arrow says.
+    await expect(
+      window.getByRole('button', { name: 'New message' }).locator('.btn__end svg'),
+    ).toBeVisible()
     await window.getByRole('button', { name: 'New message' }).click()
     await expect(window.getByLabel('Message')).toHaveValue('')
 

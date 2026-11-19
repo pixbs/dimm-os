@@ -274,6 +274,8 @@ test.describe('Frontend at an address without a window', () => {
       ['/nothing', 'Not found'],
       ['/work/vault', 'Not found'],
       ['/de/work/nothing', 'Nicht gefunden'],
+      ['/de/nothing.html', 'Nicht gefunden'],
+      ['/en/a.b', 'Not found'],
     ]) {
       const response = await page.goto(path)
       expect(response?.status(), path).toBe(404)
@@ -290,6 +292,11 @@ test.describe('Frontend at an address without a window', () => {
         (await page.request.get(`/view${path.startsWith('/de') ? '' : '/en'}${path}`)).status(),
       ).toBe(404)
     }
+  })
+
+  test('leaves a real file with a dot to load as it is', async ({ request }) => {
+    for (const path of ['/block-previews/cards.png', '/licenses/inter-tight.txt'])
+      expect((await request.get(path)).status(), path).toBe(200)
   })
 
   test('answers 404 at the next request once a window is hidden', async ({ page, request }) => {
