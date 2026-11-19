@@ -275,7 +275,7 @@ export function Form(props: {
           <Postmark date={{ day, year }} label={on(words.postmark)} words={on(words.received)} />
         )}
         <Message
-          action={{ label: words.again, onClick: again, end: 'arrow-right' }}
+          actions={[{ label: words.again, onClick: again, end: 'arrow-right', tone: 'outline' }]}
           text={reply ? words.reply.replace('{email}', reply) : ''}
           title={words.sent}
         />
