@@ -1,6 +1,7 @@
 import { type ReactNode, useId } from 'react'
 
 import { Icon } from '../atoms/Icon'
+import { Button } from './Button'
 import { Upload } from './Upload'
 
 type Props = {
@@ -19,6 +20,10 @@ type Props = {
   // What is wrong and how to fix it, shown once the value is invalid.
   error?: ReactNode
   invalid?: boolean
+  // The error is said as a status message when it comes.
+  announced?: boolean
+  // A password's show button: whether its characters show, and what the button says.
+  reveal?: { shown: boolean; label: string; onClick: () => void }
   required?: boolean
   locked?: boolean
   disabled?: boolean
@@ -55,7 +60,12 @@ export function Field(props: Props) {
         </span>
       )}
       {error && (
-        <span className="row__help" data-error="" id={`${id}-error`}>
+        <span
+          className="row__help"
+          data-error=""
+          id={`${id}-error`}
+          role={props.announced ? 'status' : undefined}
+        >
           {error}
         </span>
       )}
@@ -89,7 +99,14 @@ export function Field(props: Props) {
             kind === 'password' ||
             kind === 'number' ||
             kind === 'date') && (
-            <input {...shared} defaultValue={value} placeholder={placeholder} type={kind} />
+            <input
+              {...shared}
+              // A password manager fills what it knows as the password of this site.
+              autoComplete={kind === 'password' ? 'current-password' : undefined}
+              defaultValue={value}
+              placeholder={placeholder}
+              type={props.reveal?.shown ? 'text' : kind}
+            />
           )}
           {kind === 'area' && (
             <textarea
@@ -113,6 +130,16 @@ export function Field(props: Props) {
           )}
           {props.children?.(`${id}-label`)}
           {notes}
+        </span>
+      )}
+      {props.reveal && (
+        <span className="row__trail">
+          <Button
+            aria-pressed={props.reveal.shown}
+            label={props.reveal.label}
+            onClick={props.reveal.onClick}
+            size="compact"
+          />
         </span>
       )}
       {(kind === 'date' || kind === 'select' || props.locked) && (

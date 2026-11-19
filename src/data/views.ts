@@ -38,6 +38,7 @@ import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
 import { oneSize, paper, sized, systemIcons, systemWindows } from '@/system/windows'
 
+import { visitorOf } from './login'
 import { VISITOR_COOKIE } from './viewer'
 
 // A part shown in another language than the page's carries that language.
@@ -141,8 +142,9 @@ export type WindowView = {
 export type View = {
   language: Language
   site: { name: string; email: string; timezone: string; place: string }
-  // A visitor signed in by a personal link, named, who is never asked for consent; null is a guest.
-  visitor: { name: string } | null
+  // A signed-in visitor, named, with the day this device stays signed in until, who is never asked for consent;
+  // null is a guest.
+  visitor: { name: string; until: string } | null
   // What the boot screen checks and counts: the rows of Site, and the counted window's items.
   boot: {
     rows: { label: string; value: string; status: string }[]
@@ -683,7 +685,15 @@ async function views(language: Language, viewer: Viewer) {
   const desk = {
     language,
     site: about,
-    visitor: viewer && { name: viewer.name },
+    visitor: viewer && {
+      name: viewer.name,
+      until: new Intl.DateTimeFormat(locales[language], {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+        timeZone: about.timezone,
+      }).format(new Date(viewer.expires)),
+    },
     boot,
     shortcuts,
     keys: shown.flatMap(({ doc, path, lang }) =>
@@ -731,21 +741,26 @@ const getGuestMissing = unstable_cache(
   { tags: [TAG] },
 )
 
-// Holding the cookie names no visitor until the login arrives: its holder reads as a guest, uncached.
-const visiting = async () => (await cookies()).has(VISITOR_COOKIE)
+// Who asks: the visitor the cookie names, or a guest, who also holds a cookie that names no one any more.
+const asking = cache(async () => {
+  const cookie = (await cookies()).get(VISITOR_COOKIE)
+  return { held: Boolean(cookie), visitor: cookie ? await visitorOf(cookie.value) : null }
+})
 
-// The view for whoever asks, from a route's segments: cached for a guest, made anew for a visitor. Once per request,
-// as the page and its metadata both ask.
+// The view for whoever asks, from a route's segments: cached for a guest, made anew for the holder of a cookie. Once
+// per request, as the page and its metadata both ask.
 export const getView = cache(async (lang: string, segments: string[] = []) => {
   if (!hasLanguage(lang)) return null
 
   const path = `/${segments.join('/')}`
-  return (await visiting()) ? getWindowView(path, lang, null) : getGuestView(path, lang)
+  const { held, visitor } = await asking()
+  return held ? getWindowView(path, lang, visitor) : getGuestView(path, lang)
 })
 
 // The desk with the 404 window.
 export async function getMissingView(language: Language): Promise<View> {
-  return (await visiting()) ? (await views(language, null)).missing() : getGuestMissing(language)
+  const { held, visitor } = await asking()
+  return held ? (await views(language, visitor)).missing() : getGuestMissing(language)
 }
 
 // Every address a guest can open, in each language: the desk, the windows and the system's.

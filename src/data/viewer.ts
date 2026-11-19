@@ -1,4 +1,4 @@
 import 'server-only'
 
-// Its holder is sent to the uncached pages; until the login arrives, holding it names no visitor.
+// Its holder is sent to the uncached pages, where its signature is read.
 export const VISITOR_COOKIE = 'visitor'

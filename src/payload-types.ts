@@ -1073,6 +1073,7 @@ export interface Visitor {
    */
   password?: string | null;
   hash?: string | null;
+  link?: string | null;
   /**
    * Hidden windows the visitor may open, each with its items.
    */
@@ -1743,6 +1744,7 @@ export interface VisitorsSelect<T extends boolean = true> {
   name?: T;
   password?: T;
   hash?: T;
+  link?: T;
   windows?: T;
   expires?: T;
   updatedAt?: T;

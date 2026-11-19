@@ -38,7 +38,13 @@ test.describe('A visitor in the admin', () => {
 
     await page.waitForURL(/\/admin\/collections\/visitors\/\d+/)
     made.push(`/api/visitors/${page.url().match(/visitors\/(\d+)/)![1]}`)
-    // The password is kept nowhere it could be shown again.
+    // The password is kept nowhere it could be shown again: its link shows in the answer to this save alone.
     await expect(page.locator('#field-password')).toHaveValue('')
+    await expect(page.locator('#field-link')).toHaveValue(
+      new RegExp(`/login#p=a-password-typed-${stamp}\\n.*/privacy-policy$`),
+    )
+    await page.reload()
+    await expect(page.locator('#field-name')).toHaveValue(`Visitor ${stamp}`)
+    await expect(page.locator('#field-link')).toHaveCount(0)
   })
 })

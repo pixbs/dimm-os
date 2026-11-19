@@ -48,7 +48,7 @@ import { menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
-import { legalOf, shutDown, type Waiting, WaitingScreen } from './Waiting'
+import { atLogin, invited, legalOf, shutDown, type Waiting, WaitingScreen } from './Waiting'
 
 const STORE = 'windows'
 // Where the windows stand, kept on the device while windows are remembered.
@@ -99,12 +99,14 @@ function write(method: 'pushState' | 'replaceState', address?: string) {
   History.prototype[method].call(history, null, '', address)
 }
 
-// Whether this page opened with the intro, as the head decided before first paint, and whether its address is an
-// invitation's link, both read once since the desk then clears the address; the server knows neither.
+// Whether this page opened with the intro, as the head decided before first paint, whether a personal link just
+// signed this tab in, and whether its address is the login's, each read once; the server knows none of them.
 let opened: boolean | undefined
 const intro = () => (opened ??= document.documentElement.dataset.intro === 'play')
 let invite: boolean | undefined
-const invitation = () => (invite ??= new URLSearchParams(location.search).has('p'))
+const invitation = () => (invite ??= invited())
+let login: boolean | undefined
+const entering = () => (login ??= atLogin())
 const never = () => () => {}
 
 const pad = (number: number) => String(number).padStart(2, '0')
@@ -412,10 +414,25 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // the intro is not replayed where motion is reduced.
   const [asked, setWaiting] = useState<Waiting | null>()
   const opening = useSyncExternalStore(never, intro, () => false)
-  const invited = useSyncExternalStore(never, invitation, () => false) && !!view.visitor
-  const waiting = asked !== undefined ? asked : opening ? 'boot' : invited ? 'link' : null
+  const linked = useSyncExternalStore(never, invitation, () => false) && !!view.visitor
+  // At the login's address a visitor meets their own screen, and a guest the password.
+  const signing = useSyncExternalStore(never, entering, () => false)
+  const waiting =
+    asked !== undefined
+      ? asked
+      : opening
+        ? 'boot'
+        : linked
+          ? 'link'
+          : signing
+            ? view.visitor
+              ? 'login'
+              : 'other'
+            : null
   function go(next: Waiting | null) {
-    const linking = next === null && waiting === 'boot' && invited && asked === undefined
+    const linking = next === null && waiting === 'boot' && linked && asked === undefined
+    // The desk that follows the login has the desk's address.
+    if (next === null && atLogin()) write('replaceState', toAddress(language, '/'))
     setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
   }
 
@@ -671,8 +688,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             />
             <Button
               data-visitor
-              label={dictionary.guest}
-              lead={<Tag>{dictionary.guest[0]}</Tag>}
+              label={view.visitor?.name ?? dictionary.guest}
+              lead={<Tag>{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
               onClick={() => go('login')}
               size="chrome"
             />
