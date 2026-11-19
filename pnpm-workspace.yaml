@@ -1,5 +1,7 @@
 # Dependencies allowed to run install scripts; any other one fails the install.
 allowBuilds:
+  # Under posthog-js; its script only prints a notice.
+  core-js: false
   esbuild: true
   sharp: true
   unrs-resolver: true

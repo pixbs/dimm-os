@@ -36,6 +36,11 @@ export const registry: Entry[] = [
         kind: { en: 'cookie', de: 'Cookie' },
         kept: { en: '1 year', de: '1 Jahr' },
       },
+      {
+        name: { en: 'ph_*', de: 'ph_*' },
+        kind: { en: 'session storage', de: 'Sitzungsspeicher' },
+        kept: { en: 'Until the tab closes', de: 'Bis der Tab geschlossen wird' },
+      },
     ],
   },
 ]

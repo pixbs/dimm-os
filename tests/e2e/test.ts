@@ -7,6 +7,7 @@ import { file } from '../fixtures/neutral'
 export const test = base.extend<{
   pageErrors: void
   uploads: void
+  analytics: void
   intro: boolean
   played: void
   asked: boolean
@@ -46,6 +47,16 @@ export const test = base.extend<{
           ? route.fulfill({ path: file, contentType: 'image/jpeg' })
           : route.fallback(),
       )
+      await use()
+    },
+    { auto: true },
+  ],
+  // No test reaches the analytics host: what would go there is answered here.
+  analytics: [
+    async ({ page }, use) => {
+      const host = process.env.NEXT_PUBLIC_POSTHOG_HOST
+      if (host)
+        await page.route(`${host}/**`, (route) => route.fulfill({ status: 200, body: '{}' }))
       await use()
     },
     { auto: true },
