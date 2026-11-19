@@ -46,6 +46,7 @@ function Body({ t, about, width }: Props) {
                 picture: {
                   src: picture.src,
                   alt: picture.alt,
+                  lang: picture.lang,
                   position: picture.position,
                   span: Math.ceil(width / 2),
                   still: Boolean(picture.live),

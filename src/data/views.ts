@@ -23,7 +23,7 @@ import { facts, type FactsView } from '@/blocks/facts/view'
 import { form, type FormView } from '@/blocks/form/view'
 import { type Action, type Button, header, type HeaderView } from '@/blocks/header/view'
 import { list, type ListView } from '@/blocks/list/view'
-import type { Listed, Listing } from '@/blocks/listing'
+import type { Listed, Listing, Show, Shown } from '@/blocks/listing'
 import { media, type MediaView } from '@/blocks/media/view'
 import { quote, type QuoteView } from '@/blocks/quote/view'
 import { stats, type StatsView } from '@/blocks/stats/view'
@@ -69,7 +69,7 @@ export type AboutView = {
   memory: string | null
   facts: { label: string; value: string }[]
   inside: {
-    picture: { src: string; alt: string; position: string; live: Media['live'] } | null
+    picture: Shown | null
     title: string | null
     text: string | null
     actions: Action[]
@@ -279,6 +279,22 @@ async function seen(language: Language, viewer: Viewer): Promise<Seen[]> {
   })
 }
 
+// The English words of every picture, which one not written in German yet shows.
+async function words(viewer: Viewer) {
+  const payload = await getPayload({ config })
+  const { docs } = await payload.find({
+    collection: 'media',
+    context: { viewer },
+    depth: 0,
+    fallbackLocale: false,
+    locale: english,
+    overrideAccess: false,
+    pagination: false,
+    select: { alt: true },
+  })
+  return new Map(docs.map(({ id, alt }) => [id, alt]))
+}
+
 const site = async (language: Language, viewer: Viewer) => {
   const payload = await getPayload({ config })
   return payload.findGlobal({
@@ -316,10 +332,11 @@ const site = async (language: Language, viewer: Viewer) => {
 
 // The view of every window at its path, for one viewer in one language, and of the 404 window.
 async function views(language: Language, viewer: Viewer) {
-  const [windows, own, t] = await Promise.all([
+  const [windows, own, t, spoken] = await Promise.all([
     seen(language, viewer),
     site(language, viewer),
     getDictionary(language),
+    language === english ? null : words(viewer),
   ])
   const about = {
     name: own.name ?? '',
@@ -356,6 +373,18 @@ async function views(language: Language, viewer: Viewer) {
     title: doc.title,
     lang: other(lang),
   })
+  // A picture says its words in English where the German is not written yet, and carries that language.
+  const show: Show = (file) =>
+    typeof file === 'object' && file?.url
+      ? {
+          src: file.url,
+          ...(file.alt
+            ? { alt: file.alt }
+            : { alt: spoken?.get(file.id) ?? '', lang: other(english) }),
+          position: `${file.focalX ?? 50}% ${file.focalY ?? 50}%`,
+          live: file.live ?? null,
+        }
+      : null
   // A window this viewer may see, from a relation or a link in running text, which carries its id or itself.
   const byId = new Map(windows.map((one) => [one.doc.id, one]))
   const seenOf = (value: unknown) =>
@@ -398,7 +427,12 @@ async function views(language: Language, viewer: Viewer) {
       description: text,
       image:
         shared && size?.url
-          ? { url: size.url, width: size.width ?? 0, height: size.height ?? 0, alt: shared.alt }
+          ? {
+              url: size.url,
+              width: size.width ?? 0,
+              height: size.height ?? 0,
+              alt: show(shared)!.alt,
+            }
           : null,
     }
   }
@@ -416,14 +450,7 @@ async function views(language: Language, viewer: Viewer) {
       title,
       note: doc.note || null,
       text,
-      picture: picture
-        ? {
-            src: picture.url!,
-            alt: picture.alt,
-            position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-            live: picture.live ?? null,
-          }
-        : null,
+      picture: show(picture),
       facts: (doc.facts ?? []).map(({ label, value }) => ({ label, value })),
       related: relatedOf([doc]),
       icon: doc.icon ?? null,
@@ -481,7 +508,7 @@ async function views(language: Language, viewer: Viewer) {
       case 'text':
         return text(block, html)
       case 'media':
-        return media(block)
+        return media(block, show)
       case 'stats':
         return stats(block)
       case 'quote':
@@ -491,7 +518,7 @@ async function views(language: Language, viewer: Viewer) {
       case 'table':
         return table(block)
       case 'cards':
-        return cards(block, action, listing)
+        return cards(block, action, listing, show)
       case 'list':
         return list(block, {
           to: (window) => linkTo(window)?.href ?? null,
@@ -566,15 +593,7 @@ async function views(language: Language, viewer: Viewer) {
         : null,
       facts: (own.about ?? []).map(({ label, value }) => ({ label, value })),
       inside: {
-        picture:
-          typeof picture === 'object' && picture?.url
-            ? {
-                src: picture.url,
-                alt: picture.alt,
-                position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-                live: picture.live ?? null,
-              }
-            : null,
+        picture: show(picture),
         title: title || null,
         text: text || null,
         actions: (actions ?? []).flatMap((button) => action(button) ?? []),

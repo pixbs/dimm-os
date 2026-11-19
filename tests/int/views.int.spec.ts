@@ -1024,6 +1024,22 @@ describe('German that is not written yet', () => {
     })
   })
 
+  it("shows a picture's English words and says so, and its German words where they are written", async () => {
+    const english = { alt: 'A sun setting over two hills', lang: 'en' }
+    const gallery = (shown: View) => shown.window?.sections.find(({ type }) => type === 'media')
+    const [hello, work, grow, about] = await Promise.all(
+      ['/hello', '/work', '/work/grow', '/about'].map((path) => view(path, 'de')),
+    )
+
+    expect(hello.window?.sections[0]).toMatchObject({ items: [{ picture: english }, {}] })
+    expect(index(work)?.items[0].preview).toMatchObject({ picture: english })
+    expect(gallery(grow)).toMatchObject({ items: [english] })
+    expect(grow.window?.meta?.image).toMatchObject({ alt: english.alt })
+    expect(about.window?.about?.inside.picture).toMatchObject({ alt: 'Eine Sonne aus Punkten' })
+    expect(about.window?.about?.inside.picture?.lang).toBeUndefined()
+    expect(gallery(await view('/work/grow', 'en'))).not.toMatchObject({ items: [{ lang: 'en' }] })
+  })
+
   it('is never shown in a legal window, which has no German view without German', async () => {
     await payload.delete({
       collection: 'windows',

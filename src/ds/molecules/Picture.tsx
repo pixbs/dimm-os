@@ -9,6 +9,8 @@ import { duration, still, usePainted } from '../motion/vocabulary'
 export type Source = {
   src: string | StaticImageData
   alt: string
+  // The language of its words, where it is not the page's.
+  lang?: string
   // How wide it stands at most in its window on a desk, in CSS pixels; in a drawer it spans the screen.
   span: number
   first?: boolean
@@ -64,7 +66,7 @@ function sample(img: HTMLImageElement, ink: string, step: number): Dots {
 }
 
 export function Picture(props: Source & { live?: ReactNode }) {
-  const { src, alt, span, first, position, still: standing, live } = props
+  const { src, alt, lang, span, first, position, still: standing, live } = props
   const host = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
   const server = useRef(painted)
@@ -139,6 +141,7 @@ export function Picture(props: Source & { live?: ReactNode }) {
         alt={alt}
         fetchPriority={first ? 'high' : undefined}
         fill
+        lang={lang}
         loading={first ? 'eager' : undefined}
         sizes={`(max-width: 599px) 100vw, ${span}px`}
         src={src}
