@@ -19,7 +19,8 @@ test.describe('Consent', () => {
     await page.goto('/', { waitUntil: 'networkidle' })
     const asking = page.locator('#window-cookies')
 
-    await expect(asking).toBeVisible()
+    // It stands in front of the windows that open at the start.
+    await expect(asking).toHaveAttribute('data-front')
     await expect(asking).toContainText('PostHog, Inc., USA')
     await expect(asking.getByRole('link', { name: 'Cookies' })).toBeVisible()
     expect(await analytics(page)).toBe(false)
@@ -31,6 +32,17 @@ test.describe('Consent', () => {
 
     await page.reload({ waitUntil: 'networkidle' })
     await expect(page.locator('#window-cookies')).toHaveCount(0)
+  })
+
+  test.describe('after the boot', () => {
+    test.use({ intro: true })
+
+    test('asks in front of the windows of the start', async ({ page }) => {
+      await page.goto('/', { waitUntil: 'networkidle' })
+      await page.keyboard.press('x')
+      await expect(page.locator('.screen[data-waiting]')).toHaveCount(0)
+      await expect(page.locator('#window-cookies')).toHaveAttribute('data-front')
+    })
   })
 
   test('closing the window, or Esc, is a no', async ({ page }) => {
