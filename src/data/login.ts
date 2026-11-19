@@ -5,15 +5,14 @@ import { createHmac, timingSafeEqual } from 'node:crypto'
 import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
 
+import { SENDER_WINDOW } from '@/collections/Senders'
 import { keyed } from '@/collections/Visitors'
+import { senderKey } from '@/data/senders'
 import type { Visitor } from '@/payload-types'
 
 // A person mistypes a few times; a run of wrong passwords past that is a machine, held off for the window.
 const TRIES = 10
 const WINDOW = 15 * 60 * 1000
-const TRIED = 'login-tries'
-
-type Tries = Record<string, { count: number; since: number }>
 
 // A visitor with the keyed hash of their password, which no API shows.
 type Kept = Visitor & { hash: string }
@@ -24,21 +23,30 @@ const read = { depth: 0, limit: 1, overrideAccess: true, pagination: false, show
 const signature = (payload: Payload, id: number, end: number, hash: string) =>
   createHmac('sha256', payload.secret).update(`${id}.${end}.${hash}`).digest('base64url')
 
-// Wrong passwords are counted under a keyed hash of where they came from, never the address itself, and a count
-// past its window is dropped whenever another is written.
+// Each wrong password is a row of the senders' table under a keyed hash of where it came from, never the address
+// itself, so tries sent at once are all counted; rows past the senders' window go at the next wrong try.
 async function limited(payload: Payload, sender: string | null, failed: boolean): Promise<boolean> {
   if (!sender) return false
-  const key = createHmac('sha256', payload.secret).update(sender).digest('hex')
+  const key = senderKey(payload, sender, 'login\n')
   const now = Date.now()
-  const all = (await payload.kv.get<Tries>(TRIED)) ?? {}
-  const tries = Object.fromEntries(
-    Object.entries(all).filter(([, one]) => now - one.since < WINDOW),
-  )
   if (failed) {
-    tries[key] = { count: (tries[key]?.count ?? 0) + 1, since: tries[key]?.since ?? now }
-    await payload.kv.set(TRIED, tries)
+    await payload.delete({
+      collection: 'senders',
+      where: { createdAt: { less_than: new Date(now - SENDER_WINDOW).toISOString() } },
+      depth: 0,
+      overrideAccess: true,
+    })
+    await payload.create({ collection: 'senders', data: { key }, depth: 0, overrideAccess: true })
   }
-  return (tries[key]?.count ?? 0) >= TRIES
+  const { totalDocs } = await payload.count({
+    collection: 'senders',
+    where: {
+      key: { equals: key },
+      createdAt: { greater_than: new Date(now - WINDOW).toISOString() },
+    },
+    overrideAccess: true,
+  })
+  return totalDocs >= TRIES
 }
 
 // The cookie for the visitor a password belongs to, and the day it ends. An empty, a wrong and an expired password

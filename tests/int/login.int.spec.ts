@@ -12,13 +12,17 @@ const names = ['Login, invited', 'Login, expired']
 const password = 'a-password-from-an-invite'
 const gone = () =>
   payload.delete({ collection: 'visitors', overrideAccess: true, where: { name: { in: names } } })
+const senders = () =>
+  payload.find({ collection: 'senders', depth: 0, limit: 100, overrideAccess: true })
+const forget = () =>
+  payload.delete({ collection: 'senders', overrideAccess: true, where: { id: { exists: true } } })
 const save = (data: Partial<Visitor>) =>
   payload.update({ collection: 'visitors', id: visitor.id, data, depth: 0, overrideAccess: true })
 
 beforeAll(async () => {
   payload = await getPayload({ config })
   await gone()
-  await payload.kv.delete('login-tries')
+  await forget()
   visitor = await payload.create({
     collection: 'visitors',
     data: { name: names[0], password } as Visitor,
@@ -35,7 +39,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await gone()
-  await payload.kv.delete('login-tries')
+  await forget()
 })
 
 describe('the login', () => {
@@ -58,7 +62,7 @@ describe('the login', () => {
     expect(signed.expires.toISOString()).toBe(visitor.expires)
     expect(await visitorOf(signed.value)).toMatchObject({ id: visitor.id, name: names[0] })
     expect(await visitorOf(signed.value)).not.toHaveProperty('hash')
-    expect(await payload.kv.get('login-tries')).toBeNull()
+    expect((await senders()).totalDocs).toBe(0)
   })
 
   it('answers an empty, a wrong and an expired password alike, and writes none to a log', async () => {
@@ -96,6 +100,12 @@ describe('the login', () => {
     for (let tries = 0; tries < 10; tries++) expect(await signIn('', '203.0.113.7')).toBeNull()
     expect(await signIn(password, '203.0.113.7')).toBe('limited')
     expect(await signIn(password, '203.0.113.8')).not.toBe('limited')
-    expect(JSON.stringify(await payload.kv.get('login-tries'))).not.toContain('203.0.113')
+    expect(JSON.stringify((await senders()).docs)).not.toContain('203.0.113')
+  })
+
+  it('counts every wrong try sent at once', async () => {
+    await forget()
+    await Promise.all(Array.from({ length: 12 }, () => signIn('', '198.51.100.9')))
+    expect(await signIn(password, '198.51.100.9')).toBe('limited')
   })
 })
