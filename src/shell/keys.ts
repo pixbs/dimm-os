@@ -42,14 +42,16 @@ export function commandAction(command: Command, desk: Windows): Action | 'search
   }
 }
 
-// The one key map: the keys of the system and the letters of the apps. Nothing is pressed while the visitor types in a
-// field, with Alt, or with a key the browser owns; with single keys off, only ⌘K or Ctrl K and Esc are.
+// The one key map: the keys of the system and the letters of the apps. Nothing is pressed with Alt or with a key the
+// browser owns; with single keys off, only ⌘K or Ctrl K and Esc are. While the visitor types in a field only search
+// is, a chord no typing or speech presses by accident; on an Apple device Ctrl K there is the field's own.
 export function pressed(
   press: Press,
   apps: AppKey[],
   singleKeys: boolean,
+  apple = false,
 ): Command | AppKey | null {
-  if (press.defaultPrevented || press.isComposing || press.altKey || held(press.target)) return null
+  if (press.defaultPrevented || press.isComposing || press.altKey) return null
 
   const name = press.key === 'Escape' ? 'esc' : press.key
   const combo = [...(press.metaKey || press.ctrlKey ? ['mod'] : []), name].join(' ').toUpperCase()
@@ -57,6 +59,7 @@ export function pressed(
     (singleKeys || !single(keys)) && keys.join(' ').toUpperCase() === combo
 
   const command = (Object.keys(systemKeys) as Command[]).find((one) => is(systemKeys[one]))
+  if (held(press.target)) return command === 'search' && (press.metaKey || !apple) ? command : null
   return command ?? apps.find((one) => is([one.key])) ?? null
 }
 
@@ -66,8 +69,9 @@ export function keyAction(
   apps: AppKey[],
   singleKeys: boolean,
   desk: Windows,
+  apple = false,
 ): Action | 'search' | null {
-  const key = pressed(press, apps, singleKeys)
+  const key = pressed(press, apps, singleKeys, apple)
   if (!key) return null
   return typeof key === 'string' ? commandAction(key, desk) : { type: 'open', path: key.path }
 }

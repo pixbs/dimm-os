@@ -88,6 +88,46 @@ test.describe('Boot, login and shut down', () => {
     await expect(boot(page).getByText('Memory test')).toBeVisible()
   })
 
+  test('search finds lock, intro and shut down under System, in either language, and Enter runs them', async ({
+    page,
+  }) => {
+    const system = page.getByRole('group', { name: 'System', exact: true })
+    await page.goto('/de', { waitUntil: 'networkidle' })
+    await page.keyboard.press('x')
+    await expect(boot(page)).toHaveCount(0)
+    await page.keyboard.press('Control+k')
+    for (const [typed, title] of [
+      ['lock', 'Bildschirm sperren'],
+      ['intro', 'Intro abspielen'],
+      ['shut', 'Ausschalten'],
+    ]) {
+      await page.getByRole('combobox').fill(typed)
+      await expect(system.getByRole('option')).toHaveCount(1)
+      await expect(system.getByRole('option')).toContainText(title)
+    }
+
+    await page.goto('/imprint', { waitUntil: 'networkidle' })
+    const run = async (typed: string, title: string) => {
+      await page.keyboard.press('Control+k')
+      await page.getByRole('combobox').fill(typed)
+      await expect(page.getByRole('option')).toHaveCount(1)
+      await expect(system.getByRole('option')).toContainText(title)
+      await page.keyboard.press('Enter')
+    }
+    await run('lock', 'Lock screen')
+    await expect(boot(page).getByRole('heading', { name: 'Guest' })).toBeVisible()
+    await boot(page).getByRole('button', { name: 'Enter' }).click()
+    await expect(boot(page)).toHaveCount(0)
+
+    await run('intro', 'Replay intro')
+    await expect(boot(page).getByText('Memory test')).toBeVisible()
+    await page.keyboard.press('x')
+    await expect(boot(page)).toHaveCount(0)
+
+    await run('shut', 'Shut down')
+    await expect(boot(page).getByText('It’s now safe to close this tab.')).toBeVisible()
+  })
+
   test.describe('without script', () => {
     test.use({ javaScriptEnabled: false })
 
