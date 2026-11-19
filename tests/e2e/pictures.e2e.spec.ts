@@ -84,6 +84,18 @@ test.describe('Generated pictures', () => {
     await expect(postmark.locator('canvas')).toBeVisible()
     await expect(window.getByText('Message sent.')).toBeVisible()
   })
+
+  test("a postmark picture is dated the visitor's today, as a sent slip is", async ({ page }) => {
+    await page.clock.install({ time: new Date(2031, 2, 4, 12) })
+    await page.goto('/work/loop')
+    const postmark = work(page).locator('.media__live .postmark')
+
+    await expect(postmark.locator('.postmark__around')).toContainText(
+      'Dimm OS · Somewhere · Message received',
+    )
+    await expect(postmark.locator('.postmark__day')).toHaveText('4 Mar')
+    await expect(postmark.locator('.postmark__year')).toHaveText('2031')
+  })
 })
 
 test.describe('Generated pictures at an address without a window', () => {
