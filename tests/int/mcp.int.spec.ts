@@ -50,14 +50,14 @@ const said = (answer: Answer) => (answer.result?.content ?? []).map(({ text }) =
 const lexical = (text: string) => ({
   root: {
     type: 'root',
-    direction: 'ltr',
+    direction: null,
     format: '',
     indent: 0,
     version: 1,
     children: [
       {
         type: 'paragraph',
-        direction: 'ltr',
+        direction: null,
         format: '',
         indent: 0,
         version: 1,

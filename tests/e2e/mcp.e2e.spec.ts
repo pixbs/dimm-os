@@ -49,14 +49,14 @@ const text = (words: string) => ({
   body: {
     root: {
       type: 'root',
-      direction: 'ltr',
+      direction: null,
       format: '',
       indent: 0,
       version: 1,
       children: [
         {
           type: 'paragraph',
-          direction: 'ltr',
+          direction: null,
           format: '',
           indent: 0,
           version: 1,
