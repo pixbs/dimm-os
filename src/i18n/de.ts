@@ -255,6 +255,11 @@ const de: Dictionary = {
   shutDownTalk: 'Vorher sprechen?',
   skip: 'Zum vorderen Fenster springen',
   system: 'System',
+  systemWords: {
+    lock: 'lock anmelden gast',
+    replay: 'boot start',
+    shutDown: 'shut down herunterfahren schließen',
+  },
   theme: 'Modus',
   turnOn: 'Einschalten',
   under: '{at} / {of}',

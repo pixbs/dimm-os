@@ -18,6 +18,7 @@ export function Search(props: {
   open: boolean
   opener: Element | null
   onClose: () => void
+  onCommand: (command: NonNullable<Found['command']>) => void
   index: Found[]
   drawer: boolean
   name: string
@@ -44,9 +45,10 @@ export function Search(props: {
     new Intl.PluralRules(language).select(list.length) === 'one' ? t.result : t.results
   ).replace('{count}', list.length.toLocaleString(language))
 
-  function choose() {
+  function choose(command?: Found['command']) {
     flushSync(() => setChosen(true))
     props.onClose()
+    if (command) props.onCommand(command)
   }
 
   return (
@@ -61,8 +63,10 @@ export function Search(props: {
         [[key('esc')], t.close],
       ]}
       none={t.nothingMatches.replace('{q}', typed.q.trim())}
-      onChoose={(event) => {
-        if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) choose()
+      onChoose={(event, at) => {
+        // A command is run by any press; a link held with a modifier is the browser's.
+        if (list[at].command) choose(list[at].command)
+        else if (!(event.metaKey || event.ctrlKey || event.shiftKey || event.altKey)) choose()
       }}
       onClear={() => setTyped(empty)}
       onClose={props.onClose}

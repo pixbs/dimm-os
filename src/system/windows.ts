@@ -37,3 +37,10 @@ export const sized: Partial<Record<keyof typeof systemWindows, { w: number; h: n
 
 // The system windows drawn as paper records.
 export const paper: (keyof typeof systemWindows)[] = ['/cookies', '/cookies/preferences']
+
+// The commands of the system that search finds beside its windows, and the mark of each.
+export const systemCommands = {
+  lock: 'user',
+  replay: 'play',
+  shutDown: 'power',
+} as const satisfies Partial<Record<keyof Dictionary, IconName>>

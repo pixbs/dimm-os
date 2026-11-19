@@ -55,6 +55,8 @@ export const Visitors: CollectionConfig = {
       type: 'text',
       virtual: true,
       validate: password,
+      // Read back empty, so the answer to a save clears what was typed: an absent value keeps the form's.
+      hooks: { afterRead: [() => null] },
       // Typed by the owner, though Payload makes a field that is not stored read-only.
       admin: {
         description: 'Kept only as a keyed hash; empty keeps the saved one.',

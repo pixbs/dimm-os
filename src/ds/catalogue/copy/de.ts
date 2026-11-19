@@ -1248,7 +1248,7 @@ const de: Copy = {
       'Teile: Dachzeile · Titel · Text · Aktionen',
       'Was ein Fenster zeigt, wenn es nichts anderes zu zeigen gibt: gesendet, leer, nicht gefunden.',
     ],
-    messageCaps: ['eine Meldung mit einer Aktion', 'kompakt, mit einer Dachzeile'],
+    messageCaps: ['eine Meldung mit Aktionen', 'kompakt, mit einer Dachzeile'],
     messageWords: {
       eyebrow: '404',
       title: 'Titel',

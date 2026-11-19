@@ -2,10 +2,9 @@
 
 import type { AboutView } from '@/data/views'
 import { useSetting } from '@/ds/atoms/useSetting'
-import { Button, ButtonLink } from '@/ds/molecules/Button'
-import { Heading } from '@/ds/molecules/Heading'
 import { Card } from '@/ds/organisms/Card'
 import { Live } from '@/ds/organisms/Live'
+import { Message } from '@/ds/organisms/Message'
 import { Plate } from '@/ds/organisms/Plate'
 import type { Dictionary } from '@/i18n/en'
 import type { Parts } from '@/shell/OnDesk'
@@ -57,25 +56,18 @@ function Body({ t, about, width }: Props) {
               surface="paper"
             />
           )}
-          <div className="message">
-            {(title || text) && (
-              <Heading level="display" text={text ?? undefined} title={title ?? undefined} />
-            )}
-            <div className="actions">
-              {actions.map(({ href, label, lang, download }, at) => (
-                <ButtonLink
-                  download={download}
-                  href={href}
-                  hrefLang={lang}
-                  key={at}
-                  label={label}
-                  lang={lang}
-                  tone={at === 0 ? 'solid' : 'outline'}
-                />
-              ))}
-              <Button label={t.aboutClose} onClick={close} />
-            </div>
-          </div>
+          <Message
+            actions={[
+              ...actions.map((action, at) => ({
+                ...action,
+                tone: at === 0 ? ('solid' as const) : ('outline' as const),
+              })),
+              { label: t.aboutClose, onClick: close },
+            ]}
+            level="display"
+            text={text ?? undefined}
+            title={title ?? undefined}
+          />
         </div>
       )}
       label={say(t.plate, { name: about.name })}

@@ -77,14 +77,14 @@ afterAll(async () => {
 const linked = (...links: object[]) => ({
   root: {
     type: 'root',
-    direction: 'ltr',
+    direction: null,
     format: '',
     indent: 0,
     version: 1,
     children: [
       {
         type: 'paragraph',
-        direction: 'ltr',
+        direction: null,
         format: '',
         indent: 0,
         version: 1,
@@ -92,7 +92,7 @@ const linked = (...links: object[]) => ({
         textStyle: '',
         children: links.map((fields, at) => ({
           type: 'link',
-          direction: 'ltr',
+          direction: null,
           format: '',
           indent: 0,
           version: 1,
@@ -1015,7 +1015,7 @@ describe('German that is not written yet', () => {
       lang: 'en',
       frame: { title: 'Loop' },
       parent: { title: 'Arbeit' },
-      sections: [{ type: 'header', title: 'Loop' }],
+      sections: [{ type: 'header', title: 'Loop' }, { type: 'media' }],
     })
     expect(field.window?.neighbours.next).toEqual({
       href: '/de/work/loop',
