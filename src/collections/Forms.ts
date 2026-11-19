@@ -1,6 +1,7 @@
 import type { PluginConfig } from '@payloadcms/plugin-form-builder/types'
 
 import { isAdmin, signedIn, signedInOrSite } from '@/access'
+import { forAgents } from '@/i18n/voice'
 
 // The system says what happens after a send and mails Site's address, so a form holds only its fields and its button.
 const owned = ['confirmationType', 'confirmationMessage', 'redirect', 'emails']
@@ -26,6 +27,12 @@ export const forms: PluginConfig = {
     access: { read: signedInOrSite, create: signedIn, update: signedIn, delete: signedIn },
     admin: { group: 'Content' },
     authorship: false,
+    llmInstructions: forAgents(
+      'Forms',
+      '',
+      '- Field labels are nouns.',
+      '- The confirmation says what happened and what comes next.',
+    ),
     versions: false,
     fields: ({ defaultFields }) =>
       defaultFields.filter((field) => !('name' in field) || !owned.includes(field.name)),

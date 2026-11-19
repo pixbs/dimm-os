@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { signedIn, signedInOrSite } from '@/access'
 import { revalidateChange, revalidateDelete } from '@/hooks/revalidate'
+import { forAgents } from '@/i18n/voice'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -35,6 +36,18 @@ export const Media: CollectionConfig = {
     afterChange: [revalidateChange],
     afterDelete: [revalidateDelete],
   },
-  upload: { focalPoint: true },
+  llmInstructions: forAgents(
+    'Media',
+    '',
+    '- alt says what the picture shows, in one sentence.',
+    '- A caption belongs to the section that shows the picture, not to the picture.',
+  ),
+  upload: {
+    focalPoint: true,
+    // A picture too large to send inline comes by address, from this one host only.
+    pasteURL: process.env.MEDIA_URL_HOST
+      ? { allowList: [{ hostname: process.env.MEDIA_URL_HOST, protocol: 'https' }] }
+      : undefined,
+  },
   versions: false,
 }

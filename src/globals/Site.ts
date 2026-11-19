@@ -6,6 +6,7 @@ import { facts } from '@/fields/facts'
 import { buttons } from '@/fields/link'
 import { dropBareIdsOfGlobal } from '@/hooks/relations'
 import { revalidateGlobal } from '@/hooks/revalidate'
+import { forAgents } from '@/i18n/voice'
 
 // The values the whole system shares. One document that saves directly.
 export const Site: GlobalConfig = {
@@ -14,6 +15,11 @@ export const Site: GlobalConfig = {
   access: { read: signedInOrSite, readVersions: signedIn, update: signedIn },
   admin: { group: 'Content' },
   authorship: false,
+  llmInstructions: forAgents(
+    'Site',
+    '',
+    '- A boot row or plate mark has a label of one or two words and a value of five words at most.',
+  ),
   fields: [
     {
       type: 'row',

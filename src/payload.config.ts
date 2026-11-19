@@ -15,6 +15,7 @@ import { Senders } from './collections/Senders'
 import { Users } from './collections/Users'
 import { Visitors } from './collections/Visitors'
 import { Windows } from './collections/Windows'
+import { mcp } from './mcp'
 import { Site } from './globals/Site'
 
 const filename = fileURLToPath(import.meta.url)
@@ -91,7 +92,7 @@ export default buildConfig({
     const { createFirstAdmin } = await import('./data/first-admin')
     await createFirstAdmin(payload)
   },
-  plugins: [formBuilderPlugin(forms), mcpPlugin({})],
+  plugins: [formBuilderPlugin(forms), mcpPlugin(mcp)],
   // Without a token, as in a local sandbox, files stay on the disk.
   storage: [
     vercelBlobStorage({
