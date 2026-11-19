@@ -11,6 +11,7 @@ import { fileURLToPath } from 'url'
 
 import { forms } from './collections/Forms'
 import { Media } from './collections/Media'
+import { Senders } from './collections/Senders'
 import { Users } from './collections/Users'
 import { Visitors } from './collections/Visitors'
 import { Windows } from './collections/Windows'
@@ -26,7 +27,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
   },
-  collections: [Windows, Media, Users, Visitors],
+  collections: [Windows, Media, Users, Visitors, Senders],
   editor: lexicalEditor(),
   // Without a key, as in a local sandbox, Payload writes the mail to its log.
   email: process.env.RESEND_API_KEY
@@ -63,6 +64,7 @@ export default buildConfig({
         outputSchema: [
           { name: 'submissions', type: 'number', required: true },
           { name: 'visitors', type: 'number', required: true },
+          { name: 'senders', type: 'number', required: true },
         ],
         handler: async ({ req }) => {
           const { cleanup } = await import('./data/cleanup')
