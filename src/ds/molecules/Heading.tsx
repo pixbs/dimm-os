@@ -12,12 +12,18 @@ export function Heading(props: {
   // The title of the page, which a window holds once; one under the heading of a section ranks below it.
   page?: boolean
   under?: boolean
+  // Kept for assistive technology and search engines where the window's bar already shows it.
+  unseen?: boolean
 }) {
-  const { level, eyebrow, title, text, page, under } = props
+  const { level, eyebrow, title, text, page, under, unseen } = props
   const Title = page ? 'h1' : under ? 'h3' : 'h2'
 
   return (
-    <div className="hgroup" data-level={level === 'title' ? undefined : level}>
+    <div
+      className="hgroup"
+      data-level={level === 'title' ? undefined : level}
+      data-unseen={unseen || undefined}
+    >
       {eyebrow && <p className="hgroup__eyebrow">{eyebrow}</p>}
       {title && <Title className="hgroup__title">{title}</Title>}
       {text && <p className="hgroup__text">{text}</p>}

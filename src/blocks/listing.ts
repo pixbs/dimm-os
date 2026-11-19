@@ -26,6 +26,7 @@ export type Listed = {
   facts: { label: string; value: string }[]
   related: Action[]
   icon: IconName | null
+  kind: string | null
 }
 
 // The items of a window this viewer may see, and every window they relate to, in the order of the windows; null where

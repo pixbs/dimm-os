@@ -34,6 +34,7 @@ import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
+import { shared } from '@/shell/filtered'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
 import { oneSize, paper, sized, systemIcons, systemWindows } from '@/system/windows'
@@ -133,6 +134,8 @@ export type WindowView = {
   // How many items it has, and as an item, which shows in its parent's window: the way back, its place among
   // the items, and the items beside it.
   count: number
+  // The kind its items share, which names them in its count.
+  kind: string | null
   parent: Link | null
   counters: { position: number; total: number } | null
   neighbours: { previous: Link | null; next: Link | null }
@@ -427,6 +430,7 @@ async function views(language: Language, viewer: Viewer) {
       facts: (doc.facts ?? []).map(({ label, value }) => ({ label, value })),
       related: relatedOf([doc]),
       icon: doc.icon ?? null,
+      kind: doc.kind ?? null,
     }
   }
   const listing: Listing = (window) => {
@@ -549,8 +553,8 @@ async function views(language: Language, viewer: Viewer) {
 
   // The counted window's items are of one kind, which names them, or are items.
   const countedWords = (counted: Seen) => {
-    const [kind, ...others] = new Set(itemsOf(counted).map(({ doc }) => doc.kind ?? ''))
-    return (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+    const kind = shared(itemsOf(counted).map(({ doc }) => doc.kind))
+    return (kind && kinds[kind]?.counted) || { one: t.item, other: t.items }
   }
   const plate = (): AboutView => {
     const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
@@ -631,6 +635,7 @@ async function views(language: Language, viewer: Viewer) {
         : null,
       sections: sectionsOf(one),
       count: items.length,
+      kind: shared(items.map(({ doc }) => doc.kind)),
       parent: parent ? link(parent) : null,
       counters: parent ? { position: at + 1, total: siblings.length } : null,
       neighbours: { previous: parent ? beside(-1) : null, next: parent ? beside(1) : null },

@@ -33,6 +33,8 @@ type Item = {
   // It leads to the window the list is in.
   current: boolean
   preview: Preview | null
+  // What an item of a window is typed as.
+  kind: string | null
 }
 
 export type ListView = ReturnType<typeof framed> & {
@@ -90,6 +92,7 @@ const listed =
             action: { href: one.href, label: one.name, lang: one.lang },
           }
         : null,
+    kind: one.kind,
   })
 
 // A list of the items of a window this viewer may not see is absent.
@@ -132,6 +135,7 @@ export function list(block: ListBlock, ways: Ways): ListView | null {
         href,
         current: href === here,
         preview: null,
+        kind: null,
       },
     ]
   })
