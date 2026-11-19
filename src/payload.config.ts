@@ -64,6 +64,7 @@ export default buildConfig({
         outputSchema: [
           { name: 'submissions', type: 'number', required: true },
           { name: 'visitors', type: 'number', required: true },
+          { name: 'senders', type: 'number', required: true },
         ],
         handler: async ({ req }) => {
           const { cleanup } = await import('./data/cleanup')

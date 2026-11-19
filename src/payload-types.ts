@@ -2255,6 +2255,7 @@ export interface TaskCleanup {
   output: {
     submissions: number;
     visitors: number;
+    senders: number;
   };
 }
 /**

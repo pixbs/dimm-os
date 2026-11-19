@@ -5,6 +5,7 @@ import { createHmac } from 'node:crypto'
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
+import { SENDER_WINDOW } from '@/collections/Senders'
 import type { Language } from '@/i18n/address'
 
 // A person takes longer than this to fill a form, and a form left open longer is opened again.
@@ -13,7 +14,6 @@ const LONGEST = 24 * 60 * 60 * 1000
 
 // One sender's messages within a window: a person writes a few, a burst past them is a machine.
 const LIMIT = 5
-const WINDOW = 60 * 60 * 1000
 
 const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -67,7 +67,7 @@ export async function send(input: {
 
   // A sender is counted under a keyed hash of where it came from, and rows past the window are gone at each send.
   if (input.sender) {
-    const since = new Date(Date.now() - WINDOW).toISOString()
+    const since = new Date(Date.now() - SENDER_WINDOW).toISOString()
     const key = createHmac('sha256', payload.secret).update(input.sender).digest('hex')
     await payload.delete({
       collection: 'senders',
