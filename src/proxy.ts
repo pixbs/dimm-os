@@ -8,7 +8,8 @@ function toInternal(pathname: string): string {
   if (pathname.startsWith('/view/')) return pathname
 
   const { language, path } = fromAddress(pathname)
-  return toRoute(language, path)
+  // The login screen stands over the desk.
+  return toRoute(language, path === '/login' ? '/' : path)
 }
 
 const VIEW_TIMEOUT = 3000
@@ -35,6 +36,9 @@ async function missing(request: NextRequest, route: string): Promise<boolean> {
 
 export async function proxy(request: NextRequest) {
   const url = request.nextUrl.clone()
+  // What the login screen posts goes to its route.
+  if (url.pathname === '/login' && request.method !== 'GET' && request.method !== 'HEAD')
+    return NextResponse.next()
   // The cookie's presence alone picks the uncached variant: reading it is the variant's work.
   const visitor = request.cookies.has(VISITOR_COOKIE)
   const route = toInternal(url.pathname)

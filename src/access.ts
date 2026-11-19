@@ -6,6 +6,8 @@ declare module 'payload' {
   export interface RequestContext {
     // Whom the site's own server code reads for: a guest (null) or a visitor, who is never a Payload user.
     viewer?: null | Visitor
+    // A visitor's personal link, which only the answer to the save that set its password shows.
+    link?: string
   }
 }
 

@@ -1,17 +1,18 @@
 import { scrypt } from 'node:crypto'
 
-import type { CollectionConfig, PayloadRequest, TextFieldSingleValidation } from 'payload'
+import type { CollectionConfig, TextFieldSingleValidation } from 'payload'
 
 import { isAdmin } from '@/access'
 import { nested } from '@/hooks/nested'
+import { origin } from '@/i18n/address'
 
 const DAY = 24 * 60 * 60 * 1000
 
 // The same for the same password, so it finds the visitor; keyed with Payload's secret and slow, so a copy of the
 // table gives no password away.
-const keyed = (req: PayloadRequest, password: string) =>
+export const keyed = (secret: string, password: string) =>
   new Promise<string>((resolve, reject) =>
-    scrypt(password, req.payload.secret, 32, (error, key) =>
+    scrypt(password, secret, 32, (error, key) =>
       error ? reject(error) : resolve(key.toString('hex')),
     ),
   )
@@ -25,7 +26,7 @@ const password: TextFieldSingleValidation = async (value, { id, operation, req }
     ...nested(req),
     overrideAccess: true,
     where: {
-      hash: { equals: await keyed(req, value) },
+      hash: { equals: await keyed(req.payload.secret, value) },
       ...(id ? { id: { not_equals: id } } : {}),
     },
   })
@@ -67,12 +68,25 @@ export const Visitors: CollectionConfig = {
       unique: true,
       hooks: {
         beforeChange: [
-          async ({ req, siblingData, value }) =>
-            typeof siblingData.password === 'string' && siblingData.password
-              ? await keyed(req, siblingData.password)
-              : value,
+          async ({ req, siblingData, value }) => {
+            const typed = siblingData.password
+            if (typeof typed !== 'string' || !typed) return value
+            // Only the answer to this save can show the link, as the password is kept nowhere.
+            req.context.link = [
+              `${new URL('/login', origin())}#p=${encodeURIComponent(typed)}`,
+              new URL('/privacy-policy', origin()),
+            ].join('\n')
+            return keyed(req.payload.secret, typed)
+          },
         ],
       },
+    },
+    {
+      name: 'link',
+      type: 'textarea',
+      virtual: true,
+      hooks: { afterRead: [({ req }) => req.context.link] },
+      admin: { components: { Field: '@/collections/VisitorLink#PersonalLink' } },
     },
     {
       name: 'windows',

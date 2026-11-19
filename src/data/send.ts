@@ -1,11 +1,10 @@
 import 'server-only'
 
-import { createHmac } from 'node:crypto'
-
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
 import { SENDER_WINDOW } from '@/collections/Senders'
+import { senderKey } from '@/data/senders'
 import type { Language } from '@/i18n/address'
 
 // A person takes longer than this to fill a form, and a form left open longer is opened again.
@@ -68,7 +67,7 @@ export async function send(input: {
   // A sender is counted under a keyed hash of where it came from, and rows past the window are gone at each send.
   if (input.sender) {
     const since = new Date(Date.now() - SENDER_WINDOW).toISOString()
-    const key = createHmac('sha256', payload.secret).update(input.sender).digest('hex')
+    const key = senderKey(payload, input.sender)
     await payload.delete({
       collection: 'senders',
       where: { createdAt: { less_than: since } },

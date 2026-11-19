@@ -10,6 +10,7 @@ import { Bar, BarSpace, BarText, BarTitle } from '@/ds/molecules/Bar'
 import { Button, ButtonLink } from '@/ds/molecules/Button'
 import { Field } from '@/ds/molecules/Field'
 import { Heading } from '@/ds/molecules/Heading'
+import { Dots } from '@/ds/molecules/Dots'
 import { Avatar } from '@/ds/molecules/Media'
 import { Row } from '@/ds/molecules/Row'
 import { curve, duration, reduced } from '@/ds/motion/vocabulary'
@@ -17,7 +18,7 @@ import { Card } from '@/ds/organisms/Card'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
 import { Section } from '@/ds/sections/Section'
-import { type Language, languages, toAddress } from '@/i18n/address'
+import { fromAddress, type Language, languages, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
 import { useMinute, useZone } from './Clock'
@@ -49,6 +50,34 @@ export const legalOf = (t: Dictionary, language: Language) =>
       ['/cookies', t.cookies],
     ] as const
   ).map(([path, label]) => ({ href: toAddress(language, path), label }))
+
+// The login screen has an address of its own, which a personal link opens.
+export const atLogin = () => fromAddress(location.pathname).path === '/login'
+
+// What a personal link carries after #, which a browser never sends: taken once, and cleared from the address at
+// once, so it reaches no log and no other site.
+let carried: string | null | undefined
+function invitation() {
+  if (carried === undefined) {
+    carried = new URLSearchParams(location.hash.slice(1)).get('p')
+    if (carried) History.prototype.replaceState.call(history, null, '', location.pathname)
+  }
+  const password = carried
+  carried = null
+  return password
+}
+
+// That a personal link signed this tab in, kept across the reload that follows and read once.
+const INVITED = 'invited'
+export function invited() {
+  try {
+    const was = sessionStorage.getItem(INVITED)
+    sessionStorage.removeItem(INVITED)
+    return was !== null
+  } catch {
+    return false
+  }
+}
 
 function Legal({ t, language }: { t: Dictionary; language: Language }) {
   return legalOf(t, language).map((link) => <ButtonLink key={link.href} {...link} size="chrome" />)
@@ -265,12 +294,14 @@ function Top(props: { name: string; off?: boolean; children: ReactNode }) {
   )
 }
 
-// Who comes in: a guest, a visitor signed in by a personal link, or another user with a password.
+// Who comes in: a guest, a signed-in visitor, by a personal link or not, or another user with a password.
 function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) {
   const { language, site } = view
   const screen = useRef<HTMLDivElement>(null)
   const avatar = useRef<HTMLDivElement>(null)
-  const [missing, setMissing] = useState(false)
+  const [answer, setAnswer] = useState<'wrong' | 'limited' | null>(null)
+  const [busy, setBusy] = useState(false)
+  const [shown, setShown] = useState(false)
   const minute = useMinute()
   const timeZone = useZone(site.timezone)
   const format = (options: Intl.DateTimeFormatOptions) =>
@@ -278,18 +309,53 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
       ? ''
       : new Intl.DateTimeFormat(locales[language], { timeZone, ...options }).format(minute * 60000)
   const other = languages.find((one) => one !== language)!
-  const visitor = at === 'link' ? view.visitor : null
+  const visitor = at === 'other' ? null : view.visitor
 
   const enter = async () => {
     await handOver(screen.current!, avatar.current?.firstElementChild, '[data-visitor]', false)
     go(null)
   }
-  // Signing in with the password arrives with the visitors' login; until then an empty field says what to enter.
-  const signIn = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    setMissing(!String(new FormData(event.currentTarget).get('password') ?? '').trim())
+  // Signing in or out reloads the page, as the server draws the desk for whoever asks; from the login's own address
+  // the desk comes next.
+  const reload = () => (atLogin() ? location.replace(toAddress(language, '/')) : location.reload())
+  // The password goes in the body of a request, never in its address.
+  const post = (password: string): Promise<{ in: boolean; limited?: boolean }> =>
+    fetch('/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    }).then(
+      (response) => response.json(),
+      () => ({ in: false }),
+    )
+  const answered = (got: { in: boolean; limited?: boolean }, linked: boolean) => {
+    if (!got.in) {
+      setBusy(false)
+      return setAnswer(got.limited ? 'limited' : 'wrong')
+    }
+    try {
+      if (linked) sessionStorage.setItem(INVITED, '')
+    } catch {
+      // A tab without storage arrives at the desk without the link's screen.
+    }
+    reload()
   }
-  const back = { label: t.loginBack, onClick: () => go('login') }
+  const signOut = async () => {
+    await fetch('/login', { method: 'DELETE' }).catch(() => null)
+    reload()
+  }
+  const typed = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setBusy(true)
+    const password = String(new FormData(event.currentTarget).get('password') ?? '')
+    void post(password).then((got) => answered(got, false))
+  }
+  // A personal link signs in by itself; a link that no longer does leaves its visitor at the password.
+  const linked = useEffectEvent(() => {
+    const password = at === 'other' && invitation()
+    if (password) void post(password).then((got) => answered(got, true))
+  })
+  useEffect(() => linked(), [])
 
   return (
     <Screen fill ref={screen} waiting>
@@ -311,21 +377,33 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
           />
         </Section>
         {at === 'other' ? (
-          <Splash onSubmit={signIn}>
+          <Splash onSubmit={typed}>
             <Avatar size="large">
               <Icon name="lock" />
             </Avatar>
             <Heading level="heading" page title={t.loginOtherTitle} />
             <Field
               above
-              error={t.loginPasswordMissing}
+              announced
+              error={answer === 'limited' ? t.loginTooMany : t.loginPasswordMissing}
               help={t.loginPasswordHelp}
-              invalid={missing}
+              invalid={answer !== null}
               kind="password"
               label={t.loginPassword}
               name="password"
+              reveal={{
+                shown,
+                label: t.loginPasswordShow,
+                onClick: () => setShown((now) => !now),
+              }}
             />
-            <Button end="arrow-right" label={t.loginSignIn} tone="solid" type="submit" />
+            <Button
+              busy={busy ? <Dots count={3} label={t.loginSignIn} on={2} /> : undefined}
+              end="arrow-right"
+              label={t.loginSignIn}
+              tone="solid"
+              type="submit"
+            />
           </Splash>
         ) : (
           <Splash>
@@ -341,20 +419,33 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
             <Heading
               level="heading"
               page
-              text={visitor ? t.loginLink : undefined}
+              text={
+                visitor
+                  ? [at === 'link' && t.loginLink, say(t.loginUntil, { date: visitor.until })]
+                      .filter(Boolean)
+                      .join(' ')
+                  : undefined
+              }
               title={visitor?.name ?? t.guest}
             />
             <Button end="arrow-right" label={t.loginEnter} onClick={enter} tone="solid" />
           </Splash>
         )}
         <div className="screen__foot">
-          {at === 'login' ? (
-            <Button icon="plus" label={t.loginOther} onClick={() => go('other')} />
-          ) : (
+          {visitor ? (
             <Button
+              label={t.loginNotYou}
               lead={<Avatar size="compact">{t.guest[0]}</Avatar>}
-              {...(at === 'link' ? { ...back, label: t.loginNotYou } : back)}
+              onClick={signOut}
             />
+          ) : at === 'other' ? (
+            <Button
+              label={t.loginBack}
+              lead={<Avatar size="compact">{t.guest[0]}</Avatar>}
+              onClick={() => go('login')}
+            />
+          ) : (
+            <Button icon="plus" label={t.loginOther} onClick={() => go('other')} />
           )}
           <nav aria-label={t.system} className="apps">
             <App
