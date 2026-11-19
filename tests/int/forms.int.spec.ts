@@ -38,6 +38,7 @@ async function clean() {
   await payload.delete({ collection: 'form-submissions', where: { form: { in: ids } }, ...trusted })
   await payload.delete({ collection: 'forms', where: { id: { in: ids } }, ...trusted })
   await payload.delete({ collection: 'users', where: { email: { in: EMAILS } }, ...trusted })
+  await payload.delete({ collection: 'senders', where: { id: { exists: true } }, ...trusted })
 }
 
 beforeAll(async () => {
@@ -105,6 +106,36 @@ describe('a message sent through a form', () => {
     })
     expect(await send({ ...base, trap: '', waited: 0 })).toEqual({ ok: true })
     expect(await stored()).toHaveLength(before)
+  })
+})
+
+describe('a sender', () => {
+  const message = (sender: string) =>
+    send({
+      form: form.id,
+      lang: 'en',
+      values: { email: 'ana@example.com', message: 'Hello again' },
+      trap: '',
+      waited,
+      sender,
+    })
+
+  it('sends a few messages, is refused past the limit and keeps nothing more, and others are unaffected', async () => {
+    const sender = '198.51.100.4'
+    for (let at = 0; at < 5; at++) expect(await message(sender)).toEqual({ ok: true })
+    const before = (await stored()).length
+    expect(await message(sender)).toEqual({ ok: false, limited: true })
+    expect(await stored()).toHaveLength(before)
+    expect(await message('203.0.113.7')).toEqual({ ok: true })
+  })
+
+  it('is kept as a keyed hash, never as its address', async () => {
+    const { docs } = await payload.find({ collection: 'senders', limit: 100, ...trusted })
+    expect(docs.length).toBeGreaterThan(0)
+    for (const { key } of docs) {
+      expect(key).toMatch(/^[0-9a-f]{64}$/)
+      expect(key).not.toContain('203.0.113.7')
+    }
   })
 })
 

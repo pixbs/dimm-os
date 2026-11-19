@@ -1,17 +1,26 @@
 import 'server-only'
 
+import { createHmac } from 'node:crypto'
+
 import config from '@payload-config'
 import { getPayload } from 'payload'
 
+import { SENDER_WINDOW } from '@/collections/Senders'
 import type { Language } from '@/i18n/address'
 
 // A person takes longer than this to fill a form, and a form left open longer is opened again.
 const QUICKEST = 3000
 const LONGEST = 24 * 60 * 60 * 1000
 
+// One sender's messages within a window: a person writes a few, a burst past them is a machine.
+const LIMIT = 5
+
 const address = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export type Sent = { ok: true } | { ok: false; missing: string[]; invalid: string[] }
+export type Sent =
+  | { ok: true }
+  | { ok: false; missing: string[]; invalid: string[] }
+  | { ok: false; limited: true }
 
 // A message from a form: checked against the form's own fields, kept as a submission of what was typed alone, and
 // mailed to Site's address. What a bot fills, or sends too soon, is answered as sent and dropped; how long the form
@@ -22,6 +31,8 @@ export async function send(input: {
   values: Record<string, unknown>
   trap: unknown
   waited: unknown
+  // Where it came from, as the request says, or null where it says nothing.
+  sender?: string | null
 }): Promise<Sent | null> {
   const waited = Number(input.waited)
   if (input.trap || !(waited >= QUICKEST && waited <= LONGEST)) return { ok: true }
@@ -53,6 +64,25 @@ export async function send(input: {
     .filter(({ blockType, value }) => blockType === 'email' && value && !address.test(value))
     .map(({ name }) => name)
   if (missing.length || invalid.length) return { ok: false, missing, invalid }
+
+  // A sender is counted under a keyed hash of where it came from, and rows past the window are gone at each send.
+  if (input.sender) {
+    const since = new Date(Date.now() - SENDER_WINDOW).toISOString()
+    const key = createHmac('sha256', payload.secret).update(input.sender).digest('hex')
+    await payload.delete({
+      collection: 'senders',
+      where: { createdAt: { less_than: since } },
+      depth: 0,
+      ...site,
+    })
+    const { totalDocs } = await payload.count({
+      collection: 'senders',
+      where: { key: { equals: key } },
+      ...site,
+    })
+    if (totalDocs >= LIMIT) return { ok: false, limited: true }
+    await payload.create({ collection: 'senders', data: { key }, depth: 0, ...site })
+  }
 
   const filled = typed.filter(({ value }) => value)
   await payload.create({

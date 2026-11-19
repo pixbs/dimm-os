@@ -155,31 +155,32 @@ export type LexicalNodes_AF65A089 =
   | SerializedHeadingNode<LexicalNodes_AF65A089, 'h2' | 'h3' | 'h4'>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "LexicalNodes_91D256A7".
+ * via the `definition` "LexicalNodes_65C08185".
  */
-export type LexicalNodes_91D256A7 =
+export type LexicalNodes_65C08185 =
   | SerializedTextNode
   | SerializedTabNode
   | SerializedLineBreakNode
-  | SerializedParagraphNode<LexicalNodes_91D256A7>
+  | SerializedParagraphNode<LexicalNodes_65C08185>
   | SerializedHorizontalRuleNode
   | SerializedUploadNode<'media'>
-  | SerializedQuoteNode<LexicalNodes_91D256A7>
+  | SerializedQuoteNode<LexicalNodes_65C08185>
   | SerializedRelationshipNode<
       | 'windows'
       | 'users'
       | 'visitors'
+      | 'senders'
       | 'payload-kv'
       | 'payload-jobs'
       | 'payload-locked-documents'
       | 'payload-preferences'
       | 'payload-migrations'
     >
-  | SerializedAutoLinkNode<LexicalNodes_91D256A7, LexicalLinkFields>
-  | SerializedLinkNode<LexicalNodes_91D256A7, LexicalLinkFields>
-  | SerializedListNode<LexicalNodes_91D256A7>
-  | SerializedListItemNode<LexicalNodes_91D256A7>
-  | SerializedHeadingNode<LexicalNodes_91D256A7>;
+  | SerializedAutoLinkNode<LexicalNodes_65C08185, LexicalLinkFields>
+  | SerializedLinkNode<LexicalNodes_65C08185, LexicalLinkFields>
+  | SerializedListNode<LexicalNodes_65C08185>
+  | SerializedListItemNode<LexicalNodes_65C08185>
+  | SerializedHeadingNode<LexicalNodes_65C08185>;
 /**
  * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "LexicalNodes_3DE324E4".
@@ -203,6 +204,7 @@ export interface Config {
     media: Media;
     users: User;
     visitors: Visitor;
+    senders: Sender;
     forms: Form;
     'form-submissions': FormSubmission;
     'payload-kv': PayloadKv;
@@ -218,6 +220,7 @@ export interface Config {
     media: MediaSelect<false> | MediaSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
     visitors: VisitorsSelect<false> | VisitorsSelect<true>;
+    senders: SendersSelect<false> | SendersSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
@@ -911,7 +914,7 @@ export interface Email {
  * via the `definition` "Message".
  */
 export interface Message {
-  message?: LexicalRichText<LexicalNodes_91D256A7> | null;
+  message?: LexicalRichText<LexicalNodes_65C08185> | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'message';
@@ -1083,6 +1086,16 @@ export interface Visitor {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "senders".
+ */
+export interface Sender {
+  id: number;
+  key: string;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
@@ -1247,6 +1260,10 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'visitors';
         value: number | Visitor;
+      } | null)
+    | ({
+        relationTo: 'senders';
+        value: number | Sender;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1750,6 +1767,15 @@ export interface VisitorsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "senders_select".
+ */
+export interface SendersSelect<T extends boolean = true> {
+  key?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "forms_select".
  */
 export interface FormsSelect<T extends boolean = true> {
@@ -2229,6 +2255,7 @@ export interface TaskCleanup {
   output: {
     submissions: number;
     visitors: number;
+    senders: number;
   };
 }
 /**
