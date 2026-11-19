@@ -8,7 +8,10 @@ import type { ListView } from '@/blocks/list/view'
 import { getGuestAddresses, getWindowView, type View } from '@/data/views'
 import type { Media, User, Visitor, Window } from '@/payload-types'
 
+import { keepSite } from './site'
+
 let payload: Payload
+let restoreSite: Awaited<ReturnType<typeof keepSite>>
 
 const languages = ['en', 'de'] as const
 type Language = (typeof languages)[number]
@@ -98,6 +101,7 @@ const rest = (route: string, init?: RequestInit) =>
 
 beforeAll(async () => {
   payload = await getPayload({ config })
+  restoreSite = await keepSite(payload)
   await payload.delete({
     collection: 'visitors',
     overrideAccess: true,
@@ -207,6 +211,7 @@ afterAll(async () => {
     overrideAccess: true,
     where: { email: { in: emails } },
   })
+  await restoreSite()
 })
 
 describe.each(languages)('as a guest, in %s, a hidden window and its items', (locale) => {

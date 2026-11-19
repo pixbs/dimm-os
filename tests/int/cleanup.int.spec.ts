@@ -2,11 +2,13 @@ import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { Form, Site, Visitor } from '@/payload-types'
+import type { Form, Visitor } from '@/payload-types'
+
+import { keepSite } from './site'
 
 let payload: Payload
 let form: Form
-let site: Pick<Site, 'name' | 'email' | 'place' | 'timezone'>
+let restoreSite: Awaited<ReturnType<typeof keepSite>>
 
 const TITLE = 'Cleanup, a test form'
 const NAMES = ['Cleanup, past', 'Cleanup, current']
@@ -52,14 +54,7 @@ async function clean() {
 beforeAll(async () => {
   payload = await getPayload({ config })
   await clean()
-  site = await payload.findGlobal({
-    slug: 'site',
-    select: { name: true, email: true, place: true, timezone: true },
-    draft: false,
-    fallbackLocale: false,
-    locale: 'en',
-    ...trusted,
-  })
+  restoreSite = await keepSite(payload)
   await payload.updateGlobal({
     slug: 'site',
     data: {
@@ -68,6 +63,8 @@ beforeAll(async () => {
       place: 'Somewhere',
       timezone: 'Europe/London',
     },
+    // The window Site counts is checked against what its saver may read: a guest, as the site reads it.
+    context: { viewer: null },
     draft: false,
     fallbackLocale: false,
     locale: 'en',
@@ -87,9 +84,7 @@ afterEach(() => vi.restoreAllMocks())
 
 afterAll(async () => {
   await clean()
-  // Straight to the database, past the required checks: on a fresh database there is nothing kept, and the fixture sets Site itself.
-  const { name, email, place, timezone } = site
-  await payload.db.updateGlobal({ slug: 'site', data: { name, email, place, timezone } })
+  await restoreSite()
 })
 
 describe('the daily cleanup', () => {
