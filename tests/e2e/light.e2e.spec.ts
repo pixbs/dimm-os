@@ -116,7 +116,8 @@ test.describe('Light theme', () => {
     test.setTimeout(900_000)
     for (const language of ['en', 'de']) {
       const view = await (await request.get(`/view/${language}/`)).json()
-      const paths: string[] = view.search.map(({ href }: { href: string }) => href)
+      // A command of the system is a row without an address.
+      const paths: string[] = view.search.flatMap(({ href }: { href?: string }) => href ?? [])
       for (const size of sizes) {
         await page.setViewportSize(size)
         for (const path of paths) {
