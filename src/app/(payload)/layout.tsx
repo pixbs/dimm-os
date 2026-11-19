@@ -7,12 +7,26 @@ import {
   handleServerFunctions,
   RootLayout,
 } from '@payloadcms/next/layouts'
+import localFont from 'next/font/local'
 import React from 'react'
 
 import { importMap } from './admin/importMap.js'
 import './custom.css'
 
 export const generateViewport = generatePayloadViewport
+
+// The admin's typefaces, which Payload otherwise fetches from Google at build time, served from local files.
+const inter = localFont({
+  src: './fonts/inter-latin.woff2',
+  variable: '--font-family-sans',
+  weight: '100 900',
+})
+const robotoMono = localFont({
+  src: './fonts/roboto-mono-latin.woff2',
+  variable: '--font-family-mono',
+  weight: '100 700',
+})
+const fonts = [inter, robotoMono].map(({ className, variable }) => ({ className, variable }))
 
 type Args = {
   children: React.ReactNode
@@ -28,7 +42,7 @@ const serverFunction: ServerFunctionClient = async function (args) {
 }
 
 const Layout = ({ children }: Args) => (
-  <RootLayout config={config} importMap={importMap} serverFunction={serverFunction}>
+  <RootLayout config={config} fonts={fonts} importMap={importMap} serverFunction={serverFunction}>
     {children}
   </RootLayout>
 )

@@ -18,3 +18,7 @@ auditConfig:
   ignoreGhsas:
     # picomatch ReDoS, no patched version; reached only through Payload's type generation, never visitor input.
     - GHSA-fc5q-39xc-vjpf
+# Payload's admin layout loads its fonts from Google at build time; the patch drops that, and the admin's own layout
+# passes them from local files, until Payload offers a setting.
+patchedDependencies:
+  '@payloadcms/next@4.0.0-beta.9': patches/@payloadcms__next@4.0.0-beta.9.patch
