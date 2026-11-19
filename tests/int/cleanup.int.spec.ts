@@ -87,7 +87,7 @@ afterEach(() => vi.restoreAllMocks())
 
 afterAll(async () => {
   await clean()
-  // Straight to the database, so a Site a fresh database left empty is put back empty too.
+  // Straight to the database, past the required checks: on a fresh database there is nothing kept, and the fixture sets Site itself.
   const { name, email, place, timezone } = site
   await payload.db.updateGlobal({ slug: 'site', data: { name, email, place, timezone } })
 })
