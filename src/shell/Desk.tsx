@@ -25,6 +25,7 @@ import { Tag } from '@/ds/molecules/Tag'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration, reduced } from '@/ds/motion/vocabulary'
+import { Stamping } from '@/ds/organisms/Live'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
@@ -709,60 +710,67 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         </header>
         {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
         <div className="screen__main">
-          <OnDesk
-            apps={view.shortcuts}
-            desk={desk}
-            dispatch={act}
-            label={dictionary.apps}
-            over={phone(desk) ? unfolded + filtering : 0}
-            t={dictionary}
+          <Stamping
+            value={{
+              words: dictionary.formReceived.replace('{place}', view.site.place),
+              lang: language,
+            }}
           >
-            {(opened, width) =>
-              opened.path === '/hotkeys'
-                ? {
-                    ...hotkeysWindow({
-                      t: dictionary,
-                      language,
-                      name: view.site.name,
-                      apps: view.keys,
-                      lit,
-                      run: (command, opener) => run(commandAction(command, desk), opener),
-                      light,
-                    }),
-                    title: titleOf(opened.path, opened.frame.title),
-                  }
-                : opened.path === '/preferences'
-                  ? preferencesWindow({
-                      t: dictionary,
-                      language,
-                      site: view.site,
-                      path: opened.path,
-                      close: () => act({ type: 'close', path: opened.path }),
-                    })
-                  : opened.path === '/accessibility'
-                    ? accessibilityWindow({
+            <OnDesk
+              apps={view.shortcuts}
+              desk={desk}
+              dispatch={act}
+              label={dictionary.apps}
+              over={phone(desk) ? unfolded + filtering : 0}
+              t={dictionary}
+            >
+              {(opened, width) =>
+                opened.path === '/hotkeys'
+                  ? {
+                      ...hotkeysWindow({
                         t: dictionary,
                         language,
-                        email: view.site.email,
+                        name: view.site.name,
+                        apps: view.keys,
+                        lit,
+                        run: (command, opener) => run(commandAction(command, desk), opener),
+                        light,
+                      }),
+                      title: titleOf(opened.path, opened.frame.title),
+                    }
+                  : opened.path === '/preferences'
+                    ? preferencesWindow({
+                        t: dictionary,
+                        language,
+                        site: view.site,
+                        path: opened.path,
                         close: () => act({ type: 'close', path: opened.path }),
                       })
-                    : opened.path === '/cookies' || opened.path === '/cookies/preferences'
-                      ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                    : opened.path === '/accessibility'
+                      ? accessibilityWindow({
                           t: dictionary,
                           language,
-                          name: view.site.name,
-                          close: () => act({ type: 'close', path: windowOf(opened.path) }),
+                          email: view.site.email,
+                          close: () => act({ type: 'close', path: opened.path }),
                         })
-                      : opened.about
-                        ? aboutWindow({ t: dictionary, about: opened.about, width })
-                        : parts(opened, dictionary, language, width, {
-                            chosen: chosen[opened.path] ?? null,
-                            choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                            drawer: phone(desk),
-                            onDepth: setFiltering,
+                      : opened.path === '/cookies' || opened.path === '/cookies/preferences'
+                        ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                            t: dictionary,
+                            language,
+                            name: view.site.name,
+                            close: () => act({ type: 'close', path: windowOf(opened.path) }),
                           })
-            }
-          </OnDesk>
+                        : opened.about
+                          ? aboutWindow({ t: dictionary, about: opened.about, width })
+                          : parts(opened, dictionary, language, width, {
+                              chosen: chosen[opened.path] ?? null,
+                              choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                              drawer: phone(desk),
+                              onDepth: setFiltering,
+                            })
+              }
+            </OnDesk>
+          </Stamping>
           <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
             <Bar>
               {legal.map((link) => (
