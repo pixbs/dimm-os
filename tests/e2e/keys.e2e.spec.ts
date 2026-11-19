@@ -72,10 +72,10 @@ test.describe('Hotkeys on a desk', () => {
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
 
       // The key opens the palette, and Esc gives the focus back to what held it.
+      // Only Work is left once the windows closed have gone, and only then has the focus settled to be kept.
+      await expect(page.locator('article')).toHaveCount(1)
       await watch(page)
       await hold(page)
-      // Only Work is left, once the windows closed have gone.
-      await expect(page.locator('article')).toHaveCount(1)
       await page.keyboard.press(`${mod}+k`)
       expect(await taken(page)).toBe(true)
       await expect(page.getByRole('combobox')).toBeFocused()
@@ -86,9 +86,7 @@ test.describe('Hotkeys on a desk', () => {
     })
   }
 
-  test('no key acts while the visitor types in a field, not even Esc or Ctrl K', async ({
-    page,
-  }) => {
+  test('no key acts while the visitor types in a field, not even Esc', async ({ page }) => {
     await page.goto('/work', { waitUntil: 'networkidle' })
     for (const html of ['<input>', '<textarea></textarea>', '<div contenteditable></div>']) {
       // At the top of the body, clear of the edge that resizes the window, however long its content.
@@ -98,7 +96,7 @@ test.describe('Hotkeys on a desk', () => {
       const field = page.locator('#window-work .window__body > :first-child')
       await field.click()
       await page.keyboard.type('wm?,fn')
-      for (const key of ['Escape', 'Control+k']) await page.keyboard.press(key)
+      await page.keyboard.press('Escape')
 
       await expect(field).toBeFocused()
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
@@ -109,6 +107,43 @@ test.describe('Hotkeys on a desk', () => {
       ).toBe('wm?,fn')
     }
   })
+
+  for (const [platform, mod] of [
+    ['Win32', 'Control'],
+    ['MacIntel', 'Meta'],
+  ] as const) {
+    test(`${mod} K opens search from a field, keeps the key from the browser, and gives the field back`, async ({
+      page,
+    }) => {
+      await device(page, platform)
+      await page.goto('/work', { waitUntil: 'networkidle' })
+      await page.evaluate(() => {
+        document
+          .querySelector('#window-work .window__body')!
+          .insertAdjacentHTML('afterbegin', '<input>')
+      })
+      const field = page.locator('#window-work .window__body > :first-child')
+      await field.click()
+      await watch(page)
+
+      // On an Apple device Ctrl K is the field's own.
+      if (platform === 'MacIntel') {
+        await page.keyboard.press('Control+k')
+        expect(await taken(page)).toBe(false)
+        await expect(field).toBeFocused()
+      }
+      await page.keyboard.press(`${mod}+k`)
+      expect(await taken(page)).toBe(true)
+      await expect(page.getByRole('combobox')).toBeFocused()
+      await page.keyboard.press(`${mod}+k`)
+      expect(await taken(page)).toBe(true)
+      await expect(page.getByRole('combobox')).toBeFocused()
+
+      await page.keyboard.press('Escape')
+      await expect(page.getByRole('combobox')).toBeHidden()
+      await expect(field).toBeFocused()
+    })
+  }
 
   test('with single keys switched off, only Ctrl K and Esc act', async ({ page }) => {
     await keep(page, 'shortcuts', 'off')

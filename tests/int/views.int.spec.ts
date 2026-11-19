@@ -77,14 +77,14 @@ afterAll(async () => {
 const linked = (...links: object[]) => ({
   root: {
     type: 'root',
-    direction: 'ltr',
+    direction: null,
     format: '',
     indent: 0,
     version: 1,
     children: [
       {
         type: 'paragraph',
-        direction: 'ltr',
+        direction: null,
         format: '',
         indent: 0,
         version: 1,
@@ -92,7 +92,7 @@ const linked = (...links: object[]) => ({
         textStyle: '',
         children: links.map((fields, at) => ({
           type: 'link',
-          direction: 'ltr',
+          direction: null,
           format: '',
           indent: 0,
           version: 1,
@@ -1015,13 +1015,29 @@ describe('German that is not written yet', () => {
       lang: 'en',
       frame: { title: 'Loop' },
       parent: { title: 'Arbeit' },
-      sections: [{ type: 'header', title: 'Loop' }],
+      sections: [{ type: 'header', title: 'Loop' }, { type: 'media' }],
     })
     expect(field.window?.neighbours.next).toEqual({
       href: '/de/work/loop',
       title: 'Loop',
       lang: 'en',
     })
+  })
+
+  it("shows a picture's English words and says so, and its German words where they are written", async () => {
+    const english = { alt: 'A sun setting over two hills', lang: 'en' }
+    const gallery = (shown: View) => shown.window?.sections.find(({ type }) => type === 'media')
+    const [hello, work, grow, about] = await Promise.all(
+      ['/hello', '/work', '/work/grow', '/about'].map((path) => view(path, 'de')),
+    )
+
+    expect(hello.window?.sections[0]).toMatchObject({ items: [{ picture: english }, {}] })
+    expect(index(work)?.items[0].preview).toMatchObject({ picture: english })
+    expect(gallery(grow)).toMatchObject({ items: [english] })
+    expect(grow.window?.meta?.image).toMatchObject({ alt: english.alt })
+    expect(about.window?.about?.inside.picture).toMatchObject({ alt: 'Eine Sonne aus Punkten' })
+    expect(about.window?.about?.inside.picture?.lang).toBeUndefined()
+    expect(gallery(await view('/work/grow', 'en'))).not.toMatchObject({ items: [{ lang: 'en' }] })
   })
 
   it('is never shown in a legal window, which has no German view without German', async () => {

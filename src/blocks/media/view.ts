@@ -1,14 +1,8 @@
-import type { Media, MediaBlock } from '@/payload-types'
+import type { MediaBlock } from '@/payload-types'
 
-export type Picture = {
-  src: string
-  alt: string
-  caption: string | null
-  // Where the box crops it: the focal point, as an object position.
-  position: string
-  // A live picture: its upload is the still that stands until the system draws over it.
-  live: NonNullable<Media['live']> | null
-}
+import type { Show, Shown } from '../listing'
+
+export type Picture = Shown & { caption: string | null }
 
 export type MediaView = {
   type: 'media'
@@ -21,20 +15,11 @@ export type MediaView = {
 }
 
 // A picture this viewer may not read, or one without a file, is absent; one picture is one column.
-export function media(block: MediaBlock): MediaView | null {
-  const items = block.items.flatMap(({ picture, caption }): Picture[] =>
-    typeof picture === 'object' && picture?.url
-      ? [
-          {
-            src: picture.url,
-            alt: picture.alt,
-            caption: caption || null,
-            position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-            live: picture.live ?? null,
-          },
-        ]
-      : [],
-  )
+export function media(block: MediaBlock, show: Show): MediaView | null {
+  const items = block.items.flatMap(({ picture, caption }): Picture[] => {
+    const shown = show(picture)
+    return shown ? [{ ...shown, caption: caption || null }] : []
+  })
   if (!items.length) return null
   return {
     type: 'media',

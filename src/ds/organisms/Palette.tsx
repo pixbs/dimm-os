@@ -12,9 +12,10 @@ import { Key, Keys } from '../molecules/Key'
 import { Row } from '../molecules/Row'
 import { Dialog } from './Dialog'
 
-// A row: what leads to it, its title cut where the typed letters stand, its kind, and the keys that open it.
+// A row: where it leads, or none for one that acts, its title cut where the typed letters stand, its kind, and the
+// keys that open it.
 type Result = {
-  href: string
+  href?: string
   lang?: string
   icon: IconName
   title: [string, string, string]
@@ -37,8 +38,8 @@ type Props = {
   onType?: (event: ChangeEvent<HTMLInputElement>) => void
   onKey?: (event: KeyboardEvent<HTMLInputElement>) => void
   onClear?: () => void
-  // A row is chosen with a plain press, which follows its link.
-  onChoose?: (event: MouseEvent<HTMLAnchorElement>) => void
+  // A row is chosen with a plain press, which follows its link, and is given by its place.
+  onChoose?: (event: MouseEvent<HTMLElement>, at: number) => void
   results: Result[]
   selected: number
   // What is said when nothing is found, and how many are.
@@ -132,7 +133,7 @@ export function Palette(props: Props) {
                 key={at}
                 lang={row.lang}
                 meta={row.kind}
-                onClick={props.onChoose}
+                onClick={(event) => props.onChoose?.(event, at)}
                 role="option"
                 tabIndex={-1}
                 title={

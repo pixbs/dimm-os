@@ -1217,7 +1217,7 @@ const en = {
       'parts: eyebrow · title · text · actions',
       'What a window shows when there is nothing else to show: sent, empty, not found.',
     ],
-    messageCaps: ['a message with an action', 'compact, with an eyebrow'],
+    messageCaps: ['a message with actions', 'compact, with an eyebrow'],
     messageWords: {
       eyebrow: '404',
       title: 'Title',

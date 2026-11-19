@@ -10,7 +10,7 @@ type Words = { en: string; de?: string }
 type Sections = NonNullable<Window['sections']>
 
 // A picture, and the same file as live pictures, whose upload is their still.
-type Pictures = { still: number; live: number; lost: number }
+type Pictures = { still: number; live: number; lost: number; stamp: number }
 
 // A foot button to a window by its slug, to the fixture's file, or to an address.
 type Button = { window?: string; file?: true; url?: string; label?: Words }
@@ -59,7 +59,7 @@ type Fixture = Partial<
 
 // Running text as the editor stores it, from paragraphs, third-level headings and lists of plain words.
 type Part = string | { h3: string } | { ul: string[] }
-const element = { direction: 'ltr', format: '', indent: 0, version: 1 } as const
+const element = { direction: null, format: '', indent: 0, version: 1 } as const
 const words = (text: string) => [
   { type: 'text', text, format: 0, detail: 0, mode: 'normal', style: '', version: 1 } as const,
 ]
@@ -636,7 +636,7 @@ const windows: Fixture[] = [
       facts: { en: [['Role', 'A role']] },
       related: ['cv'],
     },
-    sections: () => ({
+    sections: (ids, { stamp }) => ({
       en: [
         {
           blockType: 'header',
@@ -645,6 +645,7 @@ const windows: Fixture[] = [
           title: 'Loop',
           text: 'A fixture item not yet written in German.',
         },
+        { blockType: 'media', columns: '1', ratio: '16:9', items: [{ picture: stamp }] },
       ],
     }),
   },
@@ -1023,7 +1024,11 @@ export const file = path.resolve(
   '../../src/ds/catalogue/picture.jpg',
 )
 
-async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Promise<number> {
+async function upload(
+  payload: Payload,
+  data: Pick<Media, 'alt' | 'live'>,
+  german?: string,
+): Promise<number> {
   const {
     docs: [found],
   } = await payload.find({
@@ -1033,14 +1038,23 @@ async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Prom
     locale: 'en',
     ...trusted,
   })
-  if (found) return found.id
-  const { id } = await payload.create({
-    collection: 'media',
-    data,
-    filePath: file,
-    locale: 'en',
-    ...trusted,
-  })
+  const { id } =
+    found ??
+    (await payload.create({
+      collection: 'media',
+      data,
+      filePath: file,
+      locale: 'en',
+      ...trusted,
+    }))
+  if (german)
+    await payload.update({
+      collection: 'media',
+      id,
+      data: { alt: german },
+      locale: 'de',
+      ...trusted,
+    })
   return id
 }
 
@@ -1120,8 +1134,14 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
   ids.form = await fixtureForm(payload)
   const shown = {
     still: await upload(payload, { alt: 'A sun setting over two hills' }),
-    live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
+    // The one picture whose words are written in German too.
+    live: await upload(
+      payload,
+      { alt: 'A sun drawn in dots', live: 'portrait' },
+      'Eine Sonne aus Punkten',
+    ),
     lost: await upload(payload, { alt: 'The numerals 404 in dots', live: 'not-found' }),
+    stamp: await upload(payload, { alt: 'A postmark in dots', live: 'postmark' }),
   }
   for (const { slug, sections, listing } of windows) {
     // Every window has a picture to share.

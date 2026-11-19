@@ -169,11 +169,12 @@ export function Sections(props: {
           <Media
             bleed={lead.bleed}
             columns={lead.columns}
-            items={lead.items.map(({ src, alt, caption, position, live }, index) => ({
+            items={lead.items.map(({ src, alt, lang, caption, position, live }, index) => ({
               caption,
               picture: {
                 src,
                 alt,
+                lang,
                 position,
                 span: Math.ceil(width / across(lead.columns, width)),
                 first: lead === first && index === 0,
