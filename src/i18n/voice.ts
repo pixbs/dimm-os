@@ -68,13 +68,3 @@ Consent — Einwilligung
 Imprint — Impressum
 Privacy — Datenschutz
 `
-
-// How an agent writes over MCP, whatever it writes.
-const writing = `Writing over MCP
-
-- Every write names one language: locale "en" or "de", never "all", and never publishAllLocales. A German write publishes German only.
-- Rich text is Lexical JSON.
-- Pictures up to about 3 MB go inline as base64; a larger one goes by externalURL from the allowed host.`
-
-// What an agent reads with a collection's schema: the voice, how to write, then that collection's own lines.
-export const forAgents = (...lines: string[]) => [voice, writing, lines.join('\n')].join('\n\n')

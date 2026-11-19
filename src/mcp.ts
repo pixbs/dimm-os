@@ -1,5 +1,18 @@
 import type { MCPPluginConfig } from '@payloadcms/plugin-mcp'
 
+import { voice } from '@/i18n/voice'
+
+// How an agent writes, whatever it writes.
+const writing = `Writing over MCP
+
+- Every write names one language: locale "en" or "de", never "all", and never publishAllLocales. A German write publishes German only.
+- Rich text is Lexical JSON.
+- A field without a value is left out: a write refuses the null that a read shows.
+- Pictures up to about 3 MB go inline as base64; a larger one goes by externalURL from the allowed host.`
+
+// What an agent reads with a collection's schema: the voice, how to write, then that collection's own lines.
+export const forAgents = (...lines: string[]) => [voice, writing, lines.join('\n')].join('\n\n')
+
 // Every built-in tool by name; the MCP test fails if Payload adds one that these leave open.
 const collectionOff = {
   count: false,
@@ -28,7 +41,8 @@ const globalOff = {
 const off = { tools: collectionOff }
 const content = { tools: { delete: false } } as const
 
-// Payload 4 exposes every collection and global by default, so each one is named here.
+// Payload 4 exposes every collection and global by default: these three lose delete, Site stays whole, and every
+// other one is switched off by name.
 export const mcp: MCPPluginConfig = {
   collections: {
     windows: content,
@@ -48,6 +62,6 @@ export const mcp: MCPPluginConfig = {
   globals: {
     'payload-jobs-stats': { tools: globalOff },
   },
-  // Only the content user's API key signs in.
+  // An agent signs in with a user's API key alone.
   oauth: false,
 }

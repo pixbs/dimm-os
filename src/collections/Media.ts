@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 
 import { signedIn, signedInOrSite } from '@/access'
 import { revalidateChange, revalidateDelete } from '@/hooks/revalidate'
-import { forAgents } from '@/i18n/voice'
+import { forAgents } from '@/mcp'
 
 export const Media: CollectionConfig = {
   slug: 'media',
@@ -40,7 +40,7 @@ export const Media: CollectionConfig = {
     'Media',
     '',
     '- alt says what the picture shows, in one sentence.',
-    '- A caption belongs to the section that shows the picture, not to the picture.',
+    '- A caption belongs to the section that shows the picture.',
   ),
   upload: {
     focalPoint: true,

@@ -28,7 +28,7 @@ import { dropBareIds } from '@/hooks/relations'
 import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 import { languages } from '@/i18n/address'
 import { systemKeys } from '@/i18n/keys'
-import { forAgents } from '@/i18n/voice'
+import { forAgents } from '@/mcp'
 import { systemWindows } from '@/system/windows'
 
 // The names a window's slug may not take: the system's paths, the language codes and the site's own routes.

@@ -6,7 +6,7 @@ import { facts } from '@/fields/facts'
 import { buttons } from '@/fields/link'
 import { dropBareIdsOfGlobal } from '@/hooks/relations'
 import { revalidateGlobal } from '@/hooks/revalidate'
-import { forAgents } from '@/i18n/voice'
+import { forAgents } from '@/mcp'
 
 // The values the whole system shares. One document that saves directly.
 export const Site: GlobalConfig = {

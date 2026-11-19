@@ -1,7 +1,7 @@
 import type { PluginConfig } from '@payloadcms/plugin-form-builder/types'
 
 import { isAdmin, signedIn, signedInOrSite } from '@/access'
-import { forAgents } from '@/i18n/voice'
+import { forAgents } from '@/mcp'
 
 // The system says what happens after a send and mails Site's address, so a form holds only its fields and its button.
 const owned = ['confirmationType', 'confirmationMessage', 'redirect', 'emails']
