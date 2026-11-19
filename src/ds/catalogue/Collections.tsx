@@ -5,9 +5,20 @@ import { Facts } from '../sections/Facts'
 import { List } from '../sections/List'
 import { Table } from '../sections/Table'
 import type { Copy } from './copy/en'
+import type { Dictionary } from '@/i18n/en'
+
+import { Asides } from './Organisms'
 import { Doc, Entry, Pane, Specs, u, Widths } from './parts'
 
-export function Collections({ t, widths }: { t: Copy['collections']; widths: string[] }) {
+export function Collections({
+  t,
+  widths,
+  words,
+}: {
+  t: Copy['collections']
+  widths: string[]
+  words: Dictionary
+}) {
   const [split, three] = t.caps
   const facts = [t.value, t.value, t.long, t.value].map((value) => ({ label: t.label, value }))
   const rows = [t.cell, t.wraps, t.cell].map((first) => [first, t.cell, t.cell])
@@ -113,6 +124,7 @@ export function Collections({ t, widths }: { t: Copy['collections']; widths: str
           ))}
         </Specs>
       </Entry>
+      <Asides t={t} widths={widths} words={words} />
     </Doc>
   )
 }

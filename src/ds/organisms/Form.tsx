@@ -87,8 +87,11 @@ export function Submit(props: {
   words: FormWords
   label?: string | null
   said?: boolean
+  // A state shown at rest, for the catalogue.
+  state?: 'sending'
 }) {
-  const state = useFormState(props.form)
+  const live = useFormState(props.form)
+  const state = props.state ?? live
   const now = useSaid(props.form)
   if (state === 'leaving' || state === 'sent') return null
   const button = (
@@ -128,11 +131,15 @@ export function Form(props: {
   slip?: { stamp?: { code: string; note?: string } }
   lang: string
   words: FormWords
+  // A state shown at rest, and the fields it marks, for the catalogue.
+  state?: 'sending' | 'failed' | 'sent'
+  missing?: string[]
 }) {
   const { id, fields, words, slip } = props
-  const state = useFormState(id)
+  const live = useFormState(id)
+  const state = props.state ?? live
   const [marked, setMarked] = useState<{ missing: string[]; invalid: string[] }>({
-    missing: [],
+    missing: props.missing ?? [],
     invalid: [],
   })
   const [reply, setReply] = useState('')
@@ -263,7 +270,7 @@ export function Form(props: {
 
   if (state === 'sent')
     return (
-      <div className="form__sent" role="status">
+      <div className="form__sent" data-rest={props.state ? '' : undefined} role="status">
         {slip && (
           <Postmark date={{ day, year }} label={on(words.postmark)} words={on(words.received)} />
         )}
@@ -281,6 +288,7 @@ export function Form(props: {
   return (
     <form
       className="form"
+      data-rest={props.state || props.missing ? '' : undefined}
       data-above={above ? '' : undefined}
       data-state={state === 'leaving' ? 'leaving' : undefined}
       id={id}
@@ -365,7 +373,14 @@ export function Form(props: {
             {props.privacy.title}
           </Link>
         )}
-        {!slip && <Submit form={id} label={props.submit} words={words} />}
+        {!slip && (
+          <Submit
+            form={id}
+            label={props.submit}
+            state={state === 'sending' ? state : undefined}
+            words={words}
+          />
+        )}
       </div>
     </form>
   )

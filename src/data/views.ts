@@ -141,6 +141,13 @@ export type WindowView = {
 export type View = {
   language: Language
   site: { name: string; email: string; timezone: string; place: string }
+  // A visitor signed in by a personal link, named, who is never asked for consent; null is a guest.
+  visitor: { name: string } | null
+  // What the boot screen checks and counts: the rows of Site, and the counted window's items.
+  boot: {
+    rows: { label: string; value: string; status: string }[]
+    counted: { total: number; one: string; other: string } | null
+  }
   shortcuts: Shortcut[]
   keys: AppKey[]
   // What search finds: the windows this viewer may see, and the system's apps.
@@ -148,8 +155,6 @@ export type View = {
   // The window of the address; at / there is none, and the windows marked to open at start.
   window: WindowView | null
   start: WindowView[]
-  // A signed-in visitor, who is never asked for consent.
-  visitor: boolean
 }
 
 // Null is a guest; a visitor carries the hidden windows the invitation opens.
@@ -300,6 +305,7 @@ const site = async (language: Language, viewer: Viewer) => {
       timezone: true,
       place: true,
       counted: true,
+      boot: true,
       about: true,
       inside: true,
     },
@@ -540,11 +546,14 @@ async function views(language: Language, viewer: Viewer) {
     }
 
   // The counted window's items are of one kind, which names them, or are items.
+  const countedWords = (counted: Seen) => {
+    const [kind, ...others] = new Set(itemsOf(counted).map(({ doc }) => doc.kind ?? ''))
+    return (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+  }
   const plate = (): AboutView => {
     const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
     const items = counted ? itemsOf(counted) : []
-    const [kind, ...others] = new Set(items.map(({ doc }) => doc.kind ?? ''))
-    const words = (!others.length && kinds[kind]?.counted) || { one: t.item, other: t.items }
+    const words = counted ? countedWords(counted) : { one: t.item, other: t.items }
     const plural = new Intl.PluralRules(language).select(items.length) === 'one' ? 'one' : 'other'
     const { picture, title, text, actions } = own.inside ?? {}
     return {
@@ -666,15 +675,21 @@ async function views(language: Language, viewer: Viewer) {
       find(app, t.system, t.system, systemIcons[app.path as keyof typeof systemIcons]),
     ),
   ]
+  const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
+  const boot = {
+    rows: (own.boot ?? []).map(({ label, value, status }) => ({ label, value, status })),
+    counted: counted ? { total: itemsOf(counted).length, ...countedWords(counted) } : null,
+  }
   const desk = {
     language,
     site: about,
+    visitor: viewer && { name: viewer.name },
+    boot,
     shortcuts,
     keys: shown.flatMap(({ doc, path, lang }) =>
       doc.key ? [{ key: doc.key, path, title: doc.title, lang: other(lang) }] : [],
     ),
     search,
-    visitor: viewer !== null,
   }
   const at = (window: WindowView | null, start: WindowView[] = []): View => ({
     ...desk,

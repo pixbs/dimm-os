@@ -9,9 +9,10 @@ import { SplitView } from '../organisms/SplitView'
 import { Table } from '../organisms/Table'
 import { Toggle } from '../molecules/Toggle'
 import type { Copy } from './copy/en'
+import { Forms, Messages, Plates } from './Organisms'
 import { Doc, Entry, Specs, u } from './parts'
 
-export function Records({ t }: { t: Copy['records'] }) {
+export function Records({ t, language }: { t: Copy['records']; language: string }) {
   const [everything, bare] = t.caps
   const [before, strong, between, link, and, code, after] = t.paragraph
   const list = (tag: 'ul' | 'ol', items: string[]) =>
@@ -123,6 +124,7 @@ export function Records({ t }: { t: Copy['records'] }) {
           </div>
         </Specs>
       </Entry>
+      <Plates t={t} />
       <Entry text={t.prose}>
         <Specs caps={[everything]}>
           <div className="cq" style={{ width: u(90) }}>
@@ -141,6 +143,8 @@ export function Records({ t }: { t: Copy['records'] }) {
           </div>
         </Specs>
       </Entry>
+      <Forms language={language} t={t} />
+      <Messages t={t} />
     </Doc>
   )
 }
