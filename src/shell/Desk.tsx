@@ -279,11 +279,11 @@ function Foot({ buttons }: { buttons: FootButton[] }) {
   )
 }
 
-// What the filter of a window holds: the choice in force, the way to change it, and on a phone how many of its menus,
-// which are drawers there, stand in front of the window.
 // The kinds the dictionary knows, by the name a window is typed with.
 type Kinds = Record<string, { counted: { one: string; other: string } } | undefined>
 
+// What the filter of a window holds: the choice in force, the way to change it, and on a phone how many of its menus,
+// which are drawers there, stand in front of the window.
 type Filter = {
   chosen: Chosen | null
   choose: (chosen: Chosen | null) => void

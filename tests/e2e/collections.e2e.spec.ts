@@ -85,7 +85,8 @@ test.describe('A list of the items of a window', () => {
       const title = work(page).getByRole('heading', { level: 1 })
       await expect(title).toHaveCount(1)
       await expect(title).toHaveText('Work')
-      expect((await title.boundingBox())!.height).toBeLessThanOrEqual(1)
+      // The heading's group clips it, so the group is what takes room.
+      expect((await title.locator('xpath=..').boundingBox())!.height).toBeLessThanOrEqual(1)
       // Nothing is drawn between the toolbar and the first row.
       const bar = (await work(page).getByRole('status').locator('xpath=..').boundingBox())!
       const row = (await items(page).first().boundingBox())!
