@@ -72,10 +72,10 @@ test.describe('Hotkeys on a desk', () => {
       await expect(win(page, 'Work')).toHaveAttribute('data-front', '')
 
       // The key opens the palette, and Esc gives the focus back to what held it.
+      // Only Work is left once the windows closed have gone, and only then has the focus settled to be kept.
+      await expect(page.locator('article')).toHaveCount(1)
       await watch(page)
       await hold(page)
-      // Only Work is left, once the windows closed have gone.
-      await expect(page.locator('article')).toHaveCount(1)
       await page.keyboard.press(`${mod}+k`)
       expect(await taken(page)).toBe(true)
       await expect(page.getByRole('combobox')).toBeFocused()
