@@ -1015,7 +1015,7 @@ describe('German that is not written yet', () => {
       lang: 'en',
       frame: { title: 'Loop' },
       parent: { title: 'Arbeit' },
-      sections: [{ type: 'header', title: 'Loop' }],
+      sections: [{ type: 'header', title: 'Loop' }, { type: 'media' }],
     })
     expect(field.window?.neighbours.next).toEqual({
       href: '/de/work/loop',

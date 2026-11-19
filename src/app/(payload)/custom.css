@@ -1,0 +1,4 @@
+html {
+  --font-family-sans: var(--font-inter-ext), var(--font-inter);
+  --font-family-mono: var(--font-roboto-mono-ext), var(--font-roboto-mono);
+}
