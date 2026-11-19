@@ -59,7 +59,7 @@ type Fixture = Partial<
 
 // Running text as the editor stores it, from paragraphs, third-level headings and lists of plain words.
 type Part = string | { h3: string } | { ul: string[] }
-const element = { direction: 'ltr', format: '', indent: 0, version: 1 } as const
+const element = { direction: null, format: '', indent: 0, version: 1 } as const
 const words = (text: string) => [
   { type: 'text', text, format: 0, detail: 0, mode: 'normal', style: '', version: 1 } as const,
 ]
