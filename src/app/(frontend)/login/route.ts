@@ -3,10 +3,11 @@ import { NextResponse } from 'next/server'
 import { signIn } from '@/data/login'
 import { VISITOR_COOKIE } from '@/data/viewer'
 
-// Another site can neither sign this device in nor out.
+// Another site can neither sign this device in nor out, nor can a page whose origin is withheld.
 const foreign = (request: Request) => {
   const origin = request.headers.get('origin')
-  return Boolean(origin) && new URL(origin!).host !== request.headers.get('host')
+  if (!origin) return false
+  return !URL.canParse(origin) || new URL(origin).host !== request.headers.get('host')
 }
 
 // The password of the login screen, or of a personal link, arrives in the body alone. Two answers besides the way
