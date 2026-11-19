@@ -19,8 +19,8 @@ export default defineConfig({
           environment: 'node',
           include: ['tests/int/**/*.int.spec.ts'],
           fileParallelism: false,
-          // The first file's getPayload starts Payload cold and reads the schema back, which can pass 10 s on ci; a test itself keeps its own limit.
-          hookTimeout: 30_000,
+          // views.int starts Payload and fills the whole fixture in a hook, which passes 10 s on ci now and then; a test itself keeps its own limit.
+          hookTimeout: 60_000,
         },
       },
     ],
