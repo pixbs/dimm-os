@@ -87,6 +87,10 @@ test.describe('Analytics', () => {
     const [cookie] = await cookies(page)
     // A year, as the registry says, give or take the minute the test takes.
     expect(cookie.expires * 1000 - Date.now()).toBeGreaterThan(364 * 24 * 60 * 60 * 1000)
+    // Besides the cookie it keeps what the registry declares: something in the tab's session, nothing for longer.
+    expect(
+      await page.evaluate(() => Object.keys(localStorage).filter((key) => /^_*ph_/.test(key))),
+    ).toEqual([])
 
     await page.goto('/cookies/preferences', { waitUntil: 'networkidle' })
     const reloaded = page.waitForEvent('load')
