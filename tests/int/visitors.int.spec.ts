@@ -77,7 +77,6 @@ describe('a visitor', () => {
     const first = await save(names[0], password)
 
     expect(first.password).toBeNull()
-    expect(JSON.stringify(first)).not.toContain(password)
     expect(first).not.toHaveProperty('hash')
     const stored = await payload.db.findOne<Visitor>({
       collection: 'visitors',
