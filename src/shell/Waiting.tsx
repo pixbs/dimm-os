@@ -325,7 +325,8 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ password }),
     }).then(
-      (response) => response.json(),
+      // The edge's limit answers before the route does, with its own page.
+      (response) => (response.status === 429 ? { in: false, limited: true } : response.json()),
       () => ({ in: false }),
     )
   const answered = (got: { in: boolean; limited?: boolean }, linked: boolean) => {
