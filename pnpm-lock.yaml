@@ -7,6 +7,9 @@ settings:
 overrides:
   dompurify@<3.4.17: 3.4.17
 
+patchedDependencies:
+  '@payloadcms/next@4.0.0-beta.9': 0524b0c5a3f999ac63e292533b366c14b3a600ae56dee40e37b6300402d9b0f3
+
 importers:
 
   .:
@@ -19,7 +22,7 @@ importers:
         version: 4.0.0-beta.9(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))
       '@payloadcms/next':
         specifier: 4.0.0-beta.9
-        version: 4.0.0-beta.9(@types/react@19.3.0)(graphql@16.15.0)(monaco-editor@0.57.0)(next@16.4.5(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
+        version: 4.0.0-beta.9(patch_hash=0524b0c5a3f999ac63e292533b366c14b3a600ae56dee40e37b6300402d9b0f3)(@types/react@19.3.0)(graphql@16.15.0)(monaco-editor@0.57.0)(next@16.4.5(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
       '@payloadcms/plugin-form-builder':
         specifier: 4.0.0-beta.9
         version: 4.0.0-beta.9(@types/react@19.3.0)(monaco-editor@0.57.0)(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)
@@ -6029,7 +6032,7 @@ snapshots:
     transitivePeerDependencies:
       - typescript
 
-  '@payloadcms/next@4.0.0-beta.9(@types/react@19.3.0)(graphql@16.15.0)(monaco-editor@0.57.0)(next@16.4.5(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)':
+  '@payloadcms/next@4.0.0-beta.9(patch_hash=0524b0c5a3f999ac63e292533b366c14b3a600ae56dee40e37b6300402d9b0f3)(@types/react@19.3.0)(graphql@16.15.0)(monaco-editor@0.57.0)(next@16.4.5(@babel/core@7.29.13(supports-color@7.2.0))(@playwright/test@1.63.0)(@types/node@24.12.3)(babel-plugin-macros@3.1.0)(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(sass@1.77.4))(payload@4.0.0-beta.9(graphql@16.15.0)(supports-color@7.2.0)(typescript@6.0.3))(react-dom@19.3.1(react@19.3.1))(react@19.3.1)(supports-color@7.2.0)(typescript@6.0.3)':
     dependencies:
       '@dnd-kit/core': 6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1)
       '@dnd-kit/modifiers': 9.0.0(@dnd-kit/core@6.3.1(react-dom@19.3.1(react@19.3.1))(react@19.3.1))(react@19.3.1)

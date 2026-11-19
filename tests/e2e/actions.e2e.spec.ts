@@ -13,8 +13,17 @@ const entry = (page: Page, name: string) =>
 
 const glyphs = /[⌘⌥⇧⏎↵←→↑↓]/g
 
+// The family the page sets mono in, which the layout names, not the typeface.
+const families = (value: string) => value.replace(/["']/g, '').split(/,\s*/)
+const monoFamily = async (page: Page) =>
+  families(
+    await page.evaluate(() =>
+      getComputedStyle(document.documentElement).getPropertyValue('--font-jetbrains-mono'),
+    ),
+  )[0]
+
 // Each key glyph set in mono on the page, with the faces the browser drew it in; a hidden one draws in none.
-async function keyFaces(cdp: CDPSession) {
+async function keyFaces(cdp: CDPSession, mono: string) {
   const { root } = await cdp.send('DOM.getDocument', { depth: -1 })
   const drawn: { text: string; faces: string[] }[] = []
   const walk = async (node: typeof root, parent?: typeof root): Promise<void> => {
@@ -24,7 +33,7 @@ async function keyFaces(cdp: CDPSession) {
       })
       const family = computedStyle.find((style) => style.name === 'font-family')!.value
       const { fonts } = await cdp.send('CSS.getPlatformFontsForNode', { nodeId: node.nodeId })
-      if (family.includes('JetBrains Mono') && fonts.length) {
+      if (families(family).includes(mono) && fonts.length) {
         drawn.push({
           text: node.nodeValue,
           faces: fonts.map((font) => `${font.familyName}${font.isCustomFont ? '' : ' (system)'}`),
@@ -110,7 +119,7 @@ test.describe('Actions', () => {
           await page.goto(`${language}/catalogue/${name}`)
           await page.evaluate(() => document.fonts.ready)
 
-          for (const { text, faces } of await keyFaces(cdp)) {
+          for (const { text, faces } of await keyFaces(cdp, await monoFamily(page))) {
             for (const glyph of text.match(glyphs)!) seen.add(glyph)
             expect(faces, `${text} on ${language}/catalogue/${name}`).toEqual(['JetBrains Mono'])
           }
