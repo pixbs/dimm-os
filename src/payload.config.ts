@@ -23,6 +23,8 @@ const dirname = path.dirname(filename)
 export default buildConfig({
   admin: {
     user: Users.slug,
+    // Payload's own picture: Gravatar would send a hash of the address to another site, which the policy blocks.
+    avatar: 'default',
     importMap: {
       baseDir: path.resolve(dirname),
     },
