@@ -9,7 +9,10 @@ import localFont from 'next/font/local'
 
 import { apply } from '@/ds/atoms/settings'
 import { Motion } from '@/ds/motion/Motion'
-import { origin } from '@/i18n/address'
+import { languages, origin, toAddress } from '@/i18n/address'
+
+// Where the desk is in each language: the intro plays there alone.
+const homes = JSON.stringify(languages.map((language) => toAddress(language, '/')))
 
 const sans = Inter_Tight({
   subsets: ['latin'],
@@ -49,7 +52,7 @@ export default async function RootLayout({ children, params }: LayoutProps<'/[la
       suppressHydrationWarning
     >
       <head>
-        <script dangerouslySetInnerHTML={{ __html: `(${apply})()` }} />
+        <script dangerouslySetInnerHTML={{ __html: `(${apply})(${homes})` }} />
       </head>
       <body data-surface="desktop">
         <Motion>{children}</Motion>

@@ -1212,6 +1212,11 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
         timezone: 'Europe/London',
         counted: ids.work,
         about: about[locale].map(([label, value]) => ({ label, value })),
+        boot: [1, 2, 3].map((n) => ({
+          label: `${locale === 'en' ? 'Device' : 'Gerät'} ${n}`,
+          value: locale === 'en' ? 'What it found' : 'Was es fand',
+          status: 'OK',
+        })),
         inside: {
           picture: shown.live,
           title: inside[locale].title,

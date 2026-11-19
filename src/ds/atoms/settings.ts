@@ -1,5 +1,6 @@
-// Runs in the document head before first paint, so it stands alone: it is sent as its own text.
-export function apply() {
+// Runs in the document head before first paint, so it stands alone: it is sent as its own text, given there the
+// addresses of the desk in each language.
+export function apply(homes: string[] = []) {
   const stored = (name: string) => {
     try {
       return localStorage.getItem(name)
@@ -36,6 +37,18 @@ export function apply() {
   for (const [name, value] of Object.entries(device)) {
     document.documentElement.dataset[name] = stored(name) ?? value
   }
+
+  // The intro plays on the first visit to the desk in this tab, never on a deep link, and not when motion is reduced
+  // or it is switched off; that it has played is kept for this tab's session alone.
+  if (!homes.length || !homes.includes(location.pathname)) return
+  const root = document.documentElement.dataset
+  let played: string | null = null
+  try {
+    played = sessionStorage.getItem('intro')
+  } catch {
+    // A tab without storage plays it on every visit to the desk.
+  }
+  if (!played && root.motion !== 'reduce' && root.boot === 'on') root.intro = 'play'
 }
 
 // Every setting a visitor can change, which a reset hands back to the device.

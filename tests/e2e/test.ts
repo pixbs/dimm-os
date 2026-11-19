@@ -7,15 +7,27 @@ import { file } from '../fixtures/neutral'
 export const test = base.extend<{
   pageErrors: void
   uploads: void
+  intro: boolean
+  played: void
   asked: boolean
   answered: void
 }>({
+  // A tab has seen the intro unless a test asks for it, so the desk at / is there at once.
+  intro: [false, { option: true }],
+  played: [
+    async ({ context, intro }, use) => {
+      // Every tab of the context, a second one too.
+      if (!intro) await context.addInitScript(() => sessionStorage.setItem('intro', 'played'))
+      await use()
+    },
+    { auto: true },
+  ],
   // A guest who has answered already, so a test meets the desk without being asked, unless it asks to be.
   asked: [false, { option: true }],
   answered: [
-    async ({ page, asked }, use) => {
+    async ({ context, asked }, use) => {
       if (!asked)
-        await page.addInitScript((current) => {
+        await context.addInitScript((current) => {
           if (!localStorage.getItem('consent'))
             localStorage.setItem(
               'consent',

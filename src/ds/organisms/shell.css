@@ -7,6 +7,8 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  /* A screen keeps its layers to itself, so a screen laid over it covers all of it, a phone's drawers too. */
+  isolation: isolate;
   container: screen / inline-size;
 
   /* The bars stand over the desk, so nothing on it reaches them, not even a window in full screen. */
@@ -695,5 +697,193 @@
       height: var(--b-2);
       background-color: var(--faint);
     }
+  }
+}
+
+/* A screen that waits stands over the desk, the whole browser's window, until it hands over. Between its bars it holds
+   sections and a splash. */
+.screen[data-waiting] {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-above);
+  height: auto;
+
+  & > .screen__main {
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+  }
+  /* On a phone its bottom bar takes a second line where its words do not fit in one. */
+  & > footer > .bar {
+    flex-wrap: wrap;
+    height: auto;
+    min-height: var(--h-regular);
+  }
+}
+/* The page of a waiting screen: a head and a body that lead, a side and an end beside them. On a phone they stack, the
+   side under the head; on a tablet the side stands beside the head; on a wide screen the side and the end take a third. */
+.screen__page {
+  display: grid;
+  grid-template-areas: 'head' 'side' 'body' 'end';
+  align-content: start;
+  gap: var(--sect);
+  padding: var(--sect) var(--inset);
+
+  & > [data-part] {
+    min-width: 0;
+  }
+  /* Its head is a row that stands alone: no line under it, its text on the keyline. */
+  & > [data-part='head'] {
+    grid-area: head;
+
+    & > .row {
+      --row-line: transparent;
+
+      margin-inline: calc(var(--s-4) * -1);
+      width: auto;
+    }
+  }
+  & > [data-part='body'] {
+    grid-area: body;
+  }
+  & > [data-part='side'] {
+    display: contents;
+
+    & > :first-child {
+      grid-area: side;
+      max-width: var(--w-popover);
+    }
+    & > :last-child {
+      grid-area: end;
+    }
+  }
+}
+@container screen (width >= 600px) {
+  .screen__page {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-areas: 'head side' 'body body' 'end end';
+
+    & > [data-part='side'] > :first-child {
+      max-width: none;
+    }
+  }
+}
+@container screen (width >= 960px) {
+  .screen__page {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 'head side' 'body side';
+
+    & > [data-part='side'] {
+      grid-area: side;
+      display: flex;
+      flex-direction: column;
+      gap: var(--s-8);
+    }
+  }
+}
+/* The foot of a waiting screen: the other way in at its start, the system's apps at its end. */
+.screen__foot {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-6);
+  padding: var(--sect) var(--inset);
+
+  & > .apps {
+    display: flex;
+    gap: var(--s-2);
+
+    & .app__name {
+      white-space: nowrap;
+    }
+  }
+}
+
+/* The splash: who comes in, or what has happened, alone in the middle of the screen or at its start. */
+.splash {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-6);
+  min-height: 0;
+  padding: var(--sect) var(--inset);
+  text-align: center;
+
+  & > * {
+    flex: none;
+  }
+  & > .btn {
+    width: var(--w-popover);
+    max-width: 100%;
+  }
+  & > .row {
+    width: calc(var(--w-popover) + var(--s-4) * 2);
+    max-width: calc(100% + var(--s-4) * 2);
+    text-align: start;
+  }
+  &[data-align='start'] {
+    align-items: flex-start;
+    text-align: start;
+
+    & > .btn {
+      width: auto;
+    }
+  }
+}
+
+/* The start: until the boot screen stands over it, the desk the server drew is not shown. As it hands over, the bars
+   arrive first, then the apps, then the windows grow from the taskbar, all within a long move; shutting down plays the
+   same in reverse. */
+:root[data-intro='play'] .screen[data-fill]:not([data-waiting]) > :not(.wallpaper) {
+  visibility: hidden;
+}
+:root[data-intro='hand'] .screen[data-fill]:not([data-waiting]) {
+  & > :is(header, footer) {
+    animation: var(--m-slow) var(--m-enter) both arrive;
+  }
+  & .apps {
+    animation: var(--m-slow) var(--m-enter) var(--m-slow) both arrive;
+  }
+  & .screen__desk > .window {
+    transform-origin: bottom;
+    animation: var(--m-slow) var(--m-enter) calc(var(--m-slow) * 2) both grow;
+  }
+}
+:root[data-intro='leave'] .screen[data-fill]:not([data-waiting]) {
+  & .screen__desk > .window {
+    transform-origin: bottom;
+    animation: var(--m-slow) var(--m-exit) both shrink;
+  }
+  & .apps {
+    animation: var(--m-slow) var(--m-exit) var(--m-slow) both leave;
+  }
+  & > :is(header, footer) {
+    animation: var(--m-slow) var(--m-exit) calc(var(--m-slow) * 2) both leave;
+  }
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes grow {
+  from {
+    opacity: 0;
+    scale: 0;
+  }
+}
+@keyframes leave {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes shrink {
+  to {
+    opacity: 0;
+    scale: 0;
   }
 }

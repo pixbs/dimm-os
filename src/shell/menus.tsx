@@ -19,6 +19,8 @@ export function menus(props: {
   desk: Windows
   act: (action: Action) => void
   search: () => void
+  lock: () => void
+  shutDown: () => void
 }): Top[] {
   const { t, language, desk, act } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -120,9 +122,8 @@ export function menus(props: {
     link('/accessibility', t.accessibility),
     hotkeys,
     'rule',
-    // The screens that wait arrive with the boot.
-    { label: t.lock, disabled: true },
-    { label: t.shutDown, disabled: true },
+    { label: t.lock, act: props.lock },
+    { label: t.shutDown, act: props.shutDown },
     ...(phone(desk) ? (['rule', ...others, 'rule', ...legal] as Item[]) : []),
   ]
 
