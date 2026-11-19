@@ -257,6 +257,10 @@
     font: var(--f-mono);
     color: var(--muted);
   }
+  /* A head over columns names each of them. */
+  & > :is(.row__label, .row__value) {
+    color: var(--muted);
+  }
 }
 /* A head over rows that are checked one by one: in the type of its rows, over a faint line on the keyline, and every
    row keeps its own line. */
