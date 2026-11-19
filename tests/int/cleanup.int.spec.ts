@@ -9,6 +9,7 @@ let form: Form
 
 const TITLE = 'Cleanup, a test form'
 const NAMES = ['Cleanup, past', 'Cleanup, current']
+const KEYS = ['0'.repeat(64), 'f'.repeat(64)]
 const DAY = 24 * 60 * 60 * 1000
 const trusted = { depth: 0, overrideAccess: true } as const
 
@@ -44,6 +45,7 @@ async function clean() {
   await payload.delete({ collection: 'form-submissions', where: { form: { in: ids } }, ...trusted })
   await payload.delete({ collection: 'forms', where: { id: { in: ids } }, ...trusted })
   await payload.delete({ collection: 'visitors', where: { name: { in: NAMES } }, ...trusted })
+  await payload.delete({ collection: 'senders', where: { key: { in: KEYS } }, ...trusted })
 }
 
 beforeAll(async () => {
@@ -114,6 +116,26 @@ describe('the daily cleanup', () => {
     })
     expect(visitors.docs.map(({ id }) => id)).toEqual([current.id])
     expect(visitors.docs).not.toContainEqual(expect.objectContaining({ id: past.id }))
+  })
+
+  it('deletes a sender’s row once the limit no longer counts it', async () => {
+    const [past, current] = await Promise.all(
+      KEYS.map((key) => payload.create({ collection: 'senders', data: { key }, ...trusted })),
+    )
+    await payload.db.updateOne({
+      collection: 'senders',
+      id: past.id,
+      data: { createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString() },
+    })
+
+    await run()
+
+    const left = await payload.find({
+      collection: 'senders',
+      where: { key: { in: KEYS } },
+      ...trusted,
+    })
+    expect(left.docs.map(({ id }) => id)).toEqual([current.id])
   })
 
   it('mails Site’s address when a run fails', async () => {

@@ -2,9 +2,12 @@ import 'server-only'
 
 import type { PayloadRequest } from 'payload'
 
+import { SENDER_WINDOW } from '@/collections/Senders'
+
 const DAY = 24 * 60 * 60 * 1000
 
-// A message is kept 90 days after it arrived, and a visitor until the end date of the invitation.
+// A message is kept 90 days after it arrived, a visitor until the end date of the invitation, and a sender's row no
+// longer than the limit needs it, though a send clears it sooner.
 export async function cleanup(req: PayloadRequest) {
   const now = Date.now()
   const { docs: submissions } = await req.payload.delete({
@@ -21,7 +24,14 @@ export async function cleanup(req: PayloadRequest) {
     req,
     where: { expires: { less_than: new Date(now).toISOString() } },
   })
-  return { submissions: submissions.length, visitors: visitors.length }
+  const { docs: senders } = await req.payload.delete({
+    collection: 'senders',
+    depth: 0,
+    overrideAccess: true,
+    req,
+    where: { createdAt: { less_than: new Date(now - SENDER_WINDOW).toISOString() } },
+  })
+  return { submissions: submissions.length, visitors: visitors.length, senders: senders.length }
 }
 
 // The hosting keeps its logs an hour, so a failed run is mailed to Site's address; its error stays on the job.
