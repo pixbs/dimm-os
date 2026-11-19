@@ -2,10 +2,11 @@ import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 
-import type { Form, Visitor } from '@/payload-types'
+import type { Form, Site, Visitor } from '@/payload-types'
 
 let payload: Payload
 let form: Form
+let site: Pick<Site, 'name' | 'email' | 'place' | 'timezone'>
 
 const TITLE = 'Cleanup, a test form'
 const NAMES = ['Cleanup, past', 'Cleanup, current']
@@ -51,6 +52,14 @@ async function clean() {
 beforeAll(async () => {
   payload = await getPayload({ config })
   await clean()
+  site = await payload.findGlobal({
+    slug: 'site',
+    select: { name: true, email: true, place: true, timezone: true },
+    draft: false,
+    fallbackLocale: false,
+    locale: 'en',
+    ...trusted,
+  })
   await payload.updateGlobal({
     slug: 'site',
     data: {
@@ -76,7 +85,12 @@ beforeAll(async () => {
 
 afterEach(() => vi.restoreAllMocks())
 
-afterAll(clean)
+afterAll(async () => {
+  await clean()
+  // Straight to the database, so a Site a fresh database left empty is put back empty too.
+  const { name, email, place, timezone } = site
+  await payload.db.updateGlobal({ slug: 'site', data: { name, email, place, timezone } })
+})
 
 describe('the daily cleanup', () => {
   it('is queued for the daily cron', () => {
