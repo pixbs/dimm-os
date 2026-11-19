@@ -77,14 +77,14 @@ afterAll(async () => {
 const linked = (...links: object[]) => ({
   root: {
     type: 'root',
-    direction: 'ltr',
+    direction: null,
     format: '',
     indent: 0,
     version: 1,
     children: [
       {
         type: 'paragraph',
-        direction: 'ltr',
+        direction: null,
         format: '',
         indent: 0,
         version: 1,
@@ -92,7 +92,7 @@ const linked = (...links: object[]) => ({
         textStyle: '',
         children: links.map((fields, at) => ({
           type: 'link',
-          direction: 'ltr',
+          direction: null,
           format: '',
           indent: 0,
           version: 1,
