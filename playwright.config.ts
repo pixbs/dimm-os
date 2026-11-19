@@ -5,6 +5,8 @@ import 'dotenv/config'
 
 export default defineConfig({
   testDir: './tests/e2e',
+  // The light-theme test takes minutes, so ci runs it on main only.
+  testIgnore: process.env.GITHUB_EVENT_NAME === 'pull_request' ? ['**/light.e2e.spec.ts'] : [],
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
