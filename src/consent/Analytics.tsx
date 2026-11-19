@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 
-import { type Choice, useChoice } from './choice'
+import { type Choice, chosen, useChoice } from './choice'
 import { registry } from './registry'
 
 const KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY
@@ -13,10 +13,14 @@ const YEAR = 365
 // What analytics keeps on the device, as the registry names it, and its consent mark.
 const ours = /^_*ph_/
 
+// PostHog may set its cookie for the site's whole domain, so a cookie of its is ended there as well as here.
 function forget() {
+  const domains = location.hostname.split('.').map((_, at, parts) => parts.slice(at).join('.'))
   for (const cookie of document.cookie.split(';')) {
     const name = cookie.split('=')[0].trim()
-    if (ours.test(name)) document.cookie = `${name}=; Max-Age=0; path=/`
+    if (!ours.test(name)) continue
+    document.cookie = `${name}=; Max-Age=0; path=/`
+    for (const domain of domains) document.cookie = `${name}=; Max-Age=0; path=/; domain=${domain}`
   }
   for (const store of [localStorage, sessionStorage])
     for (const name of Object.keys(store)) if (ours.test(name)) store.removeItem(name)
@@ -39,7 +43,12 @@ export function Analytics({ visitor }: { visitor: boolean }) {
 
   useEffect(() => {
     if (!yes) {
-      if (!loaded) return
+      // What an earlier yes left goes with any answer that is not one now, as the device holds it, not as a page
+      // that is still hydrating renders it.
+      if (!loaded) {
+        if (!allowed(chosen(), visitor)) forget()
+        return
+      }
       void import('posthog-js').then(({ default: posthog }) => {
         posthog.opt_out_capturing()
         posthog.set_config({ disable_persistence: true })
@@ -79,7 +88,7 @@ export function Analytics({ visitor }: { visitor: boolean }) {
           },
       }),
     )
-  }, [yes, version, at])
+  }, [yes, version, at, visitor])
 
   return null
 }

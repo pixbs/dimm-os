@@ -57,6 +57,22 @@ test.describe('Analytics', () => {
     expect(await cookies(page)).toHaveLength(0)
   })
 
+  test('keeps nothing an earlier yes left once there is no yes', async ({ page }) => {
+    await intercept(page)
+    await page.goto('/', { waitUntil: 'networkidle' })
+    const { hostname } = new URL(page.url())
+    await page
+      .context()
+      .addCookies([{ name: 'ph_phc_earlier_posthog', value: '{}', domain: hostname, path: '/' }])
+    await page.evaluate(() => localStorage.setItem('ph_earlier', '{}'))
+
+    await page.locator('#window-cookies').getByRole('button', { name: 'Decline' }).click()
+    await expect.poll(() => cookies(page)).toHaveLength(0)
+    expect(
+      await page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith('ph_'))),
+    ).toEqual([])
+  })
+
   test('after a yes, its first event carries the consent version, and a no taken back clears it', async ({
     page,
   }) => {
