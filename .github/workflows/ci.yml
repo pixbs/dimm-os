@@ -38,6 +38,9 @@ jobs:
       CRON_SECRET: ci-only-cron-secret
       ADMIN_EMAIL: admin@example.com
       ADMIN_PASSWORD: ci-only-admin-password
+      # Built in, so the analytics test has something to load; the tests answer the host themselves.
+      NEXT_PUBLIC_POSTHOG_KEY: phc_ci_only
+      NEXT_PUBLIC_POSTHOG_HOST: https://eu.i.posthog.com
     steps:
       - name: Check out
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
