@@ -36,7 +36,7 @@ import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
-import { oneSize, paper, sized, systemIcons, systemWindows } from '@/system/windows'
+import { oneSize, paper, sized, systemCommands, systemIcons, systemWindows } from '@/system/windows'
 
 import { visitorOf } from './login'
 import { VISITOR_COOKIE } from './viewer'
@@ -676,6 +676,14 @@ async function views(language: Language, viewer: Viewer) {
     ...system.map((app) =>
       find(app, t.system, t.system, systemIcons[app.path as keyof typeof systemIcons]),
     ),
+    ...(Object.keys(systemCommands) as (keyof typeof systemCommands)[]).map((command) => ({
+      title: t[command],
+      kind: t.system,
+      group: t.system,
+      words: t.systemWords[command],
+      icon: systemCommands[command],
+      command,
+    })),
   ]
   const counted = byId.get(typeof own.counted === 'object' && own.counted ? own.counted.id : NaN)
   const boot = {
