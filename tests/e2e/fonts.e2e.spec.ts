@@ -10,7 +10,8 @@ async function faces(page: Page, family: string) {
     name.textContent = 'Łukasz Şahin Đorđević'
     name.style.fontFamily = family
     document.body.append(name)
-    await document.fonts.load(`16px ${getComputedStyle(name).fontFamily}`, name.textContent)
+    // Every face the page declares: one that stands in from a font the machine lacks fails alone.
+    await Promise.allSettled([...document.fonts].map((face) => face.load()))
   }, family)
   const cdp = await page.context().newCDPSession(page)
   await cdp.send('DOM.enable')
