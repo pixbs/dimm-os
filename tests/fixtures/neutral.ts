@@ -1024,7 +1024,11 @@ export const file = path.resolve(
   '../../src/ds/catalogue/picture.jpg',
 )
 
-async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Promise<number> {
+async function upload(
+  payload: Payload,
+  data: Pick<Media, 'alt' | 'live'>,
+  german?: string,
+): Promise<number> {
   const {
     docs: [found],
   } = await payload.find({
@@ -1034,14 +1038,23 @@ async function upload(payload: Payload, data: Pick<Media, 'alt' | 'live'>): Prom
     locale: 'en',
     ...trusted,
   })
-  if (found) return found.id
-  const { id } = await payload.create({
-    collection: 'media',
-    data,
-    filePath: file,
-    locale: 'en',
-    ...trusted,
-  })
+  const { id } =
+    found ??
+    (await payload.create({
+      collection: 'media',
+      data,
+      filePath: file,
+      locale: 'en',
+      ...trusted,
+    }))
+  if (german)
+    await payload.update({
+      collection: 'media',
+      id,
+      data: { alt: german },
+      locale: 'de',
+      ...trusted,
+    })
   return id
 }
 
@@ -1121,7 +1134,12 @@ export async function fill(payload: Payload): Promise<Record<string, number>> {
   ids.form = await fixtureForm(payload)
   const shown = {
     still: await upload(payload, { alt: 'A sun setting over two hills' }),
-    live: await upload(payload, { alt: 'A sun drawn in dots', live: 'portrait' }),
+    // The one picture whose words are written in German too.
+    live: await upload(
+      payload,
+      { alt: 'A sun drawn in dots', live: 'portrait' },
+      'Eine Sonne aus Punkten',
+    ),
     lost: await upload(payload, { alt: 'The numerals 404 in dots', live: 'not-found' }),
     stamp: await upload(payload, { alt: 'A postmark in dots', live: 'postmark' }),
   }

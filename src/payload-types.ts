@@ -491,7 +491,7 @@ export interface HeaderBlock {
  */
 export interface Media {
   id: number;
-  alt: string;
+  alt?: string | null;
   /**
    * Drawn by the system over the file, which is its still.
    */
