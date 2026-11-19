@@ -4,8 +4,11 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest
 
 import type { Form, Visitor } from '@/payload-types'
 
+import { keepSite } from './site'
+
 let payload: Payload
 let form: Form
+let restoreSite: Awaited<ReturnType<typeof keepSite>>
 
 const TITLE = 'Cleanup, a test form'
 const NAMES = ['Cleanup, past', 'Cleanup, current']
@@ -51,6 +54,7 @@ async function clean() {
 beforeAll(async () => {
   payload = await getPayload({ config })
   await clean()
+  restoreSite = await keepSite(payload)
   await payload.updateGlobal({
     slug: 'site',
     data: {
@@ -59,6 +63,8 @@ beforeAll(async () => {
       place: 'Somewhere',
       timezone: 'Europe/London',
     },
+    // The window Site counts is checked against what its saver may read: a guest, as the site reads it.
+    context: { viewer: null },
     draft: false,
     fallbackLocale: false,
     locale: 'en',
@@ -76,7 +82,10 @@ beforeAll(async () => {
 
 afterEach(() => vi.restoreAllMocks())
 
-afterAll(clean)
+afterAll(async () => {
+  await clean()
+  await restoreSite()
+})
 
 describe('the daily cleanup', () => {
   it('is queued for the daily cron', () => {

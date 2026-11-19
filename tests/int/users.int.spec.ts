@@ -1,8 +1,11 @@
 import config from '@payload-config'
 import { getPayload, type Payload } from 'payload'
-import { beforeAll, describe, expect, it } from 'vitest'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+
+import { keepSite } from './site'
 
 let payload: Payload
+let restoreSite: Awaited<ReturnType<typeof keepSite>>
 
 const emails = ['content@example.com', 'other@example.com']
 
@@ -15,7 +18,10 @@ describe('a content user', () => {
       overrideAccess: true,
       where: { email: { in: emails } },
     })
+    restoreSite = await keepSite(payload)
   })
+
+  afterAll(() => restoreSite())
 
   it('edits windows and Site, and reaches no other user', async () => {
     const create = (email: string, role: 'admin' | 'content') =>
