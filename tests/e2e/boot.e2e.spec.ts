@@ -59,10 +59,14 @@ test.describe('Boot, login and shut down', () => {
   }) => {
     await page.goto('/imprint', { waitUntil: 'networkidle' })
     await page.locator('header [data-visitor]').click()
-    await expect(boot(page).getByRole('heading', { name: 'Guest' })).toBeVisible()
+    // The screen takes the focus at its heading, and its content is the page's main part.
+    await expect(boot(page).getByRole('heading', { name: 'Guest' })).toBeFocused()
+    await expect(boot(page).getByRole('main')).toBeVisible()
+    await expect(boot(page).getByRole('link', { name: 'EN, Language: English' })).toBeVisible()
     await legalLinks(page)
 
     await boot(page).getByRole('button', { name: 'Other user…' }).click()
+    await expect(boot(page).getByRole('heading', { name: 'Other user' })).toBeFocused()
     await boot(page).getByRole('button', { name: 'Sign in' }).click()
     await expect(boot(page).getByText('Enter the password from your invite.')).toBeVisible()
     await boot(page).getByRole('button', { name: 'Back to Guest' }).click()
@@ -70,6 +74,18 @@ test.describe('Boot, login and shut down', () => {
     await boot(page).getByRole('button', { name: 'Enter' }).click()
     await expect(boot(page)).toHaveCount(0)
     await expect(page.getByRole('article', { name: 'Imprint' })).toBeVisible()
+    // The desk hands the focus back to what held it.
+    await expect(page.locator('header [data-visitor]')).toBeFocused()
+  })
+
+  test('at 400 % zoom the login keeps its parts apart, and its room scrolls', async ({ page }) => {
+    await page.setViewportSize({ width: 320, height: 256 })
+    await page.goto('/login', { waitUntil: 'networkidle' })
+    const clock = (await boot(page).locator('main > section').boundingBox())!
+    const splash = (await boot(page).locator('.splash').boundingBox())!
+    expect(splash.y).toBeGreaterThanOrEqual(clock.y + clock.height)
+    await boot(page).getByRole('button', { name: 'Sign in' }).scrollIntoViewIfNeeded()
+    await expect(boot(page).getByRole('button', { name: 'Sign in' })).toBeInViewport()
   })
 
   test('locks from the system menu, and shuts down to a screen that turns on again', async ({

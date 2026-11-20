@@ -208,7 +208,7 @@ function Boot({ view, t, go }: Props) {
   return (
     // The last row pours the wallpaper in.
     <Screen fill ref={screen} waiting wallpaper={shown >= rows.length}>
-      <div className="screen__main cq">
+      <main className="screen__main cq">
         <div className="screen__page">
           <div data-part="head" ref={head}>
             <Row
@@ -258,7 +258,7 @@ function Boot({ view, t, go }: Props) {
             ))}
           </div>
         </div>
-      </div>
+      </main>
       <footer>
         <Bar line="above">
           <BarTitle>{done ? say(t.bootDone, { name: view.site.name }) : t.bootChecking}</BarTitle>
@@ -361,14 +361,14 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
     <Screen fill ref={screen} waiting>
       <Top name={site.name}>
         <ButtonLink
-          aria-label={t.language}
+          aria-label={`${language.toUpperCase()}, ${t.language}`}
           href={toAddress(other, '/')}
           hrefLang={other}
           label={language.toUpperCase()}
           size="chrome"
         />
       </Top>
-      <div className="screen__main cq">
+      <main className="screen__main cq">
         <Section>
           <Heading
             level="hero"
@@ -457,7 +457,7 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
             <App icon="power" name={t.shutDown} onClick={() => void shutDown(go)} />
           </nav>
         </div>
-      </div>
+      </main>
       <footer>
         <Bar line="above">
           <Legal language={language} t={t} />
@@ -484,7 +484,7 @@ function Shutdown({ view, t }: Props) {
       <Top name={site.name} off>
         <BarText>{say(t.shutDownAt, { time: at })}</BarText>
       </Top>
-      <div className="screen__main cq">
+      <main className="screen__main cq">
         <Splash start>
           <Heading level="hero" page text={t.shutDownThanks} title={t.shutDownSafe} />
           <ButtonLink
@@ -495,7 +495,7 @@ function Shutdown({ view, t }: Props) {
             tone="solid"
           />
         </Splash>
-      </div>
+      </main>
       <footer>
         <Bar line="above">
           {view.site.email && (

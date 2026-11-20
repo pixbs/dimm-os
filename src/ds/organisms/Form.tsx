@@ -155,6 +155,22 @@ export function Form(props: {
     }
   }, [id])
 
+  // A send takes away the row or the button that held the focus, and a new slip takes the confirmation: the focus
+  // goes to what stands there now, so that is read.
+  const sent = useRef<HTMLDivElement>(null)
+  const was = useRef(state)
+  useEffect(() => {
+    const before = was.current
+    was.current = state
+    if (props.state || document.activeElement !== document.body) return
+    const title = state === 'sent' && sent.current?.querySelector<HTMLElement>('.hgroup__title')
+    const row =
+      before === 'sent' &&
+      element.current?.querySelector<HTMLElement>('[name]:not([readonly], [tabindex="-1"])')
+    if (title) title.tabIndex = -1
+    ;(title || row || null)?.focus()
+  }, [state, props.state])
+
   const named = fields.flatMap((field) => (field.kind === 'words' ? [] : [field]))
   const labelOf = (name: string) => named.find((field) => field.name === name)?.label ?? name
   const list = new Intl.ListFormat(props.lang, { type: 'conjunction' })
@@ -267,7 +283,7 @@ export function Form(props: {
 
   if (state === 'sent')
     return (
-      <div className="form__sent" data-rest={props.state ? '' : undefined} role="status">
+      <div className="form__sent" data-rest={props.state ? '' : undefined} ref={sent} role="status">
         {slip && (
           <Postmark date={{ day, year }} label={on(words.postmark)} words={on(words.received)} />
         )}

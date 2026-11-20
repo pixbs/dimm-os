@@ -114,6 +114,7 @@ const entering = () => (login ??= atLogin())
 const never = () => () => {}
 
 const pad = (number: number) => String(number).padStart(2, '0')
+const byId = (id: string) => document.getElementById(id)
 
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
 // neighbours, which ends its body. On paper its head is a record's and its foot says when it was updated; beside it
@@ -446,11 +447,22 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               : 'other'
             : null
   function go(next: Waiting | null) {
+    if (!waiting) setHeld(document.activeElement)
     const linking = next === null && waiting === 'boot' && linked && asked === undefined
     // The desk that follows the login has the desk's address.
     if (next === null && atLogin()) write('replaceState', toAddress(language, '/'))
     setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
   }
+
+  // A screen the visitor asked for takes the focus at its heading, and the desk hands it back to what held it.
+  const [held, setHeld] = useState<Element | null>(null)
+  useEffect(() => {
+    if (asked === undefined) return
+    const heading = document.querySelector<HTMLElement>('[data-waiting] h1')
+    if (heading) heading.tabIndex = -1
+    const to = asked ? heading : held
+    if (to instanceof HTMLElement) to.focus({ preventScroll: true })
+  }, [asked, held])
 
   // What the system's commands do, from its menu and from search as from the login screen.
   const commands = {
@@ -466,8 +478,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const away = ['close', 'minimise', 'escape'].includes(action.type)
     const of = ('path' in action && action.path) || front(desk)
     if (away && of && windowOf(of) === '/cookies' && !answered()) decide([])
+    const held = away && !!of && !!byId(idOf(of))?.contains(document.activeElement)
     dispatch(action)
     const after = manager(desk, action)
+    if (held && !phone(desk)) handOn(of, after)
     if (action.type === 'desk' || after === desk) return
     const next = showing(after)
     const address = toAddress(language, next ?? '/')
@@ -475,6 +489,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if ('path' in action && action.path && windowOf(action.path) === windowOf(next ?? '/')) {
       write('pushState', address)
     } else if (next !== top) write('replaceState', address)
+  }
+
+  // A window that leaves a desk holding the focus hands it on once it has gone: to its taskbar button if it is kept
+  // there, else to what opened it, else to the window now in front. A drawer hands its own back.
+  function handOn(path: string, after: typeof desk) {
+    const left = after.open.find((one) => one.path === path)
+    if (left && left.mode !== 'min') return
+    const task = `task-${idOf(path)}`
+    const opener = desk.open.find((one) => one.path === path)?.opener
+    requestAnimationFrame(() => {
+      const back = opener?.isConnected && opener.id !== task && !opener.closest('[inert]')
+      const to = left ? byId(task) : back ? opener : byId(idOf(front(after) ?? ''))
+      if (to instanceof HTMLElement) to.focus({ preventScroll: true })
+    })
   }
 
   // A window opens at once and fills when its view arrives; without one, the address is the browser's to show.
@@ -676,8 +704,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             t={dictionary}
           >
             <BarSpace />
+            {/* The key shows on a desk alone: on a phone's width there is no room for it beside the clock. */}
             <Button
-              data-for="pointer"
+              data-for="desk pointer"
               hint={named(language, systemKeys.search)}
               icon="search"
               keyed
@@ -685,13 +714,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               onClick={(event) => search(event.currentTarget)}
               size="chrome"
             />
-            <Button
-              data-for="touch"
-              icon="search"
-              name={dictionary.search}
-              onClick={(event) => search(event.currentTarget)}
-              size="chrome"
-            />
+            {['phone pointer', 'touch'].map((device) => (
+              <Button
+                data-for={device}
+                icon="search"
+                key={device}
+                name={dictionary.search}
+                onClick={(event) => search(event.currentTarget)}
+                size="chrome"
+              />
+            ))}
             <Button
               data-for="desk pointer"
               icon="contrast"
@@ -704,7 +736,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               size="chrome"
             />
             <ButtonLink
-              aria-label={dictionary.language}
+              aria-label={`${language.toUpperCase()}, ${dictionary.language}`}
               data-for="desk"
               href={toAddress(other, top ?? '/')}
               hrefLang={other}

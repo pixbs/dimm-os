@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 
 import { login } from './login'
@@ -204,9 +205,18 @@ test.describe('Frontend', () => {
     await page.goto('/de/work/loop')
     const loop = page.locator('#window-work')
     await expect(loop.locator('[lang="en"] h1')).toHaveText('Loop')
-    await expect(loop.locator('.window__content > .bar').last()).toHaveText(
-      'Noch nicht auf Deutsch geschrieben: hier auf Englisch.',
-    )
+    const says = loop.locator('.window__content > .bar').last()
+    await expect(says).toHaveText('Noch nicht auf Deutsch geschrieben: hier auf Englisch.')
+    await expect(page.getByRole('link', { name: 'DE, Sprache: Deutsch' })).toBeVisible()
+    // In a drawer 320 px wide the line wraps, none of it beside the screen, and the menu bar keeps its clock whole.
+    await page.setViewportSize({ width: 320, height: 568 })
+    await expect
+      .poll(async () => {
+        const box = (await says.locator('.bar__text').boundingBox())!
+        return box.x + box.width
+      })
+      .toBeLessThanOrEqual(320)
+    await expect(page.locator('header .bar > :last-child')).toBeInViewport({ ratio: 1 })
   })
 
   test('leaves a link to the browser when its view cannot be fetched', async ({ page }) => {
@@ -292,6 +302,15 @@ test.describe('Frontend at an address without a window', () => {
         (await page.request.get(`/view${path.startsWith('/de') ? '' : '/en'}${path}`)).status(),
       ).toBe(404)
     }
+  })
+
+  test('the 404 window passes axe, and its body, which scrolls with nothing in it to focus, is a stop of the keyboard', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/nothing', { waitUntil: 'networkidle' })
+    await expect(page.locator('#window-404 .window__body')).toHaveAttribute('tabindex', '0')
+    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([])
   })
 
   test('leaves a real file with a dot to load as it is', async ({ request }) => {

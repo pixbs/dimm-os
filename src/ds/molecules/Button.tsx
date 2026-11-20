@@ -15,7 +15,8 @@ type Props = Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & {
   lead?: ReactNode
   end?: IconName
   hint?: Named
-  // Without a label, the key stands beside the icon instead of in its tooltip.
+  // Without a label, the key stands beside the icon instead of in its tooltip, and the name is in the page unseen,
+  // so what the button is called holds what it shows.
   keyed?: boolean
   // What counts in the end slot while it works; until then it cannot be pressed again.
   busy?: ReactNode
@@ -42,7 +43,7 @@ export function Button(props: Props) {
       type="button"
       {...rest}
       aria-busy={busy ? true : undefined}
-      aria-label={label ? undefined : name}
+      aria-label={label || keyed ? undefined : name}
       className="btn"
       data-icon={label || keyed ? undefined : ''}
       data-size={size}
@@ -54,7 +55,12 @@ export function Button(props: Props) {
     >
       {icon && <Icon name={icon} size={label || size === 'compact' ? 's' : size} />}
       {lead}
-      {label ? <span className="btn__label">{label}</span> : key}
+      {label ? (
+        <span className="btn__label">{label}</span>
+      ) : (
+        keyed && <span data-unseen>{name} </span>
+      )}
+      {!label && key}
       {trail && <span className="btn__end">{trail}</span>}
       {!label && name && <Tip hint={keyed ? undefined : hint} label={name} />}
     </button>

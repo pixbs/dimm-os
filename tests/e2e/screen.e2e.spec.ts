@@ -391,58 +391,62 @@ const { defaultBrowserType: _, ...pixel } = devices['Pixel 7']
 test.describe('Screen on a mid-range phone', () => {
   test.use(pixel)
 
-  test('keeps the targets with the CPU throttled: paint, input, shift and frames', async ({
-    browser,
-    page,
-  }) => {
-    test.skip(!process.env.CI, 'The targets hold for the production build, which CI serves.')
+  for (const [path, where] of [
+    ['/', 'on the desk'],
+    ['/work/grow', 'in a case study'],
+  ])
+    test(`keeps the targets with the CPU throttled, ${where}: paint, input, shift and frames`, async ({
+      browser,
+      page,
+    }) => {
+      test.skip(!process.env.CI, 'The targets hold for the production build, which CI serves.')
 
-    await page.addInitScript(() => {
-      const seen = { paint: 0, shift: 0, input: [] as number[] }
-      Object.assign(window, { seen })
-      const observe = (type: string, read: (entry: PerformanceEntry) => void) =>
-        new PerformanceObserver((list) => list.getEntries().forEach(read)).observe({
-          type,
-          buffered: true,
-          durationThreshold: 16,
-        } as PerformanceObserverInit)
-      observe('largest-contentful-paint', (entry) => (seen.paint = entry.startTime))
-      observe('layout-shift', (entry) => {
-        const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
-        if (!shift.hadRecentInput) seen.shift += shift.value
+      await page.addInitScript(() => {
+        const seen = { paint: 0, shift: 0, input: [] as number[] }
+        Object.assign(window, { seen })
+        const observe = (type: string, read: (entry: PerformanceEntry) => void) =>
+          new PerformanceObserver((list) => list.getEntries().forEach(read)).observe({
+            type,
+            buffered: true,
+            durationThreshold: 16,
+          } as PerformanceObserverInit)
+        observe('largest-contentful-paint', (entry) => (seen.paint = entry.startTime))
+        observe('layout-shift', (entry) => {
+          const shift = entry as PerformanceEntry & { value: number; hadRecentInput: boolean }
+          if (!shift.hadRecentInput) seen.shift += shift.value
+        })
+        observe('event', (entry) => seen.input.push(entry.duration))
       })
-      observe('event', (entry) => seen.input.push(entry.duration))
-    })
-    await emptyDesk(page)
-    await open(page, '/', 4)
-    await page.waitForTimeout(3000)
+      await emptyDesk(page)
+      await open(page, path, 4)
+      await page.waitForTimeout(3000)
 
-    // The main thread is traced while the wallpaper drifts; its worker runs at full speed, since a worker
-    // cannot be slowed, so its time counts four times.
-    await costs(page)
-    await browser.startTracing(page, {
-      categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline'],
-    })
-    await page.waitForTimeout(2000)
-    const trace = JSON.parse((await browser.stopTracing()).toString()) as {
-      traceEvents: { name: string; tid: number; dur?: number; args?: { name?: string } }[]
-    }
-    const main = trace.traceEvents.find(
-      (event) => event.name === 'thread_name' && event.args?.name === 'CrRendererMain',
-    )!.tid
-    const tasks = trace.traceEvents.filter(
-      (event) => event.tid === main && event.name === 'RunTask',
-    )
-    expect(Math.max(...tasks.map((task) => task.dur ?? 0)) / 1000).toBeLessThanOrEqual(10)
-    expect(Math.max(...(await costs(page))) * 4).toBeLessThanOrEqual(10)
+      // The main thread is traced while the wallpaper drifts; its worker runs at full speed, since a worker
+      // cannot be slowed, so its time counts four times.
+      await costs(page)
+      await browser.startTracing(page, {
+        categories: ['devtools.timeline', 'disabled-by-default-devtools.timeline'],
+      })
+      await page.waitForTimeout(2000)
+      const trace = JSON.parse((await browser.stopTracing()).toString()) as {
+        traceEvents: { name: string; tid: number; dur?: number; args?: { name?: string } }[]
+      }
+      const main = trace.traceEvents.find(
+        (event) => event.name === 'thread_name' && event.args?.name === 'CrRendererMain',
+      )!.tid
+      const tasks = trace.traceEvents.filter(
+        (event) => event.tid === main && event.name === 'RunTask',
+      )
+      expect(Math.max(...tasks.map((task) => task.dur ?? 0)) / 1000).toBeLessThanOrEqual(10)
+      expect(Math.max(...(await costs(page))) * 4).toBeLessThanOrEqual(10)
 
-    await page.getByRole('link', { name: 'Work' }).tap()
-    await expect(page.locator('article[data-front] h1')).toHaveText('Work')
-    const seen = await page.evaluate(
-      () => Reflect.get(window, 'seen') as { paint: number; shift: number; input: number[] },
-    )
-    expect(seen.paint).toBeLessThanOrEqual(2500)
-    expect(seen.shift).toBeLessThan(0.1)
-    expect(Math.max(0, ...seen.input)).toBeLessThanOrEqual(200)
-  })
+      await page.getByRole('link', { name: 'Work', exact: true }).first().tap()
+      await expect(page.locator('article[data-front] h1')).toHaveText('Work')
+      const seen = await page.evaluate(
+        () => Reflect.get(window, 'seen') as { paint: number; shift: number; input: number[] },
+      )
+      expect(seen.paint).toBeLessThanOrEqual(2500)
+      expect(seen.shift).toBeLessThan(0.1)
+      expect(Math.max(0, ...seen.input)).toBeLessThanOrEqual(200)
+    })
 })

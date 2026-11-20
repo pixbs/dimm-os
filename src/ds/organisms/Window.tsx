@@ -217,6 +217,22 @@ export function Window(props: Props) {
     mounted.current = true
   }, [front, away])
 
+  // A body that scrolls with nothing in it to focus is a stop of its own, so keys scroll it in every browser.
+  const body = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const element = body.current!
+    const check = () => {
+      const reached = element.querySelector(
+        'a[href], button, input, select, textarea, [tabindex="0"]',
+      )
+      if (element.scrollHeight > element.clientHeight && !reached) element.tabIndex = 0
+      else element.removeAttribute('tabindex')
+    }
+    const sized = new ResizeObserver(check)
+    for (const part of [element, ...element.children]) sized.observe(part)
+    return () => sized.disconnect()
+  }, [view])
+
   // The server has no tokens to read, and what it painted stays as it is.
   const frames = useMemo(() => {
     if (painted) return
@@ -448,7 +464,7 @@ export function Window(props: Props) {
             {props.toolbar}
             {/* What scrolls: the body, and with it the foot in a short drawer. */}
             <div className="window__main">
-              <div className="window__body cq">
+              <div className="window__body cq" ref={body}>
                 <AnimatePresence custom={props.travel} initial={false} mode="popLayout">
                   <m.div
                     animate="in"

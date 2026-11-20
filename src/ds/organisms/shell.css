@@ -347,6 +347,11 @@
     outline: var(--b-2) solid var(--ring);
     outline-offset: var(--b-2);
   }
+  /* Its own ring lies inside it, where the frame does not cut it. */
+  &:focus-visible {
+    outline: var(--b-2) solid var(--ring);
+    outline-offset: calc(var(--b-2) * -1);
+  }
 }
 .window__view {
   flex: 1 0 auto;
@@ -713,6 +718,11 @@
     flex-direction: column;
     overflow: auto;
   }
+  /* Its heading shows the ring when it takes the focus, as a window's does. */
+  & [tabindex='-1']:focus-visible {
+    outline: var(--b-2) solid var(--ring);
+    outline-offset: var(--b-2);
+  }
   /* On a phone its bottom bar takes a second line where its words do not fit in one. */
   & > footer > .bar {
     flex-wrap: wrap;
@@ -803,13 +813,13 @@
 
 /* The splash: who comes in, or what has happened, alone in the middle of the screen or at its start. */
 .splash {
-  flex: 1 1 0;
+  /* It never gives up the height of what it holds: on a low screen the room scrolls instead. */
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: var(--s-6);
-  min-height: 0;
   padding: var(--sect) var(--inset);
   text-align: center;
 

@@ -477,6 +477,24 @@ test.describe('Window, on the desk', () => {
     await expect(window(page, 'Services')).toHaveAttribute('inert')
   })
 
+  test('hands the focus on as it leaves: to what opened it when closed, to its taskbar button when put away', async ({
+    page,
+  }) => {
+    await app(page, 'Services').press('Enter')
+    await expect(window(page, 'Services').getByRole('heading')).toBeFocused()
+    await page.keyboard.press('Escape')
+    await expect(app(page, 'Services')).toBeFocused()
+
+    await app(page, 'Services').press('Enter')
+    await control(window(page, 'Services'), 'Minimise').press('Enter')
+    const task = page.locator('#task-window-services')
+    await expect(task).toBeFocused()
+    // Brought back by its own button, which goes with it, it hands the focus to the window now in front.
+    await task.press('Enter')
+    await control(window(page, 'Services'), 'Close').press('Enter')
+    await expect(window(page)).toBeFocused()
+  })
+
   test('brings each taskbar button in at its own place as its window opens', async ({ page }) => {
     await watch(page, 'footer[data-for="desk"] button:nth-of-type(2)')
     await app(page, 'Services').click()

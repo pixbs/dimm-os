@@ -88,12 +88,15 @@ test.describe('Forms', () => {
       'Message sent.I will reply to ana@example.com.',
     )
     await expect(window.getByRole('button', { name: 'Send' })).toHaveCount(0)
+    // The confirmation takes the focus the button held, so it is read, and a new slip takes it at its first row.
+    await expect(window.getByRole('heading', { name: 'Message sent.' })).toBeFocused()
     // It leads to a new slip, as its arrow says.
     await expect(
       window.getByRole('button', { name: 'New message' }).locator('.btn__end svg'),
     ).toBeVisible()
     await window.getByRole('button', { name: 'New message' }).click()
     await expect(window.getByLabel('Message')).toHaveValue('')
+    await expect(window.getByLabel('Name')).toBeFocused()
 
     await login(page)
     const found = await page.request.get(

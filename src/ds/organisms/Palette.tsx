@@ -94,7 +94,7 @@ export function Palette(props: Props) {
               aria-activedescendant={results.length ? rowId(id, selected) : undefined}
               aria-autocomplete="list"
               aria-controls={list}
-              aria-expanded
+              aria-expanded={results.length > 0}
               aria-label={props.field}
               autoComplete="off"
               className="input"
@@ -117,7 +117,13 @@ export function Palette(props: Props) {
           </span>
         </div>
       </div>
-      <div aria-label={t.resultList} className="palette__list" id={list} role="listbox">
+      {/* It is a list only while it holds rows: with nothing found it says so in plain words. */}
+      <div
+        aria-label={results.length ? t.resultList : undefined}
+        className="palette__list"
+        id={list}
+        role={results.length ? 'listbox' : undefined}
+      >
         {groups.map(({ label, rows }) => (
           <div aria-labelledby={`${id}-${rows[0][1]}-group`} key={rows[0][1]} role="group">
             <p className="palette__group" id={`${id}-${rows[0][1]}-group`}>

@@ -42,6 +42,9 @@ test.describe('Search on a desk', () => {
     await page.keyboard.type('zzz')
     await expect(options(page)).toHaveCount(0)
     await expect(palette(page)).toContainText('Nothing matches “grozzz”. Try fewer letters.')
+    // With nothing found there is no list: the field is closed and the sentence is plain words.
+    await expect(field(page)).toHaveAttribute('aria-expanded', 'false')
+    await expect(palette(page).getByRole('listbox')).toHaveCount(0)
 
     await page.keyboard.press('Escape')
     await expect(field(page)).toHaveValue('')
@@ -124,6 +127,8 @@ test.describe('Search on a desk', () => {
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     const icon = page.locator('header').getByRole('button', { name: 'Search' }).first()
+    // What it is called holds the key it shows.
+    await expect(icon).toHaveAccessibleName('Search Ctrl K')
     await icon.click()
     await expect(field(page)).toBeFocused()
     await page.mouse.click(1200, 700)

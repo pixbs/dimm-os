@@ -80,17 +80,41 @@ function ratios() {
   return [...new Set(low)]
 }
 
-// What axe finds of too little contrast, and what it leaves out, once everything has arrived.
-async function contrast(page: Page) {
+// What needs scrolling sideways, and what stands beside the screen where no scroll reaches it.
+function sideways() {
+  const found: string[] = []
+  const root = document.documentElement
+  if (root.scrollWidth > root.clientWidth + 1) found.push('the page scrolls sideways')
+  for (const element of document.querySelectorAll<HTMLElement>('body *')) {
+    if (!element.checkVisibility()) continue
+    if (element.closest('[inert], [aria-hidden="true"], [data-unseen]')) continue
+    const name = `${element.tagName.toLowerCase()}.${element.className}`
+    const scrolls = /auto|scroll/.test(getComputedStyle(element).overflowX)
+    if (scrolls && element.scrollWidth > element.clientWidth + 1)
+      found.push(`${name} scrolls sideways`)
+    const { left, right, width } = element.getBoundingClientRect()
+    const text = !element.childElementCount && element.textContent?.trim()
+    if (text && width && (left < -1 || right > innerWidth + 1))
+      found.push(`${name} stands beside the screen: ${text.slice(0, 24)}`)
+  }
+  return [...new Set(found)]
+}
+
+// What axe finds, by every rule but those skipped, in light and then in dark, and in light the contrast it leaves out,
+// once everything has arrived.
+async function findings(page: Page, skip: string[] = []) {
+  const axe = async () =>
+    (await new AxeBuilder({ page }).disableRules(skip).analyze()).violations.flatMap(
+      ({ id, nodes }) =>
+        nodes.map(({ target, any }) => `${id}: ${target} ${any[0]?.message ?? ''}`),
+    )
   await page.evaluate(() => document.fonts.ready)
   await page.waitForTimeout(1000)
-  const { violations } = await new AxeBuilder({ page }).withRules(['color-contrast']).analyze()
-  return [
-    ...violations.flatMap(({ nodes }) =>
-      nodes.map(({ target, any }) => `${target} ${any[0]?.message}`),
-    ),
-    ...(await page.evaluate(ratios)),
-  ]
+  const light = [...(await axe()), ...(await page.evaluate(ratios))]
+  // The other theme is the same page with the root's setting changed, as the theme button changes it.
+  await page.evaluate(() => (document.documentElement.dataset.theme = 'dark'))
+  await page.waitForTimeout(400)
+  return [...light, ...(await axe()).map((found) => `in dark, ${found}`)]
 }
 
 test.describe('Light theme', () => {
@@ -98,32 +122,46 @@ test.describe('Light theme', () => {
     await page.emulateMedia({ colorScheme: 'light', reducedMotion: 'reduce' })
   })
 
-  test('every catalogue page reads in light, in both languages', async ({ page }) => {
-    test.slow()
+  test('every catalogue page reads in light, and axe finds nothing in either theme, in both languages', async ({
+    page,
+  }) => {
+    test.setTimeout(600_000)
+    // A sheet draws many screens and repeats its specimens, so its landmarks are neither one nor unique.
+    const sheet = ['landmark-main-is-top-level', 'landmark-no-duplicate-main', 'landmark-unique']
     for (const language of ['', '/de']) {
       for (const name of catalogue) {
         await page.goto(`${language}/catalogue${name}`)
         await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-        expect(await contrast(page), `${language}/catalogue${name}`).toEqual([])
+        expect(await findings(page, sheet), `${language}/catalogue${name}`).toEqual([])
       }
     }
   })
 
-  test('every window reads in light, at three sizes and in both languages', async ({
+  test('every window reads in light, axe finds nothing in either theme, and none scrolls sideways at 320 px, at three sizes and in both languages', async ({
     page,
     request,
   }) => {
-    test.setTimeout(900_000)
+    test.setTimeout(1_200_000)
     for (const language of ['en', 'de']) {
       const view = await (await request.get(`/view/${language}/`)).json()
-      // A command of the system is a row without an address.
-      const paths: string[] = view.search.flatMap(({ href }: { href?: string }) => href ?? [])
+      const root = language === 'en' ? '' : `/${language}`
+      // A command of the system is a row without an address; the desk and the login are no rows of search.
+      const paths: string[] = [
+        root || '/',
+        ...view.search.flatMap(({ href }: { href?: string }) => href ?? []),
+        `${root}/login`,
+      ]
       for (const size of sizes) {
         await page.setViewportSize(size)
         for (const path of paths) {
           await page.goto(path)
           await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
-          expect(await contrast(page), `${path} at ${size.width}`).toEqual([])
+          expect(await findings(page), `${path} at ${size.width}`).toEqual([])
+          if (size !== sizes[0]) continue
+          // A browser 1280 px wide zoomed to 400 % is a screen of 320 by 256.
+          await page.setViewportSize({ width: 320, height: 256 })
+          await expect.poll(() => page.evaluate(sideways), `${path} at 320`).toEqual([])
+          await page.setViewportSize(size)
         }
       }
     }
