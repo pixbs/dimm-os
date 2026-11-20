@@ -6,12 +6,12 @@ import de from '@/i18n/de'
 import { filtered } from '@/shell/filtered'
 
 // An item of a window that relates to the windows given by their addresses.
-const item = (key: string, tags: string[]) =>
-  ({ key, tags, title: key, preview: null }) as unknown as ListView['items'][number]
+const item = (key: string, tags: string[], kind: string | null = 'case') =>
+  ({ key, tags, title: key, preview: null, kind }) as unknown as ListView['items'][number]
 
 const list = (limit: number | null = null) =>
   ({
-    items: [item('/a', ['/one']), item('/b', ['/one', '/two']), item('/c', ['/two'])],
+    items: [item('/a', ['/one']), item('/b', ['/one', '/two']), item('/c', ['/two'], 'pdf')],
     filter: [
       { href: '/one', label: 'One', count: 2 },
       { href: '/two', label: 'Two', count: 2 },
@@ -40,5 +40,11 @@ describe('a list of the items of a window', () => {
     const chosen = { href: '/gone', label: 'Gone' }
     expect(filtered(list(), chosen, en)).toMatchObject({ items: [], empty: 'Nothing in Gone.' })
     expect(filtered(list(), chosen, de).empty).toBe('Nichts in Gone.')
+  })
+
+  it('names the kind the items it leaves share, and none where they are mixed', () => {
+    expect(filtered(list(), { href: '/one', label: 'One' }, en).kind).toBe('case')
+    expect(filtered(list(), { href: '/two', label: 'Two' }, en).kind).toBeNull()
+    expect(filtered(list(), null, en).kind).toBeNull()
   })
 })

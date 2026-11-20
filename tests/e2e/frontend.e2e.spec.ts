@@ -104,7 +104,7 @@ test.describe('Frontend', () => {
     const work = page.locator('#window-work')
     // A window with items counts them in its toolbar.
     await expect(work.locator('.window__content > .bar').nth(1).getByRole('status')).toHaveText(
-      '3 items',
+      '3 case studies',
     )
 
     await work.getByRole('link', { name: 'Grow' }).click()

@@ -20,6 +20,7 @@ import { change } from '@/ds/atoms/settings'
 import { useSetting } from '@/ds/atoms/useSetting'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
+import { Heading } from '@/ds/molecules/Heading'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
 import type { Box } from '@/ds/organisms/Window'
@@ -157,10 +158,15 @@ function Body(props: {
     : []
   const content = (
     <>
-      {/* A window that opens with neither a Header nor tiles still holds its title once. */}
-      {!slip && first?.type !== 'header' && !(first?.type === 'cards' && first.tiles) && (
-        <Header level="title" page record={record} title={view.frame.title} />
-      )}
+      {/* A window that opens with neither a Header nor tiles holds its title once, unseen; paper draws its head. */}
+      {!slip &&
+        first?.type !== 'header' &&
+        !(first?.type === 'cards' && first.tiles) &&
+        (record ? (
+          <Header level="title" page record={record} title={view.frame.title} />
+        ) : (
+          <Heading page title={view.frame.title} unseen />
+        ))}
       {sections.length > 0 && (
         <Sections
           chapters={contents ? prefix : undefined}
@@ -275,6 +281,9 @@ function Foot({ buttons }: { buttons: FootButton[] }) {
   )
 }
 
+// The kinds the dictionary knows, by the name a window is typed with.
+type Kinds = Record<string, { counted: { one: string; other: string } } | undefined>
+
 // What the filter of a window holds: the choice in force, the way to change it, and on a phone how many of its menus,
 // which are drawers there, stand in front of the window.
 type Filter = {
@@ -295,16 +304,20 @@ function parts(
   filter: Filter,
 ): Parts {
   const { parent, counters } = view
-  const counted = (count: number) =>
-    (new Intl.PluralRules(language).select(count) === 'one' ? t.item : t.items).replace(
-      '{count}',
-      count.toLocaleString(language),
-    )
-  // The first list that filters is the one the toolbar counts and filters.
+  // The first list that filters is the one the toolbar counts and filters; what it counts is named by the kind it
+  // shares, or as items.
   const filtering = view.sections.find(
     (section): section is ListView => section.type === 'list' && !!section.filter,
   )
-  const count = filtering ? filtered(filtering, filter.chosen, t, language).matching : view.count
+  const left = filtering && filtered(filtering, filter.chosen, t, language)
+  const count = left ? left.matching : view.count
+  const kind = left ? left.kind : view.kind
+  const words = (kind && (t.kinds as Kinds)[kind]?.counted) || { one: t.item, other: t.items }
+  const counted = (count: number) =>
+    words[new Intl.PluralRules(language).select(count) === 'one' ? 'one' : 'other'].replace(
+      '{count}',
+      count.toLocaleString(language),
+    )
   const choices = filtering?.filter ?? []
   const toolbar = parent ? (
     <Bar line="below">

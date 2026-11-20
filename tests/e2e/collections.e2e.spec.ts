@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import type { Page } from '@playwright/test'
 
 import { expect, test } from './test'
@@ -51,7 +52,7 @@ const pick = async (page: Page, from: string, choice: string) => {
 test.describe('A list of the items of a window', () => {
   test('counts them in the toolbar and opens one at a time to its preview', async ({ page }) => {
     await page.goto('/work')
-    await expect(work(page).getByRole('status')).toHaveText('3 items')
+    await expect(work(page).getByRole('status')).toHaveText('3 case studies')
     await expect(items(page).locator('.row__side > .row__title')).toHaveText([
       'Grow',
       'Field',
@@ -71,6 +72,70 @@ test.describe('A list of the items of a window', () => {
     await expect(items(page).first().getByRole('button')).toHaveAttribute('aria-expanded', 'false')
   })
 
+  for (const [width, height] of [
+    [1440, 1000],
+    [834, 1194],
+    [390, 844],
+  ])
+    test(`opens at ${width} px with its first row under the toolbar, its title kept unseen`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height })
+      await page.goto('/work', { waitUntil: 'networkidle' })
+      const title = work(page).getByRole('heading', { level: 1 })
+      await expect(title).toHaveCount(1)
+      await expect(title).toHaveText('Work')
+      // The heading's group clips it, so the group is what takes room.
+      expect((await title.locator('xpath=..').boundingBox())!.height).toBeLessThanOrEqual(1)
+      // Nothing is drawn between the toolbar and the first row.
+      const bar = (await work(page).getByRole('status').locator('xpath=..').boundingBox())!
+      const row = (await items(page).first().boundingBox())!
+      expect(row.y - (bar.y + bar.height)).toBeLessThan(row.height)
+      const { violations } = await new AxeBuilder({ page }).include('#window-work').analyze()
+      expect(violations.map(({ id }) => id)).toEqual([])
+    })
+
+  test('names what it counts by the kind its items share, in German too', async ({ page }) => {
+    await page.goto('/de/work')
+    await expect(work(page).getByRole('status')).toHaveText('3 Fallstudien')
+  })
+
+  test('counts items where their kinds are mixed, or one the dictionary does not know', async ({
+    page,
+    playwright,
+  }) => {
+    const stamp = Date.now().toString(36)
+    const admin = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    await admin.post('/api/users/login', {
+      data: { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD },
+    })
+    const made: string[] = []
+    const make = async (data: object) => {
+      const response = await admin.post('/api/windows?locale=en', {
+        data: { _status: 'published', ...data },
+      })
+      const { id } = (await response.json()).doc
+      made.push(`/api/windows/${id}`)
+      return id as number
+    }
+    try {
+      const parent = await make({ title: `Mixed ${stamp}`, slug: `mixed-${stamp}` })
+      await make({ title: 'A case', slug: `case-${stamp}`, parent, kind: 'case' })
+      await make({ title: 'A file', slug: `file-${stamp}`, parent, kind: 'pdf' })
+      const count = page.locator('article[data-front] .window__content > .bar').nth(1)
+
+      await page.goto(`/mixed-${stamp}`)
+      await expect(count).toHaveText('2 items')
+      await admin.delete(made[1])
+      await page.goto(`/mixed-${stamp}`)
+      await expect(count).toHaveText('1 item')
+    } finally {
+      // An item goes before its window.
+      for (const route of made.reverse()) await admin.delete(route)
+      await admin.dispose()
+    }
+  })
+
   test('filters them: rows that stay slide, rows that go leave, new rows arrive along the spread, the count deciphers', async ({
     page,
   }) => {
@@ -79,7 +144,7 @@ test.describe('A list of the items of a window', () => {
     await expect(page.getByRole('menuitemradio')).toHaveText(['All3', 'Services2', 'CV2'])
     await page.getByRole('menuitemradio', { name: 'Services' }).click()
     await expect(page.getByRole('menu')).toBeHidden()
-    await expect(work(page).getByRole('status')).toHaveText('2 items')
+    await expect(work(page).getByRole('status')).toHaveText('2 case studies')
     await expect(items(page)).toHaveCount(2)
 
     await watch(page)
@@ -87,7 +152,7 @@ test.describe('A list of the items of a window', () => {
     await expect(items(page).locator('.row__side > .row__title')).toHaveText(['Grow', 'Loop'])
     // An item keeps its place in the whole list.
     await expect(items(page).nth(1).locator('.row__index')).toHaveText('03')
-    await expect(work(page).getByRole('status')).toHaveText('2 items')
+    await expect(work(page).getByRole('status')).toHaveText('2 case studies')
     await page.waitForTimeout(600)
     const frames = await seen(page)
     const rows = frames.flatMap((frame) => frame.rows)
@@ -102,7 +167,7 @@ test.describe('A list of the items of a window', () => {
 
     await watch(page)
     await pick(page, 'CV', 'All')
-    await expect(work(page).getByRole('status')).toHaveText('3 items')
+    await expect(work(page).getByRole('status')).toHaveText('3 case studies')
     await page.waitForTimeout(600)
     const all = await seen(page)
     // Loop slides down as Field arrives before it, and the count deciphers.
@@ -114,7 +179,7 @@ test.describe('A list of the items of a window', () => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.goto('/work')
     await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduce')
-    await expect(work(page).getByRole('status')).toHaveText('3 items')
+    await expect(work(page).getByRole('status')).toHaveText('3 case studies')
 
     await watch(page)
     await pick(page, 'All', 'Services')
@@ -141,7 +206,7 @@ test.describe('A list of the items of a window', () => {
       await page.getByRole('menuitemradio', { name: 'CV' }).click()
       await expect(page.getByRole('dialog', { name: 'Filter' })).toBeHidden()
       await expect(window).not.toHaveAttribute('data-back', /[1-3]/)
-      await expect(work(page).getByRole('status')).toHaveText('2 items')
+      await expect(work(page).getByRole('status')).toHaveText('2 case studies')
     })
   })
 })
