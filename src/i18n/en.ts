@@ -246,6 +246,8 @@ const en = {
   shutDownTalk: 'Want to talk first?',
   skip: 'Skip to the window in front',
   system: 'System',
+  // What else a command of the system answers to in search.
+  systemWords: { lock: 'log in guest', replay: 'boot start', shutDown: 'turn off close' },
   theme: 'Theme',
   // Where the reader is among the chapters of a window.
   turnOn: 'Turn on',

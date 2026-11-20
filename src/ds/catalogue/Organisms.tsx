@@ -4,7 +4,6 @@ import type { FormField } from '@/blocks/form/view'
 import type { Dictionary } from '@/i18n/en'
 import { Page } from '@/shell/Aside'
 
-import { Button } from '../molecules/Button'
 import { Form } from '../organisms/Form'
 import { Message } from '../organisms/Message'
 import { Plate } from '../organisms/Plate'
@@ -113,12 +112,24 @@ export function Forms({ t, language }: { t: Records; language: string }) {
 export function Messages({ t }: { t: Records }) {
   const m = t.messageWords
   const act = { label: m.label, onClick: () => {} }
+  const actions = [
+    { ...act, tone: 'solid' as const },
+    { ...act, tone: 'outline' as const },
+  ]
 
   return (
     <Entry text={t.message}>
       <Specs caps={t.messageCaps}>
-        {box(90, <Message action={act} text={m.text} title={m.title} />)}
-        {box(47, <Message action={act} eyebrow={m.eyebrow} text={m.short} title={m.title} />)}
+        {box(90, <Message actions={actions} text={m.text} title={m.title} />)}
+        {box(
+          47,
+          <Message
+            actions={[{ ...act, tone: 'solid', end: 'arrow-right' }]}
+            eyebrow={m.eyebrow}
+            text={m.short}
+            title={m.title}
+          />,
+        )}
       </Specs>
     </Entry>
   )
@@ -137,10 +148,10 @@ export function Plates({ t }: { t: Records }) {
             facts={t.facts.map(([label, value]) => ({ label, value }))}
             foot={[t.card.note, t.index[3]]}
             inside={(close) => (
-              <div className="message">
-                <p>{p.inside}</p>
-                <Button label={p.back} onClick={close} tone="outline" />
-              </div>
+              <Message
+                actions={[{ label: p.back, onClick: close, tone: 'outline' }]}
+                text={p.inside}
+              />
             )}
             label={t.card.title}
             marks={[

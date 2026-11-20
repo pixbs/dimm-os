@@ -3,7 +3,7 @@ import type { CardsBlock } from '@/payload-types'
 
 import { framed } from '../framed'
 import type { Action, Button } from '../header/view'
-import type { Listing, Shown } from '../listing'
+import type { Listing, Show, Shown } from '../listing'
 
 type Card = {
   title: string
@@ -30,6 +30,7 @@ export function cards(
   block: CardsBlock,
   action: (button: Button) => Action | null,
   listing: Listing,
+  show: Show,
 ): CardsView | null {
   const of = block.source === 'window' ? listing(block.from) : null
   const written = (block.source === 'window' ? [] : (block.items ?? [])).flatMap((item) => {
@@ -41,15 +42,7 @@ export function cards(
         title,
         text: text || null,
         surface: surface ?? 'raised',
-        picture:
-          typeof picture === 'object' && picture?.url
-            ? {
-                src: picture.url,
-                alt: picture.alt,
-                position: `${picture.focalX ?? 50}% ${picture.focalY ?? 50}%`,
-                live: picture.live ?? null,
-              }
-            : null,
+        picture: show(picture),
         actions: ways.flatMap(({ to }) => to ?? []),
         href: null,
       },

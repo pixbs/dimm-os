@@ -12,7 +12,7 @@ import { Row } from '../molecules/Row'
 import { Choices, Toggle } from '../molecules/Toggle'
 import { duration } from '../motion/vocabulary'
 import { Message } from './Message'
-import { Postmark } from './Postmark'
+import { dateOf, Postmark } from './Postmark'
 import { Prose } from './Prose'
 import { Stamp } from './Record'
 
@@ -260,11 +260,8 @@ export function Form(props: {
     setState(id, 'idle')
   }
 
-  // A slip is stamped with the day it was sent, the day before the month, as a postmark has it.
-  const stamp = (options: Intl.DateTimeFormatOptions) =>
-    new Intl.DateTimeFormat(props.lang, options).format(sentOn)
-  const day = `${stamp({ day: 'numeric' })} ${stamp({ month: 'short' })}`
-  const year = stamp({ year: 'numeric' })
+  // A slip is stamped with the day it was sent.
+  const { day, year } = dateOf(props.lang, sentOn)
   const on = (words: string) =>
     words.replace('{place}', props.place).replace('{date}', `${day} ${year}`)
 
@@ -275,7 +272,7 @@ export function Form(props: {
           <Postmark date={{ day, year }} label={on(words.postmark)} words={on(words.received)} />
         )}
         <Message
-          action={{ label: words.again, onClick: again, end: 'arrow-right' }}
+          actions={[{ label: words.again, onClick: again, end: 'arrow-right', tone: 'outline' }]}
           text={reply ? words.reply.replace('{email}', reply) : ''}
           title={words.sent}
         />

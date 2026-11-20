@@ -93,6 +93,13 @@ test.describe('A visitor', () => {
 
     // The lock screen is the login screen, which says until when the device stays signed in.
     await page.goto('/imprint')
+    await page.keyboard.press('Control+k')
+    await page.getByRole('combobox').fill('lock')
+    await expect(page.getByRole('group', { name: 'System', exact: true })).toContainText(
+      'Lock screen',
+    )
+    await page.keyboard.press('Escape')
+    await page.keyboard.press('Escape')
     await page.getByRole('menubar').getByRole('menuitem', { name: 'Dimm OS' }).click()
     await page.getByRole('menuitem', { name: 'Lock screen' }).click()
     await expect(waiting(page).getByRole('heading', { name })).toBeVisible()

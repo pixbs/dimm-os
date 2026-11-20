@@ -1,7 +1,9 @@
 import type { IconName } from '@/ds/atoms/Icon'
 import type { Language } from '@/i18n/address'
+import type { systemCommands } from '@/system/windows'
 
-// One thing search finds: a window this viewer may see, or an app of the system, under the label of its group.
+// One thing search finds: a window this viewer may see, or an app or a command of the system, under the label of its
+// group.
 export type Found = {
   title: string
   kind: string
@@ -9,7 +11,9 @@ export type Found = {
   // What else it answers to: an item, its window's title.
   words: string
   icon: IconName
-  href: string
+  // Where it leads, or what it runs.
+  href?: string
+  command?: keyof typeof systemCommands
   lang?: Language
 }
 

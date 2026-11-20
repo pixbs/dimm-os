@@ -45,7 +45,7 @@ export function List(props: {
   if (empty)
     return (
       <Origin open speed="slow">
-        <Message action={props.reset} text={empty} />
+        <Message actions={props.reset ? [{ ...props.reset, tone: 'outline' }] : []} text={empty} />
       </Origin>
     )
   return (

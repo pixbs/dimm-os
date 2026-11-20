@@ -28,6 +28,7 @@ import { dropBareIds } from '@/hooks/relations'
 import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidate'
 import { languages } from '@/i18n/address'
 import { systemKeys } from '@/i18n/keys'
+import { forAgents } from '@/mcp'
 import { systemWindows } from '@/system/windows'
 
 // The names a window's slug may not take: the system's paths, the language codes and the site's own routes.
@@ -150,6 +151,13 @@ export const Windows: CollectionConfig = {
     defaultColumns: ['title', 'slug', 'kind', '_status', 'updatedAt'],
   },
   authorship: false,
+  llmInstructions: forAgents(
+    'Windows',
+    '',
+    '- Write the English window first. For German, read the English window, write the German one section for section, and publish it.',
+    `- The two legal windows, ${legal.join(' and ')}, go the other way round: German first.`,
+    '- A link to a window has no label of its own.',
+  ),
   fields: [
     { name: 'title', type: 'text', localized: true, maxLength: 24, required: true },
     {

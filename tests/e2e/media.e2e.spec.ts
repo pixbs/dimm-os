@@ -101,6 +101,19 @@ test.describe('Media', () => {
     await expect(later.locator('canvas.media__dots')).toHaveCount(1)
   })
 
+  test('a picture not written in German yet says its English words as English', async ({
+    page,
+  }) => {
+    await page.goto('/de/work/grow')
+    const picture = work(page).getByRole('figure').first().locator('img')
+
+    await expect(picture).toHaveAttribute('alt', 'A sun setting over two hills')
+    await expect(picture).toHaveAttribute('lang', 'en')
+    await page.goto('/work/grow')
+    await expect(picture).toHaveAttribute('alt', 'A sun setting over two hills')
+    await expect(picture).not.toHaveAttribute('lang')
+  })
+
   test('a live picture is no still that dots resolve: it draws itself over it', async ({
     page,
   }) => {

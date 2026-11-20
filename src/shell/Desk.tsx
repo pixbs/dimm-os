@@ -26,6 +26,7 @@ import { Tag } from '@/ds/molecules/Tag'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration, reduced } from '@/ds/motion/vocabulary'
+import { Stamping } from '@/ds/organisms/Live'
 import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
@@ -40,6 +41,7 @@ import { accessibilityWindow } from '@/system/Accessibility'
 import { cookiePreferencesWindow, cookiesWindow } from '@/system/Cookies'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
+import type { systemCommands } from '@/system/windows'
 
 import { Page } from './Aside'
 import { Clock } from './Clock'
@@ -423,7 +425,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const [chosen, setChosen] = useState<Record<string, Chosen | null>>({})
   // Search is open, and what opened it gets the focus back.
   const [searching, setSearching] = useState<{ opener: Element | null } | null>(null)
-  const search = (opener: Element | null) => setSearching({ opener })
+  const search = (opener: Element | null) => setSearching((was) => was ?? { opener })
   // The screen that waits over the desk, if one does; an invitation's link stands between the boot and the desk, and
   // the intro is not replayed where motion is reduced.
   const [asked, setWaiting] = useState<Waiting | null>()
@@ -449,6 +451,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (next === null && atLogin()) write('replaceState', toAddress(language, '/'))
     setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
   }
+
+  // What the system's commands do, from its menu and from search as from the login screen.
+  const commands = {
+    lock: () => go('login'),
+    replay: () => go('boot'),
+    shutDown: () => void shutDown(go),
+  } satisfies Record<keyof typeof systemCommands, () => void>
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
@@ -613,9 +622,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The keys act from wherever the focus is; the switch on the root is read at each press.
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
     if (waiting) return
-    const single = document.documentElement.dataset.shortcuts !== 'off'
-    const action = keyAction(event, view.keys, single, desk)
-    const key = pressed(event, view.keys, single)
+    const { shortcuts, keys } = document.documentElement.dataset
+    const single = shortcuts !== 'off'
+    const action = keyAction(event, view.keys, single, desk, keys === 'apple')
+    const key = pressed(event, view.keys, single, keys === 'apple')
     if (!action || !key) return
     event.preventDefault()
     // A row lights where the window that shows it is open, or opens with it.
@@ -656,8 +666,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               name: view.site.name,
               desk,
               act,
-              lock: () => go('login'),
-              shutDown: () => void shutDown(go),
+              lock: commands.lock,
+              shutDown: commands.shutDown,
               // Once the menu has closed and given the focus back to its button, which gets it again after.
               search: () => queueMicrotask(() => search(document.activeElement)),
             })}
@@ -713,60 +723,67 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         </header>
         {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
         <div className="screen__main">
-          <OnDesk
-            apps={view.shortcuts}
-            desk={desk}
-            dispatch={act}
-            label={dictionary.apps}
-            over={phone(desk) ? unfolded + filtering : 0}
-            t={dictionary}
+          <Stamping
+            value={{
+              words: dictionary.formReceived.replace('{place}', view.site.place),
+              lang: language,
+            }}
           >
-            {(opened, width) =>
-              opened.path === '/hotkeys'
-                ? {
-                    ...hotkeysWindow({
-                      t: dictionary,
-                      language,
-                      name: view.site.name,
-                      apps: view.keys,
-                      lit,
-                      run: (command, opener) => run(commandAction(command, desk), opener),
-                      light,
-                    }),
-                    title: titleOf(opened.path, opened.frame.title),
-                  }
-                : opened.path === '/preferences'
-                  ? preferencesWindow({
-                      t: dictionary,
-                      language,
-                      site: view.site,
-                      path: opened.path,
-                      close: () => act({ type: 'close', path: opened.path }),
-                    })
-                  : opened.path === '/accessibility'
-                    ? accessibilityWindow({
+            <OnDesk
+              apps={view.shortcuts}
+              desk={desk}
+              dispatch={act}
+              label={dictionary.apps}
+              over={phone(desk) ? unfolded + filtering : 0}
+              t={dictionary}
+            >
+              {(opened, width) =>
+                opened.path === '/hotkeys'
+                  ? {
+                      ...hotkeysWindow({
                         t: dictionary,
                         language,
-                        email: view.site.email,
+                        name: view.site.name,
+                        apps: view.keys,
+                        lit,
+                        run: (command, opener) => run(commandAction(command, desk), opener),
+                        light,
+                      }),
+                      title: titleOf(opened.path, opened.frame.title),
+                    }
+                  : opened.path === '/preferences'
+                    ? preferencesWindow({
+                        t: dictionary,
+                        language,
+                        site: view.site,
+                        path: opened.path,
                         close: () => act({ type: 'close', path: opened.path }),
                       })
-                    : opened.path === '/cookies' || opened.path === '/cookies/preferences'
-                      ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                    : opened.path === '/accessibility'
+                      ? accessibilityWindow({
                           t: dictionary,
                           language,
-                          name: view.site.name,
-                          close: () => act({ type: 'close', path: windowOf(opened.path) }),
+                          email: view.site.email,
+                          close: () => act({ type: 'close', path: opened.path }),
                         })
-                      : opened.about
-                        ? aboutWindow({ t: dictionary, about: opened.about, width })
-                        : parts(opened, dictionary, language, width, {
-                            chosen: chosen[opened.path] ?? null,
-                            choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
-                            drawer: phone(desk),
-                            onDepth: setFiltering,
+                      : opened.path === '/cookies' || opened.path === '/cookies/preferences'
+                        ? (opened.path === '/cookies' ? cookiesWindow : cookiePreferencesWindow)({
+                            t: dictionary,
+                            language,
+                            name: view.site.name,
+                            close: () => act({ type: 'close', path: windowOf(opened.path) }),
                           })
-            }
-          </OnDesk>
+                        : opened.about
+                          ? aboutWindow({ t: dictionary, about: opened.about, width })
+                          : parts(opened, dictionary, language, width, {
+                              chosen: chosen[opened.path] ?? null,
+                              choose: (one) => setChosen((all) => ({ ...all, [opened.path]: one })),
+                              drawer: phone(desk),
+                              onDepth: setFiltering,
+                            })
+              }
+            </OnDesk>
+          </Stamping>
           <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
             <Bar>
               {legal.map((link) => (
@@ -805,6 +822,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           language={language}
           name={view.site.name}
           onClose={() => setSearching(null)}
+          onCommand={(command) => commands[command]()}
           open={!!searching}
           opener={searching?.opener ?? null}
           t={dictionary}

@@ -104,11 +104,11 @@ describe('the keys, as the reference checks them', () => {
     expect(front(desk)).toBeDefined()
   })
 
-  it('keys are not taken while typing', () => {
+  it('keys are not taken while typing, but search', () => {
     const before = desk
     for (const one of ['f', 'm', 'n', 'w', '?', ',', 'Escape'])
       expect(key(one, { target: field })).toBeNull()
-    expect(key('k', { metaKey: true, target: field })).toBeNull()
+    expect(key('k', { metaKey: true, target: field })).toBe('search')
 
     expect(desk).toBe(before)
   })
@@ -158,6 +158,23 @@ describe('the key map', () => {
     expect(action('k', { metaKey: true }, false)).toBe('search')
     expect(action('k', { ctrlKey: true }, false)).toBe('search')
     expect(action('Escape', {}, false)).toEqual({ type: 'escape' })
+  })
+
+  it('in a field, takes only ⌘K or Ctrl K, and leaves Ctrl K to the field on an Apple device', () => {
+    for (const single of [true, false]) {
+      for (const one of ['f', 'm', 'n', 'w', 'W', '?', ',', 'Escape'])
+        expect(action(one, { target: field }, single)).toBeNull()
+      expect(action('m', { ctrlKey: true, target: field }, single)).toBeNull()
+      expect(action('k', { ctrlKey: true, target: field }, single)).toBe('search')
+      expect(action('k', { metaKey: true, target: field }, single)).toBe('search')
+      expect(
+        keyAction(press('k', { metaKey: true, target: field }), apps, single, desk, true),
+      ).toBe('search')
+      expect(
+        keyAction(press('k', { ctrlKey: true, target: field }), apps, single, desk, true),
+      ).toBeNull()
+    }
+    expect(action('k', { ctrlKey: true, isComposing: true, target: field })).toBeNull()
   })
 
   it('takes nothing while a word is being composed', () => {
