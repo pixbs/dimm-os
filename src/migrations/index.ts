@@ -13,6 +13,7 @@ import * as migration_20261118_173904_forms from './20261118_173904_forms';
 import * as migration_20261118_211013_cleanup_job from './20261118_211013_cleanup_job';
 import * as migration_20261118_211252_message_limit from './20261118_211252_message_limit';
 import * as migration_20261119_182115_alt_per_language from './20261119_182115_alt_per_language';
+import * as migration_20261119_185659_drop_unused from './20261119_185659_drop_unused';
 
 export const migrations = [
   {
@@ -88,6 +89,11 @@ export const migrations = [
   {
     up: migration_20261119_182115_alt_per_language.up,
     down: migration_20261119_182115_alt_per_language.down,
-    name: '20261119_182115_alt_per_language'
+    name: '20261119_182115_alt_per_language',
+  },
+  {
+    up: migration_20261119_185659_drop_unused.up,
+    down: migration_20261119_185659_drop_unused.down,
+    name: '20261119_185659_drop_unused'
   },
 ];
