@@ -100,6 +100,42 @@ test.describe('A list of the items of a window', () => {
     await expect(work(page).getByRole('status')).toHaveText('3 Fallstudien')
   })
 
+  test('counts items where their kinds are mixed, or one the dictionary does not know', async ({
+    page,
+    playwright,
+  }) => {
+    const stamp = Date.now().toString(36)
+    const admin = await playwright.request.newContext({ baseURL: 'http://localhost:3000' })
+    await admin.post('/api/users/login', {
+      data: { email: process.env.ADMIN_EMAIL, password: process.env.ADMIN_PASSWORD },
+    })
+    const made: string[] = []
+    const make = async (data: object) => {
+      const response = await admin.post('/api/windows?locale=en', {
+        data: { _status: 'published', ...data },
+      })
+      const { id } = (await response.json()).doc
+      made.push(`/api/windows/${id}`)
+      return id as number
+    }
+    try {
+      const parent = await make({ title: `Mixed ${stamp}`, slug: `mixed-${stamp}` })
+      await make({ title: 'A case', slug: `case-${stamp}`, parent, kind: 'case' })
+      await make({ title: 'A file', slug: `file-${stamp}`, parent, kind: 'pdf' })
+      const count = page.locator('article[data-front] .window__content > .bar').nth(1)
+
+      await page.goto(`/mixed-${stamp}`)
+      await expect(count).toHaveText('2 items')
+      await admin.delete(made[1])
+      await page.goto(`/mixed-${stamp}`)
+      await expect(count).toHaveText('1 item')
+    } finally {
+      // An item goes before its window.
+      for (const route of made.reverse()) await admin.delete(route)
+      await admin.dispose()
+    }
+  })
+
   test('filters them: rows that stay slide, rows that go leave, new rows arrive along the spread, the count deciphers', async ({
     page,
   }) => {
