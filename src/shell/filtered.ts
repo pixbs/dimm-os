@@ -4,8 +4,14 @@ import type { Dictionary } from '@/i18n/en'
 // A choice of the filter: the window the items relate to, by its address and its title.
 export type Chosen = { href: string; label: string }
 
+// The kind every item shares, or null where they are of more than one or none is typed.
+export function shared(kinds: (string | null | undefined)[]) {
+  const [kind, ...others] = new Set(kinds)
+  return others.length ? null : (kind ?? null)
+}
+
 // A list as a filter leaves it: the items that relate to the window chosen, each keeping its place in the whole list,
-// as many as its limit allows, how many of how many that is, and a line where none is left.
+// as many as its limit allows, how many of how many that is, the kind they share, and a line where none is left.
 export function filtered(
   list: ListView,
   chosen: Chosen | null,
@@ -21,6 +27,7 @@ export function filtered(
     ...list,
     items,
     matching: kept.length,
+    kind: shared(kept.map(({ kind }) => kind)),
     count:
       items.length < kept.length
         ? t.share

@@ -502,6 +502,7 @@ describe('the view of a window', () => {
           href: '/work',
           current: false,
           preview: null,
+          kind: null,
         },
         expect.objectContaining({ title: 'Away', href: 'https://example.com' }),
         expect.objectContaining({ name: null, caption: null, title: 'Unnamed', href: '/work' }),
@@ -665,6 +666,7 @@ describe('the view of a window', () => {
         ],
         action: { href: '/work/grow', label: 'Grow' },
       },
+      kind: 'case',
     })
 
     // Elsewhere, a limit leads on to the window listed; cards of a window lead to its items.
@@ -847,7 +849,7 @@ describe('the view of a window', () => {
     expect(index(de)).toMatchObject({
       items: [{ key: '/de/work/grow' }, { key: '/de/work/field' }, { key: '/de/work/loop' }],
     })
-    expect(en.window).toMatchObject({ count: 3, parent: null, counters: null })
+    expect(en.window).toMatchObject({ count: 3, kind: 'case', parent: null, counters: null })
   })
 
   it("shows an item in its parent's window, with the way back, its place and its neighbours", async () => {

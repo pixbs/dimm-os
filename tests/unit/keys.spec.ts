@@ -10,6 +10,7 @@ const view = (path: string, oneSize = false): WindowView => ({
   sections: [],
   actions: [],
   count: 0,
+  kind: null,
   parent: null,
   counters: null,
   neighbours: { previous: null, next: null },
