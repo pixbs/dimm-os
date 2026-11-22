@@ -17,7 +17,12 @@ type Time =
   | 'hold'
   | 'press'
   | 'note'
-type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up'
+  | 'swatch-sweep'
+  | 'swatch-step'
+  | 'swatch-close'
+  | 'swatch-wave'
+  | 'swatch-grow'
+type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up' | 'swatch'
 
 let probe: HTMLElement | undefined
 const known = new Map<string, string>()
@@ -50,8 +55,9 @@ export const curve = (name: Curve) =>
     .map(Number) as [number, number, number, number]
 
 // A token that counts rather than times.
-export const amount = (name: 'run' | 'settle' | 'nexts') =>
-  parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--m-${name}`))
+export const amount = (
+  name: 'run' | 'settle' | 'nexts' | 'swatch-fill' | 'swatch-from' | 'swatch-closed',
+) => parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--m-${name}`))
 
 // A move the visitor can interrupt: it settles within the token and never bounces.
 export const spring = (name: 'fast' | 'slow') =>
