@@ -16,7 +16,7 @@ const focused = (page: Page) =>
 
 // The key each command shows, on a device that is not Apple's.
 const keys: Record<string, string> = {
-  Preferences: ',',
+  'Preferences…': ',',
   Hotkeys: '?',
   Search: 'Ctrl K',
   'Close window': 'Esc',
@@ -138,17 +138,31 @@ test.describe('Menus on a desk', () => {
     await pick(page, ['File', 'Close window'])
     await expect(work).toHaveCount(0)
 
-    await pick(page, ['Dimm OS', 'Preferences'])
+    await pick(page, ['Dimm OS', 'Preferences…'])
     await expect(win(page, 'Preferences')).toHaveAttribute('data-front', '')
     await top(page, 'Help').click()
     for (const [name, path] of [
       ['Hotkeys', '/hotkeys'],
       ['Accessibility', '/accessibility'],
-      ['About Dimm OS', '/about'],
     ]) {
       await expect(menu(page, 'Help').getByRole('menuitem', { name })).toHaveAttribute('href', path)
     }
-    await expect(menu(page, 'Help').getByRole('menuitem')).toHaveCount(3)
+    await expect(menu(page, 'Help').getByRole('menuitem')).toHaveCount(2)
+    await expect(menu(page, 'Help').getByRole('menuitem', { name: 'Hotkeys' })).toContainText('?')
+    // No row stands in two menus, in either language.
+    for (const language of ['', '/de']) {
+      await page.goto(`${language}/work`, { waitUntil: 'networkidle' })
+      const rows: string[] = []
+      for (const name of await page.getByRole('menubar').getByRole('menuitem').allInnerTexts()) {
+        await top(page, name).click()
+        rows.push(...(await menu(page, name).getByRole('menuitem').allInnerTexts()))
+        await page.keyboard.press('Escape')
+      }
+      expect(rows.length).toBe(new Set(rows).size)
+    }
+    await top(page, 'Dimm OS').click()
+    await expect(menu(page, 'Dimm OS').getByRole('menuitem')).toHaveCount(4)
+    await expect(menu(page, 'Dimm OS').getByRole('separator')).toHaveCount(1)
   })
 
   test('Legal, after Help, holds the legal windows and consent, each a link, and no bottom bar does', async ({
