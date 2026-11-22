@@ -29,9 +29,12 @@ export async function travelled(page: Page, target: Locator, go: () => Promise<u
     })
   })
   await go()
-  // What `go` sets off may start a moment later, as a transition does. Its places say nothing once the move is over and
-  // the place it left has gone.
-  await expect(page.locator('[data-travels]').first()).toBeAttached()
+  // What `go` sets off may start a moment later, as a transition does, and on a busy page it may end between two looks
+  // from here, though never between two frames. Its places say nothing once the move is over and the place it left has
+  // gone.
+  await expect
+    .poll(() => page.evaluate(() => (Reflect.get(window, 'way') as Way).said.length))
+    .toBeGreaterThan(0)
   await expect(page.locator('[data-travels]')).toHaveCount(0)
   const way = await page.evaluate(() => Reflect.get(window, 'way') as Way)
   const end = way.boxes.at(-1)

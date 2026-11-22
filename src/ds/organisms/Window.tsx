@@ -191,12 +191,18 @@ export function Window(props: Props) {
   // It goes to its taskbar button and comes back from it; opening and closing are its opener's.
   const stop = useRef<(clear?: boolean) => void>(undefined)
   const wasAway = useRef(false)
+  // What it closes back to: what opened it, which its taskbar button does not become by bringing it back.
+  const home = useRef(opener)
+  useEffect(() => {
+    if (opener?.id !== task) home.current = opener
+  }, [opener, task])
   const travelled = useEffectEvent((way: 'in' | 'out') => {
     const fromTask = way === 'in' ? wasAway.current : away
     wasAway.current = away
     // One remembered in the taskbar is hidden from the start, with nowhere to travel from.
     if (root.current!.hidden) return
-    return carry(frame.current!, root.current!, way, fromTask ? byId(task) : opener, () => {
+    const back = opener?.id === task ? home.current : opener
+    return carry(frame.current!, root.current!, way, fromTask ? byId(task) : back, () => {
       if (way === 'in') return setOpened(true)
       if (!away) return removed?.()
       // Hidden before it goes back to its place.

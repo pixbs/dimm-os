@@ -97,6 +97,8 @@ test.describe('Window, in the catalogue', () => {
     const button = desk.locator('footer button')
     await open('one')
     await expect(window.locator('.window__content')).toHaveCSS('opacity', '1')
+    // The box goes where the button stands at that moment, so the button has risen into place first.
+    await expect(button).toHaveCSS('transform', 'none')
     await expect(button.locator('.mark')).toHaveCSS('transition-delay', '0s')
 
     await travelled(page, button, () => control(window, 'Minimise').click())
@@ -537,6 +539,22 @@ test.describe('Window, on the desk', () => {
     // What a window in full screen covers cannot be reached.
     await expect(page.locator('nav.apps')).toHaveAttribute('inert')
     await expect(window(page, 'Services')).toHaveAttribute('inert')
+  })
+
+  test('closes back to the tile of its app after it came back from its taskbar button', async ({
+    page,
+  }) => {
+    const services = window(page, 'Services')
+    await app(page, 'Services').click()
+    await expect(services.locator('.window__content')).toHaveCSS('opacity', '1')
+    const button = page.locator('footer[data-for="desk"] button', { hasText: 'services' })
+    await expect(button).toHaveCSS('transform', 'none')
+    await travelled(page, button, () => control(services, 'Minimise').click())
+    await travelled(page, services, () => button.click())
+    await travelled(page, app(page, 'Services').locator('.app__tile'), () =>
+      control(services, 'Close').click(),
+    )
+    await expect(services).toHaveCount(0)
   })
 
   test('raises each taskbar button into the taskbar as its window sets off', async ({ page }) => {
