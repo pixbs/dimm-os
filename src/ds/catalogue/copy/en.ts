@@ -395,7 +395,7 @@ const en = {
     change: 'Change',
     doc: [
       'Atoms / Motion',
-      'One vocabulary: three durations, five curves, one spread, one turn, one spring and one arc, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
+      'One vocabulary: three durations, seven curves, one spread, one turn and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
     ],
     duration: [
       'Duration',
@@ -422,8 +422,8 @@ const en = {
       ['.3, 0, 1, 1', 'What leaves for good.'],
       ['.3, 1.5, .55, 1', 'The plate: it swings past and settles.'],
       ['.55, 0, 1, .45', 'The postmark landing: it speeds up as it drops.'],
-      ['.2, 0, 0, 1', 'A thing that travels, on its way across.'],
-      ['0, 0, 0, 1', 'A thing that travels, on its way up.'],
+      ['.5, 0, .2, 1', 'A thing that travels, on its way across.'],
+      ['.1, 0, 0, 1', 'A thing that travels, on its way up.'],
     ],
     spread: [
       'Spread',
@@ -451,8 +451,8 @@ const en = {
     originPart: 'A part that opens and closes.',
     travel: [
       'Travel',
-      'takes: travel | across: across | up: up | changes: in the middle half',
-      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc. What it was fades into what it becomes during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands.',
+      'takes: travel | across: across | up: up | size and surface: standard | letters: fade in the middle half',
+      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands.',
     ],
     travelLetters: 'OS',
     decipher: [

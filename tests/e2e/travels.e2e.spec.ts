@@ -39,13 +39,13 @@ test.describe('What travels from the login into the menu bar', () => {
       expect(Math.abs(way.boxes[0].x - avatar.x)).toBeLessThanOrEqual(1)
       expect(Math.abs(way.boxes[0].width - avatar.width)).toBeLessThanOrEqual(1)
 
-      // Halfway it is one box between the two sizes, and what it was has kept its own size in it.
+      // Halfway it is one box between the two sizes, and the letter it was shrinks toward the one it becomes.
       const half = way.boxes[Math.floor(way.boxes.length / 2)]
       for (const side of ['width', 'height'] as const) {
         expect(half[side]).toBeGreaterThan(direct[side] + 1)
         expect(half[side]).toBeLessThan(avatar[side] - 1)
       }
-      expect(Math.abs(half.was - avatar.width)).toBeLessThanOrEqual(1)
+      expect(half.was).toBeLessThan(avatar.width - 1)
 
       // It went across on one curve and up on another, so it left the straight line between the two places.
       const off = way.boxes.map((box) => {

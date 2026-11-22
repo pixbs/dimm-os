@@ -407,7 +407,7 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung, ein Takt, eine Feder und ein Bogen, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, sieben Kurven, eine Streuung, ein Takt und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
@@ -437,8 +437,8 @@ const de: Copy = {
       ['.3, 0, 1, 1', 'Was endgültig geht.'],
       ['.3, 1.5, .55, 1', 'Das Schild: Es schwingt vorbei und kommt zur Ruhe.'],
       ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
-      ['.2, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
-      ['0, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
+      ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
+      ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
     ],
     spread: [
       'Streuung',
@@ -466,8 +466,8 @@ const de: Copy = {
     originPart: 'Ein Teil, das sich öffnet und schließt.',
     travel: [
       'Wandern',
-      'dauert: travel | hinüber: across | hinauf: up | wechselt: in der mittleren Hälfte',
-      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen. Was es war, blendet in der mittleren Hälfte der Bewegung in das über, was es wird. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
+      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte',
+      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
     ],
     travelLetters: 'OS',
     decipher: [
