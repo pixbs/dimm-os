@@ -79,13 +79,14 @@ function measure(): Face {
   return face
 }
 
-// The mono face is fetched when signs are first drawn; until it has arrived, the ramp stands in.
+// The mono face is fetched when signs are first drawn. Until it has arrived, and in a worker that cannot fetch one,
+// the ramp stands in.
 function signs() {
-  if (loaded === undefined) {
+  const fonts = (self as unknown as { fonts?: FontFaceSet }).fonts
+  if (loaded === undefined && fonts) {
     loaded = false
     const face = new FontFace(MONO, `url(${FILE})`)
-    ;(self as unknown as { fonts: FontFaceSet }).fonts.add(face)
-    // Without the face the ramp stays.
+    fonts.add(face)
     face.load().then(
       () => {
         loaded = true
