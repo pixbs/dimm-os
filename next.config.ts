@@ -60,8 +60,19 @@ function version() {
   return new Date().toISOString().slice(0, 7).replace('-', '.')
 }
 
+// The serial is the first seven signs of the commit being built, as Vercel names it or git does.
+function commit() {
+  try {
+    return (
+      process.env.VERCEL_GIT_COMMIT_SHA || execSync('git rev-parse HEAD', { encoding: 'utf8' })
+    ).slice(0, 7)
+  } catch {
+    return ''
+  }
+}
+
 const nextConfig: NextConfig = {
-  env: { SYSTEM_VERSION: version() },
+  env: { SYSTEM_VERSION: version(), SYSTEM_COMMIT: commit() },
   // AGENTS.md points at the docs Next.js ships instead of carrying a copy of its notes.
   agentRules: false,
   poweredByHeader: false,

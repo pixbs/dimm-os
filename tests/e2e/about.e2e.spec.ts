@@ -6,6 +6,8 @@ import { expect, test } from './test'
 
 // The version is the month of the commit the build was made from.
 const version = execSync('git log -1 --format=%cd --date=format:%Y.%m', { encoding: 'utf8' }).trim()
+// The serial is the first seven signs of that commit.
+const serial = execSync('git rev-parse HEAD', { encoding: 'utf8' }).slice(0, 7)
 
 const about = (page: Page) => page.locator('article[aria-label="About Dimm OS"]')
 const plate = (page: Page) => about(page).getByRole('group', { name: 'Type plate of Dimm OS' })
@@ -13,7 +15,7 @@ const screw = (page: Page, corner: string) =>
   about(page).getByRole('button', { name: `Take out the ${corner} screw` })
 
 test.describe('About', () => {
-  test('is the type plate: the version, the field, the counts and the facts of the fixture', async ({
+  test('is the type plate: the version, the serial, the counts and the facts of the fixture', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
@@ -23,7 +25,7 @@ test.describe('About', () => {
     await expect(held.getByText(`DIMM/OS v${version}`)).toBeVisible()
     for (const [label, value] of [
       ['Model', `Dimm OS v${version}`],
-      ['Serial', 'Field no. 299'],
+      ['Serial', serial],
       ['Memory', '3 case studies'],
       ['Made in', 'Somewhere'],
       ['Operator', 'A name'],

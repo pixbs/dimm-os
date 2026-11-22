@@ -4,7 +4,6 @@ import { useId, useState } from 'react'
 
 import { change, settings } from '@/ds/atoms/settings'
 import { useChosen, useSetting } from '@/ds/atoms/useSetting'
-import { Bar, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Dial } from '@/ds/molecules/Dial'
 import { Dip } from '@/ds/molecules/Dip'
@@ -13,9 +12,8 @@ import { Stat } from '@/ds/molecules/Heading'
 import { Lamps } from '@/ds/molecules/Lamps'
 import { Row } from '@/ds/molecules/Row'
 import { Slide } from '@/ds/molecules/Slide'
-import { Decipher } from '@/ds/motion/Decipher'
-import { fieldOf } from '@/ds/organisms/form'
 import { Monitor } from '@/ds/organisms/Monitor'
+import { step, stepAt, steps } from '@/ds/organisms/wallpapers'
 import { Section } from '@/ds/sections/Section'
 import { type Language, languages, names, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
@@ -37,10 +35,8 @@ const themes = [null, 'dark', 'light']
 const switches = ['boot', 'start', 'remember'] as const
 
 function Body({ t, language, site, path }: Props) {
-  const theme = useSetting('theme')
-  const hand = useSetting('hand')
   const pitch = useSetting('pitch') ?? '8'
-  const field = fieldOf(useSetting('wallpaper'))
+  const at = stepAt(useSetting('wallpaper'))
   const clock = useSetting('clock')
   const on = {
     boot: useSetting('boot') === 'on',
@@ -53,8 +49,6 @@ function Body({ t, language, site, path }: Props) {
   const zone = useZone(site.timezone)
   const themeAt = themes.indexOf(useChosen('theme'))
   const handAt = hands.indexOf(useChosen('hand'))
-  const say = (text: string, values: Record<string, string | number>) =>
-    text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key]))
 
   const time =
     minute === null
@@ -66,29 +60,40 @@ function Body({ t, language, site, path }: Props) {
         }).format(new Date(minute * 60000))
   const { place } = site
   const other = languages.find((one) => one !== language)!
+  // Each step in words: the wallpaper, the filter, and in colour where it is.
+  const said = steps.map((setting) => {
+    const { wallpaper, filter, colour } = step(setting)
+    return [t.wallpapers[wallpaper], t.filters[filter], colour && t.inColour]
+      .filter(Boolean)
+      .join(', ')
+  })
+  const groups = steps.flatMap((setting, index) =>
+    index && step(steps[index - 1]).wallpaper === step(setting).wallpaper ? [] : [index],
+  )
 
   const left = (
     <div className="list">
-      <Field
-        control
-        help={say(t.prefsReadout, { theme: [t.system, t.dark, t.light][themeAt], field, pitch })}
-        label={t.prefsDisplay}
-      >
-        {() => <Monitor boot={boot} field={field} />}
+      <Field control label={t.prefsDisplay}>
+        {() => <Monitor boot={boot} />}
       </Field>
       <Row
         lead={
           <Dial
+            groups={groups}
             labelledBy={dial}
-            max={999}
-            min={100}
-            onChange={(value) => change({ wallpaper: String(value) })}
-            value={field}
+            onChange={(index) => change({ wallpaper: steps[index] })}
+            steps={said}
+            value={at}
           />
         }
-        title={<Stat label={<span id={dial}>{t.prefsField}</span>} value={field} />}
+        title={
+          <Stat
+            label={<span id={dial}>{t.wallpaper}</span>}
+            value={t.wallpapers[step(steps[at]).wallpaper]}
+          />
+        }
       />
-      <Field control help={<Decipher>{say(t.prefsDotSays, { pitch })}</Decipher>} label={t.dot}>
+      <Field control label={t.dot}>
         {(id) => (
           <Slide
             at={pitches.indexOf(pitch)}
@@ -101,21 +106,7 @@ function Body({ t, language, site, path }: Props) {
       </Field>
       {/* A drawer has no controls, so a phone does not offer their style. */}
       <div data-for="desk">
-        <Field
-          control
-          help={
-            <Decipher>
-              {
-                [
-                  hand === 'dots' ? t.prefsControlsMac : t.prefsControlsOther,
-                  t.prefsDots,
-                  t.prefsSquares,
-                ][handAt]
-              }
-            </Decipher>
-          }
-          label={t.prefsControls}
-        >
+        <Field control label={t.prefsControls}>
           {(id) => (
             <Slide
               at={handAt}
@@ -132,19 +123,7 @@ function Body({ t, language, site, path }: Props) {
 
   const right = (
     <div className="list">
-      <Field
-        control
-        help={
-          <Decipher>
-            {
-              [theme === 'light' ? t.prefsThemeLight : t.prefsThemeDark, t.prefsDark, t.prefsLight][
-                themeAt
-              ]
-            }
-          </Decipher>
-        }
-        label={t.theme}
-      >
+      <Field control label={t.theme}>
         {(id) => (
           <Slide
             at={themeAt}
@@ -175,15 +154,7 @@ function Body({ t, language, site, path }: Props) {
           </div>
         )}
       </Field>
-      <Field
-        control
-        help={
-          <Decipher>
-            {clock === 'yours' ? t.prefsHere : say(t.prefsSite, { place, name: site.name })}
-          </Decipher>
-        }
-        label={t.prefsClock}
-      >
+      <Field control label={t.prefsClock}>
         {(id) => (
           <>
             <Lamps time={time} />
@@ -231,7 +202,7 @@ export function preferencesWindow(props: Props & { close: () => void }): Parts {
     foot: (
       <ButtonGroup cells>
         <Button
-          label={t.reset}
+          label={t.factoryReset}
           onClick={() => change(Object.fromEntries(settings.map((name) => [name, null])))}
           tone="outline"
         />
@@ -250,11 +221,6 @@ export function preferencesWindow(props: Props & { close: () => void }): Parts {
         />
         <Button label={t.done} onClick={props.close} tone="solid" />
       </ButtonGroup>
-    ),
-    status: (
-      <Bar line="above" size="compact">
-        <BarText>{t.prefsSaved}</BarText>
-      </Bar>
     ),
   }
 }

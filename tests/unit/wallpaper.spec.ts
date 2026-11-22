@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ascii, dots } from '@/ds/organisms/filters'
 import { BLUE, grid, limb, ORANGE, PAPER } from '@/ds/organisms/tones'
-import { step } from '@/ds/organisms/wallpapers'
+import { step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
 
 // A few signs of the mono face as it measures at a pitch of 8: the ink in the eight parts of a cell.
 const face = [
@@ -38,5 +38,18 @@ describe('the wallpaper', () => {
     expect(step('301')).toEqual(passage)
     expect(step(null)).toEqual(passage)
     expect(step('passage ascii')).toEqual({ ...passage, filter: 'ascii', colour: false })
+  })
+
+  it('steps the dial through each wallpaper in turn: in colour first, dots before signs', () => {
+    expect(steps.slice(0, 4)).toEqual([
+      'passage dots colour',
+      'passage dots',
+      'passage ascii colour',
+      'passage ascii',
+    ])
+    const each = Object.values(wallpapers).map((colours) => (colours ? 4 : 2))
+    expect(steps).toHaveLength(each.reduce((all, one) => all + one, 0))
+    expect(stepAt('301')).toBe(0)
+    expect(stepAt('passage ascii')).toBe(3)
   })
 })

@@ -762,13 +762,22 @@ const en = {
     dipWords: ['off', 'on'] as [string, string],
     dial: [
       'Dial',
-      'range: any | parts: scale · knob · pointer',
-      'A knob that turns through a range, for a value that is picked by feel: the field of the wallpaper. Its scale is a ring of dots on the pitch, its pointer the signal dot. It turns under the pointer or a finger, by a press on its scale, and by the arrow keys. As the lead of a row, what it sets stands at its middle, as a stat.',
+      'range: any · ring of steps | parts: scale · knob · pointer',
+      'A knob that turns, for a value that is picked by feel. It turns through a range with an end at the top, or round a ring of steps without an end: past the last it is at the first again, Page Up and Page Down go to the first step of the next and the previous group, and a screen reader hears each step in words, as the wallpaper of Preferences. Its scale is a ring of dots on the pitch, its pointer the signal dot. It turns under the pointer or a finger, by a press on its scale, and by the keys. As the lead of a row, what it sets stands at its middle, as a stat.',
     ],
     dialCaps: [
       'at the start of its range',
       'a third of the way round',
       'the lead of a row, with what it sets',
+      'a ring of six steps in two groups, on its third',
+    ],
+    dialSteps: [
+      'Passage, dots, in colour',
+      'Passage, dots',
+      'Passage, ASCII, in colour',
+      'Passage, ASCII',
+      'Catfish, dots',
+      'Catfish, ASCII',
     ],
     counts: 'what it counts',
     builder: [

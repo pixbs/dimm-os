@@ -1,9 +1,7 @@
 'use client'
 
 import type { AboutView } from '@/data/views'
-import { useSetting } from '@/ds/atoms/useSetting'
 import { Card } from '@/ds/organisms/Card'
-import { fieldOf } from '@/ds/organisms/form'
 import { Live } from '@/ds/organisms/Live'
 import { Message } from '@/ds/organisms/Message'
 import { Plate } from '@/ds/organisms/Plate'
@@ -15,15 +13,14 @@ type Props = { t: Dictionary; about: AboutView; width: number }
 // The marks stamped on the plate, in the order the dictionary names them.
 const marks = ['star', 'ab', 'trash', 'eye-off'] as const
 
-// The year and month of the commit this build was made from.
+// The year and month of the commit this build was made from, and its first seven signs.
 const version = process.env.SYSTEM_VERSION ?? ''
+const serial = process.env.SYSTEM_COMMIT ?? ''
 
 const say = (text: string, values: Record<string, string | number>) =>
   text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key]))
 
 function Body({ t, about, width }: Props) {
-  // The serial is the wallpaper's field, as Preferences sets it.
-  const field = fieldOf(useSetting('wallpaper'))
   const code = about.name.toLocaleUpperCase().replaceAll(' ', '/')
   const { picture, title, text, actions } = about.inside
 
@@ -31,7 +28,7 @@ function Body({ t, about, width }: Props) {
     <Plate
       facts={[
         { label: t.aboutModel, value: say(t.aboutVersion, { name: about.name, version }) },
-        { label: t.aboutSerial, value: say(t.aboutField, { field }) },
+        { label: t.aboutSerial, value: serial },
         ...(about.memory ? [{ label: t.aboutMemory, value: about.memory }] : []),
         ...about.facts,
       ]}

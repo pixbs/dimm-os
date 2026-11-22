@@ -52,7 +52,8 @@ Guest — Gast
 Other user… — Anderes Konto…
 Password — Passwort
 Invite — Einladung
-Reset — Zurücksetzen (the one word in both settings windows)
+Reset — Zurücksetzen (in Accessibility)
+Factory reset — Werkseinstellungen (in Preferences, as the issue of the dial names it)
 Done — Fertig
 To — An
 Name — Name

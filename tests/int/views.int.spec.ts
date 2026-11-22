@@ -907,7 +907,7 @@ describe('the view of a window', () => {
       title: { en: 'Preferences', de: 'Einstellungen' }[language],
       kind: 'sys',
       oneSize: true,
-      size: { w: 1040, h: 1024 },
+      size: { w: 1040, h: 869 },
     })
     expect((await view('/about', language)).window?.frame.title).toContain('Dimm OS')
     expect(cookies.window?.parent?.href).toBe(language === 'en' ? '/cookies' : '/de/cookies')

@@ -790,13 +790,22 @@ const de: Copy = {
     dipWords: ['aus', 'an'] as [string, string],
     dial: [
       'Drehregler',
-      'Bereich: beliebig | Teile: Skala · Knopf · Zeiger',
-      'Ein Knopf, der durch einen Bereich dreht, für einen Wert, den man nach Gefühl wählt: das Feld des Hintergrunds. Seine Skala ist ein Ring aus Punkten im Raster, sein Zeiger der Signalpunkt. Er dreht unter dem Zeiger oder einem Finger, auf einen Druck auf seine Skala und mit den Pfeiltasten. Als Anfang einer Zeile steht, was er einstellt, auf seiner Mitte, als Kennzahl.',
+      'Bereich: beliebig · Ring aus Schritten | Teile: Skala · Knopf · Zeiger',
+      'Ein Knopf, der dreht, für einen Wert, den man nach Gefühl wählt. Er dreht durch einen Bereich mit einem Ende oben oder um einen Ring aus Schritten ohne Ende: nach dem letzten steht er wieder auf dem ersten, Bild auf und Bild ab gehen zum ersten Schritt der nächsten und der vorigen Gruppe, und ein Screenreader hört jeden Schritt in Worten, wie den Hintergrund der Einstellungen. Seine Skala ist ein Ring aus Punkten im Raster, sein Zeiger der Signalpunkt. Er dreht unter dem Zeiger oder einem Finger, auf einen Druck auf seine Skala und mit den Tasten. Als Anfang einer Zeile steht, was er einstellt, auf seiner Mitte, als Kennzahl.',
     ],
     dialCaps: [
       'am Anfang seines Bereichs',
       'ein Drittel herum',
       'der Anfang einer Zeile, mit dem, was er einstellt',
+      'ein Ring aus sechs Schritten in zwei Gruppen, auf dem dritten',
+    ],
+    dialSteps: [
+      'Passage, Punkte, in Farbe',
+      'Passage, Punkte',
+      'Passage, ASCII, in Farbe',
+      'Passage, ASCII',
+      'Welse, Punkte',
+      'Welse, ASCII',
     ],
     counts: 'was er zählt',
     builder: [
