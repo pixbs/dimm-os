@@ -646,8 +646,8 @@
   }
 }
 /* Bay and plate: a record over what it covers, in one cell it never leaves, which swings on its last screw until its
-   middle hangs under it (--hang, measured from its size), drops out of the bay, and comes back about the same screw in
-   one move; with reduced motion it stays straight and fades. */
+   middle hangs under it (--hang, measured from its size), drops out of the bay, and comes back in one move; with
+   reduced motion it stays straight and fades. */
 .bay {
   position: relative;
   display: grid;
@@ -709,7 +709,7 @@
     transform: none;
   }
   [data-motion='reduce'] & {
-    transition-duration: var(--m-slow);
+    transition-duration: var(--m-fast);
     transition-timing-function: var(--m-standard);
   }
   [data-motion='reduce'] &[data-state='fallen'] {
@@ -790,6 +790,7 @@
     opacity: 0;
     transition-duration: var(--m-fast);
     transition-timing-function: var(--m-standard);
+    transition-delay: var(--m-slow);
   }
   &::after {
     width: calc(var(--s-4) + var(--s-1));
@@ -803,8 +804,10 @@
       var(--bg) calc(50% + var(--b-1)),
       transparent calc(50% + var(--b-1))
     );
-    transition-duration: var(--m-slow);
-    transition-timing-function: var(--m-standard);
+    /* It fades over the second half of its turn. */
+    transition:
+      transform var(--m-slow) var(--m-standard),
+      opacity var(--m-fast) var(--m-standard) var(--m-fast);
   }
   /* Under the pointer and the focus a ring in orange stands around the head. */
   &:hover::after,
@@ -817,10 +820,8 @@
   &[data-out] {
     pointer-events: none;
 
-    /* The hole shows once the screw has left it, and goes at once as it turns back in. */
     &::before {
       opacity: 100%;
-      transition-delay: var(--m-slow);
     }
     &::after {
       transform: rotate(var(--screw-turn)) scale(var(--screw-out));

@@ -92,15 +92,12 @@ test.describe('About', () => {
     expect(await height()).toBe(before)
 
     await about(page).getByRole('button', { name: 'Close it up' }).click()
-    await expect(plate(page)).toHaveAttribute('data-state', 'closing')
-    // It still turns about the screw it hung from, and is not at rest before the long move is over.
-    await expect(plate(page)).toHaveAttribute('data-by', 'br')
-    await page.waitForTimeout(700)
-    expect(await plate(page).evaluate((element) => getComputedStyle(element).transform)).not.toBe(
-      'none',
-    )
     await expect(plate(page)).not.toHaveAttribute('data-state')
-    await expect(plate(page)).not.toHaveAttribute('data-by')
+    // It is not at rest before the long move is over, and is once it is.
+    const moved = () => plate(page).evaluate((element) => getComputedStyle(element).transform)
+    await page.waitForTimeout(700)
+    expect(await moved()).not.toBe('none')
+    await expect.poll(moved).toBe('none')
     expect(await height()).toBe(before)
   })
 
