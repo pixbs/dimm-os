@@ -2,6 +2,7 @@
 
 import {
   type MouseEvent,
+  type PointerEvent,
   startTransition,
   useEffect,
   useEffectEvent,
@@ -26,7 +27,7 @@ import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration, reduced } from '@/ds/motion/vocabulary'
 import { Stamping } from '@/ds/organisms/Live'
-import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
+import { ContextMenu, MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
@@ -45,6 +46,7 @@ import { Page } from './Aside'
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
+import { menuOf, type Place, placeOf } from './context'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { languageMenu, legalLinks, menus, themeMenu } from './menus'
@@ -111,6 +113,12 @@ const invitation = () => (invite ??= invited())
 let login: boolean | undefined
 const entering = () => (login ??= atLogin())
 const never = () => () => {}
+
+// A click the page should not take.
+const swallow = (event: Event) => {
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
@@ -640,6 +648,54 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
   }, [desk, single])
 
+  // The menu of what a right click, a long press or Shift F10 landed on, where that has one: at the pointer, or at the
+  // middle of what has the focus. Each opens anew.
+  const [context, setContext] = useState<{
+    place: Place
+    subject: HTMLElement
+    at: { x: number; y: number }
+    key: number
+  } | null>(null)
+  function point(target: EventTarget | null, at?: { x: number; y: number }) {
+    const found = target instanceof Element && placeOf(target, desk, view.shortcuts, language)
+    if (!found) return false
+    const box = found.subject.getBoundingClientRect()
+    const middle = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+    setContext((was) => ({ ...found, at: at ?? middle, key: (was?.key ?? 0) + 1 }))
+    return true
+  }
+  // A finger that rests is a long press, and lifting it after is no press.
+  const resting = useRef<{ timer?: ReturnType<typeof setTimeout>; long?: boolean }>({})
+  function rest(event: PointerEvent<HTMLDivElement>) {
+    clearTimeout(resting.current.timer)
+    resting.current = {}
+    removeEventListener('click', swallow, true)
+    if (event.pointerType !== 'touch') return
+    const { target, clientX: x, clientY: y } = event
+    resting.current.timer = setTimeout(
+      () => {
+        if (!point(target, { x, y })) return
+        resting.current.long = true
+        addEventListener('click', swallow, { capture: true, once: true })
+      },
+      duration('press') * 1000,
+    )
+  }
+  const lift = () => clearTimeout(resting.current.timer)
+  const clock = useSetting('clock')
+  const shown =
+    context &&
+    menuOf(context.place, {
+      t: dictionary,
+      language,
+      desk,
+      act,
+      commands,
+      subject: context.subject,
+      site: view.site.place,
+      clock,
+    })
+
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
   function run(action: Action | 'search' | null, opener: Element | null) {
     if (!action) return
@@ -661,6 +717,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The keys act from wherever the focus is; the switch on the root is read at each press.
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
     if (waiting) return
+    if ((event.key === 'F10' && event.shiftKey) || event.key === 'ContextMenu') {
+      const focus = document.activeElement
+      if (point(focus === document.body ? document.querySelector('.screen__desk') : focus)) {
+        event.preventDefault()
+      }
+      return
+    }
     const { shortcuts, keys } = document.documentElement.dataset
     const single = shortcuts !== 'off'
     const action = keyAction(event, view.keys, single, desk, keys === 'apple')
@@ -694,7 +757,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   return (
     <>
-      <Screen fill inert={waiting !== null} onClick={follow}>
+      <Screen
+        fill
+        inert={waiting !== null}
+        onClick={follow}
+        onContextMenu={(event) => {
+          clearTimeout(resting.current.timer)
+          const { target, clientX: x, clientY: y } = event
+          const mine = resting.current.long || (target as Element).closest('.menu__point')
+          if (mine || point(target, { x, y })) event.preventDefault()
+        }}
+        onPointerCancel={lift}
+        onPointerDown={rest}
+        onPointerUp={lift}
+      >
         <Analytics visitor={view.visitor !== null} />
         <header data-surface="desktop">
           {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
@@ -890,6 +966,19 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           opener={searching?.opener ?? null}
           t={dictionary}
         />
+        {context && shown && (
+          <ContextMenu
+            at={context.at}
+            drawer={phone(desk)}
+            items={shown.items}
+            key={context.key}
+            label={shown.label}
+            onClose={() => setContext((was) => (was?.key === context.key ? null : was))}
+            size="chrome"
+            subject={context.subject}
+            t={dictionary}
+          />
+        )}
       </Screen>
       {waiting && <WaitingScreen at={waiting} go={go} t={dictionary} view={view} />}
     </>

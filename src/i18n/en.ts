@@ -104,6 +104,7 @@ const en = {
   },
   copyLink: 'Copy link',
   dark: 'Dark',
+  desk: 'Desk',
   done: 'Done',
   download: 'Download',
   dot: 'Dot',
@@ -127,6 +128,7 @@ const en = {
   formSent: 'Message sent.',
   formTo: 'To',
   fullScreen: 'Full screen',
+  exitFullScreen: 'Exit full screen',
   gestures: 'Gestures',
   // What a finger does on a phone, which has no keys: what, then how.
   gestureRows: [
@@ -241,6 +243,7 @@ const en = {
   searchField: 'Search {name}',
   share: '{on} of {of}',
   searchCommand: 'Search',
+  show: 'Show',
   showAll: 'Show all',
   shutDown: 'Shut down',
   shutDownAt: 'Shut down at {time}',

@@ -303,6 +303,14 @@
   transition-duration: var(--m-fast);
   transition-timing-function: var(--m-standard);
 }
+/* Held while a menu about it is open, the app is selected. */
+.app[data-held] > .app__name {
+  --bg: var(--on-surface);
+  --fg: var(--surface);
+
+  background-color: var(--bg);
+  color: var(--fg);
+}
 /* Open: the signal dot pops onto the corner of the tile, the one part that overshoots, unless the server painted it. */
 .app__open {
   position: absolute;

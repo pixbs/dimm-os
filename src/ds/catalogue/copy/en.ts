@@ -1451,8 +1451,8 @@ const en = {
     ],
     menu: [
       'Menu',
-      'rows: item · checked · choice · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
-      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. A set of choices marks the one taken with a filled mark and the others with a hollow one. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
+      'rows: item · checked · choice · submenu · disabled | density: compact · regular | parts: rule | opened from: a button · the menu bar · a point | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
+      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. A set of choices marks the one taken with a filled mark and the others with a hollow one. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key. A right click, Shift F10 or a long press opens a menu at a point, about the one thing there, which is held while it is open: its corner at the pointer, or at the middle of what has the focus, upward near the foot of the screen, never off it, and its rows show no keys.',
     ],
     menuCaps: [
       'menu',
@@ -1461,6 +1461,7 @@ const en = {
       'touch: regular rows',
       'on a compact screen: a drawer in front',
       'on a phone, the system menu is a screen of settings: groups of rows, each led by a compact tile',
+      'at a point: a right click on the app, which is held',
     ],
     dialog: [
       'Dialog',

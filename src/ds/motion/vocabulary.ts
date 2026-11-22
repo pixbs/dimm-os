@@ -13,6 +13,7 @@ type Time =
   | 'decode'
   | 'wait'
   | 'hold'
+  | 'press'
   | 'note'
 type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up'
 

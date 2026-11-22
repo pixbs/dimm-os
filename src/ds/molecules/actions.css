@@ -1,6 +1,7 @@
 /* Molecules / Actions: whatever a visitor presses, built from the atoms alone. */
 
-/* One state model for whatever is pressed, changing over fast in colour only; data-state shows one at rest. */
+/* One state model for whatever is pressed, changing over fast in colour only; data-state shows one at rest, and a part
+   a menu is about stays held, pressed, while the menu is open. */
 .btn,
 .link,
 .wdot {
@@ -58,7 +59,8 @@
     --state: var(--hover);
   }
   &:active,
-  &[data-state='pressed'] {
+  &[data-state='pressed'],
+  &[data-held] {
     --state: var(--pressed);
   }
   &[aria-busy='true'] {

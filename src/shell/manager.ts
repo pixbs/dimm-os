@@ -59,7 +59,7 @@ export type Action =
   | { type: 'pull'; path: string; edge: Edge; dx: number; dy: number }
   // An arrow key on the bar: one step of a move, or with Shift of a pull.
   | { type: 'step'; path: string; x: number; y: number; pull: boolean }
-  | { type: 'put'; where: 'left' | 'right' | 'fill' | 'centre' }
+  | { type: 'put'; where: 'left' | 'right' | 'fill' | 'centre'; path?: string }
 
 // A move and a size go in steps of 8, a window is never under 360 × 200, and 80 px of it stay on the desk.
 const STEP = 8
