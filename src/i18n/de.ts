@@ -3,7 +3,6 @@ import type { Dictionary } from './en'
 const de: Dictionary = {
   about: 'Über {name}',
   aboutClose: 'Wieder zuschrauben',
-  aboutField: 'Feld Nr. {field}',
   aboutFoot: 'Nicht öffnen. Keine zu wartenden Teile im Inneren.',
   aboutMarks: [
     ['Evidence Star', 'Datengestützt'],
