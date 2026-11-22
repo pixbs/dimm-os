@@ -16,7 +16,7 @@ import { Row } from '../molecules/Row'
 import { Dialog, Notice, Question } from '../organisms/Dialog'
 import { type Item, Menu, MenuBar, MenuButton, type Top } from '../organisms/Menu'
 import { Palette } from '../organisms/Palette'
-import { Apps, Dock, Screen, type Shortcut } from '../organisms/Screen'
+import { Apps, Screen, type Shortcut } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
 import type { Copy } from './copy/en'
 import { Entry, Specs, u } from './parts'
@@ -102,7 +102,7 @@ export function Menubar(props: Props & { kind: 'pointer' | 'touch' | 'phone'; sh
   )
 }
 
-// A phone with drawers over its apps and its dock.
+// A phone with drawers over its apps.
 export function Phone(props: Props & { height?: number; children: ReactNode }) {
   const { t } = props
 
@@ -116,14 +116,6 @@ export function Phone(props: Props & { height?: number; children: ReactNode }) {
           <Apps apps={apps(t.name)} layout="screen" />
           {props.children}
         </main>
-        <footer>
-          <Dock
-            tasks={[
-              { name: t.name, front: true },
-              { name: t.name, minimised: true },
-            ]}
-          />
-        </footer>
       </div>
     </Screen>
   )
