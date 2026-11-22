@@ -487,6 +487,10 @@
     outline: var(--b-1) solid var(--line);
     outline-offset: calc(var(--b-1) * -1);
   }
+  &[data-surface='print'] {
+    outline: var(--b-1) solid var(--edge);
+    outline-offset: calc(var(--b-1) * -1);
+  }
   &:is(a) {
     cursor: pointer;
   }

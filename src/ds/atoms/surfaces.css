@@ -56,6 +56,14 @@
   --on-surface: light-dark(var(--paper-1), var(--ink-1));
   --signal: light-dark(var(--orange), var(--orange-dark));
 }
+/* A print is paper with ink in both themes, so what is drawn on it never turns; in light it keeps its edge on a window
+   nearly its own colour. */
+[data-surface='print'] {
+  --surface: var(--paper-1);
+  --on-surface: var(--ink-1);
+  --signal: var(--orange-dark);
+  --edge: light-dark(var(--line), transparent);
+}
 
 /* An accent stays as it is in both themes, and is loud: nothing on it is muted or faint. */
 [data-surface='orange'] {
