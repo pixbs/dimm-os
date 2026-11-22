@@ -1302,8 +1302,8 @@ const en = {
     screenCaps: ['pointer', 'compact'],
     wallpaper: [
       'Wallpaper',
-      'scene: Passage | filter: dots · ASCII | inks: paper · orange · blue · mint | strength: 16 %, in colour 64 % | dot: 8 px',
-      'A scene behind everything that moves and answers the pointer over the desk. It pours ink into a grid of tones, two samples to the pitch each way, and names one of four inks for each sample. The grid is drawn through one of two filters. Dots: one dot to the pitch, as wide as the ink under it is strong, so two full dots touch. ASCII: a cell is one pitch wide and two high, and its sign is the one of the mono face whose shape fits the ink best. In colour each dot or sign is in the ink of its place, at the strength of muted. Without colour everything is in the paper ink, at the strength of a line; on a light surface that is the ink of the theme. A scene is laid out on the size of its screen and on the pitch, and a change of either starts it afresh. It runs at 30 frames a second, and stops while the tab is hidden or the desk covered. Under reduced motion and under pause it is drawn once and holds still. A plain wallpaper is not drawn. Passage: dragonflies come in at the bottom left and leave at the top right, the near ones larger, faster and stronger, and each moves aside for the pointer.',
+      'scene: Passage · Koi · Dragonflies · Catfish | filter: dots · ASCII | inks: paper · orange · blue · mint | strength: 16 %, in colour 64 % | dot: 8 px',
+      'A scene behind everything that moves and answers the pointer over the desk. It pours ink into a grid of tones, two samples to the pitch each way, and names one of four inks for each sample. The grid is drawn through one of two filters. Dots: one dot to the pitch, as wide as the ink under it is strong, so two full dots touch. ASCII: a cell is one pitch wide and two high, and its sign is the one of the mono face whose shape fits the ink best. In colour each dot or sign is in the ink of its place, at the strength of muted. Without colour everything is in the paper ink, at the strength of a line; on a light surface that is the ink of the theme. A scene is laid out on the size of its screen and on the pitch, and a change of either starts it afresh. It runs at 30 frames a second, and stops while the tab is hidden or the desk covered. Under reduced motion and under pause it is drawn once and holds still. A plain wallpaper is not drawn. Passage: dragonflies come in at the bottom left and leave at the top right, the near ones larger, faster and stronger, and each moves aside for the pointer. Koi: five, seen from above, wander the screen, the body following the head in a curve, in a coat of white, orange and black patches; without colour the orange is a tone darker. While the pointer is over the desk each swims round it on a ring of its own. Dragonflies: five hover, trembling in place, then dart to a new place in a third of a second and land softly, six times in ten near the pointer; their bodies are orange, blue and mint. Catfish: three, seen from above, cross from one corner to another on a curved way, barbels trailing and fins paddling, the largest strongest and the smallest faintest; near the pointer one swims three times as fast. Catfish has no colours.',
     ],
     wallpaperCaps: [
       'dots, in colour: the default',
@@ -1311,6 +1311,9 @@ const en = {
       'ASCII, in colour',
       'ASCII',
       'pitch 12, set in Preferences',
+      'Koi, dots, in colour',
+      'Dragonflies, ASCII, in colour',
+      'Catfish, dots: it has no colours',
     ],
     menubar: [
       'Menu bar',

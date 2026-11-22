@@ -1333,8 +1333,8 @@ const de: Copy = {
     screenCaps: ['Zeiger', 'kompakt'],
     wallpaper: [
       'Hintergrund',
-      'Szene: Passage | Filter: Punkte · ASCII | Tinten: Papier · Orange · Blau · Mint | Stärke: 16 %, in Farbe 64 % | Punkt: 8 px',
-      'Eine Szene hinter allem, die sich bewegt und über dem Desktop auf den Zeiger antwortet. Sie gießt Tinte in ein Raster aus Tonwerten, zwei Proben je Rasterschritt in jede Richtung, und nennt für jede Probe eine von vier Tinten. Das Raster wird durch einen von zwei Filtern gezeichnet. Punkte: ein Punkt je Rasterschritt, so breit, wie die Tinte darunter stark ist; zwei volle Punkte berühren sich. ASCII: Eine Zelle ist einen Rasterschritt breit und zwei hoch, und ihr Zeichen ist das der Mono-Schrift, dessen Form am besten zur Tinte passt. In Farbe trägt jeder Punkt und jedes Zeichen die Tinte seines Orts, in der gedämpften Stärke. Ohne Farbe steht alles in der Papiertinte, in der Stärke einer Linie; auf einer hellen Fläche ist das die Tinte des Modus. Eine Szene richtet sich nach der Größe ihres Bildschirms und nach dem Raster, und eine Änderung an einem von beiden beginnt sie neu. Sie läuft mit 30 Bildern pro Sekunde und hält an, solange der Tab verborgen oder der Desktop verdeckt ist. Bei reduzierter Bewegung und angehaltenen Bildern wird sie einmal gezeichnet und steht still. Ein schlichter Hintergrund wird nicht gezeichnet. Passage: Libellen kommen unten links herein und verlassen den Bildschirm oben rechts, die nahen größer, schneller und kräftiger, und jede weicht dem Zeiger aus.',
+      'Szene: Passage · Koi · Libellen · Welse | Filter: Punkte · ASCII | Tinten: Papier · Orange · Blau · Mint | Stärke: 16 %, in Farbe 64 % | Punkt: 8 px',
+      'Eine Szene hinter allem, die sich bewegt und über dem Desktop auf den Zeiger antwortet. Sie gießt Tinte in ein Raster aus Tonwerten, zwei Proben je Rasterschritt in jede Richtung, und nennt für jede Probe eine von vier Tinten. Das Raster wird durch einen von zwei Filtern gezeichnet. Punkte: ein Punkt je Rasterschritt, so breit, wie die Tinte darunter stark ist; zwei volle Punkte berühren sich. ASCII: Eine Zelle ist einen Rasterschritt breit und zwei hoch, und ihr Zeichen ist das der Mono-Schrift, dessen Form am besten zur Tinte passt. In Farbe trägt jeder Punkt und jedes Zeichen die Tinte seines Orts, in der gedämpften Stärke. Ohne Farbe steht alles in der Papiertinte, in der Stärke einer Linie; auf einer hellen Fläche ist das die Tinte des Modus. Eine Szene richtet sich nach der Größe ihres Bildschirms und nach dem Raster, und eine Änderung an einem von beiden beginnt sie neu. Sie läuft mit 30 Bildern pro Sekunde und hält an, solange der Tab verborgen oder der Desktop verdeckt ist. Bei reduzierter Bewegung und angehaltenen Bildern wird sie einmal gezeichnet und steht still. Ein schlichter Hintergrund wird nicht gezeichnet. Passage: Libellen kommen unten links herein und verlassen den Bildschirm oben rechts, die nahen größer, schneller und kräftiger, und jede weicht dem Zeiger aus. Koi: fünf, von oben gesehen, ziehen über den Bildschirm, der Körper folgt dem Kopf in einem Bogen, im Kleid aus weißen, orangen und schwarzen Flecken; ohne Farbe ist das Orange eine Stufe dunkler. Solange der Zeiger über dem Desktop ist, umkreist jeder ihn auf einem eigenen Ring. Libellen: fünf schweben, zitternd auf der Stelle, und schießen dann in einer Drittelsekunde an einen neuen Ort und landen sanft, sechsmal von zehn nahe dem Zeiger; ihre Körper sind orange, blau und mint. Welse: drei, von oben gesehen, ziehen auf einem gebogenen Weg von einer Ecke zur anderen, mit nachschleppenden Barteln und rudernden Flossen, der größte am kräftigsten, der kleinste am blassesten; nahe dem Zeiger schwimmt einer dreimal so schnell. Welse hat keine Farben.',
     ],
     wallpaperCaps: [
       'Punkte, in Farbe: die Voreinstellung',
@@ -1342,6 +1342,9 @@ const de: Copy = {
       'ASCII, in Farbe',
       'ASCII',
       'Raster 12, in den Einstellungen gewählt',
+      'Koi, Punkte, in Farbe',
+      'Libellen, ASCII, in Farbe',
+      'Welse, Punkte: ohne Farben',
     ],
     menubar: [
       'Menüleiste',

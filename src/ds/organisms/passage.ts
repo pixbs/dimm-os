@@ -17,7 +17,7 @@ const WINGS = [
 // A wing widens from its root to its bend, a little past the middle, and narrows to its tip; it is thin, so fainter.
 const WING = { root: 2, bend: 6.5, tip: 4, at: 0.55, shade: 0.45 }
 // How far the wings beat, in degrees, and how fast.
-const BEAT = { far: 10, rate: 1.9 }
+export const BEAT = { far: 10, rate: 1.9 }
 
 // How many fly on a desk and on a phone, which is a screen under this width.
 const COUNT = { desk: 14, phone: 8, under: 600 }
@@ -45,7 +45,13 @@ type Flier = {
 
 // One drawing serves every scene with dragonflies: four wings that beat against each other, a head, a thorax,
 // a long tail.
-function fly(grid: Grid, flier: Flier, [x, y]: number[], turn: number, beat: number) {
+export function fly(
+  grid: Grid,
+  flier: Pick<Flier, 'size' | 'shade' | 'ink'>,
+  [x, y]: number[],
+  turn: number,
+  beat: number,
+) {
   const { size, shade, ink } = flier
   const cos = Math.cos(turn) * size
   const sin = Math.sin(turn) * size
@@ -66,7 +72,13 @@ function fly(grid: Grid, flier: Flier, [x, y]: number[], turn: number, beat: num
     limb(grid, at(from, 0), at(to, 0), ra * size, rb * size, strength * shade, ink, true)
 }
 
-export function passage(grid: Grid, width: number, height: number, random: () => number) {
+// A scene steps on the clock of the engine and paints in colour or not.
+export function passage(
+  grid: Grid,
+  width: number,
+  height: number,
+  random: () => number,
+): { step(pointer: number[] | null): void; paint(colour: boolean): void } {
   const way = Math.hypot(width, height)
   const ux = width / way
   const uy = -height / way

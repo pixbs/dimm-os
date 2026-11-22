@@ -1,5 +1,5 @@
 // Every wallpaper in the order of the list, each with whether it has colours to show.
-export const wallpapers = { passage: true }
+export const wallpapers = { passage: true, koi: true, dragonflies: true, catfish: false }
 
 // One way a wallpaper is drawn: through which filter, and whether in colour.
 export type Step = {
