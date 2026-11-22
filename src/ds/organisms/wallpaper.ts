@@ -2,6 +2,9 @@
 // grid of tones, and the grid is drawn through the filter of the step that is shown.
 import { TICK } from '../motion/engine'
 import { ascii, dots, type Face, SIZE } from './filters'
+import { catfish } from './catfish'
+import { dragonflies } from './dragonflies'
+import { koi } from './koi'
 import { passage } from './passage'
 import { type Grid, grid as tones, seeded } from './tones'
 import type { Step } from './wallpapers'
@@ -24,7 +27,12 @@ export type Setting = {
 }
 
 // Every scene by the name of its wallpaper: a message that names another gets the first.
-const scenes = new Map([['passage', passage]])
+const scenes = new Map<string, typeof passage>([
+  ['passage', passage],
+  ['koi', koi],
+  ['dragonflies', dragonflies],
+  ['catfish', catfish],
+])
 // What every scene takes its chances from.
 const SEED = 299
 // At most 30 frames a second, and a frame that comes late counts as six ticks at most.
@@ -106,7 +114,7 @@ function signs() {
 function draw() {
   const { width, height, pitch, inks, step } = now!
   const ink = (index: number) => inks[step.colour ? index : 0]
-  scene!.paint()
+  scene!.paint(step.colour)
   context.clearRect(0, 0, width, height)
   if (step.filter === 'dots') {
     const all = dots(grid)

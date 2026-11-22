@@ -260,7 +260,7 @@ const de: Dictionary = {
   view: 'Ansicht',
   waiting: 'Lädt',
   wallpaper: 'Hintergrund',
-  wallpapers: { passage: 'Passage' },
+  wallpapers: { passage: 'Passage', koi: 'Koi', dragonflies: 'Libellen', catfish: 'Welse' },
   window: 'Fenster',
   windows: 'Fenster',
 }
