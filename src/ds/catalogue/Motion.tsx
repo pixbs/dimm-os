@@ -26,6 +26,8 @@ const curves = [
   ['drop', 'long'],
   ['across', 'travel'],
   ['up', 'travel'],
+  ['even', 'fast'],
+  ['swatch', 'swatch-grow'],
 ]
 const columns = Array.from({ length: 40 }, (_, column) => column)
 

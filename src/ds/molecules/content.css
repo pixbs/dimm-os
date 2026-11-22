@@ -140,14 +140,14 @@
   }
 }
 
-/* A picture that arrives after the page waits on the dot grid, resolves in dots and fades in under them, then the dots leave. */
+/* A picture that arrives after the page waits on the dot grid, resolves in swatches of its own colours, then fades in as they fade out. */
 .media__picture {
   position: absolute;
   inset: 0;
 
   & > img {
     object-fit: cover;
-    transition: opacity var(--m-slow) var(--m-enter);
+    transition: opacity var(--m-fast) var(--m-even);
   }
   &[data-picture='wait'] > img {
     opacity: 0;
@@ -164,7 +164,7 @@
   inset-inline-start: 0;
   top: 0;
   pointer-events: none;
-  transition: opacity var(--m-slow-exit) var(--m-exit) var(--m-slow);
+  transition: opacity var(--m-fast) var(--m-even);
 
   [data-picture='shown'] > & {
     opacity: 0;
