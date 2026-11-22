@@ -16,8 +16,7 @@ import type { ListView } from '@/blocks/list/view'
 import { Analytics } from '@/consent/Analytics'
 import { chosen as answered, decide } from '@/consent/choice'
 import type { FootButton, View, WindowView } from '@/data/views'
-import { change } from '@/ds/atoms/settings'
-import { useSetting } from '@/ds/atoms/useSetting'
+import { useChosen, useSetting } from '@/ds/atoms/useSetting'
 import { Bar, BarSpace, BarText } from '@/ds/molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Heading } from '@/ds/molecules/Heading'
@@ -33,7 +32,7 @@ import { RecordFoot } from '@/ds/organisms/Record'
 import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
 import { Section } from '@/ds/sections/Section'
-import { fromAddress, type Language, languages, toAddress, toRoute } from '@/i18n/address'
+import { fromAddress, type Language, toAddress, toRoute } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 import { aboutWindow } from '@/system/About'
@@ -48,7 +47,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
-import { legalMenu, menus } from './menus'
+import { languageMenu, legalMenu, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
@@ -675,7 +674,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const pick = (index: number, opener: Element) =>
     act({ type: 'task', path: desk.open[index].path, opener })
 
-  const other = languages.find((one) => one !== language)!
+  // The choices of the theme follow the root, so a choice made elsewhere is marked here too.
+  const theme = themeMenu(dictionary, useChosen('theme'))
+  const languageChoices = languageMenu(language, top ?? '/')
   const legal = legalOf(dictionary, language)
   const preferences = { href: toAddress(language, '/preferences'), label: dictionary.preferences }
   const [before, after] = dictionary.hotkeyHint.split('{key}')
@@ -697,6 +698,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               act,
               commands,
               legal: legalMenu(dictionary, language, view.search),
+              theme,
+              languages: languageChoices,
               // Once the menu has closed and given the focus back to its button, which gets it again after.
               search: () => queueMicrotask(() => search(document.activeElement)),
             })}
@@ -729,29 +732,30 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               onClick={(event) => search(event.currentTarget)}
               size="chrome"
             />
-            <Button
-              data-for="desk pointer"
-              icon="contrast"
-              name={dictionary.theme}
-              onClick={() =>
-                change({
-                  theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light',
-                })
-              }
-              size="chrome"
-            />
-            <ButtonLink
-              aria-label={dictionary.language}
-              data-for="desk"
-              href={toAddress(other, top ?? '/')}
-              hrefLang={other}
-              label={language.toUpperCase()}
-              size="chrome"
-            />
+            <span data-for="desk pointer">
+              <MenuButton
+                button={{ icon: 'contrast', name: dictionary.theme }}
+                end
+                items={theme}
+                label={dictionary.theme}
+                size="chrome"
+                t={dictionary}
+              />
+            </span>
+            <span data-for="desk">
+              <MenuButton
+                button={{ 'aria-label': dictionary.language, label: language.toUpperCase() }}
+                end
+                items={languageChoices}
+                label={dictionary.prefsLanguage}
+                size="chrome"
+                t={dictionary}
+              />
+            </span>
             <Button
               data-visitor
               label={view.visitor?.name ?? dictionary.guest}
-              lead={<Tag>{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
+              lead={<Tag lands="visitor">{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
               onClick={() => go('login')}
               size="chrome"
             />

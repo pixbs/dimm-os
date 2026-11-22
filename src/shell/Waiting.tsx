@@ -12,17 +12,18 @@ import { Heading } from '@/ds/molecules/Heading'
 import { Dots } from '@/ds/molecules/Dots'
 import { Avatar } from '@/ds/molecules/Media'
 import { Row } from '@/ds/molecules/Row'
+import { travel } from '@/ds/motion/Travels'
 import { curve, duration, reduced } from '@/ds/motion/vocabulary'
 import { Card } from '@/ds/organisms/Card'
 import { MenuButton } from '@/ds/organisms/Menu'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
 import { Section } from '@/ds/sections/Section'
-import { fromAddress, type Language, languages, toAddress } from '@/i18n/address'
+import { fromAddress, type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
 import { useMinute, useZone } from './Clock'
-import { legalMenu } from './menus'
+import { languageMenu, legalMenu } from './menus'
 
 // The screens that wait: the start, who comes in (as a guest, by a personal link, by a password), and the end.
 export type Waiting = 'boot' | 'login' | 'link' | 'other' | 'shutdown'
@@ -86,44 +87,19 @@ function Legal({ t, language }: { t: Dictionary; language: Language }) {
   ))
 }
 
-// What leaves for the menu bar travels to its place there, as the screen it stood on fades.
-function travel(from: Element | null | undefined, to: Element | null | undefined) {
-  if (!from || !to || reduced()) return
-  const [a, b] = [from.getBoundingClientRect(), to.getBoundingClientRect()]
-  from.animate(
-    [
-      { transformOrigin: '0 0', transform: 'none' },
-      {
-        transformOrigin: '0 0',
-        transform: `translate(${b.left - a.left}px, ${b.top - a.top}px) scale(${b.width / a.width})`,
-      },
-    ],
-    {
-      duration: duration('slow') * 1000,
-      easing: `cubic-bezier(${curve('standard')})`,
-      fill: 'forwards',
-    },
-  )
-}
-
-// The desk takes over from a waiting screen: what travels goes to the menu bar, the screen fades, and from the boot
-// the bars, the apps and the windows arrive in turn, all within a long move.
-async function handOver(
-  screen: HTMLElement,
-  from: Element | null | undefined,
-  to: string,
-  boot: boolean,
-) {
+// The desk takes over from a waiting screen: what travels under the id goes to its place in the menu bar, the screen
+// fades, and from the boot the bars, the apps and the windows arrive in turn, all within a long move.
+async function handOver(screen: HTMLElement, id: string, boot: boolean) {
   const root = document.documentElement.dataset
   if (boot) root.intro = 'hand'
-  travel(from, document.querySelector(`.screen[data-fill]:not([data-waiting]) header ${to}`))
+  travel(id)
   screen.animate([{ opacity: 1 }, { opacity: 0 }], {
     duration: duration('slow') * 1000,
     delay: duration('fast') * 1000,
     easing: `cubic-bezier(${curve('exit')})`,
     fill: 'forwards',
   })
-  await wait(boot ? duration('long') : duration('slow') + duration('fast'))
+  await wait(duration(boot ? 'long' : 'travel'))
   delete root.intro
 }
 
@@ -150,7 +126,6 @@ function turnOn() {
 function Boot({ view, t, go }: Props) {
   const { rows, counted } = view.boot
   const screen = useRef<HTMLDivElement>(null)
-  const head = useRef<HTMLDivElement>(null)
   const [share, setShare] = useState(0)
   const done = share >= 1
   const shown = Math.ceil(share * rows.length)
@@ -168,7 +143,7 @@ function Boot({ view, t, go }: Props) {
     } catch {
       // A tab without storage plays it again on its next visit to the desk.
     }
-    await handOver(screen.current!, head.current?.querySelector('.avatar'), '.mark', true)
+    await handOver(screen.current!, 'mark', true)
     go(null)
   })
 
@@ -214,9 +189,13 @@ function Boot({ view, t, go }: Props) {
       <Top name={view.site.name} t={t} view={view} />
       <div className="screen__main cq">
         <div className="screen__page">
-          <div data-part="head" ref={head}>
+          <div data-part="head">
             <Row
-              lead={<Avatar surface="orange">{''}</Avatar>}
+              lead={
+                <Avatar leaves="mark" surface="orange">
+                  {''}
+                </Avatar>
+              }
               text={say(t.bootCopyright, {
                 year: new Date().getFullYear(),
                 name: view.site.name,
@@ -318,7 +297,6 @@ function Top(props: {
 function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) {
   const { language, site } = view
   const screen = useRef<HTMLDivElement>(null)
-  const avatar = useRef<HTMLDivElement>(null)
   const [answer, setAnswer] = useState<'wrong' | 'limited' | null>(null)
   const [busy, setBusy] = useState(false)
   const [shown, setShown] = useState(false)
@@ -328,11 +306,10 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
     minute === null
       ? ''
       : new Intl.DateTimeFormat(locales[language], { timeZone, ...options }).format(minute * 60000)
-  const other = languages.find((one) => one !== language)!
   const visitor = at === 'other' ? null : view.visitor
 
   const enter = async () => {
-    await handOver(screen.current!, avatar.current?.firstElementChild, '[data-visitor]', false)
+    await handOver(screen.current!, 'visitor', false)
     go(null)
   }
   // Signing in or out reloads the page, as the server draws the desk for whoever asks; from the login's own address
@@ -380,12 +357,13 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
   return (
     <Screen fill ref={screen} waiting>
       <Top name={site.name} t={t} view={view}>
-        <ButtonLink
-          aria-label={t.language}
-          href={toAddress(other, '/')}
-          hrefLang={other}
-          label={language.toUpperCase()}
+        <MenuButton
+          button={{ 'aria-label': t.language, label: language.toUpperCase() }}
+          end
+          items={languageMenu(language, '/')}
+          label={t.prefsLanguage}
           size="chrome"
+          t={t}
         />
       </Top>
       <div className="screen__main cq">
@@ -427,15 +405,13 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
           </Splash>
         ) : (
           <Splash>
-            <div ref={avatar}>
-              <Avatar size="large" surface={visitor ? 'paper' : 'raised'}>
-                {(visitor?.name ?? t.guest)
-                  .split(/\s+/)
-                  .map((word) => word[0])
-                  .join('')
-                  .slice(0, 2)}
-              </Avatar>
-            </div>
+            <Avatar leaves="visitor" size="large" surface={visitor ? 'paper' : 'raised'}>
+              {(visitor?.name ?? t.guest)
+                .split(/\s+/)
+                .map((word) => word[0])
+                .join('')
+                .slice(0, 2)}
+            </Avatar>
             <Heading
               level="heading"
               page

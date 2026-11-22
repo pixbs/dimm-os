@@ -24,6 +24,7 @@ type Props = Omit<HTMLAttributes<HTMLElement>, 'title'> & {
   size?: 'compact'
   // A link; without one, a row that acts, is pressed, current, opens or can be disabled is a button.
   href?: string
+  hrefLang?: string
   // A row that holds a toggle is its label, so pressing anywhere on it presses the toggle.
   toggles?: boolean
   expanded?: boolean

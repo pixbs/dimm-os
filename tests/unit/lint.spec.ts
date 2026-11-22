@@ -23,4 +23,27 @@ describe('the lint', () => {
       "import { AnimatePresence } from 'motion/react'\nimport * as m from 'motion/react-m'\n"
     expect(await lint(`${lazy}export { AnimatePresence, m }\n`, 'src/ds/lazy.tsx')).toEqual([])
   })
+
+  it('fails a move made by hand from the box of an element, outside the motion vocabulary', async () => {
+    // The move the waiting screen once made for itself.
+    const travel = `export function travel(from: Element, to: Element) {
+  const [a, b] = [from.getBoundingClientRect(), to.getBoundingClientRect()]
+  from.animate(
+    [
+      { transformOrigin: '0 0', transform: 'none' },
+      {
+        transformOrigin: '0 0',
+        transform: \`translate(\${b.left - a.left}px, \${b.top - a.top}px) scale(\${b.width / a.width})\`,
+      },
+    ],
+    { duration: 320, fill: 'forwards' },
+  )
+}
+`
+    expect(await lint(travel, 'src/shell/stray.ts')).toEqual(['moves/by-hand', 'moves/by-hand'])
+    expect(await lint(travel, 'src/ds/motion/stray.ts')).toEqual([])
+    // A box read for anything else passes.
+    const read = 'export const top = (part: Element) => part.getBoundingClientRect().top\n'
+    expect(await lint(read, 'src/shell/stray.ts')).toEqual([])
+  })
 })

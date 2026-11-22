@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import type { ReactNode } from 'react'
 
+import { Travels } from '../motion/Travels'
 import { Picture, type Source } from './Picture'
 
 export type MediaProps = {
@@ -61,19 +62,21 @@ export function Avatar(props: {
   size?: 'compact' | 'large'
   surface?: 'raised' | 'paper' | 'orange'
   picture?: { src: string; position?: string }
+  // The id it travels under when it leaves for another place.
+  leaves?: string
   children?: ReactNode
 }) {
   const { picture } = props
   const named = props.children !== undefined
-
-  return (
-    <span
-      aria-hidden={named || undefined}
-      className="avatar"
-      data-named={named ? '' : undefined}
-      data-size={props.size}
-      data-surface={props.surface}
-    >
+  const look = {
+    'aria-hidden': named || undefined,
+    className: 'avatar',
+    'data-named': named ? '' : undefined,
+    'data-size': props.size,
+    'data-surface': props.surface,
+  }
+  const held = (
+    <>
       {picture && (
         // The smallest width of the short list is wider than the largest avatar, so that one is asked for.
         <Image
@@ -85,6 +88,14 @@ export function Avatar(props: {
         />
       )}
       {props.children}
-    </span>
+    </>
+  )
+
+  return props.leaves ? (
+    <Travels {...look} id={props.leaves}>
+      {held}
+    </Travels>
+  ) : (
+    <span {...look}>{held}</span>
   )
 }
