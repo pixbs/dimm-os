@@ -29,8 +29,3 @@ export function BarText(props: HTMLAttributes<HTMLSpanElement>) {
 export function BarSpace() {
   return <span className="bar__space" />
 }
-
-// The handle of a window: the empty part of its title bar, shown as rows of dots on the pitch.
-export function BarGrip() {
-  return <span className="bar__grip dotted" />
-}

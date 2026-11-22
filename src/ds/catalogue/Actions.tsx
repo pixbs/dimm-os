@@ -4,7 +4,7 @@ import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { type Key as KeyName, keyNames, named } from '@/i18n/keys'
 
-import { Bar, BarGrip, BarText } from '../molecules/Bar'
+import { Bar, BarSpace, BarText } from '../molecules/Bar'
 import { Button, ButtonGroup } from '../molecules/Button'
 import { Dots } from '../molecules/Dots'
 import { ForDevice, Key, Keys } from '../molecules/Key'
@@ -424,7 +424,7 @@ function Controls({ t, words }: Props) {
                   <BarText>
                     <Path segments={[t.name]} />
                   </BarText>
-                  <BarGrip />
+                  <BarSpace />
                   {controls('squares')}
                 </Bar>
               </div>

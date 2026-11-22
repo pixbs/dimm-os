@@ -85,7 +85,7 @@ const en = {
       'Layout answers to the width of the window, not of the screen. A window never holds more than three columns. Where three become two, a cell that leads keeps its column and the others stack beside it. On a phone a window is a drawer.',
       'Square by default. Round belongs to the dot and its relatives.',
       'A component is named for what it is, never for what it will hold.',
-      'One dot. Whatever is drawn in dots stands on the pitch: wallpaper and pictures, the handle and grip of a window, rings, lamps.',
+      'One dot. Whatever is drawn in dots stands on the pitch: wallpaper and pictures, the grip of a window, rings, lamps.',
       'A bar never holds an action. What a window can do sits at its foot.',
     ],
   },
@@ -372,7 +372,7 @@ const en = {
     pitch: [
       'Pitch',
       'pitch: 5 · 6 · 8 · 10 · 12 px | dot: 0.36 of the pitch | drawn as: dotted · dot ring · halftone',
-      'The distance between two dots of everything that is drawn in dots: the wallpaper and the pictures (a halftone, see Wallpaper), the handle of a window and the corner that resizes it (dotted), the rings of a postmark and the scale of a dial (dot ring), the lamps of the clock. One setting of Preferences, 8 px by default, set on the root of a screen. A handle stays about as high whatever the pitch: a small dot stands in more rows, a large one in fewer.',
+      'The distance between two dots of everything that is drawn in dots: the wallpaper and the pictures (a halftone, see Wallpaper), the corner that resizes a window (dotted), the rings of a postmark and the scale of a dial (dot ring), the lamps of the clock. One setting of Preferences, 8 px by default, set on the root of a screen.',
     ],
     pitchCap: 'pitch',
     pitchDefault: ', the default',
@@ -881,14 +881,13 @@ const en = {
     bar: [
       'Bar',
       'size: regular 48 · compact 32 | line: none · below · above | slots: buttons · title · text · space',
-      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle, and is shown as one: rows of dots on the pitch.',
+      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle, and carries nothing.',
     ],
     barCaps: [
       'regular 48',
       'compact 32',
       'text only',
       'the title bar of a floating window: its controls, its name, and the rest is its handle',
-      'the handle at pitch 5 and at pitch 12',
     ],
     back: 'Back',
     more: 'More',
@@ -1323,7 +1322,7 @@ const en = {
     windows: [
       'Window',
       'density: pointer · touch | parts: title bar · path line · body · actions · status bar · grip | controls: dots · squares | state: front · behind · full screen · minimised | surface: window · paper | size: free · one size | compact screen: a drawer',
-      'Every page is a window, and a window is a frame the visitor handles. Its title bar holds the controls, in the hand that is set, and what the window is called: a name, or its path. The rest of the bar is the handle, shown in dots while the window is in front. The bar never holds an action: what a window can do sits at its foot, as a button group flush with its edge. What a bar shows belongs to the window and comes from the CMS, not from a setting: a name or a path, a path line of its own with back and forward, a status bar, the paper surface, whether it has one size. Every edge and corner pulls, and the corner at the end says so with a grip of dots. On a compact screen a window is a drawer.',
+      'Every page is a window, and a window is a frame the visitor handles. Its title bar holds the controls, in the hand that is set, and what the window is called: a name, or its path. The rest of the bar is the handle, and empty. The bar never holds an action: what a window can do sits at its foot, as a button group flush with its edge. What a bar shows belongs to the window and comes from the CMS, not from a setting: a name or a path, a path line of its own with back and forward, a status bar, the paper surface, whether it has one size. Every edge and corner pulls, and the corner at the end says so with a grip of dots. On a compact screen a window is a drawer.',
     ],
     windowsCaps: [
       'in front, dots: controls, name, handle. A path line of its own, body, status bar, the grip in its corner',
@@ -1332,8 +1331,8 @@ const en = {
       'touch: bars of 48, dots that say what they do',
       'one size: no full screen, nothing to pull. Its actions are a button group at its foot',
       'on paper: a record. The same frame in ink, a heavier rule under its bar',
-      'pitch 5: handle and grip follow the dot setting',
-      'pitch 12: handle and grip follow the dot setting',
+      'pitch 5: the grip follows the dot setting',
+      'pitch 12: the grip follows the dot setting',
     ],
     handled: [
       'Window, handled',
@@ -1368,7 +1367,7 @@ const en = {
       ],
       [
         'Press a window behind',
-        'It comes to the front. Nothing travels: the dots of the handle and the filled controls fade in, the window behind goes quiet.',
+        'It comes to the front. Nothing travels: the name and the filled controls fade in, the window behind goes quiet.',
         'fast',
       ],
       [

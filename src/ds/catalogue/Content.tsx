@@ -4,7 +4,7 @@ import type { Dictionary } from '@/i18n/en'
 
 import { Icon } from '../atoms/Icon'
 import { App } from '../molecules/App'
-import { Bar, BarGrip, BarSpace, BarText, BarTitle } from '../molecules/Bar'
+import { Bar, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button } from '../molecules/Button'
 import { Heading, Stat } from '../molecules/Heading'
 import { Avatar, Media } from '../molecules/Media'
@@ -203,7 +203,7 @@ function Apps({ t }: Props) {
 }
 
 function Bars({ t, words }: Props) {
-  const [regular, compact, text, floating, pitches] = t.barCaps
+  const [regular, compact, text, floating] = t.barCaps
   const name = (
     <BarText>
       <Path segments={[t.window]} />
@@ -254,28 +254,8 @@ function Bars({ t, words }: Props) {
             <Bar line="below" size="compact">
               <WindowControls shape="dots" size="compact" t={words} />
               {name}
-              <BarGrip />
+              <BarSpace />
             </Bar>
-          </div>
-        </Cap>
-        <Cap label={pitches}>
-          <div className="stack" style={{ width: width.wide }}>
-            {['5', '12'].map((pitch) => (
-              <div
-                className="stage"
-                data-hand="squares"
-                data-pitch={pitch}
-                data-surface="window"
-                key={pitch}
-                style={{ padding: 0 }}
-              >
-                <Bar line="below" size="compact">
-                  {name}
-                  <BarGrip />
-                  <WindowControls shape="squares" size="compact" t={words} />
-                </Bar>
-              </div>
-            ))}
           </div>
         </Cap>
       </div>

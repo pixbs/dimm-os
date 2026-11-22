@@ -83,7 +83,7 @@ const de: Copy = {
       'Das Layout richtet sich nach der Breite des Fensters, nicht des Bildschirms. Ein Fenster hat nie mehr als drei Spalten. Wo aus drei zwei werden, behält die führende Zelle ihre Spalte, die anderen stapeln sich daneben. Auf dem Telefon ist ein Fenster eine Schublade.',
       'Eckig als Standard. Rund gehört dem Punkt und seinen Verwandten.',
       'Eine Komponente heißt nach dem, was sie ist, nie nach dem, was sie enthalten wird.',
-      'Ein Punkt. Was in Punkten gezeichnet ist, steht auf dem Raster: Hintergrund und Bilder, Griff und Ecke eines Fensters, Ringe, Lampen.',
+      'Ein Punkt. Was in Punkten gezeichnet ist, steht auf dem Raster: Hintergrund und Bilder, die Ecke eines Fensters, Ringe, Lampen.',
       'Eine Leiste enthält nie eine Aktion. Was ein Fenster kann, steht an seinem Fuß.',
     ],
   },
@@ -384,7 +384,7 @@ const de: Copy = {
     pitch: [
       'Raster',
       'Raster: 5 · 6 · 8 · 10 · 12 px | Punkt: 0,36 des Rasters | gezeichnet als: gepunktet · Punktring · Halbton',
-      'Der Abstand zwischen zwei Punkten von allem, was in Punkten gezeichnet ist: Hintergrund und Bilder (ein Halbton, siehe Wallpaper), der Griff eines Fensters und die Ecke, an der es die Größe ändert (gepunktet), die Ringe eines Poststempels und die Skala eines Drehreglers (Punktring), die Lampen der Uhr. Eine Einstellung, 8 px als Standard, gesetzt an der Wurzel eines Bildschirms. Ein Griff bleibt bei jedem Raster etwa gleich hoch: Ein kleiner Punkt steht in mehr Reihen, ein großer in weniger.',
+      'Der Abstand zwischen zwei Punkten von allem, was in Punkten gezeichnet ist: Hintergrund und Bilder (ein Halbton, siehe Wallpaper), die Ecke, an der ein Fenster die Größe ändert (gepunktet), die Ringe eines Poststempels und die Skala eines Drehreglers (Punktring), die Lampen der Uhr. Eine Einstellung, 8 px als Standard, gesetzt an der Wurzel eines Bildschirms.',
     ],
     pitchCap: 'Raster',
     pitchDefault: ', der Standard',
@@ -909,14 +909,13 @@ const de: Copy = {
     bar: [
       'Leiste',
       'Größe: regular 48 · compact 32 | Linie: keine · unten · oben | Plätze: Buttons · Titel · Text · Raum',
-      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff und wird als solcher gezeigt: Reihen von Punkten auf dem Raster.',
+      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff und trägt nichts.',
     ],
     barCaps: [
       'regular 48',
       'compact 32',
       'nur Text',
       'die Titelleiste eines freien Fensters: ihre Steuerung, ihr Name, und der Rest ist ihr Griff',
-      'der Griff bei Raster 5 und bei Raster 12',
     ],
     back: 'Zurück',
     more: 'Mehr',
@@ -1354,7 +1353,7 @@ const de: Copy = {
     windows: [
       'Fenster',
       'Dichte: Zeiger · Touch | Teile: Titelleiste · Pfadzeile · Körper · Aktionen · Statusleiste · Griffecke | Steuerung: Punkte · Quadrate | Zustand: vorn · dahinter · Vollbild · minimiert | Fläche: Fenster · Papier | Größe: frei · eine Größe | kompakter Bildschirm: eine Schublade',
-      'Jede Seite ist ein Fenster, und ein Fenster ist ein Rahmen, den man in die Hand nimmt. Seine Titelleiste trägt die Steuerung, in der Hand, die gilt, und wie das Fenster heißt: einen Namen oder seinen Pfad. Der Rest der Leiste ist der Griff, in Punkten gezeigt, solange das Fenster vorn ist. Die Leiste enthält nie eine Aktion: Was ein Fenster kann, steht an seinem Fuß, als Buttongruppe bündig mit seinem Rand. Was eine Leiste zeigt, gehört zum Fenster und kommt aus dem CMS, nicht aus einer Einstellung: ein Name oder ein Pfad, eine eigene Pfadzeile mit Zurück und Vor, eine Statusleiste, die Papierfläche, ob es nur eine Größe hat. Jede Kante und jede Ecke lässt sich ziehen, und die Ecke am Ende zeigt es mit einem Griff aus Punkten. Auf einem kompakten Bildschirm ist ein Fenster eine Schublade.',
+      'Jede Seite ist ein Fenster, und ein Fenster ist ein Rahmen, den man in die Hand nimmt. Seine Titelleiste trägt die Steuerung, in der Hand, die gilt, und wie das Fenster heißt: einen Namen oder seinen Pfad. Der Rest der Leiste ist der Griff, und leer. Die Leiste enthält nie eine Aktion: Was ein Fenster kann, steht an seinem Fuß, als Buttongruppe bündig mit seinem Rand. Was eine Leiste zeigt, gehört zum Fenster und kommt aus dem CMS, nicht aus einer Einstellung: ein Name oder ein Pfad, eine eigene Pfadzeile mit Zurück und Vor, eine Statusleiste, die Papierfläche, ob es nur eine Größe hat. Jede Kante und jede Ecke lässt sich ziehen, und die Ecke am Ende zeigt es mit einem Griff aus Punkten. Auf einem kompakten Bildschirm ist ein Fenster eine Schublade.',
     ],
     windowsCaps: [
       'vorn, Punkte: Steuerung, Name, Griff. Eine eigene Pfadzeile, Körper, Statusleiste, der Griff in seiner Ecke',
@@ -1363,8 +1362,8 @@ const de: Copy = {
       'Touch: Leisten von 48, Punkte, die zeigen, was sie tun',
       'eine Größe: kein Vollbild, nichts zu ziehen. Seine Aktionen sind eine Buttongruppe an seinem Fuß',
       'auf Papier: ein Beleg. Derselbe Rahmen in Tinte, eine stärkere Linie unter seiner Leiste',
-      'Raster 5: Griff und Griffecke folgen der Punkteinstellung',
-      'Raster 12: Griff und Griffecke folgen der Punkteinstellung',
+      'Raster 5: die Griffecke folgt der Punkteinstellung',
+      'Raster 12: die Griffecke folgt der Punkteinstellung',
     ],
     handled: [
       'Fenster, in der Hand',
@@ -1399,7 +1398,7 @@ const de: Copy = {
       ],
       [
         'Ein Fenster dahinter drücken',
-        'Es kommt nach vorn. Nichts bewegt sich: Die Punkte des Griffs und die gefüllte Steuerung blenden ein, das Fenster dahinter wird still.',
+        'Es kommt nach vorn. Nichts bewegt sich: Der Name und die gefüllte Steuerung blenden ein, das Fenster dahinter wird still.',
         'fast',
       ],
       [

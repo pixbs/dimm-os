@@ -46,7 +46,7 @@ export function Icons({ t }: { t: Copy['icons'] }) {
                   style={{
                     display: 'block',
                     width: u(30),
-                    height: 'calc(var(--pitch) * var(--pitch-rows))',
+                    height: u(2),
                     backgroundRepeat: 'round',
                   }}
                 />
