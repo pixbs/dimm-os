@@ -156,6 +156,8 @@
   --m-wait: 300ms;
   /* how long a part lit by a key stays lit */
   --m-hold: 480ms;
+  /* how long a finger rests on a part before the press is a long one */
+  --m-press: 500ms;
   /* how long a note stands in place of the text it covers */
   --m-note: 2000ms;
   /* a picture resolving in swatches of its own colours: the coarsest sweep in across it, each finer step follows, then

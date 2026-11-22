@@ -692,6 +692,8 @@ async function views(language: Language, viewer: Viewer) {
     icon,
     tile: doc.tile ?? null,
     lang: other(lang),
+    file: (doc.actions ?? []).filter((action) => action.type === 'media').flatMap(button(lang))[0]
+      ?.href,
   })
   const shortcuts = shown.flatMap((one) =>
     one.doc.icon && !one.parent ? [shortcut(one, one.doc.icon)] : [],

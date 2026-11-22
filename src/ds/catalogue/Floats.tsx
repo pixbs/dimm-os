@@ -9,12 +9,13 @@ import { legalLinks } from '@/shell/menus'
 import { marked } from '@/shell/palette'
 import { SystemScreen } from '@/shell/System'
 
+import { App } from '../molecules/App'
 import { Bar, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button, ButtonGroup } from '../molecules/Button'
 import { Heading } from '../molecules/Heading'
 import { Row } from '../molecules/Row'
 import { Dialog, Notice, Question } from '../organisms/Dialog'
-import { type Item, Menu, MenuBar, MenuButton, type Top } from '../organisms/Menu'
+import { ContextMenu, type Item, Menu, MenuBar, MenuButton, type Top } from '../organisms/Menu'
 import { Palette } from '../organisms/Palette'
 import { Apps, Screen, type Shortcut } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
@@ -250,8 +251,47 @@ export function Menus(props: Props) {
             />
           </Dialog>
         </Phone>
+        <Pointed {...props} />
       </Specs>
     </Entry>
+  )
+}
+
+// A menu at a point, drawn beside the app it is about, which is held; a right click on the app opens it there.
+function Pointed({ t, words }: Props) {
+  const [at, setAt] = useState<{ x: number; y: number; subject: Element } | null>(null)
+  const items: Item[] = [{ label: words.open }, 'rule', { label: words.copyLink }]
+
+  return (
+    <div
+      data-surface="desktop"
+      onContextMenu={(event) => {
+        const subject = (event.target as Element).closest('.app')
+        if (!subject) return
+        event.preventDefault()
+        setAt({ x: event.clientX, y: event.clientY, subject })
+      }}
+      style={{
+        display: 'flex',
+        alignItems: 'flex-start',
+        gap: 'var(--s-2)',
+        padding: 'var(--s-6)',
+      }}
+    >
+      <App href="#" icon="folder" name={t.title} selected />
+      <Menu items={items} label={t.title} size="compact" />
+      {at && (
+        <ContextMenu
+          at={at}
+          items={items}
+          label={t.title}
+          onClose={() => setAt(null)}
+          size="compact"
+          subject={at.subject}
+          t={words}
+        />
+      )}
+    </div>
   )
 }
 

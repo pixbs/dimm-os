@@ -9,9 +9,11 @@ import {
   type ReactNode,
   useEffect,
   useEffectEvent,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react'
+import { createPortal } from 'react-dom'
 
 import type { Dictionary } from '@/i18n/en'
 import type { Named } from '@/i18n/keys'
@@ -319,8 +321,10 @@ function Level(props: {
 
 // The menus under one element: opening one closes the ones beside it, and choosing a row closes them all. A
 // press outside closes them too, and Esc gives the focus back to what opened the menu.
-function useMenus(root: { current: HTMLElement | null }, shown?: number) {
-  const [chain, setChain] = useState<Chain>(shown === undefined ? [] : [{ at: shown, from: null }])
+function useMenus(root: { current: HTMLElement | null }, shown?: number, opener?: Element) {
+  const [chain, setChain] = useState<Chain>(() =>
+    opener ? [{ at: 0, from: opener }] : shown === undefined ? [] : [{ at: shown, from: null }],
+  )
 
   const open = (depth: number, at: number, from: Element | null, last?: boolean) =>
     setChain([...chain.slice(0, depth), { at, from, last, moved: Boolean(chain[depth]) }])
@@ -503,6 +507,67 @@ export function MenuButton(
         open={open}
       />
     </span>
+  )
+}
+
+// A menu about one thing, opened at a point: its corner at the pointer, or from the keyboard at the middle of what has
+// the focus. Near the foot of the screen it opens upward, and it never leaves the screen; what it is about is held
+// while it is open. It stands in the top layer, inside the dialog it was opened in, so nothing covers it. On a compact
+// screen it is a drawer, as every menu is.
+export function ContextMenu(
+  props: Omit<Shared, 'shown' | 'onDepth'> & {
+    label: string
+    items: Item[]
+    at: { x: number; y: number }
+    subject: Element
+    onClose: () => void
+  },
+) {
+  const { at, subject, drawer } = props
+  const point = useRef<HTMLDivElement>(null)
+  const menus = useMenus(point, undefined, subject)
+  const closed = useEffectEvent(() => props.onClose())
+  useEffect(() => {
+    if (!menus.chain.length) closed()
+  }, [menus.chain.length])
+
+  useEffect(() => {
+    subject.setAttribute('data-held', '')
+    return () => subject.removeAttribute('data-held')
+  }, [subject])
+
+  useLayoutEffect(() => {
+    const self = point.current!
+    if (drawer) return
+    self.showPopover?.()
+    const menu = self.firstElementChild as HTMLElement
+    const room = document.documentElement
+    const [w, h] = [menu.offsetWidth, menu.offsetHeight]
+    const up = at.y + h > room.clientHeight
+    const x = Math.max(0, Math.min(at.x, room.clientWidth - w))
+    self.style.left = `${x}px`
+    self.style.top = `${Math.max(0, Math.min(up ? at.y - h : at.y, room.clientHeight - h))}px`
+    self.toggleAttribute('data-up', up)
+    // A submenu hangs on the side there is room for.
+    self.toggleAttribute('data-start', x + w * 2 > room.clientWidth)
+  }, [at, drawer])
+
+  return createPortal(
+    <div
+      className="menu__point"
+      data-drawer={drawer ? '' : undefined}
+      popover={drawer ? undefined : 'manual'}
+      ref={point}
+    >
+      <Level
+        depth={0}
+        items={props.items}
+        label={props.label}
+        menus={{ ...menus, drawer, size: density(props.size), t: props.t }}
+        open={menus.chain.length > 0}
+      />
+    </div>,
+    subject.closest('dialog') ?? subject.closest('.screen') ?? document.body,
   )
 }
 

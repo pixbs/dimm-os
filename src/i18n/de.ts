@@ -113,6 +113,7 @@ const de: Dictionary = {
   },
   copyLink: 'Link kopieren',
   dark: 'Dunkel',
+  desk: 'Desktop',
   done: 'Fertig',
   download: 'Herunterladen',
   dot: 'Punkt',
@@ -135,6 +136,7 @@ const de: Dictionary = {
   formSent: 'Nachricht gesendet.',
   formTo: 'An',
   fullScreen: 'Vollbild',
+  exitFullScreen: 'Vollbild beenden',
   gestures: 'Gesten',
   gestureRows: [
     [
@@ -250,6 +252,7 @@ const de: Dictionary = {
   searchField: '{name} durchsuchen',
   share: '{on} von {of}',
   searchCommand: 'Suchen',
+  show: 'Anzeigen',
   showAll: 'Alle anzeigen',
   shutDown: 'Ausschalten',
   shutDownAt: 'Ausgeschaltet um {time}',
