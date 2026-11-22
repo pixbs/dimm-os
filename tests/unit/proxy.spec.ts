@@ -3,51 +3,44 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import { proxy } from '@/proxy'
 
-const desk =
-  '<!doctype html><html><body><article data-front><h1>Not found</h1></article></body></html>'
-
-// The deployment as the proxy's own requests meet it: a view with the status given, and the desk at every address.
+// The deployment as the proxy's own request meets it: a view with the status given.
 function deployment(view: number) {
-  const answer = vi.fn(async (input: string | URL | Request) =>
-    new URL(String(input)).pathname.startsWith('/view/')
-      ? new Response(null, { status: view })
-      : new Response(desk, {
-          headers: { 'content-type': 'text/html', 'content-encoding': 'br', etag: '"desk"' },
-        }),
-  )
+  const answer = vi.fn(async () => new Response(null, { status: view }))
   vi.stubGlobal('fetch', answer)
   return answer
 }
 
+const rewritten = (response: Response) => response.headers.get('x-middleware-rewrite')
+// The address asked for, as the proxy notes it on the request for the not-found page.
+const asked = (response: Response) => response.headers.get('x-middleware-request-x-asked')
+
 afterEach(() => vi.unstubAllGlobals())
 
 describe('the proxy at an address that names no window', () => {
-  it.each(['/does-not-exist', '/de/gibt-es-nicht'])(
-    'answers %s with 404 and the desk itself, as no rewrite can',
+  it.each(['/does-not-exist', '/de/gibt-es-nicht', '/de/nothing.html'])(
+    'sends %s where no route answers, so Next.js draws its not-found page with 404',
     async (path) => {
       deployment(404)
       const response = await proxy(new NextRequest(`https://dimm.test${path}`))
 
-      expect(response.status).toBe(404)
-      // A rewrite with an error status is served as the platform's own 404 page.
-      expect(response.headers.get('x-middleware-rewrite')).toBeNull()
-      expect(await response.text()).toBe(desk)
-      expect(response.headers.get('content-encoding')).toBeNull()
-      expect(response.headers.get('etag')).toBeNull()
+      expect(rewritten(response)).toBe('https://dimm.test/404')
+      expect(asked(response)).toBe(path)
+      // A rewrite with an error status is answered by the platform, not by the page.
+      expect(response.status).toBe(200)
     },
   )
 
-  it('answers a visitor the same, out of every cache', async () => {
+  it('asks the view as the visitor, and keeps the answer out of every cache', async () => {
     const answer = deployment(404)
     const response = await proxy(
       new NextRequest('https://dimm.test/does-not-exist', { headers: { cookie: 'visitor=one' } }),
     )
 
-    expect(response.status).toBe(404)
+    expect(rewritten(response)).toBe('https://dimm.test/404')
     expect(response.headers.get('cache-control')).toBe('private, no-store')
     expect(answer).toHaveBeenLastCalledWith(
-      'https://dimm.test/does-not-exist',
-      expect.objectContaining({ headers: expect.objectContaining({ cookie: 'visitor=one' }) }),
+      new URL('https://dimm.test/view/en/does-not-exist'),
+      expect.objectContaining({ headers: { cookie: 'visitor=one' } }),
     )
   })
 
@@ -55,7 +48,23 @@ describe('the proxy at an address that names no window', () => {
     deployment(200)
     const response = await proxy(new NextRequest('https://dimm.test/de/work'))
 
-    expect(response.status).toBe(200)
-    expect(response.headers.get('x-middleware-rewrite')).toBe('https://dimm.test/de/work')
+    expect(rewritten(response)).toBe('https://dimm.test/guest/de/work')
+  })
+
+  it('lets the address of a file pass, with the address noted for one that is not there', async () => {
+    const answer = deployment(404)
+    const response = await proxy(new NextRequest('https://dimm.test/licenses/nothing.txt'))
+
+    expect(response.headers.get('x-middleware-next')).toBe('1')
+    expect(asked(response)).toBe('/licenses/nothing.txt')
+    expect(answer).not.toHaveBeenCalled()
+  })
+
+  it('sends a page of the catalogue to its route, which has only the pages the build made', async () => {
+    const answer = deployment(404)
+    const response = await proxy(new NextRequest('https://dimm.test/de/catalogue/nothing'))
+
+    expect(rewritten(response)).toBe('https://dimm.test/catalogue/de/nothing')
+    expect(answer).not.toHaveBeenCalled()
   })
 })

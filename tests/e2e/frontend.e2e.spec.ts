@@ -325,6 +325,53 @@ test.describe('Frontend at an address without a window', () => {
     }
   })
 
+  test.describe('for a guest who is asked for consent', () => {
+    test.use({ asked: true })
+
+    for (const [device, viewport] of [
+      ['phone', { width: 390, height: 844 }],
+      ['tablet', { width: 834, height: 1194 }],
+      ['desktop', { width: 1440, height: 900 }],
+    ] as const)
+      test(`shows the 404 window and never the page of Next.js, before script and after, on a ${device}`, async ({
+        page,
+        request,
+      }) => {
+        await page.setViewportSize(viewport)
+        const theirs = 'This page could not be found'
+        for (const [path, title, decline] of [
+          ['/does-not-exist', 'Not found', 'Decline'],
+          ['/de/gibt-es-nicht', 'Nicht gefunden', 'Ablehnen'],
+          // No file and no window: an address with a dot outside a language, and a page the catalogue has not.
+          ['/nothing.html', 'Not found', 'Decline'],
+          ['/catalogue/nothing', 'Not found', 'Decline'],
+          // What the platform keeps for its own page.
+          ['/404', 'Not found', 'Decline'],
+        ]) {
+          // Before script: the answer is the desk with the window, in its language.
+          const answer = await request.get(path)
+          expect(answer.status(), path).toBe(404)
+          const markup = await answer.text()
+          expect(markup, path).toContain('data-front')
+          expect(markup, path).toContain(`>${title}</h1>`)
+          expect(markup, path).not.toContain(theirs)
+
+          // After it, and once the window of consent in front has left: the same window at the same address.
+          await page.evaluate(() => localStorage.clear()).catch(() => {})
+          expect((await page.goto(path))?.status(), path).toBe(404)
+          await page.getByRole('button', { name: decline }).click()
+          await expect(front(page)).toHaveText(title)
+          await expect(page).toHaveURL(path)
+          await page.reload()
+          await expect(front(page)).toHaveText(title)
+          await expect(page.locator('article[data-front] .window__bar .path')).toHaveText(
+            path.replace(/^\/de/, '').slice(1),
+          )
+          await expect(page.getByText(theirs)).toHaveCount(0)
+        }
+      })
+  })
+
   test('leaves a real file with a dot to load as it is', async ({ request }) => {
     for (const path of ['/block-previews/cards.png', '/licenses/inter-tight.txt'])
       expect((await request.get(path)).status(), path).toBe(200)

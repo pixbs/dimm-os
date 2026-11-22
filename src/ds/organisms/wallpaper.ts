@@ -49,7 +49,10 @@ const SIGNS = Array.from({ length: 95 }, (_, index) => String.fromCharCode(32 + 
 const MONO = 'wallpaper-mono'
 // A canvas draws light text fuller than dark, so the face is measured in white.
 const LIGHT = 'white'
-const FILE = new URL('../../app/(frontend)/[lang]/jetbrains-mono-latin.woff2', import.meta.url)
+const FILE = new URL(
+  '../../app/(frontend)/guest/[lang]/jetbrains-mono-latin.woff2',
+  import.meta.url,
+)
 
 let canvas: OffscreenCanvas
 let context: OffscreenCanvasRenderingContext2D
