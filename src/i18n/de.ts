@@ -113,7 +113,7 @@ const de: Dictionary = {
   },
   copyLink: 'Link kopieren',
   dark: 'Dunkel',
-  desk: 'Schreibtisch',
+  desk: 'Desktop',
   done: 'Fertig',
   download: 'Herunterladen',
   dot: 'Punkt',
