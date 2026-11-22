@@ -30,6 +30,7 @@ test.describe('Boot, login and shut down', () => {
     await page.goto('/')
     await expect(boot(page).getByText('Memory test')).toBeVisible()
     await expect(boot(page).getByText('Any key skips')).toBeVisible()
+    await expect(boot(page).getByText(/Field no\./)).toHaveCount(0)
     await legalLinks(page)
     await page.keyboard.press('x')
     await expect(boot(page)).toHaveCount(0)
