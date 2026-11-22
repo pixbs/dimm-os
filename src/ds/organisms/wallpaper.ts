@@ -23,7 +23,8 @@ export type Setting = {
   pointer: number[] | null
 }
 
-const scenes = { passage }
+// Every scene by the name of its wallpaper: a message that names another gets the first.
+const scenes = new Map([['passage', passage]])
 // What every scene takes its chances from.
 const SEED = 299
 // At most 30 frames a second, and a frame that comes late counts as six ticks at most.
@@ -41,7 +42,7 @@ let canvas: OffscreenCanvas
 let context: OffscreenCanvasRenderingContext2D
 let now: Setting | undefined
 let grid: Grid
-let scene: ReturnType<(typeof scenes)[keyof typeof scenes]> | undefined
+let scene: ReturnType<typeof passage> | undefined
 let read: ReturnType<typeof ascii> | undefined
 let loaded: boolean | undefined
 let request = 0
@@ -169,7 +170,8 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
     canvas.height = now.height * now.ratio
     context.setTransform(now.ratio, 0, 0, now.ratio, 0, 0)
     grid = tones(now.width, now.height, now.pitch)
-    scene = scenes[now.step.wallpaper](grid, now.width, now.height, seeded(SEED))
+    const start = scenes.get(now.step.wallpaper) ?? passage
+    scene = start(grid, now.width, now.height, seeded(SEED))
     read = undefined
   }
   // The pointer alone changes nothing that is not already being drawn.
