@@ -1322,13 +1322,13 @@ const en = {
     menubar: [
       'Menu bar',
       'density: compact · regular | slots: mark and name · menus · status',
-      'The top edge of the screen. It opens with the mark and the name of the site. On a pointer device it is a compact bar of ghost buttons. On a touch device it is a regular bar with the menus behind one button.',
+      'The top edge of the screen. It opens with the mark and the name of the site. On a pointer device it is a compact bar of ghost buttons. On a touch device it is a regular bar with the menus behind one button. The last menu, Legal, holds the imprint, the privacy policy and consent; a screen that waits holds it as one button at the end of its bar.',
     ],
     menubarCaps: ['pointer: compact bar', 'touch: regular bar'],
     taskbar: [
       'Taskbar',
       'density: pointer · touch | compact screen: dock | slots: windows · tray',
-      'The bottom edge of the screen. It shows what is open: one button per window, led by the mark of its app, the window in front selected. A window that is minimised leaves the desk and stays here, its mark hollow; its button brings it back. Pressing the button of the window in front minimises that one. A closed window leaves the taskbar. The tray at its end holds Imprint, Privacy, Cookies and Preferences, as words. On a compact screen it is a dock: a button group with one cell per app.',
+      'The bottom edge of the screen. It shows what is open: one button per window, led by the mark of its app, the window in front selected. A window that is minimised leaves the desk and stays here, its mark hollow; its button brings it back. Pressing the button of the window in front minimises that one. A closed window leaves the taskbar. The tray at its end holds Preferences, as a word. On a compact screen it is a dock: a button group with one cell per app.',
     ],
     taskbarCaps: [
       'pointer: compact buttons, each led by the mark of its app, the window in front selected',

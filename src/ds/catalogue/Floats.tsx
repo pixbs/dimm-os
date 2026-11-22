@@ -42,7 +42,7 @@ function Mark() {
 }
 
 // The menus of a sample menu bar: the mark and the name, then menus of sample rows.
-function bar(t: Copy['shell'], words: Dictionary, language: Language, count = 5): Top[] {
+function bar(t: Copy['shell'], words: Dictionary, language: Language, count = 6): Top[] {
   const items: Item[] = [
     { label: t.item, hint: named(language, ['mod', 'N']) },
     { label: t.item, hint: named(language, ['mod', 'O']) },
@@ -51,7 +51,7 @@ function bar(t: Copy['shell'], words: Dictionary, language: Language, count = 5)
   ]
   return [
     { name: t.name, label: t.name, lead: <Mark />, items },
-    ...[words.file, words.view, words.window, words.help].map((menu) => ({
+    ...[words.file, words.view, words.window, words.help, words.legal].map((menu) => ({
       name: menu,
       label: menu,
       items,

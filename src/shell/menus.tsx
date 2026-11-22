@@ -11,6 +11,25 @@ import { tasksOf } from './OnDesk'
 // The pitches the dot can be set to.
 const pitches = ['5', '6', '8', '10', '12']
 
+// The legal windows under the names they have, then consent; the row of its preferences opens a window that asks.
+export function legalMenu(
+  t: Dictionary,
+  language: Language,
+  found: { title: string; href?: string }[],
+): Item[] {
+  const link = (path: string, words: string) => {
+    const href = toAddress(language, path)
+    return { label: found.find((one) => one.href === href)?.title ?? words, href }
+  }
+  return [
+    link('/imprint', t.imprint),
+    link('/privacy-policy', t.privacy),
+    'rule',
+    link('/cookies', t.cookies),
+    { label: `${t.cookiePreferences}…`, href: toAddress(language, '/cookies/preferences') },
+  ]
+}
+
 // The menus of the menu bar hold only what the system does, so they hold whatever content exists. On a phone
 // File, View, Window and Help stay behind the system menu, which ends with the three legal links.
 export function menus(props: {
@@ -21,6 +40,7 @@ export function menus(props: {
   act: (action: Action) => void
   search: () => void
   commands: ReturnType<typeof commandsOf>
+  legal: Item[]
 }): Top[] {
   const { t, language, desk, act, commands } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -123,13 +143,14 @@ export function menus(props: {
       act: () => act({ type: 'open', path: desk.open[at].at }),
     })),
   ]
-  const help: Item[] = [hotkeys, link('/accessibility', t.accessibility), about, ...legal]
+  const help: Item[] = [hotkeys, link('/accessibility', t.accessibility), about]
   const others = [
     { label: t.file, items: file },
     { label: t.view, items: view },
     { label: t.window, items: window },
     { label: t.help, items: help },
   ]
+  const all = [...others, { label: t.legal, items: props.legal }]
   const system: Item[] = [
     about,
     link('/preferences', t.preferences, 'preferences'),
@@ -142,14 +163,14 @@ export function menus(props: {
   ]
 
   return [
-    { name: t.menu, icon: 'menu', for: 'desk touch', items: others },
+    { name: t.menu, icon: 'menu', for: 'desk touch', items: all },
     {
       name: props.name,
       label: props.name,
       lead: <span className="mark" data-surface="orange" />,
       items: system,
     },
-    ...others.map((menu) => ({
+    ...all.map((menu) => ({
       name: menu.label,
       label: menu.label,
       for: 'desk pointer',
