@@ -1294,16 +1294,16 @@ const en = {
     screenCaps: ['pointer', 'compact'],
     wallpaper: [
       'Wallpaper',
-      'form: one halftone shape | strength: 16 % | dot: 8 px | field: 100 to 999',
-      'One generated halftone form in paper, behind everything, at the strength of a line. Where the form sits is a setting of the screen; the field number moves it from there. It pours in at the start, drifts on a path of its field, slowly enough to look still at a glance, leans toward the pointer over the empty desk, and pours to its new place as the dial turns. Under reduced motion and under pause it is still; while the tab is hidden or the desk covered, it stops.',
+      'scene: Passage | filter: dots · ASCII | inks: paper · orange · blue · mint | strength: 16 %, in colour 64 % | dot: 8 px',
+      'A scene behind everything that moves and answers the pointer over the desk. It pours ink into a grid of tones, two samples to the pitch each way, and names one of four inks for each sample. The grid is drawn through one of two filters. Dots: one dot to the pitch, as wide as the ink under it is strong, so two full dots touch. ASCII: a cell is one pitch wide and two high, and its sign is the one of the mono face whose shape fits the ink best. In colour each dot or sign is in the ink of its place, at the strength of muted. Without colour everything is in the paper ink, at the strength of a line; on a light surface that is the ink of the theme. A scene is laid out on the size of its screen and on the pitch, and a change of either starts it afresh. It runs at 30 frames a second, and stops while the tab is hidden or the desk covered. Under reduced motion and under pause it is drawn once and holds still. A plain wallpaper is not drawn. Passage: dragonflies come in at the bottom left and leave at the top right, the near ones larger, faster and stronger, and each moves aside for the pointer.',
     ],
     wallpaperCaps: [
-      'pitch 8, the default; where the circle sits is a setting of the screen',
-      'pitch 5, set in Preferences',
+      'dots, in colour: the default',
+      'dots',
+      'ASCII, in colour',
+      'ASCII',
       'pitch 12, set in Preferences',
-      'the field, turned by the dial of Preferences',
     ],
-    field: 'Wallpaper field',
     menubar: [
       'Menu bar',
       'density: compact · regular | slots: mark and name · menus · status',

@@ -1325,16 +1325,16 @@ const de: Copy = {
     screenCaps: ['Zeiger', 'kompakt'],
     wallpaper: [
       'Hintergrund',
-      'Form: eine Rasterform | Stärke: 16 % | Punkt: 8 px | Feld: 100 bis 999',
-      'Eine erzeugte Rasterform in Papier, hinter allem, in der Stärke einer Linie. Wo die Form sitzt, ist eine Einstellung des Bildschirms; die Feldnummer verschiebt sie von dort. Zu Beginn fließt sie ein, sie wandert auf einem Pfad ihres Felds, so langsam, dass sie auf einen Blick still wirkt, neigt sich über dem leeren Desktop zum Zeiger und fließt an ihren neuen Ort, wenn das Rad gedreht wird. Bei reduzierter Bewegung und angehaltenen Bildern steht sie still; solange der Tab verborgen oder der Desktop verdeckt ist, hält sie an.',
+      'Szene: Passage | Filter: Punkte · ASCII | Tinten: Papier · Orange · Blau · Mint | Stärke: 16 %, in Farbe 64 % | Punkt: 8 px',
+      'Eine Szene hinter allem, die sich bewegt und über dem Desktop auf den Zeiger antwortet. Sie gießt Tinte in ein Raster aus Tonwerten, zwei Proben je Rasterschritt in jede Richtung, und nennt für jede Probe eine von vier Tinten. Das Raster wird durch einen von zwei Filtern gezeichnet. Punkte: ein Punkt je Rasterschritt, so breit, wie die Tinte darunter stark ist; zwei volle Punkte berühren sich. ASCII: Eine Zelle ist einen Rasterschritt breit und zwei hoch, und ihr Zeichen ist das der Mono-Schrift, dessen Form am besten zur Tinte passt. In Farbe trägt jeder Punkt und jedes Zeichen die Tinte seines Orts, in der gedämpften Stärke. Ohne Farbe steht alles in der Papiertinte, in der Stärke einer Linie; auf einer hellen Fläche ist das die Tinte des Modus. Eine Szene richtet sich nach der Größe ihres Bildschirms und nach dem Raster, und eine Änderung an einem von beiden beginnt sie neu. Sie läuft mit 30 Bildern pro Sekunde und hält an, solange der Tab verborgen oder der Desktop verdeckt ist. Bei reduzierter Bewegung und angehaltenen Bildern wird sie einmal gezeichnet und steht still. Ein schlichter Hintergrund wird nicht gezeichnet. Passage: Libellen kommen unten links herein und verlassen den Bildschirm oben rechts, die nahen größer, schneller und kräftiger, und jede weicht dem Zeiger aus.',
     ],
     wallpaperCaps: [
-      'Raster 8, die Voreinstellung; wo der Kreis sitzt, ist eine Einstellung des Bildschirms',
-      'Raster 5, in den Einstellungen gewählt',
+      'Punkte, in Farbe: die Voreinstellung',
+      'Punkte',
+      'ASCII, in Farbe',
+      'ASCII',
       'Raster 12, in den Einstellungen gewählt',
-      'das Feld, gedreht mit dem Rad der Einstellungen',
     ],
-    field: 'Hintergrundfeld',
     menubar: [
       'Menüleiste',
       'Dichte: kompakt · regulär | Plätze: Zeichen und Name · Menüs · Status',
