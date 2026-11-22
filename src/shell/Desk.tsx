@@ -47,7 +47,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
-import { languageMenu, legalMenu, menus, themeMenu } from './menus'
+import { languageMenu, legalLinks, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
@@ -485,11 +485,15 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     // Putting away a window of consent before answering it is a no.
-    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll'].includes(action.type)
+    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll', 'alone'].includes(
+      action.type,
+    )
     const all = action.type === 'closeAll' || action.type === 'minimiseAll'
     const of = all
       ? desk.open.map((one) => one.path)
-      : [('path' in action && action.path) || front(desk)]
+      : action.type === 'alone'
+        ? desk.open.map((one) => one.path).filter((path) => path !== front(desk))
+        : [('path' in action && action.path) || front(desk)]
     if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
@@ -626,6 +630,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     }
   }, [desk, remember])
 
+  // Switched on, one window at a time acts on the windows already open, and on those a reload brings back.
+  const single = useSetting('single')
+  const was = useRef(single)
+  const alone = useEffectEvent(() => act({ type: 'alone' }))
+  useEffect(() => {
+    const switched = single === 'on' && was.current === 'off'
+    was.current = single
+    if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
+  }, [desk, single])
+
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
   function run(action: Action | 'search' | null, opener: Element | null) {
     if (!action) return
@@ -694,7 +708,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               desk,
               act,
               commands,
-              legal: legalMenu(dictionary, language, view.search),
+              legal: legalLinks(dictionary, language, view.search),
+              visitor: view.visitor?.name ?? null,
+              login: () => go('login'),
               theme,
               languages: languageChoices,
               // Once the menu has closed and given the focus back to its button, which gets it again after.

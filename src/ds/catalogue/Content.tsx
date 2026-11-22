@@ -3,12 +3,13 @@ import { Fragment } from 'react'
 import type { Dictionary } from '@/i18n/en'
 
 import { Icon } from '../atoms/Icon'
-import { App } from '../molecules/App'
+import { App, Tile } from '../molecules/App'
 import { Bar, BarHandle, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button } from '../molecules/Button'
 import { Heading, Stat } from '../molecules/Heading'
 import { Avatar, Media } from '../molecules/Media'
 import { Path } from '../molecules/Path'
+import { Row } from '../molecules/Row'
 import { Tag } from '../molecules/Tag'
 import { WindowControls } from '../molecules/WindowControls'
 import { LampsChange, LivePicture, PathChange, PictureAgain } from './Changing'
@@ -196,6 +197,11 @@ function Apps({ t }: Props) {
               />
             ))}
           </div>
+        </div>
+      </Specs>
+      <Specs caps={[t.tileCap]}>
+        <div className="stage box" data-surface="window">
+          <Row lead={<Tile icon="cookie" tile="orange" />} title={t.name} />
         </div>
       </Specs>
     </Entry>

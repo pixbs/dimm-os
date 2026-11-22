@@ -3,6 +3,8 @@
 import { Icon, type IconName } from '../atoms/Icon'
 import { usePainted } from '../motion/vocabulary'
 
+type TileName = 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
+
 type Props = {
   name: string
   icon: IconName
@@ -11,7 +13,7 @@ type Props = {
   onClick?: () => void
   // The language of its name, where it is not the page's.
   lang?: string
-  tile?: 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
+  tile?: TileName
   // Compact drops the name and lives in a bar.
   size?: 'compact'
   selected?: boolean
@@ -62,5 +64,14 @@ export function App({
         </span>
       )}
     </Root>
+  )
+}
+
+// The compact tile alone, which leads a row of settings and says nothing its title does not.
+export function Tile(props: { tile: TileName; icon: IconName }) {
+  return (
+    <span aria-hidden className="app__tile" data-size="compact" data-surface={props.tile}>
+      <Icon name={props.icon} size="s" />
+    </span>
   )
 }

@@ -23,7 +23,7 @@ import { fromAddress, type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
 import { useMinute, useZone } from './Clock'
-import { languageMenu, legalMenu } from './menus'
+import { languageMenu, legalLinks, legalMenu } from './menus'
 
 // The screens that wait: the start, who comes in (as a guest, by a personal link, by a password), and the end.
 export type Waiting = 'boot' | 'login' | 'link' | 'other' | 'shutdown'
@@ -282,7 +282,7 @@ function Top(props: {
           <MenuButton
             button={{ label: t.legal }}
             end
-            items={legalMenu(t, view.language, view.search)}
+            items={legalMenu(legalLinks(t, view.language, view.search))}
             label={t.legal}
             size="chrome"
             t={t}

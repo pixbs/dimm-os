@@ -50,4 +50,9 @@ export const icons = {
   ab: '<path d="M2.5 18l3.5-12 3.5 12M3.8 14h4.4M10.375 19.5l2.5-15M15.5 6h3a3 3 0 0 1 0 6h-3zM15.5 12h3.5a3 3 0 0 1 0 6h-3.5z"/>',
   'eye-off':
     '<path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6zM5 19l14-14"/><circle cx="12" cy="12" r="2.75"/>',
+  accessibility:
+    '<circle cx="12" cy="5.5" r="2"/><path d="M5 9.5h14M12 9.5v5M8.5 20.5l3.5-6 3.5 6"/>',
+  touch: '<circle cx="12" cy="12" r="3"/><circle cx="12" cy="12" r="8.5"/>',
+  cookie:
+    '<circle cx="12" cy="12" r="8.5"/><path d="M9 9.5v.5M14.5 8.5v.5M9.5 14.5v.5M14.5 14v.5"/>',
 }

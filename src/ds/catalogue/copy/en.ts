@@ -652,8 +652,8 @@ const en = {
     ],
     row: [
       'Row',
-      'lead: none · index · icon · media · dot · toggle | side: none · index + title + text | main: title · title + text · label + value | label: beside · above | meta: mono text | trail: icon · tag · toggle · button | behaviour: static · link · button that opens in place | scale: body · heading | density: regular 48 · compact 32 | state: default · hover · pressed · current · selected · focus · disabled',
-      'A row is at least one control high and grows with its text. Slots line up on the first line of text. The hairline is inset 16 on both sides, the hover fill is not, so text stays on the keyline and the fill has room. A label takes a third of the row and is the same size as its value. In a column too narrow for the two, the label goes above its value. A side takes the same third when an item needs a name beside what it says. In a compact window the side becomes the first line of the row, with the trail at its end. Labels and values wrap; nothing is cut. Selected is the row inverted. Current is the pressed fill, held: it says where you are in a list that leads somewhere. A dot in the inset before the text tells it without colour.',
+      'lead: none · index · icon · media · dot · toggle · avatar | align: first line · middle | side: none · index + title + text | main: title · title + text · label + value | label: beside · above | meta: mono text | trail: icon · tag · toggle · button | behaviour: static · link · button that opens in place | scale: body · heading | density: regular 48 · compact 32 | state: default · hover · pressed · current · selected · focus · disabled',
+      'A row is at least one control high and grows with its text. Slots line up on the first line of text, or beside a lead taller than a line, as an avatar, on its middle. The hairline is inset 16 on both sides, the hover fill is not, so text stays on the keyline and the fill has room. A label takes a third of the row and is the same size as its value. In a column too narrow for the two, the label goes above its value. A side takes the same third when an item needs a name beside what it says. In a compact window the side becomes the first line of the row, with the trail at its end. Labels and values wrap; nothing is cut. Selected is the row inverted. Current is the pressed fill, held: it says where you are in a list that leads somewhere. A dot in the inset before the text tells it without colour.',
     ],
     caps: [
       'lead · title and text · meta · trail',
@@ -899,6 +899,7 @@ const en = {
     appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'tile: raised · orange · blue · mint · paper',
+    tileCap: 'compact tile alone, leading a row of settings',
     name: 'Name',
     longName: 'A longer name',
     path: [
@@ -1461,6 +1462,7 @@ const en = {
       'from a button: under it, flush with its end',
       'touch: regular rows',
       'on a compact screen: a drawer in front',
+      'on a phone, the system menu is a screen of settings: groups of rows, each led by a compact tile',
     ],
     dialog: [
       'Dialog',

@@ -134,9 +134,11 @@ test.describe('Copy link on a phone', () => {
   }) => {
     await context.grantPermissions(['clipboard-read', 'clipboard-write'])
     await page.goto('/work', { waitUntil: 'networkidle' })
-    await page.getByRole('menubar').getByRole('menuitem').first().click()
-    await page.getByRole('menuitem', { name: 'File', exact: true }).click()
-    await page.getByRole('menuitem', { name: 'Copy link', exact: true }).click()
+    // The phone's menu holds no File menu: search runs the command.
+    await page.locator('header').getByRole('button', { name: 'Search' }).click()
+    await page.keyboard.type('Copy link')
+    await expect(page.getByRole('option')).toHaveText([/^Copy link/])
+    await page.keyboard.press('Enter')
     await expect.poll(() => clipboard(page)).toBe(`${baseURL}/work`)
     await expect(page.getByRole('status').filter({ hasText: 'Link copied' })).toHaveCount(1)
   })

@@ -480,6 +480,29 @@ test.describe('Window, on the desk', () => {
     await expect(services.locator('.window__bar')).not.toHaveAttribute('tabindex')
   })
 
+  test('switched on from Accessibility, one window at a time leaves that window alone, and stays so after a reload', async ({
+    page,
+  }) => {
+    await app(page, 'Services').click()
+    await expect(window(page, 'Services').getByRole('heading')).toHaveText('Services')
+    await page.goto('/accessibility', { waitUntil: 'networkidle' })
+    await expect(page.locator('article')).toHaveCount(3)
+
+    await window(page, 'Accessibility')
+      .getByRole('switch', { name: /^One window at a time/ })
+      .click()
+    await expect(page.locator('article')).toHaveCount(1)
+    await expect(window(page, 'Accessibility')).toBeVisible()
+    await expect(page.locator('footer[data-for="desk"] button')).toHaveCount(1)
+
+    await app(page, 'Services').click()
+    await expect(page.locator('article')).toHaveCount(1)
+    await expect(window(page, 'Services').getByRole('heading')).toHaveText('Services')
+
+    await page.reload({ waitUntil: 'networkidle' })
+    await expect(page.locator('article')).toHaveCount(1)
+  })
+
   test('is not modal: focus brings a window to the front, a new window takes it at its heading, and the first link skips to the front window', async ({
     page,
   }) => {
