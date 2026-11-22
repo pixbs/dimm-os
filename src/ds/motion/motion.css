@@ -21,6 +21,18 @@
   }
 }
 
+/* A heading decoded in place: its real text keeps its place unseen, and what is read so far stands over it. */
+[data-decode] {
+  position: relative;
+  -webkit-text-fill-color: transparent;
+
+  & > [aria-hidden] {
+    position: absolute;
+    inset: 0;
+    -webkit-text-fill-color: currentColor;
+  }
+}
+
 /* A picture of the dot engine: its ink is the text colour, the dots it strings on lines are the dot of a ring. */
 .liquid {
   display: block;
@@ -48,15 +60,21 @@
   }
 }
 
-/* What enters by scroll rises a step into place as it fades in; with reduced motion it only fades. */
-[data-enter] {
-  transition-property: var(--m-moves);
-  transition-duration: var(--m-slow);
-  transition-timing-function: var(--m-enter);
-}
+/* What arrives as it is first seen waits unseen, then rises a step into place as it fades in, at its turn. An
+   animation, so the part keeps its own transitions. */
 [data-enter='wait'] {
   opacity: 0;
-  transform: translateY(var(--s-6));
+  /* Hidden at once, though the part has transitions of its own. */
+  transition: none;
+}
+[data-enter='in'] {
+  animation: var(--m-slow) var(--m-enter) backwards arrive;
+}
+@keyframes arrive {
+  from {
+    opacity: 0;
+    transform: translateY(var(--s-2));
+  }
 }
 
 /* A thing that travels flies in the top layer, over every screen, as the place it lands in and at that place; what it

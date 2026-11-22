@@ -4,6 +4,7 @@ import { AnimatePresence, useIsPresent, useMotionValue } from 'motion/react'
 import * as m from 'motion/react-m'
 import { catchError } from 'next/error'
 import {
+  type ComponentProps,
   type CSSProperties,
   type KeyboardEvent,
   type PointerEvent,
@@ -24,6 +25,7 @@ import { Dots } from '../molecules/Dots'
 import { Path } from '../molecules/Path'
 import { Tag } from '../molecules/Tag'
 import { WindowControls } from '../molecules/WindowControls'
+import { useArrival } from '../motion/enters'
 import { aim, ways } from '../motion/Origin'
 import { curve, duration, reduced, spring, usePainted } from '../motion/vocabulary'
 import { Handle, rises, trap } from './Drawer'
@@ -70,9 +72,8 @@ type Props = {
   task?: string
   // Opened by the visitor just now: it takes the focus at its heading.
   takesFocus?: boolean
-  // What its body holds, by name, and the way that went: what replaces it comes from there.
+  // What its body holds, by name.
   content?: string
-  travel?: 'forward' | 'back'
   toolbar?: ReactNode
   foot?: ReactNode
   status?: ReactNode
@@ -141,6 +142,12 @@ function Waiting({ label }: { label: string }) {
   )
 }
 
+// What a window holds arrives once the window has opened, after what it replaces has left.
+function View(props: ComponentProps<typeof m.div> & { open: boolean; replaces: boolean }) {
+  const { open, replaces, ...rest } = props
+  return <m.div {...rest} ref={useArrival(open, replaces)} />
+}
+
 // Every page is a window, and a window is a frame the visitor handles: its bar holds the controls and its name
 // and is its handle, what it can do sits at its foot, and on a desk every edge pulls. On a phone it is a drawer.
 export function Window(props: Props) {
@@ -153,6 +160,8 @@ export function Window(props: Props) {
   const [kept, setKept] = useState(false)
   const size = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
+  // Whether it has opened, so what it holds can arrive; what the server painted is open.
+  const [opened, setOpened] = useState(painted)
   const present = useIsPresent()
   const [gone, setGone] = useState(away)
   // It is back in the page before it sets out from the taskbar again.
@@ -248,26 +257,18 @@ export function Window(props: Props) {
     })
     return { open: fades(1), kept: fades(1), closed: fades(0), away: fades(0) }
   }, [painted])
-  // What replaces a view comes one step from where the visitor is heading, while the old one fades.
+  // A view that is replaced leaves first, all of it together.
   const views = useMemo(() => {
     if (painted) return
-    const step = () => parseFloat(getComputedStyle(origin.current!).getPropertyValue('--s-6'))
     return {
-      from: (travel?: 'forward' | 'back') => ({
-        opacity: 0,
-        x: !travel || reduced() ? 0 : travel === 'back' ? -step() : step(),
-      }),
-      in: () => ({
-        opacity: 1,
-        x: 0,
-        transition: { duration: duration('slow'), ease: curve('enter') },
-      }),
       out: () => ({
         opacity: 0,
-        transition: { duration: duration('slow-exit'), ease: curve('exit') },
+        transition: { duration: duration('fast-exit'), ease: curve('exit') },
       }),
     }
   }, [painted])
+  // The view it opened with arrives as it opens; every later one replaces another.
+  const [first] = useState(view)
 
   // Dragging writes the transform and tells the manager once, on release.
   function grab(event: PointerEvent<HTMLElement>) {
@@ -397,7 +398,10 @@ export function Window(props: Props) {
         className="window__origin"
         exit="closed"
         initial="closed"
-        onAnimationComplete={(arrived) => arrived === 'away' && away && setGone(true)}
+        onAnimationComplete={(arrived) => {
+          if (arrived === 'away' && away) setGone(true)
+          if (arrived === 'open' || arrived === 'kept') setOpened(true)
+        }}
         ref={origin}
         role={modal ? 'dialog' : undefined}
         custom={flung}
@@ -449,15 +453,14 @@ export function Window(props: Props) {
             {/* What scrolls: the body, and with it the foot in a short drawer. */}
             <div className="window__main">
               <div className="window__body cq">
-                <AnimatePresence custom={props.travel} initial={false} mode="popLayout">
-                  <m.div
-                    animate="in"
+                <AnimatePresence initial={false} mode="popLayout">
+                  <View
                     className="window__view"
                     data-view={view}
-                    custom={props.travel}
                     exit="out"
-                    initial="from"
                     key={view}
+                    open={opened}
+                    replaces={view !== first}
                     variants={views}
                   >
                     {waiting ? (
@@ -465,7 +468,7 @@ export function Window(props: Props) {
                     ) : (
                       <Caught text={t.failed}>{props.children}</Caught>
                     )}
-                  </m.div>
+                  </View>
                 </AnimatePresence>
               </div>
               {props.foot}

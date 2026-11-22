@@ -141,7 +141,6 @@ export function OnDesk(props: {
               task={`task-${idOf(entry.path)}`}
               title={parts?.title ?? entry.view?.frame.title ?? named(entry)}
               toolbar={parts?.toolbar}
-              travel={entry.travel}
               waiting={!entry.view}
             >
               {parts?.body}
