@@ -83,9 +83,10 @@ export function Dial({ onChange, labelledBy, ...props }: Props) {
   return (
     <div
       aria-labelledby={labelledBy}
-      aria-valuemax={max}
-      aria-valuemin={min}
-      aria-valuenow={value}
+      // A ring counts its steps from one.
+      aria-valuemax={ring ? count : max}
+      aria-valuemin={ring ? 1 : min}
+      aria-valuenow={ring ? value + 1 : value}
       aria-valuetext={ring?.steps[value]}
       className="dial"
       data-turning={turning ? '' : undefined}

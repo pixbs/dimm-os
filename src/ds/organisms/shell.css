@@ -590,6 +590,10 @@
     --monitor-at: var(--monitor-kept-tablet);
   }
 }
+/* Its copy of the wallpaper is drawn on twice the dot, at the strength of muted, so it shows in a small screen. */
+.monitor > .wallpaper > canvas {
+  opacity: var(--a-wallpaper-colour);
+}
 .monitor__bar,
 .monitor__task {
   position: absolute;

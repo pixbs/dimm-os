@@ -57,7 +57,7 @@ test.describe('Preferences', () => {
     await choose(page, 'Theme', 'Dark')
     await expect(prefs.getByRole('radio', { name: 'Dark' })).toBeChecked()
     expect((await stored(page)).theme).toBe('dark')
-    await prefs.getByRole('button', { name: 'Factory reset' }).click()
+    await prefs.getByRole('button', { name: 'Reset' }).click()
     expect(await stored(page)).toEqual({})
     await expect.poll(() => root(page, 'pitch')).toBe('8')
     await expect(prefs.getByRole('radio', { name: 'System' }).first()).toBeChecked()
@@ -92,13 +92,10 @@ test.describe('Preferences', () => {
     const last = await dial.getAttribute('aria-valuemax')
     await expect(dial).toHaveAttribute('aria-valuenow', last!)
     await dial.press('ArrowRight')
-    await expect(dial).toHaveAttribute('aria-valuenow', '0')
+    await expect(dial).toHaveAttribute('aria-valuenow', '1')
     await dial.press('End')
     await dial.press('Home')
     expect(await root(page, 'wallpaper')).toBe('passage dots colour')
-    await dial.press('ArrowRight')
-    await prefs.getByRole('button', { name: 'Factory reset' }).click()
-    await expect(dial).toHaveAttribute('aria-valuenow', '0')
 
     const boot = prefs.getByRole('switch', { name: /Play the boot screen/ })
     await boot.click({ force: true })
@@ -106,6 +103,11 @@ test.describe('Preferences', () => {
     await boot.click({ force: true })
     await expect(prefs.locator('.monitor__boot')).toBeAttached()
     await expect(prefs.locator('.monitor__boot')).toHaveCount(0)
+
+    // Reset returns the wallpaper to its first step.
+    await dial.press('ArrowRight')
+    await prefs.getByRole('button', { name: 'Reset' }).click()
+    await expect(dial).toHaveAttribute('aria-valuenow', '1')
   })
 
   test('remembers windows: they come back in the taskbar where they stood, and load when brought back', async ({
