@@ -57,7 +57,7 @@ test.describe('Preferences', () => {
     await choose(page, 'Theme', 'Dark')
     await expect(prefs.getByRole('radio', { name: 'Dark' })).toBeChecked()
     expect((await stored(page)).theme).toBe('dark')
-    await prefs.getByRole('button', { name: 'Reset' }).click()
+    await prefs.getByRole('button', { name: 'Factory reset' }).click()
     expect(await stored(page)).toEqual({})
     await expect.poll(() => root(page, 'pitch')).toBe('8')
     await expect(prefs.getByRole('radio', { name: 'System' }).first()).toBeChecked()
@@ -106,7 +106,7 @@ test.describe('Preferences', () => {
 
     // Reset returns the wallpaper to its first step.
     await dial.press('ArrowRight')
-    await prefs.getByRole('button', { name: 'Reset' }).click()
+    await prefs.getByRole('button', { name: 'Factory reset' }).click()
     await expect(dial).toHaveAttribute('aria-valuenow', '1')
   })
 

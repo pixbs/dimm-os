@@ -114,6 +114,7 @@ const de: Dictionary = {
   done: 'Fertig',
   dot: 'Punkt',
   empty: 'Hier ist noch nichts.',
+  factoryReset: 'Werkseinstellungen',
   failed: 'Dieses Fenster hat sich nicht geöffnet. Schließen Sie es und öffnen Sie es erneut.',
   file: 'Datei',
   fill: 'Füllen',

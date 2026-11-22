@@ -202,7 +202,7 @@ export function preferencesWindow(props: Props & { close: () => void }): Parts {
     foot: (
       <ButtonGroup cells>
         <Button
-          label={t.reset}
+          label={t.factoryReset}
           onClick={() => change(Object.fromEntries(settings.map((name) => [name, null])))}
           tone="outline"
         />

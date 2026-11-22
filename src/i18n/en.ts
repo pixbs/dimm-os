@@ -105,6 +105,7 @@ const en = {
   done: 'Done',
   dot: 'Dot',
   empty: 'Nothing here yet.',
+  factoryReset: 'Factory reset',
   failed: 'This window did not open. Close it and open it again.',
   file: 'File',
   fill: 'Fill',

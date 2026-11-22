@@ -39,10 +39,12 @@ function start(box: HTMLElement, copy: boolean) {
         easing: `cubic-bezier(${curve('enter')})`,
       })
     drawn = shown.wallpaper
+    // A copy lays the scene out as on the screen it copies, and draws it as small as its monitor.
+    const scale = copy && canvas.clientWidth ? innerWidth / canvas.clientWidth : 1
     send({
-      width: canvas.clientWidth,
-      height: canvas.clientHeight,
-      ratio: Math.min(2, devicePixelRatio || 1),
+      width: canvas.clientWidth * scale,
+      height: canvas.clientHeight * scale,
+      ratio: Math.min(2, devicePixelRatio || 1) / scale,
       // A copy is drawn on twice the dot.
       pitch: parseFloat(style.getPropertyValue('--pitch')) * (copy ? 2 : 1),
       step: shown,
