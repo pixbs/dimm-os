@@ -61,17 +61,15 @@
   }
 }
 
-/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */
+/* The room under the menu bar: the desk, which a phone's drawers rise over. It keeps its layers to itself, so the
+   menu bar stays over a drawer that reaches it, the handle about its top too. */
 .screen__main {
   position: relative;
+  isolation: isolate;
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
-
-  & > footer {
-    position: relative;
-  }
 }
 
 /* The desk: what lies between the bars. On it the apps, and the windows it holds. */
@@ -169,12 +167,6 @@
       width: calc(var(--h-regular) * 2);
     }
   }
-}
-
-/* The dock: the taskbar of a phone, a button group one step in from the edges. */
-.dock {
-  flex: none;
-  padding: var(--s-3) var(--s-3) var(--s-6);
 }
 
 /* Window: a frame the visitor handles. Where it lies in a page it is as high as what it holds. */
@@ -491,9 +483,9 @@
   display: flex;
 }
 
-/* Drawer: what a window is on a phone. It rises from the bottom edge as wide as the screen, under the menu bar and
-   over the dock, with its scrim between it and what is behind. It is as high as what it holds, and when that is
-   more than the room, 24 px of the room stay in view above it and its body scrolls. */
+/* Drawer: what a window is on a phone. It rises from the bottom edge as wide as the screen, under the menu bar, with
+   its scrim between it and what is behind. It is as high as what it holds, and when that is more than the room it
+   ends at the menu bar and its body scrolls. */
 .window__scrim,
 .drawer__handle {
   display: none;
@@ -517,7 +509,7 @@
       position: relative;
       flex: 0 1 auto;
       min-height: 0;
-      max-height: calc(100% - var(--s-6));
+      max-height: 100%;
     }
     & .window__frame {
       padding-block-end: var(--s-6);

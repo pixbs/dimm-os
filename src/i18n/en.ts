@@ -133,7 +133,7 @@ const en = {
   // What a finger does on a phone, which has no keys: what, then how.
   gestureRows: [
     ['Put a window away', 'Push its handle down, press it, or press beside the window'],
-    ['Open it again', 'Its button in the dock'],
+    ['Open it again', 'Its app on the desktop'],
     ['One step back', 'The arrow at the start of its bar'],
     ['Search', 'The glass in the menu bar'],
     ['The system', '{name}, in the menu bar'],

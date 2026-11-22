@@ -6,6 +6,7 @@ type Time =
   | 'long'
   | 'fast-exit'
   | 'slow-exit'
+  | 'slide-exit'
   | 'travel'
   | 'back'
   | 'lag'

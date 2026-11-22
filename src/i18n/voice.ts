@@ -23,7 +23,6 @@ Glossary, English — German
 Window — Fenster
 Menu bar — Menüleiste
 Taskbar — Taskleiste
-Dock — Dock
 Desktop — Desktop
 Close — Schließen
 Minimise — Minimieren

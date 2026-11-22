@@ -17,8 +17,8 @@ import type { Dictionary } from '@/i18n/en'
 import { Bar, BarTitle } from '../molecules/Bar'
 import { Heading } from '../molecules/Heading'
 import { ways } from '../motion/Origin'
-import { curve, duration, reduced, spring, usePainted } from '../motion/vocabulary'
-import { Handle, rises } from './Drawer'
+import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
+import { dims, Handle, rises } from './Drawer'
 
 type Props = {
   open: boolean
@@ -65,7 +65,6 @@ function Shown(props: Props) {
   const { drawer, shown, opener, onClose } = props
   const self = useRef<HTMLDialogElement>(null)
   const y = useMotionValue('0%')
-  const flung = useRef(0)
   const beside = useRef(false)
   const [kept, setKept] = useState(false)
   const painted = usePainted()
@@ -105,19 +104,9 @@ function Shown(props: Props) {
     if (painted) return
     return drawer ? rises() : ways('fast')
   }, [painted, drawer])
-  const scrim = useMemo(() => {
-    if (painted) return
-    const fades = (opacity: number) => () => ({
-      opacity,
-      transition: { duration: duration('slow'), ease: curve('standard') },
-    })
-    return { open: fades(1), closed: fades(0) }
-  }, [painted])
+  const scrim = useMemo(() => (painted ? undefined : dims()), [painted])
 
-  function dismiss(speed = 0) {
-    flung.current = speed
-    onClose()
-  }
+  const dismiss = () => onClose()
 
   return (
     <m.dialog
@@ -155,15 +144,16 @@ function Shown(props: Props) {
       <m.div
         animate={kept ? 'kept' : 'open'}
         className="dialog__frame"
-        custom={flung}
         data-surface="window"
         exit="closed"
         initial="closed"
-        // Behind one opened from it, it steps back on the spring, as a drawer does.
+        // Behind one opened from it, it steps back over slow, as a drawer does.
         layout={drawer && !painted && !reduced()}
         layoutDependency={props.back}
         style={{ y }}
-        transition={painted ? undefined : { layout: spring('slow') }}
+        transition={
+          painted ? undefined : { layout: { duration: duration('slow'), ease: curve('standard') } }
+        }
         variants={frames}
       >
         {drawer && (

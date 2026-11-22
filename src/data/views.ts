@@ -155,6 +155,8 @@ export type View = {
     counted: { total: number; one: string; other: string } | null
   }
   shortcuts: Shortcut[]
+  // The app of the window the site opens at the start, which a phone shows first.
+  opening: Shortcut | null
   keys: AppKey[]
   // What search finds: the windows this viewer may see, and the system's apps.
   search: Found[]
@@ -684,22 +686,19 @@ async function views(language: Language, viewer: Viewer) {
     path: `/${missing}`,
   }
   // A file's shortcut is named with its kind: CV.pdf.
-  const shortcuts = shown.flatMap(({ doc, path, lang, parent }) =>
-    doc.icon && !parent
-      ? [
-          {
-            href: toAddress(language, path),
-            name: doc.title + (doc.kind ? `.${doc.kind}` : ''),
-            icon: doc.icon,
-            tile: doc.tile ?? null,
-            lang: other(lang),
-            file: (doc.actions ?? [])
-              .filter((action) => action.type === 'media')
-              .flatMap(button(lang))[0]?.href,
-          },
-        ]
-      : [],
+  const shortcut = ({ doc, path, lang }: Seen, icon: Shortcut['icon']): Shortcut => ({
+    href: toAddress(language, path),
+    name: doc.title + (doc.kind ? `.${doc.kind}` : ''),
+    icon,
+    tile: doc.tile ?? null,
+    lang: other(lang),
+    file: (doc.actions ?? []).filter((action) => action.type === 'media').flatMap(button(lang))[0]
+      ?.href,
+  })
+  const shortcuts = shown.flatMap((one) =>
+    one.doc.icon && !one.parent ? [shortcut(one, one.doc.icon)] : [],
   )
+  const opening = shown.find((one) => !one.parent && one.doc.openAtStart)
   // An item is found under its window's title and by it, with its kind in words; a window as a window.
   const find = (one: Seen, group: string, kind: string, icon: Found['icon']): Found => ({
     title: one.doc.title,
@@ -750,6 +749,7 @@ async function views(language: Language, viewer: Viewer) {
     },
     boot,
     shortcuts,
+    opening: opening ? shortcut(opening, opening.doc.icon ?? 'home') : null,
     keys: shown.flatMap(({ doc, path, lang }) =>
       doc.key ? [{ key: doc.key, path, title: doc.title, lang: other(lang) }] : [],
     ),

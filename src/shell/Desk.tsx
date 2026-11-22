@@ -30,7 +30,7 @@ import { Stamping } from '@/ds/organisms/Live'
 import { ContextMenu, MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
-import { Dock, Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
+import { Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
 import { Header } from '@/ds/sections/Header'
 import { Section } from '@/ds/sections/Section'
 import { fromAddress, type Language, toAddress, toRoute } from '@/i18n/address'
@@ -48,7 +48,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { menuOf, type Place, placeOf } from './context'
 import { commandAction, keyAction, pressed } from './keys'
-import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
+import { type Action, front, manager, phone, showing, start, windowOf } from './manager'
 import { languageMenu, legalLinks, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
@@ -618,11 +618,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }, [desk, language])
 
   // Places are written once the desk is measured, only while windows are remembered, and forgotten when they are not;
-  // a window is kept by its own path, and only once its view says it is not hidden, so the taskbar names nothing a
-  // later viewer may not see.
+  // a phone has none to keep. A window is kept by its own path, and only once its view says it is not hidden, so the
+  // taskbar names nothing a later viewer may not see.
   const remember = useSetting('remember')
   useEffect(() => {
-    if (!restored.current || remember === null || !desk.desk) return
+    if (!restored.current || remember === null || !desk.desk || phone(desk)) return
     const kept = desk.open.filter(
       (one) => one.placed && (one.view ? !one.view.hidden : unloaded.current.has(one.path)),
     )
@@ -750,8 +750,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     return () => removeEventListener('keydown', keyDown)
   }, [])
 
-  // In the taskbar a window goes by the name its bar shows, in the dock by its title; on a phone the hotkeys are
-  // gestures.
+  // In the taskbar a window goes by the name its bar shows; on a phone the hotkeys are gestures.
   const tasks = tasksOf(desk)
   const titleOf = (path: string, title: string) =>
     path === '/hotkeys' && phone(desk) ? dictionary.gestures : title
@@ -762,6 +761,17 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const theme = themeMenu(dictionary, useChosen('theme'))
   const languageChoices = languageMenu(language, top ?? '/')
   const legal = legalOf(dictionary, language)
+  // On a phone the app of the window the site opens at the start leads the apps, as a drawer put away is closed;
+  // a desk keeps its list.
+  const first = view.opening
+  const apps = first
+    ? [
+        { ...first, screen: 'phone' as const },
+        ...view.shortcuts.map((one) =>
+          one.href === first.href ? { ...one, screen: 'desk' as const } : one,
+        ),
+      ]
+    : view.shortcuts
   const preferences = { href: toAddress(language, '/preferences'), label: dictionary.preferences }
   const [before, after] = dictionary.hotkeyHint.split('{key}')
 
@@ -862,7 +872,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             <Clock language={language} zone={view.site.timezone} />
           </MenuBar>
         </header>
-        {/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */}
+        {/* The room under the menu bar: the desk, which a phone's drawers rise over. */}
         <div className="screen__main">
           <Stamping
             value={{
@@ -871,7 +881,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             }}
           >
             <OnDesk
-              apps={view.shortcuts}
+              apps={apps}
               desk={desk}
               dispatch={act}
               label={dictionary.apps}
@@ -925,25 +935,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               }
             </OnDesk>
           </Stamping>
-          <footer data-for="phone" inert={phone(desk) && stack(desk).length > 0}>
-            <Bar>
-              {legal.map((link) => (
-                <ButtonLink key={link.href} {...link} />
-              ))}
-            </Bar>
-            {tasks.length > 0 && (
-              <Dock
-                label={dictionary.windows}
-                onPick={pick}
-                tasks={tasks.map((task, index) => ({
-                  ...task,
-                  name: desk.open[index].view
-                    ? titleOf(desk.open[index].path, desk.open[index].view!.frame.title)
-                    : task.name,
-                }))}
-              />
-            )}
-          </footer>
+          {/* Without script the Dimm OS screen cannot open, so the legal links stand at the foot of a phone. */}
+          <noscript>
+            <footer data-for="phone">
+              <Bar>
+                {legal.map((link) => (
+                  <ButtonLink key={link.href} {...link} />
+                ))}
+              </Bar>
+            </footer>
+          </noscript>
         </div>
         <footer data-for="desk" data-surface="desktop">
           <Taskbar onPick={pick} size="chrome" tasks={tasks}>

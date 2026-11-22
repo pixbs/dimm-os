@@ -49,7 +49,7 @@ export type Action =
   // Where windows stood when windows are remembered: those open then wait in the taskbar, their views unloaded.
   | { type: 'remember'; windows: { at: string; box: Box }[] }
   | { type: 'focus' | 'close' | 'hold'; path: string }
-  // A taskbar or dock button: the button is what opened its window when it brings it back.
+  // A taskbar button: the button is what opened its window when it brings it back.
   | { type: 'task'; path: string; opener?: Element | null }
   // Without a path these act on the window in front, as a key or a menu does.
   | { type: 'minimise' | 'full'; path?: string }
@@ -226,7 +226,15 @@ export function manager(state: Windows, action: Action): Windows {
         const y = kept(was.y, was.h, before.h, desk.h - now.h)
         return { ...one, box: { ...one.box, x, y } }
       })
-      const measured = placed({ ...state, open, desk, room })
+      // A phone has no minimised windows: those put away, or remembered, are closed there.
+      const staying = phone({ ...state, desk }) ? open.filter((one) => one.mode !== 'min') : open
+      const measured = placed({
+        ...state,
+        open: staying,
+        z: state.z.filter((path) => staying.some((one) => one.path === path)),
+        desk,
+        room,
+      })
       return state.starting.length
         ? manager(measured, { type: 'start', windows: state.starting })
         : measured
@@ -312,6 +320,7 @@ export function manager(state: Windows, action: Action): Windows {
       })
     }
     case 'remember': {
+      if (phone(state)) return state
       const box = (path: string) => action.windows.find((one) => windowOf(one.at) === path)?.box
       // A remembered box is the visitor's, which no view's size replaces.
       const kept = (one: Entry): Entry =>
@@ -340,6 +349,8 @@ export function manager(state: Windows, action: Action): Windows {
         sizing: null,
       }
     case 'minimise': {
+      // On a phone a drawer put away is closed.
+      if (phone(state)) return target ? manager(state, { type: 'close', path: target.path }) : state
       // With nothing in front, the window put away last comes back.
       const last = state.open.find(
         (one) => one.path === state.z.find((path) => find(state, path)?.mode === 'min'),
@@ -353,6 +364,7 @@ export function manager(state: Windows, action: Action): Windows {
     }
     // Back to front, so the one in front comes back first.
     case 'minimiseAll':
+      if (phone(state)) return manager(state, { type: 'closeAll' })
       return onDesk(state).reduce((next, path) => manager(next, { type: 'minimise', path }), state)
     case 'closeAll':
       return { ...state, open: [], z: [], sizing: null }
