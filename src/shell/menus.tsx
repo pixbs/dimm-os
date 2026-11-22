@@ -156,7 +156,8 @@ export function menus(props: {
   const all = [...others, { label: t.legal, items: props.legal }]
   const system: Item[] = [
     about,
-    link('/preferences', t.preferences, 'preferences'),
+    // It opens a window of settings, so it ends in an ellipsis; the phone keeps its row as it was.
+    link('/preferences', onPhone ? t.preferences : `${t.preferences}…`, 'preferences'),
     ...(onPhone ? [accessibility, hotkeys] : []),
     'rule',
     command('lock'),

@@ -16,7 +16,7 @@ const focused = (page: Page) =>
 
 // The key each command shows, on a device that is not Apple's.
 const keys: Record<string, string> = {
-  Preferences: ',',
+  'Preferences…': ',',
   Hotkeys: '?',
   Search: 'Ctrl K',
   'Close window': 'Esc',
@@ -138,7 +138,7 @@ test.describe('Menus on a desk', () => {
     await pick(page, ['File', 'Close window'])
     await expect(work).toHaveCount(0)
 
-    await pick(page, ['Dimm OS', 'Preferences'])
+    await pick(page, ['Dimm OS', 'Preferences…'])
     await expect(win(page, 'Preferences')).toHaveAttribute('data-front', '')
     await top(page, 'Help').click()
     for (const [name, path] of [
