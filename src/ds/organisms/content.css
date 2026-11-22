@@ -645,8 +645,9 @@
     }
   }
 }
-/* Bay and plate: a record over what it covers, in one cell, which swings on its last screw until its middle hangs under
-   it (--hang, measured from its size) and then drops out of the bay, or with reduced motion stays straight and fades. */
+/* Bay and plate: a record over what it covers, in one cell it never leaves, which swings on its last screw until its
+   middle hangs under it (--hang, measured from its size), drops out of the bay, and comes back about the same screw in
+   one move; with reduced motion it stays straight and fades. */
 .bay {
   position: relative;
   display: grid;
@@ -677,8 +678,8 @@
   background-color: var(--bg);
   color: var(--fg);
   transition-property: var(--m-moves);
-  transition-duration: var(--m-slow);
-  transition-timing-function: var(--m-enter);
+  transition-duration: var(--m-long);
+  transition-timing-function: var(--m-standard);
   /* It turns about the middle of a screw, which is as wide as a finger. */
   --screw-at: calc(var(--h-regular) / 2);
 
@@ -700,8 +701,6 @@
     transition-timing-function: var(--m-swing);
   }
   &[data-state='fallen'] {
-    position: absolute;
-    inset: 0 0 auto;
     transform: translateY(calc(var(--h-regular) * 30)) rotate(var(--hang));
     transition-duration: var(--m-long);
     transition-timing-function: var(--m-drop);
@@ -709,10 +708,12 @@
   [data-motion='reduce'] &[data-state] {
     transform: none;
   }
-  [data-motion='reduce'] &[data-state='fallen'] {
-    opacity: 0;
+  [data-motion='reduce'] & {
     transition-duration: var(--m-slow);
     transition-timing-function: var(--m-standard);
+  }
+  [data-motion='reduce'] &[data-state='fallen'] {
+    opacity: 0;
   }
   & > .record__head {
     padding-top: var(--s-4);
@@ -789,7 +790,6 @@
     opacity: 0;
     transition-duration: var(--m-fast);
     transition-timing-function: var(--m-standard);
-    transition-delay: var(--m-slow);
   }
   &::after {
     width: calc(var(--s-4) + var(--s-1));
@@ -817,8 +817,10 @@
   &[data-out] {
     pointer-events: none;
 
+    /* The hole shows once the screw has left it, and goes at once as it turns back in. */
     &::before {
       opacity: 100%;
+      transition-delay: var(--m-slow);
     }
     &::after {
       transform: rotate(var(--screw-turn)) scale(var(--screw-out));

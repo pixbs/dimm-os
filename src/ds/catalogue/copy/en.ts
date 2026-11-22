@@ -1227,8 +1227,8 @@ const en = {
     },
     plate: [
       'Plate',
-      'surface: paper | parts: four screws · a record | state: on · hanging · fallen',
-      'A record screwed onto what it describes, in a bay. Four screws hold it, and each comes out when it is pressed. With one left the plate hangs from it, its middle straight under the screw. With none it falls, and the bay shows what it holds. How far it swings depends on its size, so the angle is a setting of the screen.',
+      'surface: paper | parts: four screws · a record | state: on · hanging · fallen · closing',
+      'A record screwed onto what it describes, in a bay. Four screws hold it, and each comes out when it is pressed. With one left the plate hangs from it, its middle straight under the screw. With none it falls, and the bay shows what it holds. Put back, its four screws turn in at once and it comes back about the screw it hung from, in one move. It keeps its place in the bay throughout. How far it swings depends on its size, so the angle is a setting of the screen.',
     ],
     plateCaps: ['a record under four screws: press one to take it out'],
     plateWords: {
