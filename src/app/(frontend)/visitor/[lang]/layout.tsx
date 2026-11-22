@@ -1,1 +1,1 @@
-export { default, metadata } from '../../[lang]/layout'
+export { default, metadata } from '../../guest/[lang]/layout'
