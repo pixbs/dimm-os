@@ -51,7 +51,8 @@ function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean
     ...item,
     href: href ?? undefined,
     under,
-    surface: surfaceFor(picture?.live),
+    // A card with the live portrait is a print; any other keeps the surface the admin gave it.
+    surface: surfaceFor(picture?.live) ?? item.surface,
     media: picture
       ? {
           ratio: cards.tiles ? undefined : '4:3',

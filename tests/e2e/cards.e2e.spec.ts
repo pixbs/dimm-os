@@ -125,6 +125,8 @@ test.describe('Cards and tiles', () => {
       work.locator('.card', { has: page.getByRole('heading', { name: title }) })
 
     await expect(card('On paper').getByRole('link')).toHaveText('Grow')
+    // A card without the live portrait keeps the surface the admin gave it.
+    await expect(card('On paper')).toHaveAttribute('data-surface', 'paper')
     await expect(card('On paper').getByRole('link')).toHaveAttribute('href', '/work/grow')
     await expect(card('On orange')).toHaveCount(0)
     await expect(work).not.toContainText('only an invited visitor')
