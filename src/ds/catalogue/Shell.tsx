@@ -289,6 +289,9 @@ export function Shell(props: Props) {
             data-wallpaper="passage dots colour"
             style={sized(90, 45)}
           />
+          {['koi dots colour', 'dragonflies ascii colour', 'catfish dots'].map((step) => (
+            <Screen className="box" data-wallpaper={step} key={step} style={sized(90, 45)} />
+          ))}
         </Specs>
       </Entry>
       <Entry text={t.menubar}>
