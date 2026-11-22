@@ -2,7 +2,7 @@
 
 import type { AboutView } from '@/data/views'
 import { Card } from '@/ds/organisms/Card'
-import { Live } from '@/ds/organisms/Live'
+import { Live, surfaceFor } from '@/ds/organisms/Live'
 import { Message } from '@/ds/organisms/Message'
 import { Plate } from '@/ds/organisms/Plate'
 import type { Dictionary } from '@/i18n/en'
@@ -51,7 +51,7 @@ function Body({ t, about, width }: Props) {
                 live: picture.live ? <Live name={picture.live} /> : undefined,
               }}
               meta={[code, about.place]}
-              surface="paper"
+              surface={surfaceFor(picture.live) ?? 'paper'}
             />
           )}
           <Message

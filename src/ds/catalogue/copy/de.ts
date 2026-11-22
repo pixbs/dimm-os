@@ -18,7 +18,7 @@ const de: Copy = {
       [
         'Atome',
         'Rohwerte',
-        'Farbe: 10 Farben, 5 Stärken, 7 Flächen. Schrift: 8 Stile. Abstand: 7 Stufen. Größe: 2 Höhen für Bedienelemente, 2 Zeichengrößen, der Punkt, die Marke und der Strichcode. Das Raster und was darauf gezeichnet wird: gepunktet, Punktring, Halbton. Form, Tiefe, Bewegung, Fensterbreiten. Icons.',
+        'Farbe: 10 Farben, 5 Stärken, 8 Flächen. Schrift: 8 Stile. Abstand: 7 Stufen. Größe: 2 Höhen für Bedienelemente, 2 Zeichengrößen, der Punkt, die Marke und der Strichcode. Das Raster und was darauf gezeichnet wird: gepunktet, Punktring, Halbton. Form, Tiefe, Bewegung, Fensterbreiten. Icons.',
       ],
       [
         'Moleküle',
@@ -124,8 +124,8 @@ const de: Copy = {
     ],
     surface: [
       'Fläche',
-      'dunkel: desktop · window · raised | hell: paper | Akzent: orange · blue · mint | Zusatz: inverted',
-      'Eine Fläche setzt Hintergrund und Vordergrund zusammen. Inverted vertauscht beide: So entstehen ein voller Button, eine ausgewählte Zeile und ein volles Tag. Ein Akzent ist laut, deshalb ist auf ihm nichts gedämpft.',
+      'dunkel: desktop · window · raised | hell: paper | beide: print | Akzent: orange · blue · mint | Zusatz: inverted',
+      'Eine Fläche setzt Hintergrund und Vordergrund zusammen. Inverted vertauscht beide: So entstehen ein voller Button, eine ausgewählte Zeile und ein volles Tag. Ein Akzent ist laut, deshalb ist auf ihm nichts gedämpft. Ein Druck ist Papier mit Tinte in beiden Themen, deshalb kippt eine Zeichnung darauf nie; im Hellen behält er seine Kante mit einer Haarlinie.',
     ],
     text: 'Text',
     muted: 'Gedämpfter Text',

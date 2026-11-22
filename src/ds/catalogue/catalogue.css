@@ -196,6 +196,10 @@
   gap: var(--s-2);
   min-width: 0;
 }
+.panel[data-surface='print'] {
+  outline: var(--b-1) solid var(--edge);
+  outline-offset: calc(var(--b-1) * -1);
+}
 .panel__rule {
   height: var(--b-1);
   margin: var(--s-2) 0;

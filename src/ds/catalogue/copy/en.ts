@@ -16,7 +16,7 @@ const en = {
       [
         'Atoms',
         'raw values',
-        'Colour: 10 colours, 5 strengths, 7 surfaces. Type: 8 styles. Space: 7 steps. Size: 2 control heights, 2 glyph sizes, the dot, the mark and the barcode. The pitch, and what is drawn on it: dotted, dot ring, halftone. Shape, depth, motion, window widths. Icons.',
+        'Colour: 10 colours, 5 strengths, 8 surfaces. Type: 8 styles. Space: 7 steps. Size: 2 control heights, 2 glyph sizes, the dot, the mark and the barcode. The pitch, and what is drawn on it: dotted, dot ring, halftone. Shape, depth, motion, window widths. Icons.',
       ],
       [
         'Molecules',
@@ -126,8 +126,8 @@ const en = {
     ],
     surface: [
       'Surface',
-      'dark: desktop · window · raised | light: paper | accent: orange · blue · mint | modifier: inverted',
-      'Setting a surface sets background and foreground together. Inverted swaps the two: it is how a solid button, a selected row and a solid tag are made. An accent is loud, so nothing on it is muted.',
+      'dark: desktop · window · raised | light: paper | both: print | accent: orange · blue · mint | modifier: inverted',
+      'Setting a surface sets background and foreground together. Inverted swaps the two: it is how a solid button, a selected row and a solid tag are made. An accent is loud, so nothing on it is muted. A print is paper with ink in both themes, so a drawing on it never turns; in light it keeps its edge with a hairline.',
     ],
     text: 'Text',
     muted: 'Muted text',
