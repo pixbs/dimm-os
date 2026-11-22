@@ -1353,13 +1353,13 @@ const de: Copy = {
     menubar: [
       'Menüleiste',
       'Dichte: kompakt · regulär | Plätze: Zeichen und Name · Menüs · Status',
-      'Der obere Rand des Bildschirms. Sie beginnt mit dem Zeichen und dem Namen der Website. Auf einem Gerät mit Zeiger ist sie eine kompakte Leiste aus Ghost-Buttons, auf einem Touch-Gerät eine reguläre Leiste mit den Menüs hinter einem Button.',
+      'Der obere Rand des Bildschirms. Sie beginnt mit dem Zeichen und dem Namen der Website. Auf einem Gerät mit Zeiger ist sie eine kompakte Leiste aus Ghost-Buttons, auf einem Touch-Gerät eine reguläre Leiste mit den Menüs hinter einem Button. Das letzte Menü, Rechtliches, trägt Impressum, Datenschutzerklärung und Einwilligung; ein wartender Bildschirm trägt es als einen Button am Ende seiner Leiste.',
     ],
     menubarCaps: ['Zeiger: kompakte Leiste', 'Touch: reguläre Leiste'],
     taskbar: [
       'Taskleiste',
       'Dichte: Zeiger · Touch | kompakter Bildschirm: Dock | Plätze: Fenster · Tray',
-      'Der untere Rand des Bildschirms. Sie zeigt, was offen ist: ein Button je Fenster, angeführt vom Zeichen seiner App, das vordere Fenster ausgewählt. Ein minimiertes Fenster verlässt den Desktop und bleibt hier, mit hohlem Zeichen; sein Button holt es zurück. Der Button des vorderen Fensters minimiert es. Ein geschlossenes Fenster verlässt die Taskleiste. Das Tray an ihrem Ende trägt Impressum, Datenschutz, Cookies und Einstellungen, als Wörter. Auf einem kompakten Bildschirm ist sie ein Dock: eine Buttongruppe mit einer Zelle je App.',
+      'Der untere Rand des Bildschirms. Sie zeigt, was offen ist: ein Button je Fenster, angeführt vom Zeichen seiner App, das vordere Fenster ausgewählt. Ein minimiertes Fenster verlässt den Desktop und bleibt hier, mit hohlem Zeichen; sein Button holt es zurück. Der Button des vorderen Fensters minimiert es. Ein geschlossenes Fenster verlässt die Taskleiste. Das Tray an ihrem Ende trägt Einstellungen, als Wort. Auf einem kompakten Bildschirm ist sie ein Dock: eine Buttongruppe mit einer Zelle je App.',
     ],
     taskbarCaps: [
       'Zeiger: kompakte Buttons, jeder vom Zeichen seiner App angeführt, das vordere Fenster ausgewählt',

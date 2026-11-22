@@ -6,9 +6,16 @@ const boot = (page: Page) => page.locator('.screen[data-waiting]')
 const desk = (page: Page) => page.locator('.screen[data-fill]:not([data-waiting])')
 const legal = ['Imprint', 'Privacy', 'Cookies']
 
+// The legal menu at the end of the top bar, and no legal link in the bottom bar.
 async function legalLinks(page: Page) {
-  for (const name of legal)
-    await expect(boot(page).locator('footer').getByRole('link', { name })).toBeVisible()
+  await expect(boot(page).locator('footer').getByRole('link', { name: 'Imprint' })).toBeHidden()
+  await boot(page).locator('header').getByRole('button', { name: 'Legal' }).click()
+  const rows = boot(page).getByRole('menu', { name: 'Legal' }).getByRole('menuitem')
+  await expect(rows).toHaveText([...legal, 'Cookie preferences…'])
+  await expect(rows.first()).toHaveAttribute('href', '/imprint')
+  await page.keyboard.press('Escape')
+  await expect(boot(page).getByRole('menu', { name: 'Legal' })).toHaveCount(0)
+  await page.evaluate(() => (document.activeElement as HTMLElement).blur())
 }
 
 test.describe('Boot, login and shut down', () => {
@@ -26,7 +33,7 @@ test.describe('Boot, login and shut down', () => {
     await legalLinks(page)
     await page.keyboard.press('x')
     await expect(boot(page)).toHaveCount(0)
-    await expect(desk(page).getByRole('link', { name: 'Imprint' })).toBeVisible()
+    await expect(desk(page).getByRole('menuitem', { name: 'Legal' })).toBeVisible()
     expect(await page.evaluate(() => sessionStorage.getItem('intro'))).toBe('played')
 
     await page.goto('/', { waitUntil: 'networkidle' })
