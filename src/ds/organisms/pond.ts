@@ -1,85 +1,86 @@
 // Pond: rain on still water, by the wave equation on the pitch grid. A drop falls now and then, more often near where
 // the first halftone stood; the pointer leaves a wake as it moves, and a press is a stone. It has no colours.
-import { type Grid, home, PAPER, type Scene } from './tones'
+import { type Grid, home, type Scene } from './tones'
 
-// A wave keeps this share of itself each tick.
-const KEEP = 0.996
-// A drop falls with this chance a tick, this share of the time within this many radii of the middle; it is this
-// deep and this many dots wide.
-const RAIN = { chance: 0.03, near: 0.6, within: 1.2, deep: 1.5, wide: 1.5 }
-// The pointer pushes the water this deep for each pixel it moves, at most this deep, this many dots wide.
-const WAKE = { deep: 0.04, most: 0.8, wide: 1.5 }
-const STONE = { deep: 8, wide: 2.5 }
-// The rain has fallen this many ticks before the pond is first drawn, so a pond that holds still is not empty.
-const BEFORE = 240
-// Water less than this far from still shows nothing, and this much farther it is a full tone.
-const CALM = 0.08
-const FULL = 0.35
+// A drop: how many ticks before the first, how far it falls from home across and down at most, how near an edge,
+// how deep, and how many ticks to the next, at least and what chance adds.
+const DROP = { first: 20, across: 760, down: 520, edge: 30, deep: 2.6, least: 30, more: 70 }
+// The pointer leaves a wake this deep while it moves faster than a pixel a tick; a press is a stone this deep.
+const WAKE = { deep: 0.45, faster: 1 }
+const STONE = 6
+// How fast the pointer moves: each move counts for half, and it slows to this share a tick.
+const SLOW = 0.8
+// How far a poke reaches, in dots, and how wide it is.
+const REACH = 2
+const WIDE = 2.2
+// A wave pulls toward its neighbours by this share and keeps this share of itself a tick.
+const PULL = 0.24
+const KEEP = 0.988
+// How deep water shows as a full tone, and what is too shallow to show.
+const TONE = { full: 2.07, calm: 0.1 }
 
 export function pond(grid: Grid, width: number, height: number, random: () => number): Scene {
   const { pitch, cols, rows } = grid
-  const middle = home(width, height)
+  const form = home(width, height, pitch)
   let now = new Float32Array(cols * rows)
   let was = new Float32Array(cols * rows)
+  let drop = DROP.first
   let last: number[] | null = null
+  let vx = 0
+  let vy = 0
   let held = false
 
-  // Pushes the water down in a round dip, deepest in its middle.
-  function push(x: number, y: number, deep: number, wide: number) {
-    const [col, row] = [x / pitch - 0.5, y / pitch - 0.5]
-    for (let r = Math.ceil(row - wide); r <= row + wide; r++)
-      for (let c = Math.ceil(col - wide); c <= col + wide; c++) {
-        const far = Math.hypot(c - col, r - row) / wide
-        if (far < 1 && r > 0 && r < rows - 1 && c > 0 && c < cols - 1)
-          now[r * cols + c] -= deep * (1 - far)
+  const keep = (value: number, least: number, most: number) =>
+    value < least ? least : value > most ? most : value
+  // Water pushed up in a round bump on the dots about a place, highest in its middle.
+  function poke(x: number, y: number, much: number) {
+    const [cx, cy] = [Math.round(x / pitch), Math.round(y / pitch)]
+    for (let j = -REACH; j <= REACH; j++)
+      for (let i = -REACH; i <= REACH; i++) {
+        const [col, row] = [cx + i, cy + j]
+        if (col < 1 || row < 1 || col >= cols - 1 || row >= rows - 1) continue
+        now[row * cols + col] += much * Math.exp(-(i * i + j * j) / WIDE)
       }
   }
-
-  function step(pointer: number[] | null, press: boolean) {
-    if (random() < RAIN.chance) {
-      const near = random() < RAIN.near
-      const [a, far] = [random() * 6.28, Math.sqrt(random()) * middle.r * RAIN.within]
-      push(
-        near ? middle.x + Math.cos(a) * far : random() * width,
-        near ? middle.y + Math.sin(a) * far : random() * height,
-        RAIN.deep,
-        RAIN.wide,
-      )
-    }
-    if (pointer && last) {
-      const moved = Math.hypot(pointer[0] - last[0], pointer[1] - last[1])
-      if (moved) push(pointer[0], pointer[1], Math.min(WAKE.most, moved * WAKE.deep), WAKE.wide)
-    }
-    if (pointer && press && !held) push(pointer[0], pointer[1], STONE.deep, STONE.wide)
-    last = pointer
-    held = press
-    // Each dot moves toward the mean of its four neighbours and away from where it was; the edge stays still.
-    for (let r = 1; r < rows - 1; r++)
-      for (let c = 1; c < cols - 1; c++) {
-        const at = r * cols + c
-        was[at] =
-          ((now[at - 1] + now[at + 1] + now[at - cols] + now[at + cols]) / 2 - was[at]) * KEEP
-      }
-    ;[now, was] = [was, now]
-  }
-  for (let tick = 0; tick < BEFORE; tick++) step(null, false)
 
   return {
-    step,
-    // Each sample takes the water between the four dots about it.
+    step(pointer, press) {
+      if (pointer && press && !held) poke(pointer[0], pointer[1], STONE)
+      held = press
+      if (pointer && last && (pointer[0] !== last[0] || pointer[1] !== last[1])) {
+        vx = vx * 0.5 + (pointer[0] - last[0]) * 0.5
+        vy = vy * 0.5 + (pointer[1] - last[1]) * 0.5
+      }
+      last = pointer
+      vx *= SLOW
+      vy *= SLOW
+      if (--drop <= 0) {
+        const near = () => random() + random() + random() - 1.5
+        const x = keep(form.x + near() * DROP.across, DROP.edge, width - DROP.edge)
+        const y = keep(form.y + near() * DROP.down, DROP.edge, height - DROP.edge)
+        poke(x, y, DROP.deep)
+        drop = DROP.least + Math.floor(random() * DROP.more)
+      }
+      if (pointer && Math.hypot(vx, vy) > WAKE.faster) poke(pointer[0], pointer[1], WAKE.deep)
+      for (let row = 1; row < rows - 1; row++)
+        for (let col = 1; col < cols - 1; col++) {
+          const at = row * cols + col
+          was[at] =
+            (2 * now[at] -
+              was[at] +
+              PULL * (now[at - 1] + now[at + 1] + now[at - cols] + now[at + cols] - 4 * now[at])) *
+            KEEP
+        }
+      ;[now, was] = [was, now]
+    },
+    // Each sample shows the dot it lies on.
     paint() {
-      const { wide, high, tones, inks } = grid
-      inks.fill(PAPER)
-      for (let sy = 0; sy < high; sy++)
-        for (let sx = 0; sx < wide; sx++) {
-          const [x, y] = [Math.max(0, (sx - 0.5) / 2), Math.max(0, (sy - 0.5) / 2)]
-          const [c, r] = [Math.min(cols - 2, Math.floor(x)), Math.min(rows - 2, Math.floor(y))]
-          const [ax, ay] = [Math.min(1, x - c), Math.min(1, y - r)]
-          const at = r * cols + c
-          const water =
-            (now[at] * (1 - ax) + now[at + 1] * ax) * (1 - ay) +
-            (now[at + cols] * (1 - ax) + now[at + cols + 1] * ax) * ay
-          tones[sy * wide + sx] = Math.min(1, Math.max(0, Math.abs(water) - CALM) / FULL)
+      const { wide, high, tones } = grid
+      grid.inks.fill(0)
+      for (let y = 0; y < high; y++)
+        for (let x = 0; x < wide; x++) {
+          const water = now[Math.min(rows - 1, y >> 1) * cols + Math.min(cols - 1, x >> 1)]
+          tones[y * wide + x] = keep(water * TONE.full - TONE.calm, 0, 1)
         }
     },
   }

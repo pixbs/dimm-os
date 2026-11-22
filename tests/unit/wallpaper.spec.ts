@@ -105,23 +105,20 @@ describe('the wallpaper', () => {
 
   it('sets each kind of flower of the bouquet in signs of its own', () => {
     const signs = new Set(bouquetSigns(false).map(([sign]) => sign))
-    for (const own of ['O', '@', '(', ')', '^', '*', '8']) expect(signs).toContain(own)
+    // A round bloom, a daisy, a tulip, an allium and a spike.
+    for (const own of ['0', 'O', '@', '(', ')', '*', '8']) expect(signs).toContain(own)
   })
 
   it('keeps the sparks of the bouquet where they stood when a drag turns it half round', () => {
-    const spark = ([sign, , , ink]: (string | number)[]) =>
-      ink === PAPER && '.+*'.includes(String(sign))
+    const sparks = (signs: [string, number, number, number][]) =>
+      new Set(
+        signs.filter(([sign]) => '.+*'.includes(sign)).map((one) => one.slice(0, 3).join(' ')),
+      )
     const [still, turned] = [bouquetSigns(false), bouquetSigns(true)]
-    const at = new Map(turned.map((one) => [`${one[1]} ${one[2]}`, one]))
-    const sparks = still.filter(spark)
-
-    expect(sparks.length).toBeGreaterThan(20)
+    const kept = [...sparks(still)].filter((one) => sparks(turned).has(one))
     expect(turned).not.toEqual(still)
-    // Each stands in its cell again, unless a nearer part of the turned bouquet covers it.
-    for (const one of sparks) {
-      const there = at.get(`${one[1]} ${one[2]}`)
-      expect(there && (!spark(there) || there[0] === one[0])).toBe(true)
-    }
+    // The sparks a flower covers in neither stand where they stood; turned with it, fewer than twenty would.
+    expect(kept.length).toBeGreaterThan(25)
   })
 
   it('starts a ring at a press on the pond that reaches the edge of the screen', () => {
@@ -134,8 +131,8 @@ describe('the wallpaper', () => {
     }
     const [still, stone] = [run(false), run(true)]
     const { wide, high } = still
-    // The second column of samples from the left, beside the still edge itself.
-    const edge = Array.from({ length: high }, (_, row) => row * wide + 1)
+    // The dots of the edge itself hold still, so the first column of dots in from it.
+    const edge = Array.from({ length: high }, (_, row) => row * wide + 2)
     expect(
       Math.max(...edge.map((at) => Math.abs(stone.tones[at] - still.tones[at]))),
     ).toBeGreaterThan(0.1)

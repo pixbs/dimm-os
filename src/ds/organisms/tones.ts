@@ -87,6 +87,9 @@ export function limb(
     }
 }
 
+// What every scene takes its chances from.
+export const SEED = 299
+
 // What is left to chance comes from one seeded source, the same each time.
 export function seeded(seed: number) {
   let s = (seed * 2654435761) >>> 0
@@ -107,10 +110,11 @@ export function between(from: number, to: number) {
   return turn
 }
 
-// Where the halftone of the first wallpaper stood: low on the right, by the shape of the screen, and as wide as its
-// nearest edge allows.
-export function home(width: number, height: number) {
-  const [ax, ay] = width < 600 ? [0.7, 0.82] : width < height ? [0.74, 0.76] : [0.78, 0.7]
-  const [x, y] = [ax * width, ay * height]
-  return { x, y, r: Math.min(x, width - x, y, height - y) }
+// Where the halftone of the first wallpaper stood, on the pitch, and how far it reached.
+export function home(width: number, height: number, pitch: number) {
+  return {
+    x: Math.round((width * 0.8) / pitch) * pitch,
+    y: Math.round((height * 0.6) / pitch) * pitch,
+    r: Math.min(width * 0.2, height * 0.4),
+  }
 }

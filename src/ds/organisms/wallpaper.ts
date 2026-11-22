@@ -9,7 +9,7 @@ import { dragonflies } from './dragonflies'
 import { koi } from './koi'
 import { passage } from './passage'
 import { pond } from './pond'
-import { type Grid, type Scene, grid as tones, seeded } from './tones'
+import { type Grid, type Scene, SEED, grid as tones, seeded } from './tones'
 import type { Step } from './wallpapers'
 
 // What the page tells it, in CSS pixels: a message may carry any part of it.
@@ -40,8 +40,6 @@ const scenes = new Map<string, typeof passage>([
   ['catfish', catfish],
   ['pond', pond],
 ])
-// What every scene takes its chances from.
-const SEED = 299
 // At most 30 frames a second, and a frame that comes late counts as six ticks at most.
 const FRAME = 1000 / 30
 const LATE = 6

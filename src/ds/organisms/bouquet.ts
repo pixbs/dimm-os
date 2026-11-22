@@ -1,311 +1,370 @@
-// Bouquet: stems fan out of one point low on the right, a flower on each, with buds and sprigs between them. It turns
-// slowly, and a drag across the screen turns it once round. Sparks stand behind it and do not turn with it.
-import { BLUE, type Grid, home, limb, MINT, ORANGE, PAPER, type Scene } from './tones'
+// Bouquet: stems fan out of one point with a flower on each, buds and sprigs between them, and sparks behind. It turns
+// slowly, and a drag turns it. The sparks do not turn: each keeps its place, drifts a little and twinkles. As signs it
+// is made the way hand-made ASCII is, every kind of flower from signs of its own.
+import { BLUE, type Grid, limb, MINT, ORANGE, PAPER, type Scene, SEED } from './tones'
 
-// The twelve flowers, each its kind and its ink.
-const FLOWERS = [
-  ['round', ORANGE],
-  ['daisy', PAPER],
-  ['tulip', BLUE],
-  ['allium', ORANGE],
-  ['spike', BLUE],
-  ['round', PAPER],
-  ['daisy', ORANGE],
-  ['tulip', PAPER],
-  ['allium', BLUE],
-  ['spike', ORANGE],
-  ['round', BLUE],
-  ['daisy', PAPER],
-] as const
-type Kind = (typeof FLOWERS)[number][0] | 'bud'
-const [BUDS, SPRIGS, SPARKS] = [8, 26, 46]
-// How tall it stands against the height and the width of the screen, whichever is less, and where its stems meet,
-// as a share of the height.
-const SIZE = { high: 0.78, wide: 0.8, low: 0.96 }
-// A stem leans out from upright, in radians, and is long against the size: the least and what chance adds; a bud's
-// is shorter. It bends out more toward its head.
-const STEM = { lean: [0.12, 0.62], long: [0.62, 0.38], bud: 0.75, bend: 1.25, parts: 10 }
-// It is seen a little from above: a near part stands lower by this share of how near it is.
-const ABOVE = 0.22
-// It turns once round in this many ticks by itself.
-const ROUND = 3600
-// Half the width of a head in pitches, kind by kind.
-const HEAD = { round: 3, daisy: 3.5, tulip: 3, allium: 3, spike: 2.5, bud: 1.2 }
-// A sprig leaves a stem this far along it, the least and what chance adds, and is this long against the size.
-const SPRIG = { at: [0.35, 0.5], long: 0.07 }
-// The sparks lie in an oval about the crown, as wide and high as these shares of the size; each drifts this many
-// pixels at this rate, and twinkles at this rate at most.
-const SPARK = { wide: 0.8, high: 0.5, crown: 0.7, drift: 3, rate: 0.01, twinkle: 0.06 }
-// The sign of a spark from bright to faint, each from how bright it is at least; fainter, it is not seen.
-const TWINKLE: [number, string][] = [
-  [0.85, '*'],
-  [0.6, '+'],
-  [0.3, '.'],
-]
-// A stem is | within this slope of upright, and / or \ beyond it.
-const UPRIGHT = 0.25
+const DEG = Math.PI / 180
+const [ROUND, DAISY, TULIP, ALLIUM, SPIKE, BUD, SPRIG] = [0, 1, 2, 3, 4, 5, 6]
+// The twelve flowers, kind by kind.
+const KINDS = [ROUND, DAISY, TULIP, ALLIUM, ROUND, SPIKE, DAISY, TULIP, ROUND, SPIKE, ALLIUM, DAISY]
+// It is seen a little from above, and is this many pixels tall to a unit.
+const TILT = 12 * DEG
+const SPAN = 440
+// Where its stems meet, as shares of the screen across and down.
+const ROOT = [0.7, 0.9]
+// It turns this far a tick by itself, and a drag turns it this far for each pixel.
+const TURN = 0.004
+const DRAG = 0.008
+// A flower's stem: each next one round by the golden angle and a little chance, how far it leans from upright, its
+// length and the size of its head, the least and what chance adds.
+const FLOWER = { q: 2.39996, spread: 0.5, lean: [9, 30], long: [0.8, 0.26], head: [0.062, 0.04] }
+const BUDS = { count: 8, lean: [6, 26], long: [0.45, 0.3], head: [0.034, 0.016] }
+const SPRIGS = { count: 26, lean: [4, 24], long: [0.22, 0.42] }
+// A stem is drawn in this many parts, a sprig's in fewer, and bends out more toward its head; a spike flowers along
+// its last part.
+const PARTS = { stem: 44, sprig: 16, bend: 0.11, sink: 0.3, spike: 0.7 }
+// Forty-six sparks in a shell about the crown, as far as this from it at least and what chance adds, in paper, every
+// seventh orange and every fifth blue.
+const SPARKS = { count: 46, far: [0.85, 0.5], crown: 0.6, flat: 0.8 }
+// A spark drifts this far at these rates across and down, twinkles at this rate, and shows only above this.
+const DRIFT = { x: [9, 0.006, 1.3], y: [7, 0.0047, 2.1] }
+const TWINKLE = { rate: 0.02, apart: 1.7, shown: -0.45, star: 0.6, plus: 0.05 }
+// As ink a spark is a disc this large, at least and what its twinkle adds, and this strong.
+const GLINT = { size: [2, 3], shade: [0.45, 0.35] }
+// The signs, by their codes.
+const SIGN = {
+  star: 42,
+  plus: 43,
+  dot: 46,
+  colon: 58,
+  dash: 45,
+  bar: 124,
+  slash: 47,
+  back: 92,
+  open: 40,
+  close: 41,
+  zero: 48,
+  eight: 56,
+  o: 111,
+  big: 79,
+  at: 64,
+}
 
-type Point = [number, number, number]
-type Put = (x: number, y: number, near: number, sign: string, ink: number) => void
+type Stem = {
+  kind: number
+  q: number
+  lean: number
+  long: number
+  head: number
+  tint: number
+  heart: number
+}
+type Head = { stem: Stem; at: number[]; spike: number[][] | null }
 
 export function bouquet(grid: Grid, width: number, height: number, random: () => number): Scene {
-  const { pitch } = grid
-  const size = Math.min(height * SIZE.high, width * SIZE.wide)
-  const [bx, by] = [home(width, height).x, height * SIZE.low]
-  const turning = (Math.PI * 2) / ROUND
-  // A flower or a bud at the end of each stem, spread round by the golden angle.
-  const stems = [...FLOWERS, ...Array.from({ length: BUDS }, () => ['bud', MINT] as const)].map(
-    ([kind, ink], index) => {
-      const lean = STEM.lean[0] + STEM.lean[1] * random()
-      const long = (STEM.long[0] + STEM.long[1] * random()) * size * (kind === 'bud' ? STEM.bud : 1)
-      return { kind: kind as Kind, ink, lean, long, round: index * 2.39996 + random() }
-    },
-  )
-  const sprigs = Array.from({ length: SPRIGS }, () => {
-    const stem = stems[Math.floor(random() * stems.length)]
-    const round = stem.round + (random() - 0.5) * 2
-    const long = SPRIG.long * size * (0.6 + random() * 0.8)
+  const { pitch: p, cols, lines } = grid
+  const stems: Stem[] = []
+  for (let k = 0; k < KINDS.length; k++) {
+    const tint = [ORANGE, PAPER, BLUE][k % 3]
+    stems.push({
+      kind: KINDS[k],
+      q: k * FLOWER.q + random() * FLOWER.spread,
+      lean: (FLOWER.lean[0] + FLOWER.lean[1] * Math.sqrt((k + 0.5) / KINDS.length)) * DEG,
+      long: FLOWER.long[0] + FLOWER.long[1] * random(),
+      head: FLOWER.head[0] + FLOWER.head[1] * random(),
+      tint,
+      heart: tint === PAPER ? ORANGE : PAPER,
+    })
+  }
+  for (let k = 0; k < BUDS.count; k++)
+    stems.push({
+      kind: BUD,
+      q: random() * 6.28,
+      lean: (BUDS.lean[0] + BUDS.lean[1] * random()) * DEG,
+      long: BUDS.long[0] + BUDS.long[1] * random(),
+      head: BUDS.head[0] + BUDS.head[1] * random(),
+      tint: k % 2 ? PAPER : MINT,
+      heart: PAPER,
+    })
+  for (let k = 0; k < SPRIGS.count; k++)
+    stems.push({
+      kind: SPRIG,
+      q: random() * 6.28,
+      lean: (SPRIGS.lean[0] + SPRIGS.lean[1] * random()) * DEG,
+      long: SPRIGS.long[0] + SPRIGS.long[1] * random(),
+      head: 0,
+      tint: MINT,
+      heart: MINT,
+    })
+  // It first faces the way the seed names.
+  let yaw = (SEED % 360) * DEG
+  // A spark keeps the place on the screen that it has as the bouquet first stands.
+  const [c0, s0] = [Math.cos(yaw), Math.sin(yaw)]
+  const sparks = Array.from({ length: SPARKS.count }, (_, k) => {
+    const u = random() * 2 - 1
+    const q = random() * 6.28
+    const r = SPARKS.far[0] + SPARKS.far[1] * random()
+    const h = Math.sqrt(1 - u * u)
+    const [x, y, z] = [h * Math.cos(q) * r, SPARKS.crown + u * r * SPARKS.flat, h * Math.sin(q) * r]
     return {
-      stem,
-      at: SPRIG.at[0] + SPRIG.at[1] * random(),
-      out: [Math.cos(round), Math.sin(round)],
-      long,
+      dx: (x * c0 + z * s0) * SPAN,
+      dy: -(y * Math.cos(TILT) - (z * c0 - x * s0) * Math.sin(TILT)) * SPAN,
+      tint: k % 7 === 0 ? ORANGE : k % 5 === 0 ? BLUE : PAPER,
     }
   })
-  const sparks = Array.from({ length: SPARKS }, () => {
-    const [a, far] = [random() * 6.28, Math.sqrt(random())]
-    return {
-      x: bx + Math.cos(a) * far * SPARK.wide * size,
-      y: by - SPARK.crown * size + Math.sin(a) * far * SPARK.high * size,
-      phase: random() * 6.28,
-      rate: SPARK.twinkle * (0.4 + random() * 0.6),
-    }
-  })
-  let turn = 0
+  const named = new Uint8Array(cols * lines)
+  const tints = new Uint8Array(cols * lines)
+  const depths = new Float32Array(cols * lines)
+  let last: number[] | null = null
   let tick = 0
-  let held: number[] | null = null
 
-  // A point of a stem, this far along it, in the bouquet's own space: across, up and toward the eye.
-  const along = (stem: (typeof stems)[number], share: number): Point => {
-    const out = stem.long * Math.sin(stem.lean) * share ** STEM.bend
-    return [
-      Math.cos(stem.round) * out,
-      -stem.long * Math.cos(stem.lean) * share,
-      Math.sin(stem.round) * out,
-    ]
+  // A sign in a cell of the mono face; the nearest to the viewer wins.
+  function put(i: number, j: number, code: number, tint: number, depth: number) {
+    if (i < 0 || j < 0 || i >= cols || j >= lines) return
+    const at = j * cols + i
+    if (depth < depths[at]) return
+    depths[at] = depth
+    named[at] = code
+    tints[at] = tint
   }
-  // Where a point stands on the screen as the bouquet has turned, and how near it is.
-  const seen = ([x, y, z]: Point) => {
-    const [cos, sin] = [Math.cos(turn), Math.sin(turn)]
-    const near = z * cos - x * sin
-    return [bx + x * cos + z * sin, by + y + near * ABOVE, near]
-  }
-  const sprigEnd = (sprig: (typeof sprigs)[number]): Point => {
-    const [x, y, z] = along(sprig.stem, sprig.at)
-    const l = sprig.long * Math.SQRT1_2
-    return [x + sprig.out[0] * l, y - l, z + sprig.out[1] * l]
-  }
-  const spark = (one: (typeof sparks)[number]) => [
-    one.x + Math.sin(tick * SPARK.rate + one.phase) * SPARK.drift,
-    one.y + Math.cos(tick * SPARK.rate * 0.8 + one.phase * 2) * SPARK.drift,
-    0.5 + 0.5 * Math.sin(tick * one.rate + one.phase),
-  ]
 
-  // Each part of the bouquet with how near it is, drawn in dots or set in signs.
-  function parts(draw: {
-    line(a: number[], b: number[], ink: number, sprig: boolean): void
-    head(kind: Kind, at: number[], up: number[], ink: number): void
-  }) {
-    for (const stem of stems) {
-      for (let n = 0; n < STEM.parts; n++)
-        draw.line(
-          seen(along(stem, n / STEM.parts)),
-          seen(along(stem, (n + 1) / STEM.parts)),
-          MINT,
-          false,
-        )
-      const [tip, below] = [seen(along(stem, 1)), seen(along(stem, 0.9))]
-      const l = Math.hypot(tip[0] - below[0], tip[1] - below[1]) || 1
-      draw.head(stem.kind, tip, [(tip[0] - below[0]) / l, (tip[1] - below[1]) / l], stem.ink)
+  // A flower in signs, at the end of its stem.
+  function bloomSigns({ stem: m, at, spike }: Head) {
+    const [x, y] = at
+    const z = at[2] + 0.2
+    const R = m.head * SPAN
+    const [ci, cj] = [Math.floor(x / p), Math.floor(y / (2 * p))]
+    if (m.kind === SPIKE) {
+      for (let n = 0; n < spike!.length; n++) {
+        const u = n / (spike!.length - 1)
+        const [i, j] = [Math.floor(spike![n][0] / p), Math.floor(spike![n][1] / (2 * p))]
+        if (u < 0.7) {
+          put(i - 1, j, SIGN.o, m.tint, z)
+          put(i + 1, j, SIGN.o, m.tint, z)
+        }
+        put(i, j, u < 0.7 ? SIGN.eight : u < 0.95 ? SIGN.o : SIGN.dot, m.tint, z + 0.01)
+      }
+      return
     }
-    for (const sprig of sprigs)
-      draw.line(seen(along(sprig.stem, sprig.at)), seen(sprigEnd(sprig)), MINT, true)
+    if (m.kind === TULIP) {
+      // It stands on the end of its stem: petal tips inside a rim, a cup, a narrower foot.
+      const half = Math.min(3, Math.max(2, Math.round((R / p) * 0.55)))
+      const tall = half + 1
+      for (let r = 0; r < tall; r++)
+        for (let c = -half; c <= half; c++) {
+          const rim = Math.abs(c) === half
+          if (r === tall - 1 && rim) continue
+          const cup = (r > 0 && r < tall - 1) || (r === 0 && rim)
+          const code =
+            c === 0
+              ? SIGN.bar
+              : cup
+                ? c < 0
+                  ? SIGN.open
+                  : SIGN.close
+                : c < 0
+                  ? SIGN.back
+                  : SIGN.slash
+          put(ci + c, cj - tall + 1 + r, code, m.tint, z)
+        }
+      return
+    }
+    const [i0, i1] = [Math.floor((x - R) / p), Math.floor((x + R) / p)]
+    const [j0, j1] = [Math.floor((y - R * 0.85) / (2 * p)), Math.floor((y + R * 0.85) / (2 * p))]
+    for (let j = j0; j <= j1; j++)
+      for (let i = i0; i <= i1; i++) {
+        const dx = (i + 0.5) * p - x
+        const dy = (j + 0.5) * 2 * p - y
+        const [nx, ny] = [dx / R, dy / (R * 0.85)]
+        const d = nx * nx + ny * ny
+        if (d > 1) continue
+        if (m.kind === BUD) put(i, j, SIGN.o, m.tint, z)
+        else if (m.kind === ROUND)
+          put(i, j, d < 0.14 ? SIGN.big : SIGN.zero, d < 0.14 ? m.heart : m.tint, z - d * 0.05)
+        else if (m.kind === ALLIUM) {
+          if ((i + j) & 1) put(i, j, SIGN.star, m.tint, z)
+          else if (d < 0.6) put(i, j, SIGN.dot, m.tint, z)
+        } else if (d < 0.1) put(i, j, SIGN.at, m.heart, z)
+        else {
+          // A ray of the daisy, by the way it points.
+          const steep = Math.atan2(Math.abs(dy), Math.abs(dx)) / DEG
+          const code =
+            steep < 22.5
+              ? SIGN.dash
+              : steep > 67.5
+                ? SIGN.bar
+                : dx * dy < 0
+                  ? SIGN.slash
+                  : SIGN.back
+          put(i, j, code, m.tint, z - d * 0.05)
+        }
+      }
+  }
+
+  // The same flower as ink, for the dots.
+  function bloomTones({ stem: m, at, spike }: Head) {
+    const [x, y] = at
+    const R = m.head * SPAN
+    const disc = (cx: number, cy: number, r: number, shade: number, tint: number) =>
+      limb(grid, [cx, cy], [cx, cy], r, r, shade, tint, true)
+    if (m.kind === SPIKE) {
+      for (let n = 0; n < spike!.length; n++)
+        disc(spike![n][0], spike![n][1], 2 + 5 * (1 - n / (spike!.length - 1)), 1, m.tint)
+      return
+    }
+    if (m.kind === TULIP) {
+      limb(grid, [x, y - 1.05 * R], [x, y - 0.35 * R], 0.6 * R, 0.36 * R, 1, m.tint, true)
+      for (let side = -1; side <= 1; side += 2)
+        limb(
+          grid,
+          [x + side * 0.4 * R, y - 1.4 * R],
+          [x + side * 0.56 * R, y - 1.9 * R],
+          0.2 * R,
+          0.06 * R,
+          1,
+          m.tint,
+          true,
+        )
+      return
+    }
+    if (m.kind === ALLIUM) {
+      for (let n = 0; n < 16; n++) {
+        const far = 0.9 * R * Math.sqrt((n + 0.5) / 16)
+        const q = n * FLOWER.q
+        disc(x + Math.cos(q) * far, y + Math.sin(q) * far, 0.17 * R, 0.95, m.tint)
+      }
+      return
+    }
+    if (m.kind === DAISY) {
+      for (let n = 0; n < 8; n++) {
+        const q = (n + 0.5) * 45 * DEG
+        const [c, s] = [Math.cos(q), Math.sin(q)]
+        limb(
+          grid,
+          [x + c * 0.25 * R, y + s * 0.25 * R],
+          [x + c * 0.9 * R, y + s * 0.9 * R],
+          0.1 * R,
+          0.19 * R,
+          0.85,
+          m.tint,
+          true,
+        )
+      }
+      disc(x, y, 0.3 * R, 1, m.heart)
+      return
+    }
+    disc(x, y, R, 1, m.tint)
+    if (m.kind === ROUND) disc(x, y, R * 0.38, 1, m.heart)
+  }
+
+  // The whole bouquet as it stands now, in signs or as ink.
+  function lay(signs: boolean) {
+    grid.tones.fill(0)
+    grid.inks.fill(0)
+    if (signs) {
+      named.fill(0)
+      depths.fill(-1e9)
+    }
+    const [cy, sy, ct, st] = [Math.cos(yaw), Math.sin(yaw), Math.cos(TILT), Math.sin(TILT)]
+    const ox = Math.round((width * ROOT[0]) / p) * p
+    const oy = Math.round((height * ROOT[1]) / p) * p
+    // A place in the bouquet, on the screen: across, down, and how near it is.
+    const see = (x: number, y: number, z: number) => {
+      const [x1, z1] = [x * cy + z * sy, z * cy - x * sy]
+      return [ox + x1 * SPAN, oy - (y * ct - z1 * st) * SPAN, y * st + z1 * ct]
+    }
+    // The sparks lie behind everything.
+    sparks.forEach((one, k) => {
+      const v = Math.sin(tick * TWINKLE.rate + k * TWINKLE.apart)
+      if (v < TWINKLE.shown) return
+      const x = ox + one.dx + DRIFT.x[0] * Math.sin(tick * DRIFT.x[1] + k * DRIFT.x[2])
+      const y = oy + one.dy + DRIFT.y[0] * Math.cos(tick * DRIFT.y[1] + k * DRIFT.y[2])
+      if (signs) {
+        const code = v > TWINKLE.star ? SIGN.star : v > TWINKLE.plus ? SIGN.plus : SIGN.dot
+        put(Math.floor(x / p), Math.floor(y / (2 * p)), code, one.tint, -100)
+      } else {
+        const size = GLINT.size[0] + GLINT.size[1] * (v - TWINKLE.shown)
+        limb(grid, [x, y], [x, y], size, size, GLINT.shade[0] + GLINT.shade[1] * v, one.tint)
+      }
+    })
+    const heads: Head[] = []
+    for (const m of stems) {
+      const [cq, sq, sl, cl] = [Math.cos(m.q), Math.sin(m.q), Math.sin(m.lean), Math.cos(m.lean)]
+      const n = m.kind === SPRIG ? PARTS.sprig : PARTS.stem
+      const spike: number[][] | null = m.kind === SPIKE ? [] : null
+      let was = see(0, 0, 0)
+      for (let a = 1; a <= n; a++) {
+        const t = a / n
+        const far = m.long * t
+        const bend = PARTS.bend * t * t * m.long
+        const now = see(
+          sl * cq * far + cq * bend,
+          cl * far - bend * PARTS.sink,
+          sl * sq * far + sq * bend,
+        )
+        if (signs) {
+          // A stem is / | \ by its slope and : where it runs behind; a sprig is + and :.
+          const slope = Math.atan2(was[1] - now[1], now[0] - was[0]) / DEG
+          const code =
+            m.kind === SPRIG
+              ? t > 0.55
+                ? SIGN.plus
+                : SIGN.colon
+              : now[2] < -0.02
+                ? SIGN.colon
+                : slope < 25 || slope > 155
+                  ? SIGN.dash
+                  : Math.abs(slope - 90) < 20
+                    ? SIGN.bar
+                    : slope > 90
+                      ? SIGN.back
+                      : SIGN.slash
+          put(Math.floor(now[0] / p), Math.floor(now[1] / (2 * p)), code, MINT, now[2])
+        } else
+          limb(
+            grid,
+            [was[0], was[1]],
+            [now[0], now[1]],
+            1.4,
+            1.4,
+            m.kind === SPRIG ? 0.35 : now[2] < 0 ? 0.3 : 0.5,
+            MINT,
+          )
+        if (spike && t >= PARTS.spike) spike.push(now)
+        was = now
+      }
+      if (m.kind !== SPRIG) heads.push({ stem: m, at: was, spike })
+    }
+    // The far flowers first, so the near ones lie over them.
+    heads.sort((a, b) => a.at[2] - b.at[2])
+    for (const head of heads) (signs ? bloomSigns : bloomTones)(head)
   }
 
   return {
-    step(pointer, press) {
+    step(pointer, held) {
       tick++
-      turn += turning
-      if (press && pointer && held) turn += ((pointer[0] - held[0]) / width) * Math.PI * 2
-      held = press ? pointer : null
+      if (held && pointer && last) yaw += (pointer[0] - last[0]) * DRAG
+      else if (!held) yaw += TURN
+      last = pointer
     },
-    // In dots, far parts first, so a near one takes the ink where they meet.
     paint() {
-      grid.tones.fill(0)
-      grid.inks.fill(0)
-      for (const one of sparks) {
-        const [x, y, bright] = spark(one)
-        limb(grid, [x, y], [x, y], pitch * 0.55, pitch * 0.55, bright, PAPER)
-      }
-      const queue: [number, () => void][] = []
-      const stroke = pitch * 0.3
-      parts({
-        line: (a, b, ink, sprig) =>
-          queue.push([
-            (a[2] + b[2]) / 2,
-            () => {
-              limb(grid, a, b, stroke, stroke, 0.8, ink, true)
-              if (sprig) limb(grid, b, b, stroke * 2.2, stroke * 2.2, 0.9, ink, true)
-            },
-          ]),
-        head: (kind, at, up, ink) => queue.push([at[2] + 1, () => dotted(grid, kind, at, up, ink)]),
-      })
-      for (const [, draw] of queue.sort(([a], [b]) => a - b)) draw()
+      lay(false)
     },
-    // In signs, each cell holds the sign of its nearest part.
     signs() {
-      const cells = new Map<number, [string, number, number, number, number]>()
-      const put: Put = (x, y, near, sign, ink) => {
-        const [col, line] = [Math.floor(x / pitch), Math.floor(y / (pitch * 2))]
-        if (col < 0 || col >= grid.cols || line < 0 || line >= grid.lines) return
-        const key = line * grid.cols + col
-        if ((cells.get(key)?.[4] ?? -Infinity) <= near)
-          cells.set(key, [sign, (col + 0.5) * pitch, (line * 2 + 1) * pitch, ink, near])
-      }
-      for (const one of sparks) {
-        const [x, y, bright] = spark(one)
-        const sign = TWINKLE.find(([least]) => bright >= least)?.[1]
-        if (sign) put(x, y, -Infinity, sign, PAPER)
-      }
-      parts({
-        line: (a, b, ink, sprig) => {
-          const steps = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / (pitch / 2))
-          const slope = (b[0] - a[0]) / (a[1] - b[1] || 1e-6)
-          const sign = Math.abs(slope) < UPRIGHT ? '|' : slope > 0 ? '/' : '\\'
-          for (let n = 0; n <= steps; n++) {
-            const t = n / steps
-            const near = a[2] + (b[2] - a[2]) * t
-            const mark = sprig ? (n === steps || n % 3 === 1 ? '+' : ':') : near < 0 ? ':' : sign
-            put(a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, near, mark, ink)
-          }
-        },
-        head: (kind, at, up, ink) => signed(put, pitch, kind, at, up, ink),
-      })
-      return [...cells.values()].map(([sign, x, y, ink]) => [sign, x, y, ink])
+      lay(true)
+      const all: [string, number, number, number][] = []
+      for (let j = 0; j < lines; j++)
+        for (let i = 0; i < cols; i++) {
+          const code = named[j * cols + i]
+          if (code)
+            all.push([
+              String.fromCharCode(code),
+              (i + 0.5) * p,
+              (j * 2 + 1) * p,
+              tints[j * cols + i],
+            ])
+        }
+      return all
     },
   }
-}
-
-// A head poured as ink: a disc with a heart, eight petals about a heart, a cup with two tips, a ball of small spots,
-// discs up the end of a stem, or a bud.
-function dotted(grid: Grid, kind: Kind, [x, y]: number[], [ux, uy]: number[], ink: number) {
-  const r = HEAD[kind] * grid.pitch
-  const disc = (dx: number, dy: number, radius: number, shade: number) =>
-    limb(grid, [x + dx, y + dy], [x + dx, y + dy], radius, radius, shade, ink, true)
-  if (kind === 'round') disc(0, 0, r, 0.6)
-  if (kind === 'daisy')
-    for (let n = 0; n < 8; n++) {
-      const [cos, sin] = [Math.cos((n * Math.PI) / 4), Math.sin((n * Math.PI) / 4)]
-      limb(
-        grid,
-        [x + cos * r * 0.42, y + sin * r * 0.42],
-        [x + cos * r, y + sin * r],
-        r * 0.2,
-        r * 0.13,
-        0.9,
-        ink,
-        true,
-      )
-    }
-  if (kind === 'tulip') {
-    limb(grid, [x, y + r * 0.5], [x, y - r * 0.15], r * 0.45, r * 0.7, 0.9, ink, true)
-    for (const side of [-1, 1])
-      limb(
-        grid,
-        [x + side * r * 0.4, y - r * 0.2],
-        [x + side * r * 0.6, y - r * 0.85],
-        r * 0.25,
-        r * 0.08,
-        0.9,
-        ink,
-        true,
-      )
-  }
-  if (kind === 'allium')
-    for (let n = 0; n < 19; n++) {
-      const [a, far] = [n * 2.39996, r * 0.85 * Math.sqrt((n + 0.5) / 19)]
-      disc(Math.cos(a) * far, Math.sin(a) * far, r * 0.14, 1)
-    }
-  if (kind === 'spike')
-    for (let n = 0; n < 5; n++)
-      disc(-ux * n * r * 0.45, -uy * n * r * 0.45, r * (0.2 + n * 0.04), 1)
-  if (kind === 'bud') disc(0, 0, r, 0.9)
-  if (kind === 'round' || kind === 'daisy') disc(0, 0, r * (kind === 'round' ? 0.4 : 0.3), 1)
-}
-
-// A head set in signs of its kind's own, as hand-made ASCII is: a block of 0 about an O, rays about an @, a cup of
-// ( | ) with petal tips inside its rim, a ball of * and ., o8o up the end of a stem, or a knot of o.
-function signed(
-  put: Put,
-  pitch: number,
-  kind: Kind,
-  [x, y, z]: number[],
-  [ux, uy]: number[],
-  ink: number,
-) {
-  const r = HEAD[kind] * pitch
-  const near = z + 1
-  const w = Math.max(1, Math.round(r / pitch) - 1)
-  const at = (col: number, line: number, sign: string) =>
-    put(x + col * pitch, y + line * pitch * 2, near, sign, ink)
-  if (kind === 'spike') {
-    at(0, 0, '8')
-    for (let n = 1; n <= 2; n++)
-      for (const col of [-1, 0, 1])
-        put(
-          x - ux * n * pitch * 2 + col * pitch,
-          y - uy * n * pitch * 2,
-          near,
-          col ? 'o' : '8',
-          ink,
-        )
-    return
-  }
-  if (kind === 'tulip') {
-    for (const [line, half] of [
-      [-1, w],
-      [0, w],
-      [1, w - 1],
-    ])
-      for (let col = -half; col <= half; col++)
-        at(col, line, col === -half ? '(' : col === half ? ')' : line < 0 && col % 2 ? '^' : '|')
-    return
-  }
-  if (kind === 'bud') {
-    for (const [col, line] of [
-      [-1, 0],
-      [0, 0],
-      [1, 0],
-      [0, -1],
-    ])
-      at(col, line, 'o')
-    return
-  }
-  for (let line = -Math.ceil(r / pitch / 2); line <= r / pitch / 2; line++)
-    for (let col = -Math.ceil(r / pitch); col <= r / pitch; col++) {
-      const [dx, dy] = [col * pitch, line * pitch * 2]
-      const far = Math.hypot(dx, dy)
-      if (far > r) continue
-      if (kind === 'round') at(col, line, far ? '0' : 'O')
-      if (kind === 'allium') at(col, line, (col + line) % 2 ? '.' : '*')
-      if (kind === 'daisy') {
-        // Each cell on one of the eight rays takes the sign of its slope.
-        const ray = Math.round(Math.atan2(dy, dx) / (Math.PI / 4))
-        const off = Math.abs(
-          dx * Math.sin((ray * Math.PI) / 4) - dy * Math.cos((ray * Math.PI) / 4),
-        )
-        if (!far) at(col, line, '@')
-        else if (off < pitch * 0.75) at(col, line, '-\\|/'[((ray % 4) + 4) % 4])
-      }
-    }
 }
