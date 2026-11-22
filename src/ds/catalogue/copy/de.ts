@@ -439,6 +439,7 @@ const de: Copy = {
       ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
       ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
       ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
+      ['linear', 'Eine Überblendung: ein Bild herein, während seine Farbfelder gehen.'],
     ],
     spread: [
       'Streuung',
@@ -880,7 +881,7 @@ const de: Copy = {
     media: [
       'Medien',
       'Format: 16:9 · 4:3 · 1:1 · 3:1 | Art: Bild · Video · Einbettung | Teile: Bildunterschrift',
-      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in Punkten auf, beim Vier-, Zwei- und Einfachen des Rasters, und blendet dann ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
+      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in runden Farbfeldern seiner eigenen Farben auf: Zellen vom Vierfachen des Rasters ziehen in 260 ms herein, dann vom Zwei- und Einfachen für je 160 ms, jedes Feld füllt 0,86 seiner Zelle; dann werden sie in 180 ms eckig und schließen sich, und das Bild blendet darunter in fast ein, 920 ms insgesamt. Bei reduzierter Bewegung oder angehaltenen Bildern blendet es nur ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
     ],
     mediaCaps: [
       '16:9',
