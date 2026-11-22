@@ -7,6 +7,14 @@ export const ORANGE = 1
 export const BLUE = 2
 export const MINT = 3
 
+// A scene steps on the clock of the engine, given the pointer and whether it is pressed, and paints in colour or not.
+// One that sets its own signs says which: each, the middle of its cell and its ink.
+export type Scene = {
+  step(pointer: number[] | null, held: boolean): void
+  paint(colour: boolean): void
+  signs?(colour: boolean): [string, number, number, number][]
+}
+
 export type Grid = {
   pitch: number
   // How many dots, rows of dots and lines of signs the screen holds.

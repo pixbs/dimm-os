@@ -56,11 +56,20 @@ describe('the wallpaper', () => {
     expect(stepAt('passage ascii')).toBe(3)
   })
 
-  it('offers Catfish in dots and in signs, never in colour', () => {
-    expect(steps.filter((one) => one.startsWith('catfish'))).toEqual([
-      'catfish dots',
-      'catfish ascii',
+  it('lists Passage, Bouquet, Koi, Dragonflies, Contours, Catfish, Pond', () => {
+    expect(Object.keys(wallpapers)).toEqual([
+      'passage',
+      'bouquet',
+      'koi',
+      'dragonflies',
+      'contours',
+      'catfish',
+      'pond',
     ])
+  })
+
+  it.each(['catfish', 'pond'])('offers %s in dots and in signs, never in colour', (name) => {
+    expect(steps.filter((one) => one.startsWith(name))).toEqual([`${name} dots`, `${name} ascii`])
   })
 
   it.each([

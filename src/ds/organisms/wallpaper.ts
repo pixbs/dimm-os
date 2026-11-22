@@ -6,7 +6,7 @@ import { catfish } from './catfish'
 import { dragonflies } from './dragonflies'
 import { koi } from './koi'
 import { passage } from './passage'
-import { type Grid, grid as tones, seeded } from './tones'
+import { type Grid, type Scene, grid as tones, seeded } from './tones'
 import type { Step } from './wallpapers'
 
 // What the page tells it, in CSS pixels: a message may carry any part of it.
@@ -22,8 +22,9 @@ export type Setting = {
   runs: boolean
   // Under reduced motion or pause.
   still: boolean
-  // Where the pointer is over the desk.
+  // Where the pointer is over the desk, and whether it is pressed there.
   pointer: number[] | null
+  held: boolean
 }
 
 // Every scene by the name of its wallpaper: a message that names another gets the first.
@@ -50,11 +51,13 @@ let canvas: OffscreenCanvas
 let context: OffscreenCanvasRenderingContext2D
 let now: Setting | undefined
 let grid: Grid
-let scene: ReturnType<typeof passage> | undefined
+let scene: Scene | undefined
 let read: ReturnType<typeof ascii> | undefined
 let loaded: boolean | undefined
 // The face as measured, once per pitch.
 const faces = new Map<number, Face>()
+// A press lasts a tick at least, however soon it is let go.
+let pressed = false
 let request = 0
 let last: number | undefined
 let owed = 0
@@ -133,7 +136,7 @@ function draw() {
   context.font = font(Math.round(pitch * SIZE))
   context.textAlign = 'center'
   context.textBaseline = 'middle'
-  for (const [sign, x, y, named] of signs()) {
+  for (const [sign, x, y, named] of scene!.signs?.(step.colour) ?? signs()) {
     context.fillStyle = ink(named)
     context.fillText(sign, x, y)
   }
@@ -148,7 +151,10 @@ function frame(at: number) {
   if (last !== undefined && at - last < FRAME - 4) return
   owed += last === undefined ? TICK : Math.min(at - last, TICK * LATE)
   last = at
-  for (; owed >= TICK; owed -= TICK) scene!.step(now!.pointer)
+  for (; owed >= TICK; owed -= TICK) {
+    scene!.step(now!.pointer, now!.held || pressed)
+    pressed = false
+  }
   draw()
 }
 
@@ -168,6 +174,7 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
   }
   const was = now
   now = { ...now!, ...data }
+  if (data.held && moves()) pressed = true
   // A message may arrive before the first whole setting.
   if (!now.step) return
   // Another size of the screen, dot or wallpaper starts the scene afresh; another filter, colour or theme only
@@ -187,6 +194,6 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
     read = undefined
   }
   // The pointer alone changes nothing that is not already being drawn.
-  if (fresh || Object.keys(data).some((name) => name !== 'pointer' && name !== 'runs')) draw()
+  if (fresh || Object.keys(data).some((name) => !['pointer', 'held', 'runs'].includes(name))) draw()
   wake()
 }

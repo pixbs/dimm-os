@@ -260,7 +260,15 @@ const de: Dictionary = {
   view: 'Ansicht',
   waiting: 'Lädt',
   wallpaper: 'Hintergrund',
-  wallpapers: { passage: 'Passage', koi: 'Koi', dragonflies: 'Libellen', catfish: 'Welse' },
+  wallpapers: {
+    passage: 'Passage',
+    bouquet: 'Strauß',
+    koi: 'Koi',
+    dragonflies: 'Libellen',
+    contours: 'Höhenlinien',
+    catfish: 'Welse',
+    pond: 'Teich',
+  },
   window: 'Fenster',
   windows: 'Fenster',
 }

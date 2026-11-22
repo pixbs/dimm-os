@@ -1,5 +1,5 @@
 // Passage: dragonflies come in at the bottom left and leave at the top right, without end.
-import { type Grid, limb, PAPER } from './tones'
+import { type Grid, limb, PAPER, type Scene } from './tones'
 
 const DEG = Math.PI / 180
 // A dragonfly, in its own units along its body: head, thorax and tail, each from, to, a radius at either end and
@@ -72,13 +72,7 @@ export function fly(
     limb(grid, at(from, 0), at(to, 0), ra * size, rb * size, strength * shade, ink, true)
 }
 
-// A scene steps on the clock of the engine and paints in colour or not.
-export function passage(
-  grid: Grid,
-  width: number,
-  height: number,
-  random: () => number,
-): { step(pointer: number[] | null): void; paint(colour: boolean): void } {
+export function passage(grid: Grid, width: number, height: number, random: () => number): Scene {
   const way = Math.hypot(width, height)
   const ux = width / way
   const uy = -height / way
