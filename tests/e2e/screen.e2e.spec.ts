@@ -129,7 +129,7 @@ test.describe('Screen', () => {
     }
   })
 
-  test('holds Imprint, Privacy, Cookies and Preferences in its tray, as words, and no Lab, Rejected ideas or Bin', async ({
+  test('holds Preferences in its tray on a desk and the legal links on a phone, as words, and no Lab, Rejected ideas or Bin', async ({
     page,
   }) => {
     for (const size of [desk, phone]) {
@@ -137,9 +137,7 @@ test.describe('Screen', () => {
       await page.goto('/')
       const tray = page.locator('footer:visible a')
       await expect(tray).toHaveText(
-        size === desk
-          ? ['Imprint', 'Privacy', 'Cookies', 'Preferences']
-          : ['Imprint', 'Privacy', 'Cookies'],
+        size === desk ? ['Preferences'] : ['Imprint', 'Privacy', 'Cookies'],
       )
       await expect(tray.locator('svg')).toHaveCount(0)
       await expect(page.locator('body')).not.toContainText(/\bLab\b|Rejected ideas|\bBin\b/)

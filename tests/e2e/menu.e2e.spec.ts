@@ -112,7 +112,7 @@ test.describe('Menus on a desk', () => {
   test('each command acts', async ({ page }) => {
     const work = win(page, 'Work')
     const root = page.locator('html')
-    await page.getByRole('link', { name: 'Imprint' }).click()
+    await pick(page, ['Legal', 'Imprint'])
     await expect(win(page, 'Imprint')).toHaveAttribute('data-front', '')
 
     await pick(page, ['Window', 'Next window'])
