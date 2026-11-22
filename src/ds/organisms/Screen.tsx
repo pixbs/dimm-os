@@ -93,6 +93,8 @@ export type Task = {
   tile?: Tile | null
   front?: boolean
   minimised?: boolean
+  // It waits for an answer where it cannot be seen: the signal dot.
+  signal?: boolean
 }
 
 const TaskButton = m.create(Button)
@@ -145,7 +147,12 @@ export function Taskbar(props: {
       <Tasks
         button={(task) => ({
           id: task.id,
-          lead: mark(task, true),
+          lead: (
+            <>
+              {mark(task, true)}
+              {task.signal && <span className="dot" data-tone="signal" />}
+            </>
+          ),
           size: props.size,
           tone: task.front ? 'solid' : undefined,
         })}

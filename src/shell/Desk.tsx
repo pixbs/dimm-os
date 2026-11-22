@@ -507,10 +507,22 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }
 
   // A window opens at once and fills when its view arrives; without one, the address is the browser's to show.
-  async function open(to: typeof act, path: string, opener: Element | null, lost: () => void) {
+  async function open(
+    to: typeof act,
+    path: string,
+    opener: Element | null,
+    lost: () => void,
+    behind?: boolean,
+  ) {
     // Drawing it is a transition, so a slow device still answers the press that asked for it within a frame.
     startTransition(() =>
-      to({ type: 'open', path, opener, alone: document.documentElement.dataset.single === 'on' }),
+      to({
+        type: 'open',
+        path,
+        opener,
+        alone: document.documentElement.dataset.single === 'on',
+        behind,
+      }),
     )
     unloaded.current.delete(windowOf(path))
     if (desk.open.some((entry) => entry.view?.path === path)) return
@@ -538,11 +550,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }
 
   // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
-  // the start stand on the measured desk, so the question opens in front of them.
+  // the start stand on the measured desk, so the question opens in front of them. The window an address names stays
+  // in front, and the question waits behind it.
   const asking = useRef(false)
   const ask = useEffectEvent(() => {
     const here = view.window && windowOf(view.window.path) === '/cookies'
-    if (!view.visitor && !here && !answered()) void open(dispatch, '/cookies', null, () => {})
+    if (!view.visitor && !here && !answered())
+      void open(dispatch, '/cookies', null, () => {}, !!view.window)
   })
   useEffect(() => {
     if (!asking.current || !desk.desk || desk.starting.length) return

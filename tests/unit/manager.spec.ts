@@ -218,6 +218,40 @@ describe('the window manager', () => {
     expect(pulled.w).toBe(1440)
   })
 
+  it('opens a window behind the one in front: beside it where the room has space, else covered', () => {
+    const wide = after(start(view('/accessibility')), {
+      type: 'desk',
+      w: 1920,
+      h: 1000,
+      room: { x: 112, w: 1784 },
+    })
+    const beside = after(wide, { type: 'open', path: '/cookies', behind: true })
+    expect(beside.z).toEqual(['/cookies', '/accessibility'])
+    expect(front(beside)).toBe('/accessibility')
+    const own = box(beside, '/accessibility')
+    const asked = box(beside, '/cookies')
+    expect(asked.x).toBe(112 + 1784 - 440)
+    expect(asked.x).toBeGreaterThanOrEqual(own.x + own.w)
+
+    const narrow = after(
+      start(view('/accessibility')),
+      { type: 'desk', w: 1440, h: 820, room: { x: 112, w: 1304 } },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(front(narrow)).toBe('/accessibility')
+    expect(narrow.open.find((one) => one.path === '/cookies')?.covered).toBe(true)
+
+    // On a phone the drawer is the one behind; with no window in front it opens in front.
+    const drawer = after(
+      start(view('/accessibility')),
+      { type: 'desk', w: 390, h: 760 },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(stack(drawer)).toEqual(['/cookies', '/accessibility'])
+    const empty = after(start(null), { type: 'open', path: '/cookies', behind: true })
+    expect(front(empty)).toBe('/cookies')
+  })
+
   it('opens one window at a time when asked, closing the ones before', () => {
     const state = after(home(), { type: 'open', path: '/cv', alone: true })
 
