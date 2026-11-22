@@ -1,6 +1,13 @@
 'use client'
 
-import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
+import {
+  type CSSProperties,
+  type ReactNode,
+  type TransitionEvent,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import type { IconName } from '../atoms/Icon'
 import { Heading } from '../molecules/Heading'
@@ -26,17 +33,20 @@ type PlateProps = {
 }
 
 // A record screwed onto what it describes, in a bay: each screw comes out when pressed, with one left the plate swings
-// until its middle is straight under it, and with none it falls and the bay shows what it holds until it is put back.
+// until its middle is straight under it, with none it falls and the bay shows what it holds, and put back it returns
+// about the same screw in one move.
 export function Plate(props: PlateProps) {
   const [out, setOut] = useState<Corner[]>([])
   const [hang, setHang] = useState(0)
+  // The screw it last hung from, kept while it comes back so it turns about the same point.
+  const [by, setBy] = useState<Corner | null>(null)
+  const [closing, setClosing] = useState(false)
   const plate = useRef<HTMLDivElement>(null)
   const inside = useRef<HTMLDivElement>(null)
   // The focus follows only what the visitor did: into the bay when it falls, to a screw when it is back.
   const [moves, setMoves] = useState(0)
   const fallen = out.length === corners.length
   const half = Math.ceil(props.facts.length / 2)
-  const by = out.length >= 3 ? corners.find((corner) => !out.slice(0, 3).includes(corner)) : null
 
   useEffect(() => {
     if (!moves) return
@@ -53,8 +63,10 @@ export function Plate(props: PlateProps) {
       const across = whole.offsetWidth / 2 - (screw.offsetLeft + screw.offsetWidth / 2)
       const down = whole.offsetHeight / 2 - (screw.offsetTop + screw.offsetHeight / 2)
       setHang((Math.atan2(across, down) * 180) / Math.PI)
+      setBy(left[0])
     }
     if (!left.length) setMoves((count) => count + 1)
+    setClosing(false)
     setOut([...out, corner])
     // A screw that is out cannot be pressed again, so the focus goes on to one that is still in.
     plate.current!.querySelector<HTMLElement>(`[data-corner='${left[0]}']`)?.focus()
@@ -62,6 +74,13 @@ export function Plate(props: PlateProps) {
   const close = () => {
     setMoves((count) => count + 1)
     setOut([])
+    setClosing(true)
+  }
+  // Back at rest, it turns about its middle again.
+  const rest = (event: TransitionEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget || !closing) return
+    setClosing(false)
+    setBy(null)
   }
 
   return (
@@ -70,9 +89,10 @@ export function Plate(props: PlateProps) {
         aria-label={props.label}
         className="plate"
         data-by={by ?? undefined}
-        data-state={fallen ? 'fallen' : by ? 'hanging' : undefined}
+        data-state={fallen ? 'fallen' : closing ? 'closing' : by ? 'hanging' : undefined}
         data-surface="paper"
         inert={fallen}
+        onTransitionEnd={rest}
         ref={plate}
         role="group"
         style={{ '--hang': `${hang}deg` } as CSSProperties}

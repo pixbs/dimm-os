@@ -69,6 +69,41 @@ test.describe('About', () => {
     await expect(about(page).locator('.bay__inside')).toHaveAttribute('inert')
   })
 
+  test('keeps its place, hangs on its screw, and comes back in one move', async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/about', { waitUntil: 'networkidle' })
+    const bay = about(page).locator('.bay')
+    const height = () => bay.evaluate((element) => element.getBoundingClientRect().height)
+    const before = await height()
+    // The last screw's hole, where it sits on the plate before it turns.
+    const last = screw(page, 'bottom right')
+    const hole = (await last.boundingBox())!
+    for (const corner of ['top left', 'top right', 'bottom left']) await screw(page, corner).click()
+    await expect(plate(page)).toHaveAttribute('data-state', 'hanging')
+    await page.waitForTimeout(1200)
+    const box = (await last.boundingBox())!
+    expect(Math.abs(box.x + box.width / 2 - (hole.x + hole.width / 2))).toBeLessThan(1)
+    expect(Math.abs(box.y + box.height / 2 - (hole.y + hole.height / 2))).toBeLessThan(1)
+    expect(await height()).toBe(before)
+
+    await last.click()
+    await expect(plate(page)).toHaveAttribute('data-state', 'fallen')
+    await page.waitForTimeout(1200)
+    expect(await height()).toBe(before)
+
+    await about(page).getByRole('button', { name: 'Close it up' }).click()
+    await expect(plate(page)).toHaveAttribute('data-state', 'closing')
+    // It still turns about the screw it hung from, and is not at rest before the long move is over.
+    await expect(plate(page)).toHaveAttribute('data-by', 'br')
+    await page.waitForTimeout(700)
+    expect(await plate(page).evaluate((element) => getComputedStyle(element).transform)).not.toBe(
+      'none',
+    )
+    await expect(plate(page)).not.toHaveAttribute('data-state')
+    await expect(plate(page)).not.toHaveAttribute('data-by')
+    expect(await height()).toBe(before)
+  })
+
   test('swings on the last screw and falls; with reduced motion it stays straight and fades', async ({
     page,
   }) => {
