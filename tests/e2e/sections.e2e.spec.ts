@@ -119,8 +119,8 @@ test.describe('Sections', () => {
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/work')
     await grow(page).getByRole('link', { name: 'Grow' }).click()
+    await expect(grow(page).getByRole('heading', { level: 1, name: 'Grow' })).toBeVisible()
     await expect(grow(page).locator('.window__view')).toHaveCount(1)
-    await expect(grow(page).getByRole('heading', { level: 1 })).toHaveText('Grow')
 
     await expect(grow(page).locator('[data-enter], [data-decode]')).toHaveCount(0)
   })
