@@ -198,7 +198,7 @@ test.describe('Hotkeys on a desk', () => {
 })
 
 test.describe('The hotkeys hint in the taskbar', () => {
-  const hint = (page: Page) => page.locator('footer[data-for="desk"] .bar__text')
+  const hint = (page: Page) => page.locator('footer[data-for="desk"] .bar__text[data-for]')
 
   for (const [path, words, platform] of [
     ['/', 'Press ? for hotkeys', 'Win32'],
@@ -244,6 +244,6 @@ test.describe('The hotkeys hint to a finger', () => {
   test('is not shown on a tablet, which has no keys', async ({ page }) => {
     await page.goto('/')
     await expect(page.locator('footer[data-for="desk"]')).toBeVisible()
-    await expect(page.locator('footer[data-for="desk"] .bar__text')).toBeHidden()
+    await expect(page.locator('footer[data-for="desk"] .bar__text[data-for]')).toBeHidden()
   })
 })

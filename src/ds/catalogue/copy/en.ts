@@ -408,6 +408,7 @@ const en = {
       ['960 ms', 'The start hand-over; what swings or falls.'],
       ['80 ms', 'What took fast to arrive, leaving.'],
       ['160 ms', 'What took slow to arrive, leaving.'],
+      ['2000 ms', 'A note in place of the text it covers, as Link copied in the taskbar.'],
     ],
     curve: [
       'Curve',

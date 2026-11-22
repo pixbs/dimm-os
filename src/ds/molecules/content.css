@@ -14,15 +14,6 @@
   &[data-level='lead'] {
     gap: var(--s-1);
   }
-  /* Clipped away, not hidden: assistive technology still reads it, and it takes no room. */
-  &[data-unseen] {
-    position: absolute;
-    width: var(--b-1);
-    height: var(--b-1);
-    overflow: hidden;
-    white-space: nowrap;
-    clip-path: inset(50%);
-  }
 }
 .hgroup__eyebrow {
   margin: 0;
