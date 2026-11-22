@@ -204,6 +204,8 @@ const de: Dictionary = {
   nextWindow: 'Nächstes Fenster',
   nextWallpaper: 'Nächster Hintergrund',
   notFound: 'Fehler 404',
+  notFoundPicture: 'Die Ziffern 404 aus Punkten',
+  notFoundTitle: 'Nicht gefunden',
   nothingIn: 'Nichts in {filter}.',
   nothingMatches: 'Nichts passt zu „{q}“. Versuchen Sie es mit weniger Buchstaben.',
   open: 'Öffnen',

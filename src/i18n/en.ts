@@ -195,6 +195,8 @@ const en = {
   nextWindow: 'Next window',
   nextWallpaper: 'Next wallpaper',
   notFound: 'Error 404',
+  notFoundPicture: 'The numerals 404 in dots',
+  notFoundTitle: 'Not found',
   nothingIn: 'Nothing in {filter}.',
   nothingMatches: 'Nothing matches “{q}”. Try fewer letters.',
   open: 'Open',
