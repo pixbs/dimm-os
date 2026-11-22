@@ -1,7 +1,6 @@
 const en = {
   about: 'About {name}',
   aboutClose: 'Close it up',
-  aboutField: 'Field no. {field}',
   aboutFoot: 'Do not open. No user-serviceable parts inside.',
   // The marks stamped on the plate, each a name and what it says.
   aboutMarks: [
