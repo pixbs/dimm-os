@@ -4,6 +4,7 @@ import { type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 
+import type { commandsOf, SystemCommand } from './commands'
 import { type Action, compact, front, phone, type Windows } from './manager'
 import { tasksOf } from './OnDesk'
 
@@ -19,10 +20,9 @@ export function menus(props: {
   desk: Windows
   act: (action: Action) => void
   search: () => void
-  lock: () => void
-  shutDown: () => void
+  commands: ReturnType<typeof commandsOf>
 }): Top[] {
-  const { t, language, desk, act } = props
+  const { t, language, desk, act, commands } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
   const link = (path: string, label: string, hint?: keyof typeof systemKeys) => ({
     label,
@@ -40,6 +40,12 @@ export function menus(props: {
     link('/privacy-policy', t.privacy),
     link('/cookies', t.cookies),
   ]
+  // A command of the system, dimmed where it cannot act on the window in front.
+  const command = (name: SystemCommand) => ({
+    label: t[name],
+    act: () => commands[name].run(),
+    disabled: !commands[name].can(),
+  })
   // Placing a window needs a desk with room for it, and one that can change its size.
   const put = (label: string, where: 'left' | 'right' | 'fill' | 'centre') => ({
     label,
@@ -55,6 +61,10 @@ export function menus(props: {
       act: () => act({ type: 'close', path: top! }),
       disabled: !top,
     },
+    'rule',
+    command('copyLink'),
+    command('openInTab'),
+    command('download'),
   ]
   const view: Item[] = [
     {
@@ -78,6 +88,7 @@ export function menus(props: {
           act: () => change({ pitch }),
         })),
     },
+    command('nextWallpaper'),
   ]
   const window: Item[] = [
     {
@@ -86,6 +97,7 @@ export function menus(props: {
       act: () => act({ type: 'minimise' }),
       disabled: !desk.open.length,
     },
+    command('minimiseAll'),
     {
       label: t.nextWindow,
       hint: key('nextWindow'),
@@ -101,6 +113,8 @@ export function menus(props: {
         put(t.centre, 'centre'),
       ],
     },
+    'rule',
+    command('closeAll'),
     ...(desk.open.length ? ['rule' as const] : []),
     ...tasksOf(desk).map((task, at) => ({
       label: task.name,
@@ -122,8 +136,8 @@ export function menus(props: {
     link('/accessibility', t.accessibility),
     hotkeys,
     'rule',
-    { label: t.lock, act: props.lock },
-    { label: t.shutDown, act: props.shutDown },
+    command('lock'),
+    command('shutDown'),
     ...(phone(desk) ? (['rule', ...others, 'rule', ...legal] as Item[]) : []),
   ]
 

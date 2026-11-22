@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import { ascii, dots } from '@/ds/organisms/filters'
 import { BLUE, grid, limb, ORANGE, PAPER } from '@/ds/organisms/tones'
-import { step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
+import { following, step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
 
 // A few signs of the mono face as it measures at a pitch of 8: the ink in the eight parts of a cell.
 const face = [
@@ -51,5 +51,20 @@ describe('the wallpaper', () => {
     expect(steps).toHaveLength(each.reduce((all, one) => all + one, 0))
     expect(stepAt('301')).toBe(0)
     expect(stepAt('passage ascii')).toBe(3)
+  })
+})
+
+describe('the next wallpaper', () => {
+  const list = { koi: true, dragonflies: true, moths: false }
+
+  it('keeps the filter and the colour where the next has colours, and comes back to the first after the last', () => {
+    expect(following('koi ascii colour', list)).toBe('dragonflies ascii colour')
+    expect(following('dragonflies dots colour', list)).toBe('moths dots')
+    expect(following('moths ascii', list)).toBe('koi ascii')
+    expect(following('koi dots', list)).toBe('dragonflies dots')
+  })
+
+  it('stays on the one wallpaper of a list of one', () => {
+    expect(following('passage ascii colour')).toBe('passage ascii colour')
   })
 })

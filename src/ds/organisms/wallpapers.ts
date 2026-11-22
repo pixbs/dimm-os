@@ -30,3 +30,12 @@ export function stepAt(setting?: string | null) {
   const { wallpaper, filter, colour } = step(setting)
   return steps.indexOf(`${wallpaper} ${filter}${colour ? ' colour' : ''}`)
 }
+
+// The step after a setting's: the next wallpaper of the list, the first after the last, through the same filter, and
+// in colour where it was and the next has colours.
+export function following(setting?: string | null, list: Record<string, boolean> = wallpapers) {
+  const [wallpaper, filter, colour] = (setting ?? '').split(' ')
+  const names = Object.keys(list)
+  const next = names[(names.indexOf(wallpaper) + 1) % names.length]
+  return `${next} ${filter === 'ascii' ? 'ascii' : 'dots'}${colour === 'colour' && list[next] ? ' colour' : ''}`
+}

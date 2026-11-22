@@ -41,11 +41,11 @@ import { accessibilityWindow } from '@/system/Accessibility'
 import { cookiePreferencesWindow, cookiesWindow } from '@/system/Cookies'
 import { hotkeysWindow } from '@/system/Hotkeys'
 import { preferencesWindow } from '@/system/Preferences'
-import type { systemCommands } from '@/system/windows'
 
 import { Page } from './Aside'
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
+import { commandsOf } from './commands'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
 import { menus } from './menus'
@@ -452,20 +452,35 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
   }
 
+  // A link copied is said in the taskbar for a moment, in place of its hint; each copy counts the moment again.
+  const [noted, setNoted] = useState(0)
+  useEffect(() => {
+    if (!noted) return
+    const timer = setTimeout(() => setNoted(0), duration('note') * 1000)
+    return () => clearTimeout(timer)
+  }, [noted])
+
   // What the system's commands do, from its menu and from search as from the login screen.
-  const commands = {
+  const commands = commandsOf({
+    desk,
+    language,
+    act,
     lock: () => go('login'),
     replay: () => go('boot'),
     shutDown: () => void shutDown(go),
-  } satisfies Record<keyof typeof systemCommands, () => void>
+    copied: () => setNoted((count) => count + 1),
+  })
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     // Putting away a window of consent before answering it is a no.
-    const away = ['close', 'minimise', 'escape'].includes(action.type)
-    const of = ('path' in action && action.path) || front(desk)
-    if (away && of && windowOf(of) === '/cookies' && !answered()) decide([])
+    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll'].includes(action.type)
+    const all = action.type === 'closeAll' || action.type === 'minimiseAll'
+    const of = all
+      ? desk.open.map((one) => one.path)
+      : [('path' in action && action.path) || front(desk)]
+    if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
     if (action.type === 'desk' || after === desk) return
@@ -666,8 +681,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               name: view.site.name,
               desk,
               act,
-              lock: commands.lock,
-              shutDown: commands.shutDown,
+              commands,
               // Once the menu has closed and given the focus back to its button, which gets it again after.
               search: () => queueMicrotask(() => search(document.activeElement)),
             })}
@@ -806,11 +820,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         </div>
         <footer data-for="desk" data-surface="desktop">
           <Taskbar onPick={pick} size="chrome" tasks={tasks}>
-            <BarText data-for="wide pointer keys">
-              {before}
-              <Key name={named(language, systemKeys.hotkeys)} />
-              {after}
+            <BarText role="status">
+              {noted > 0 && <Decipher>{dictionary.linkCopied}</Decipher>}
             </BarText>
+            {!noted && (
+              <BarText data-for="wide pointer keys">
+                {before}
+                <Key name={named(language, systemKeys.hotkeys)} />
+                {after}
+              </BarText>
+            )}
             {[...legal, preferences].map((link) => (
               <ButtonLink key={link.href} {...link} size="chrome" />
             ))}
@@ -818,11 +837,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         </footer>
         <Search
           drawer={phone(desk)}
-          index={view.search}
+          index={view.search.filter((one) => !one.command || commands[one.command].can())}
           language={language}
           name={view.site.name}
           onClose={() => setSearching(null)}
-          onCommand={(command) => commands[command]()}
+          onCommand={(command) => commands[command].run()}
           open={!!searching}
           opener={searching?.opener ?? null}
           t={dictionary}
