@@ -485,11 +485,15 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     // Putting away a window of consent before answering it is a no.
-    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll'].includes(action.type)
+    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll', 'alone'].includes(
+      action.type,
+    )
     const all = action.type === 'closeAll' || action.type === 'minimiseAll'
     const of = all
       ? desk.open.map((one) => one.path)
-      : [('path' in action && action.path) || front(desk)]
+      : action.type === 'alone'
+        ? desk.open.map((one) => one.path).filter((path) => path !== front(desk))
+        : [('path' in action && action.path) || front(desk)]
     if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
@@ -625,6 +629,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       // A tab without storage remembers nothing past itself.
     }
   }, [desk, remember])
+
+  // Switched on, one window at a time acts on the windows already open, and on those a reload brings back.
+  const single = useSetting('single')
+  const was = useRef(single)
+  const alone = useEffectEvent(() => act({ type: 'alone' }))
+  useEffect(() => {
+    const switched = single === 'on' && was.current === 'off'
+    was.current = single
+    if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
+  }, [desk, single])
 
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
   function run(action: Action | 'search' | null, opener: Element | null) {

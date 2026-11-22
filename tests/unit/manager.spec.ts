@@ -225,6 +225,25 @@ describe('the window manager', () => {
     expect(state.z).toEqual(['/cv'])
   })
 
+  it('switched to one window at a time, keeps the one in front alone, back where nothing was dragged', () => {
+    const before = after(
+      home(),
+      { type: 'open', path: '/cv' },
+      { type: 'minimise', path: '/work' },
+      { type: 'move', path: '/cv', dx: 200, dy: 90 },
+    )
+    const state = after(before, { type: 'alone' })
+
+    expect(paths(state)).toEqual(['/cv'])
+    expect(state.z).toEqual(['/cv'])
+    expect(box(state, '/cv')).toEqual(
+      box(
+        after(start(null), { type: 'desk', w: 1440, h: 820 }, { type: 'open', path: '/cv' }),
+        '/cv',
+      ),
+    )
+  })
+
   it('answers the four commands of the Window menu: left half, right half, fill, centre', () => {
     const put = (where: 'left' | 'right' | 'fill' | 'centre', state = home()) =>
       box(manager(state, { type: 'put', where }), '/welcome')
