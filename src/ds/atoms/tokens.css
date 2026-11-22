@@ -142,6 +142,8 @@
   --m-turns: 8;
   /* what a window holds arrives part by part in reading order: the wait from one part to the next */
   --m-next: 40ms;
+  /* how many parts take a turn of their own: the rest arrive with the last, so a window is never slower than a short one */
+  --m-nexts: 8;
   /* a text decoded from its start: the time a letter takes, the most it takes, how many letters run ahead, and the
      share of that time a count beside it takes */
   --m-letter: 16ms;

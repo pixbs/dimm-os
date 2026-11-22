@@ -453,8 +453,8 @@ const de: Copy = {
     turnOpen: 'Öffnen',
     arrival: [
       'Ankunft',
-      'davor: Was da war, geht zusammen in fast-exit, auf exit | Titel: entschlüsselt | jeder andere Teil: steigt 8 px in slow, auf enter | nächster: 40 ms, in Lesereihenfolge',
-      'Was ein Fenster hält, kommt an, sobald das Fenster offen ist, und wenn es einen anderen Eintrag zeigt, sobald das, was es hielt, gegangen ist. Sein Titel, die erste Überschrift, wird entschlüsselt. Jeder andere Teil, Text, Zeilen, Fakten, die Box eines Bildes, ein Button, steigt 8 px an seinen Platz, während er einblendet, 40 ms nach dem Teil davor in Lesereihenfolge; was unter dem Rand liegt, kommt an, sobald es zum ersten Mal zu sehen ist. Karten in einem Raster und die Zeilen einer Liste kommen genauso an. Der Rahmen, die Titelleiste und die Buttons am Fuß bewegen sich nicht. Wo der Server die Seite gemalt hat, oder bei reduzierter Bewegung, ist alles sofort da.',
+      'davor: Was da war, geht zusammen in fast-exit, auf exit | Titel: entschlüsselt | jeder andere Teil: steigt 8 px in slow, auf enter | nächster: 40 ms, in Lesereihenfolge | höchstens: 8 Takte, der Rest mit dem achten',
+      'Was ein Fenster hält, kommt an, sobald das Fenster offen ist, und wenn es einen anderen Eintrag zeigt, sobald das, was es hielt, gegangen ist. Sein Titel, die erste Überschrift, wird entschlüsselt. Jeder andere Teil, Text, Zeilen, Fakten, die Box eines Bildes, ein Button, steigt 8 px an seinen Platz, während er einblendet, 40 ms nach dem Teil davor in Lesereihenfolge. Der achte und jeder spätere Teil kommen zusammen, sodass ein volles Fenster nie langsamer ist als ein kurzes, und was ohne Text gezeichnet ist, wie eine Uhr aus Lampen, kommt als Ganzes. Was unter dem Rand liegt, kommt an, sobald es zum ersten Mal zu sehen ist. Karten in einem Raster und die Zeilen einer Liste kommen genauso an. Der Rahmen, die Titelleiste und die Buttons am Fuß bewegen sich nicht. Wo der Server die Seite gemalt hat, oder bei reduzierter Bewegung, ist alles sofort da.',
     ],
     arrivalTitle: 'Ein Titel wird entschlüsselt',
     arrivalTexts: [

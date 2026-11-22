@@ -680,6 +680,37 @@ test.describe('What a window holds', () => {
     })
   }
 
+  test('arrives in a bounded time however many parts it holds, a clock of lamps as one', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    const preferences = page.locator('article[aria-label="Preferences"]')
+    // Every frame, when any part of Preferences is arriving or waiting, and whether a lamp arrives on its own.
+    await page.evaluate(() => {
+      const times: number[] = []
+      let lamp = false
+      Object.assign(window, { times, lamp: () => lamp })
+      requestAnimationFrame(function look(now) {
+        const view = document.querySelector('article[aria-label="Preferences"] .window__view')
+        if (view?.querySelector('[data-enter="in"], [data-decode]')) times.push(now)
+        lamp ||= !!view?.querySelector('.lamps [data-enter]')
+        requestAnimationFrame(look)
+      })
+    })
+    await page.keyboard.press(',')
+    const times = () => page.evaluate(() => Reflect.get(window, 'times') as number[])
+    await expect.poll(async () => (await times()).length).toBeGreaterThan(0)
+    await expect(preferences.locator('[data-enter="in"], [data-decode]')).toHaveCount(0, {
+      timeout: 15000,
+    })
+
+    const seen = await times()
+    // Seven turns of 40 ms and a rise over slow, with a few frames to spare.
+    expect(seen.at(-1)! - seen[0]).toBeLessThan(7 * 40 + 320 + 200)
+    expect(await page.evaluate(() => (Reflect.get(window, 'lamp') as () => boolean)())).toBe(false)
+  })
+
   test('settles the count beside the title in its digits alone', async ({ page }) => {
     await page.setViewportSize(screen)
     await page.goto('/work/grow', { waitUntil: 'networkidle' })
