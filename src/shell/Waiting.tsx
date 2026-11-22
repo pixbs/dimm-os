@@ -4,7 +4,6 @@ import { type FormEvent, type ReactNode, useEffect, useEffectEvent, useRef, useS
 
 import type { View } from '@/data/views'
 import { Icon } from '@/ds/atoms/Icon'
-import { useSetting } from '@/ds/atoms/useSetting'
 import { App } from '@/ds/molecules/App'
 import { Bar, BarSpace, BarText, BarTitle } from '@/ds/molecules/Bar'
 import { Button, ButtonLink } from '@/ds/molecules/Button'
@@ -15,7 +14,6 @@ import { Avatar } from '@/ds/molecules/Media'
 import { Row } from '@/ds/molecules/Row'
 import { curve, duration, reduced } from '@/ds/motion/vocabulary'
 import { Card } from '@/ds/organisms/Card'
-import { fieldOf } from '@/ds/organisms/form'
 import { MenuButton } from '@/ds/organisms/Menu'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
@@ -156,7 +154,6 @@ function Boot({ view, t, go }: Props) {
   const [share, setShare] = useState(0)
   const done = share >= 1
   const shown = Math.ceil(share * rows.length)
-  const field = fieldOf(useSetting('wallpaper'))
   const today = useMinute()
   const ended = useRef(false)
 
@@ -271,9 +268,7 @@ function Boot({ view, t, go }: Props) {
           <BarTitle>{done ? say(t.bootDone, { name: view.site.name }) : t.bootChecking}</BarTitle>
           <BarSpace />
           <BarText data-for="desk">{t.bootSkip}</BarText>
-          <BarText data-for="wide">
-            {[say(t.aboutField, { field }), date].filter(Boolean).join(' · ')}
-          </BarText>
+          {date && <BarText data-for="wide">{date}</BarText>}
           <Legal language={view.language} t={t} />
         </Bar>
       </footer>
