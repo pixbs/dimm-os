@@ -21,6 +21,8 @@ type Props = {
   open?: boolean
   // A state shown at rest, for the catalogue.
   state?: 'hover' | 'pressed' | 'focus'
+  // Shown on one kind of screen only.
+  screen?: 'phone' | 'desk'
 }
 
 // An icon on a tile with its name under it; the admin picks icon, name and tile.
@@ -35,6 +37,7 @@ export function App({
   selected,
   open,
   state,
+  screen,
 }: Props) {
   // A dot the server painted is there already; one that comes later pops.
   const painted = usePainted()
@@ -44,6 +47,7 @@ export function App({
     <Root
       aria-label={size ? name : undefined}
       className="app"
+      data-for={screen}
       data-size={size}
       data-state={state}
       href={href}

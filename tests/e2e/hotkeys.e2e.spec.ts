@@ -153,6 +153,5 @@ test.describe('The hotkeys window on a phone', () => {
     await expect(gestures.locator('.row:visible')).toHaveCount(5)
     await expect(gestures.getByText('Dimm OS, in the menu bar')).toBeVisible()
     await expect(gestures.getByText('Search everything')).toBeHidden()
-    await expect(page.locator('.dock')).toContainText('Gestures')
   })
 })

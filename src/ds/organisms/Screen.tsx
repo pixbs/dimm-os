@@ -7,7 +7,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
 import { Bar, BarSpace } from '../molecules/Bar'
-import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
+import { Button, ButtonLink } from '../molecules/Button'
 import { rise } from '../motion/Travels'
 import { usePainted } from '../motion/vocabulary'
 import { Wallpaper } from './Wallpaper'
@@ -66,6 +66,8 @@ export type Shortcut = {
   icon: IconName
   tile: Tile | null
   lang?: string
+  // Shown on one kind of screen only.
+  screen?: 'phone' | 'desk'
 }
 
 // The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for.
@@ -79,13 +81,13 @@ export function Apps(props: {
   return (
     <nav aria-label={props.label} className="apps" data-layout={props.layout} inert={props.inert}>
       {props.apps.map(({ tile, ...app }) => (
-        <App key={app.href} {...app} tile={tile ?? undefined} />
+        <App key={`${app.screen}${app.href}`} {...app} tile={tile ?? undefined} />
       ))}
     </nav>
   )
 }
 
-// A window as the taskbar and the dock show it: the window in front is selected, one minimised has a hollow mark.
+// A window as the taskbar shows it: the window in front is selected, one minimised has a hollow mark.
 export type Task = {
   // The id of its button, which its window travels to and back from.
   id?: string
@@ -101,8 +103,8 @@ const TaskButton = m.create(Button)
 // its window closes.
 function Tasks(props: {
   tasks: Task[]
+  size?: 'compact' | 'chrome'
   onPick?: (index: number, button: HTMLElement) => void
-  button: (task: Task) => Pick<ComponentProps<typeof Button>, 'id' | 'lead' | 'size' | 'tone'>
 }) {
   const painted = usePainted()
 
@@ -110,28 +112,29 @@ function Tasks(props: {
     <AnimatePresence initial={false}>
       {props.tasks.map((task, index) => (
         <TaskButton
-          {...props.button(task)}
           animate="open"
           aria-current={task.front || undefined}
           exit="closed"
+          id={task.id}
           initial="closed"
           key={task.id ?? index}
           label={task.name}
+          lead={
+            <span
+              className="mark"
+              data-surface={task.tile ?? undefined}
+              data-tone={task.minimised ? 'off' : undefined}
+            />
+          }
           onClick={props.onPick && ((event) => props.onPick!(index, event.currentTarget))}
+          size={props.size}
+          tone={task.front ? 'solid' : undefined}
           variants={painted ? undefined : rise}
         />
       ))}
     </AnimatePresence>
   )
 }
-
-const mark = (task: Task, coloured: boolean) => (
-  <span
-    className="mark"
-    data-surface={(coloured && task.tile) || undefined}
-    data-tone={task.minimised ? 'off' : undefined}
-  />
-)
 
 // The foot of a desk: one button per window, and the tray at its end.
 export function Taskbar(props: {
@@ -142,42 +145,9 @@ export function Taskbar(props: {
 }) {
   return (
     <Bar line="above">
-      <Tasks
-        button={(task) => ({
-          id: task.id,
-          lead: mark(task, true),
-          size: props.size,
-          tone: task.front ? 'solid' : undefined,
-        })}
-        onPick={props.onPick}
-        tasks={props.tasks}
-      />
+      <Tasks onPick={props.onPick} size={props.size} tasks={props.tasks} />
       <BarSpace />
       {props.children}
     </Bar>
-  )
-}
-
-// The taskbar of a phone: a button group with one cell per window, one step in from the edges.
-export function Dock(props: {
-  tasks: Task[]
-  label?: string
-  onPick?: (index: number, button: HTMLElement) => void
-}) {
-  return (
-    <nav aria-label={props.label} className="dock">
-      <div data-surface="window">
-        <ButtonGroup cells>
-          <Tasks
-            button={(task) => ({
-              lead: mark(task, false),
-              tone: task.front ? 'solid' : 'outline',
-            })}
-            onPick={props.onPick}
-            tasks={props.tasks}
-          />
-        </ButtonGroup>
-      </div>
-    </nav>
   )
 }

@@ -27,8 +27,8 @@ import { Tag } from '../molecules/Tag'
 import { WindowControls } from '../molecules/WindowControls'
 import { useArrival } from '../motion/enters'
 import { carry } from '../motion/Travels'
-import { curve, duration, reduced, spring, usePainted } from '../motion/vocabulary'
-import { Handle, rises, trap } from './Drawer'
+import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
+import { dims, Handle, rises, trap } from './Drawer'
 import { follow } from './follow'
 
 export type Box = { x: number; y: number; w: number; h: number }
@@ -155,9 +155,8 @@ export function Window(props: Props) {
   const root = useRef<HTMLElement>(null)
   const origin = useRef<HTMLDivElement>(null)
   const frame = useRef<HTMLDivElement>(null)
-  // How far down a drawer is, and how fast it was let go.
+  // How far down a drawer is.
   const y = useMotionValue('0%')
-  const flung = useRef(0)
   const [kept, setKept] = useState(false)
   const size = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
@@ -265,21 +264,12 @@ export function Window(props: Props) {
     if (painted) return
     if (drawer) return rises()
   }, [painted, drawer])
-  // A drawer behind steps back on the spring as the one in front rises.
+  // It moves and sizes as one piece; a drawer behind steps back as the one in front rises, and comes forward again.
   const travels = useMemo(() => {
     if (painted) return
-    return {
-      layout: drawer ? spring('slow') : { duration: duration('slow'), ease: curve('standard') },
-    }
-  }, [painted, drawer])
-  const scrim = useMemo(() => {
-    if (painted) return
-    const fades = (opacity: number) => () => ({
-      opacity,
-      transition: { duration: duration('slow'), ease: curve('standard') },
-    })
-    return { open: fades(1), kept: fades(1), closed: fades(0), away: fades(0) }
+    return { layout: { duration: duration('slow'), ease: curve('standard') } }
   }, [painted])
+  const scrim = useMemo(() => (painted ? undefined : dims()), [painted])
   // A view that is replaced leaves first, all of it together.
   const views = useMemo(() => {
     if (painted) return
@@ -347,10 +337,9 @@ export function Window(props: Props) {
     event.preventDefault()
   }
 
-  // A drawer goes away by its handle, its scrim or Esc, and the focus goes back to what opened it.
-  function putAway(speed = 0) {
-    flung.current = speed
-    flushSync(() => act!({ type: 'minimise' }))
+  // A drawer goes away by its handle, its scrim or Esc, closed, and the focus goes back to what opened it.
+  function putAway() {
+    flushSync(() => act!({ type: 'close' }))
     if (opener instanceof HTMLElement) opener.focus({ preventScroll: true })
   }
   const state = away ? 'away' : kept ? 'kept' : 'open'
@@ -430,7 +419,6 @@ export function Window(props: Props) {
         }}
         ref={origin}
         role={modal ? 'dialog' : undefined}
-        custom={flung}
         style={{ y }}
         variants={frames}
       >
@@ -449,7 +437,7 @@ export function Window(props: Props) {
               height={() => origin.current!.offsetHeight}
               label={t.close}
               // A drawer that is only shown, with nothing to put it away, springs back.
-              leave={(speed) => (modal ? putAway(speed) : setKept((kept) => !kept))}
+              leave={() => (modal ? putAway() : setKept((kept) => !kept))}
               stay={() => setKept((kept) => !kept)}
               y={y}
             />

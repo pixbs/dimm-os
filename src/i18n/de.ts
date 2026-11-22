@@ -141,7 +141,7 @@ const de: Dictionary = {
       'Ein Fenster weglegen',
       'Den Griff nach unten ziehen, ihn drücken oder neben das Fenster tippen',
     ],
-    ['Wieder öffnen', 'Seine Schaltfläche im Dock'],
+    ['Wieder öffnen', 'Seine App auf dem Desktop'],
     ['Einen Schritt zurück', 'Der Pfeil am Anfang seiner Leiste'],
     ['Suche', 'Die Lupe in der Menüleiste'],
     ['Das System', '{name} in der Menüleiste'],
