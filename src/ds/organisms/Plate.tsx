@@ -89,7 +89,15 @@ export function Plate(props: PlateProps) {
         aria-label={props.label}
         className="plate"
         data-by={by ?? undefined}
-        data-state={fallen ? 'fallen' : closing ? 'closing' : by ? 'hanging' : undefined}
+        data-state={
+          fallen
+            ? 'fallen'
+            : closing
+              ? 'closing'
+              : out.length === corners.length - 1
+                ? 'hanging'
+                : undefined
+        }
         data-surface="paper"
         inert={fallen}
         onTransitionEnd={rest}
