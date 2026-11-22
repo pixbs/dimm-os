@@ -90,10 +90,12 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
   })
 
   test('Next wallpaper keeps the filter and the colour', async ({ page }) => {
-    await page.addInitScript(() => localStorage.setItem('wallpaper', 'passage ascii'))
+    await page.addInitScript(() => localStorage.setItem('wallpaper', 'koi ascii colour'))
     await page.goto('/work', { waitUntil: 'networkidle' })
     await (await row(page, ['View', 'Next wallpaper'])).click()
-    await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'passage ascii')
+    await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'dragonflies ascii colour')
+    await (await row(page, ['View', 'Next wallpaper'])).click()
+    await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'catfish ascii')
   })
 
   test('search finds each under its name in both languages, and only where it can run', async ({

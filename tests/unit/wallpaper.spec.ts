@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
+import { catfish } from '@/ds/organisms/catfish'
+import { dragonflies } from '@/ds/organisms/dragonflies'
 import { ascii, dots } from '@/ds/organisms/filters'
-import { BLUE, grid, limb, ORANGE, PAPER } from '@/ds/organisms/tones'
+import { koi } from '@/ds/organisms/koi'
+import { BLUE, grid, limb, ORANGE, PAPER, seeded } from '@/ds/organisms/tones'
 import { following, step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
 
 // A few signs of the mono face as it measures at a pitch of 8: the ink in the eight parts of a cell.
@@ -52,6 +55,31 @@ describe('the wallpaper', () => {
     expect(stepAt('301')).toBe(0)
     expect(stepAt('passage ascii')).toBe(3)
   })
+
+  it('offers Catfish in dots and in signs, never in colour', () => {
+    expect(steps.filter((one) => one.startsWith('catfish'))).toEqual([
+      'catfish dots',
+      'catfish ascii',
+    ])
+  })
+
+  it.each([
+    ['koi', koi],
+    ['dragonflies', dragonflies],
+    ['catfish', catfish],
+  ])('pours the same ink into %s after the same ticks from the same start', (_, scene) => {
+    const run = () => {
+      const tones = grid(400, 300, 8)
+      const shown = scene(tones, 400, 300, seeded(299))
+      for (let tick = 0; tick < 240; tick++) shown.step(tick < 120 ? [200, 150] : null)
+      shown.paint(true)
+      return tones
+    }
+    const [one, two] = [run(), run()]
+    expect(one.tones.some((tone) => tone > 0)).toBe(true)
+    expect(two.tones).toEqual(one.tones)
+    expect(two.inks).toEqual(one.inks)
+  })
 })
 
 describe('the next wallpaper', () => {
@@ -60,10 +88,15 @@ describe('the next wallpaper', () => {
     names.forEach((name, at) => {
       const next = names[(at + 1) % names.length]
       expect(following(`${name} ascii colour`)).toBe(
-        `${next} ascii${wallpapers[next] ? ' colour' : ''}`,
+        `${next} ascii${wallpapers[name] && wallpapers[next] ? ' colour' : ''}`,
       )
       expect(following(`${name} dots`)).toBe(`${next} dots`)
     })
+  })
+
+  it('goes from Koi, ASCII, in colour to Dragonflies in ASCII and in colour, and from colour to one without', () => {
+    expect(following('koi ascii colour')).toBe('dragonflies ascii colour')
+    expect(following('dragonflies dots colour')).toBe('catfish dots')
   })
 
   it('reads the field number of an earlier visit as the step it shows', () => {

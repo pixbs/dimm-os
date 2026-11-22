@@ -266,7 +266,7 @@ const en = {
   view: 'View',
   waiting: 'Loading',
   wallpaper: 'Wallpaper',
-  wallpapers: { passage: 'Passage' },
+  wallpapers: { passage: 'Passage', koi: 'Koi', dragonflies: 'Dragonflies', catfish: 'Catfish' },
   window: 'Window',
   windows: 'Windows',
 }

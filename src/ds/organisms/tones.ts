@@ -90,3 +90,11 @@ export function seeded(seed: number) {
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296
   }
 }
+
+// The shortest turn from one way to another, in radians, as a creature of a scene turns.
+export function between(from: number, to: number) {
+  let turn = to - from
+  while (turn > Math.PI) turn -= 2 * Math.PI
+  while (turn < -Math.PI) turn += 2 * Math.PI
+  return turn
+}
