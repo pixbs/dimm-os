@@ -674,8 +674,8 @@ const de: Copy = {
     ],
     row: [
       'Zeile',
-      'Anfang: keiner · Index · Icon · Bild · Punkt · Schalter | Seite: keine · Index + Titel + Text | Hauptteil: Titel · Titel + Text · Label + Wert | Label: daneben · darüber | Meta: Mono-Text | Ende: Icon · Tag · Schalter · Button | Verhalten: statisch · Link · Button, der an Ort und Stelle aufklappt | Maßstab: body · heading | Dichte: regular 48 · compact 32 | Zustand: default · hover · pressed · current · selected · focus · disabled',
-      'Eine Zeile ist mindestens ein Bedienelement hoch und wächst mit ihrem Text. Die Plätze richten sich an der ersten Textzeile aus. Die Haarlinie ist auf beiden Seiten um 16 eingerückt, die Hover-Fläche nicht, so bleibt der Text auf der Fluchtlinie und die Fläche hat Raum. Ein Label nimmt ein Drittel der Zeile und ist so groß wie sein Wert. In einer Spalte, zu schmal für beide, steht das Label über seinem Wert. Eine Seite nimmt dasselbe Drittel, wenn ein Eintrag neben dem, was er sagt, einen Namen braucht. In einem kompakten Fenster wird die Seite zur ersten Zeile, mit dem Ende an ihrem Schluss. Labels und Werte brechen um; abgeschnitten wird nichts. Selected ist die umgekehrte Zeile. Current ist die gedrückte Fläche, gehalten: Sie sagt, wo man in einer Liste steht, die irgendwohin führt. Ein Punkt im Einzug vor dem Text zeigt sie ohne Farbe.',
+      'Anfang: keiner · Index · Icon · Bild · Punkt · Schalter · Avatar | Ausrichtung: erste Zeile · Mitte | Seite: keine · Index + Titel + Text | Hauptteil: Titel · Titel + Text · Label + Wert | Label: daneben · darüber | Meta: Mono-Text | Ende: Icon · Tag · Schalter · Button | Verhalten: statisch · Link · Button, der an Ort und Stelle aufklappt | Maßstab: body · heading | Dichte: regular 48 · compact 32 | Zustand: default · hover · pressed · current · selected · focus · disabled',
+      'Eine Zeile ist mindestens ein Bedienelement hoch und wächst mit ihrem Text. Die Plätze richten sich an der ersten Textzeile aus, oder neben einem Anfang, der höher als eine Zeile ist, wie einem Avatar, an seiner Mitte. Die Haarlinie ist auf beiden Seiten um 16 eingerückt, die Hover-Fläche nicht, so bleibt der Text auf der Fluchtlinie und die Fläche hat Raum. Ein Label nimmt ein Drittel der Zeile und ist so groß wie sein Wert. In einer Spalte, zu schmal für beide, steht das Label über seinem Wert. Eine Seite nimmt dasselbe Drittel, wenn ein Eintrag neben dem, was er sagt, einen Namen braucht. In einem kompakten Fenster wird die Seite zur ersten Zeile, mit dem Ende an ihrem Schluss. Labels und Werte brechen um; abgeschnitten wird nichts. Selected ist die umgekehrte Zeile. Current ist die gedrückte Fläche, gehalten: Sie sagt, wo man in einer Liste steht, die irgendwohin führt. Ein Punkt im Einzug vor dem Text zeigt sie ohne Farbe.',
     ],
     caps: [
       'Anfang · Titel und Text · Meta · Ende',
@@ -928,6 +928,7 @@ const de: Copy = {
     appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'Kachel: raised · orange · blue · mint · paper',
+    tileCap: 'kompakte Kachel allein, vor einer Zeile der Einstellungen',
     name: 'Name',
     longName: 'Ein längerer Name',
     path: [
@@ -1493,6 +1494,7 @@ const de: Copy = {
       'an einem Button: darunter, bündig mit seinem Ende',
       'Touch: reguläre Zeilen',
       'auf einem kompakten Bildschirm: eine Schublade davor',
+      'auf einem Telefon ist das Systemmenü ein Bildschirm der Einstellungen: Gruppen von Zeilen, jede mit einer kompakten Kachel davor',
     ],
     dialog: [
       'Dialog',

@@ -6,6 +6,7 @@ import { named } from '@/i18n/keys'
 import { Button } from '../molecules/Button'
 import { ForDevice } from '../molecules/Key'
 import { Link } from '../molecules/Link'
+import { Avatar } from '../molecules/Media'
 import { Row } from '../molecules/Row'
 import { Tag } from '../molecules/Tag'
 import { Toggle } from '../molecules/Toggle'
@@ -99,6 +100,12 @@ export function Rows({ t, language }: Props) {
             <Row lead={<span className="dot" data-tone="signal" />} title={t.title} />
             <Row lead={<Toggle defaultChecked kind="check" />} title={t.title} toggles />
             <Row lead={<Toggle defaultChecked kind="radio" />} title={t.title} toggles />
+            <Row
+              lead={<Avatar surface="raised">{t.title[0]}</Avatar>}
+              meta={t.meta}
+              middle
+              title={t.title}
+            />
           </List>
         </Cap>
         <Cap label={caps[4]}>

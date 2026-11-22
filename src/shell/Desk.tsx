@@ -47,7 +47,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
-import { languageMenu, legalMenu, menus, themeMenu } from './menus'
+import { languageMenu, legalLinks, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
@@ -708,7 +708,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               desk,
               act,
               commands,
-              legal: legalMenu(dictionary, language, view.search),
+              legal: legalLinks(dictionary, language, view.search),
+              visitor: view.visitor?.name ?? null,
+              login: () => go('login'),
               theme,
               languages: languageChoices,
               // Once the menu has closed and given the focus back to its button, which gets it again after.

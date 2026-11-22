@@ -53,6 +53,15 @@ export type Top = {
   lead?: ReactNode
   for?: string
   items: Item[]
+  // What a drawer shows in place of the rows, given what closes it and what opens its rows' submenus in front.
+  screen?: (menus: Screen) => ReactNode
+}
+
+// What a screen in a drawer is given: its rows' submenus open by their place among the menu's rows.
+export type Screen = {
+  done: () => void
+  open: (at: number, from: Element) => void
+  expanded: (at: number) => boolean
 }
 
 // The open menus, one a level: which row opened each, the element it was opened from, and whether it took the place of
@@ -225,6 +234,7 @@ function Level(props: {
   label: string
   depth: number
   end?: boolean
+  screen?: Top['screen']
   menus: Context
 }) {
   const { open, items, label, depth, menus } = props
@@ -240,7 +250,7 @@ function Level(props: {
   )
 
   if (menus.drawer) {
-    return (
+    const drawer = (
       <Dialog
         back={menus.chain.length - 1 - depth}
         bar
@@ -252,8 +262,38 @@ function Level(props: {
         shown={menus.shown}
         t={menus.t}
       >
-        {open && list()}
+        {open &&
+          (props.screen
+            ? props.screen({
+                done: menus.done,
+                open: (at, from) => menus.open(depth + 1, at, from),
+                expanded: (at) => menus.chain[depth + 1]?.at === at,
+              })
+            : list())}
       </Dialog>
+    )
+    const subs = props.screen && (typeof items === 'function' ? items() : items)
+    // A screen's submenus are drawers in front of it, as those of a menu are.
+    return subs ? (
+      <>
+        {drawer}
+        {subs.map(
+          (item, at) =>
+            item !== 'rule' &&
+            item.items && (
+              <Level
+                depth={depth + 1}
+                items={item.items}
+                key={at}
+                label={item.label}
+                menus={menus}
+                open={menus.chain[depth + 1]?.at === at}
+              />
+            ),
+        )}
+      </>
+    ) : (
+      drawer
     )
   }
   // Closed while another menu is open at its level, it gave that one its place: it goes in the same frame.
@@ -407,6 +447,7 @@ export function MenuBar(props: Shared & { label: string; menus: Top[]; children?
               items={menu.items}
               label={menu.name}
               open={chain[0]?.at === index}
+              screen={menu.screen}
             />
           </span>
         ))}

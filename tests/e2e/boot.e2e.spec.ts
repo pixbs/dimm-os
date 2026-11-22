@@ -154,7 +154,10 @@ test.describe('Lock screen on a phone', () => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await expect(page.locator('#window-cookies')).toHaveAttribute('data-front')
     await page.getByRole('menubar').getByRole('menuitem', { name: 'Dimm OS' }).click()
-    await page.getByRole('menuitem', { name: 'Lock screen' }).click()
+    await page
+      .getByRole('dialog', { name: 'Dimm OS' })
+      .getByRole('button', { name: 'Lock screen' })
+      .click()
     await expect(boot(page)).toBeVisible()
     // Hit testing passes over what is inert, so the desk is let back in to find what lies on top.
     const covered = await page.evaluate(() => {
