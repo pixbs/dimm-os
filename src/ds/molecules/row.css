@@ -157,6 +157,11 @@
 .row[data-scale='heading'] > .row__main > .row__title {
   font: var(--f-heading);
   letter-spacing: calc(var(--tk-heading) + var(--k-wide));
+
+  /* What follows a large title stands a step further from it than its own lines, so it is not read as one of them. */
+  & + * {
+    margin-block-start: var(--s-2);
+  }
 }
 /* A picture as the lead: as high as a regular row, an empty one shows the dot grid. */
 .row__media {
