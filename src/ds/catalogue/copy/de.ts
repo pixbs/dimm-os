@@ -1266,7 +1266,7 @@ const de: Copy = {
     plate: [
       'Typenschild',
       'Fläche: paper | Teile: vier Schrauben · eine Akte | Zustand: fest · hängend · gefallen',
-      'Eine Akte, auf das geschraubt, was sie beschreibt, in einem Fach. Vier Schrauben halten sie, und jede kommt heraus, wenn man sie drückt. Mit einer letzten hängt das Schild daran, seine Mitte genau unter der Schraube. Ohne Schraube fällt es, und das Fach zeigt, was es birgt. Wie weit es schwingt, hängt von seiner Größe ab, also ist der Winkel eine Einstellung des Bildschirms.',
+      'Eine Akte, auf das geschraubt, was sie beschreibt, in einem Fach. Vier Schrauben halten sie, und jede kommt heraus, wenn man sie drückt. Mit einer letzten hängt das Schild daran, seine Mitte genau unter der Schraube. Ohne Schraube fällt es, und das Fach zeigt, was es birgt. Zurückgesetzt drehen sich alle vier Schrauben zugleich ein, und es kehrt in einer Bewegung zurück. Seinen Platz im Fach behält es dabei immer. Wie weit es schwingt, hängt von seiner Größe ab, also ist der Winkel eine Einstellung des Bildschirms.',
     ],
     plateCaps: ['eine Akte unter vier Schrauben: Drücken Sie eine, um sie herauszudrehen'],
     plateWords: {
