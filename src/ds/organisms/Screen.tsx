@@ -27,7 +27,7 @@ export function Screen({
   fill?: boolean
   // A screen that waits (starting up, locked, shut down) stands over the desk until it hands over.
   waiting?: boolean
-  // Its wallpaper pours in when it arrives.
+  // Its wallpaper is drawn once it arrives.
   wallpaper?: boolean
 }) {
   return (

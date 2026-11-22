@@ -3,6 +3,7 @@
 import type { AboutView } from '@/data/views'
 import { useSetting } from '@/ds/atoms/useSetting'
 import { Card } from '@/ds/organisms/Card'
+import { fieldOf } from '@/ds/organisms/form'
 import { Live } from '@/ds/organisms/Live'
 import { Message } from '@/ds/organisms/Message'
 import { Plate } from '@/ds/organisms/Plate'
@@ -22,7 +23,7 @@ const say = (text: string, values: Record<string, string | number>) =>
 
 function Body({ t, about, width }: Props) {
   // The serial is the wallpaper's field, as Preferences sets it.
-  const field = useSetting('wallpaper') ?? '299'
+  const field = fieldOf(useSetting('wallpaper'))
   const code = about.name.toLocaleUpperCase().replaceAll(' ', '/')
   const { picture, title, text, actions } = about.inside
 

@@ -19,27 +19,47 @@ const legal = {
   ],
 }
 
-type Draw = { at: number; dots: number; ink: number; x: number; y: number }
+type Draw = {
+  at: number
+  dots: number
+  signs: number
+  inks: string[]
+  ink: number
+  x: number
+  y: number
+}
 
-// Runs in the wallpaper's worker before its own script: every drawing is counted with its dots and the middle
-// of their ink, and every frame with what it cost.
+// Runs in the wallpaper's worker before its own script: every drawing is counted with its dots, its signs, its inks
+// and the middle of its ink, and every frame with what it cost.
 function watch() {
   const draws: Draw[] = []
   const costs: number[] = []
   Object.assign(self, { draws, costs })
   const canvas = OffscreenCanvasRenderingContext2D.prototype
-  const { clearRect, arc } = canvas
+  const { clearRect, arc, fillText } = canvas
+  // The small canvas the face is measured on is no drawing.
+  const shown = (context: OffscreenCanvasRenderingContext2D) => context.canvas.width > 100
+  const inked = (context: OffscreenCanvasRenderingContext2D) => {
+    const draw = draws.at(-1)!
+    if (!draw.inks.includes(String(context.fillStyle))) draw.inks.push(String(context.fillStyle))
+    return draw
+  }
   canvas.clearRect = function (...box) {
-    draws.push({ at: performance.now(), dots: 0, ink: 0, x: 0, y: 0 })
+    if (shown(this))
+      draws.push({ at: performance.now(), dots: 0, signs: 0, inks: [], ink: 0, x: 0, y: 0 })
     return clearRect.apply(this, box)
   }
   canvas.arc = function (x, y, radius, ...rest) {
-    const draw = draws.at(-1)!
+    const draw = inked(this)
     draw.dots += 1
     draw.ink += radius * radius
     draw.x += x * radius * radius
     draw.y += y * radius * radius
     return arc.call(this, x, y, radius, ...rest)
+  }
+  canvas.fillText = function (...text) {
+    if (shown(this)) inked(this).signs += 1
+    return fillText.apply(this, text)
   }
   const frame = self.requestAnimationFrame.bind(self)
   self.requestAnimationFrame = (callback) =>
@@ -76,12 +96,6 @@ const drawn = (page: Page) =>
   page.workers()[0].evaluate(() => (Reflect.get(self, 'draws') as Draw[]).splice(0))
 const costs = (page: Page) =>
   page.workers()[0].evaluate(() => (Reflect.get(self, 'costs') as number[]).splice(0))
-// Where the middle of the form's ink stands, in the last drawing of a moment.
-const middle = async (page: Page, wait = 0) => {
-  await page.waitForTimeout(wait)
-  const last = (await drawn(page)).at(-1)!
-  return { x: last.x / last.ink, y: last.y / last.ink }
-}
 // How many drawings a second the wallpaper makes now.
 const rate = async (page: Page) => {
   await drawn(page)
@@ -227,58 +241,84 @@ test.describe('Wallpaper', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
   })
 
-  test('pours in at the start, at 30 frames a second at most', async ({ page }) => {
+  test('shows Passage from the start, at 30 frames a second at most', async ({ page }) => {
     await open(page)
     await page.waitForTimeout(2000)
     const draws = await drawn(page)
 
-    // All its ink starts in the middle, and spreads into the form.
-    expect(draws[0].dots).toBeLessThanOrEqual(4)
-    expect(draws.at(-1)!.dots).toBeGreaterThan(500)
+    expect(draws[0].dots).toBeGreaterThan(100)
     const second = draws.filter(({ at }) => at > draws[0].at + 1000 && at <= draws[0].at + 2000)
     expect(second.length).toBeLessThanOrEqual(31)
     expect(second.length).toBeGreaterThan(20)
   })
 
-  test('drifts slowly enough to look still at a glance', async ({ page }) => {
-    await open(page)
-    const start = await middle(page, 2000)
-    const end = await middle(page, 4000)
-    const moved = Math.hypot(end.x - start.x, end.y - start.y)
-
-    expect(moved).toBeGreaterThan(2)
-    expect(moved / 4).toBeLessThan(6)
-  })
-
-  test('leans toward the pointer over the empty desk, and not over what lies on it', async ({
+  test('is drawn in dots or in signs, in colour at the strength of muted and without at that of a line', async ({
     page,
   }) => {
     await open(page)
-    await page.mouse.move(640, 700)
-    const before = await middle(page, 2000)
+    const canvas = page.locator('.wallpaper canvas')
 
-    await page.mouse.move(300, 100, { steps: 4 })
-    const leant = await middle(page, 2000)
-    expect(leant.x - before.x).toBeLessThan(-12)
-    expect(leant.y - before.y).toBeLessThan(-12)
-
-    await page.getByRole('link', { name: 'Work' }).hover()
-    const back = await middle(page, 2000)
-    expect(back.x - leant.x).toBeGreaterThan(12)
-    expect(back.y - leant.y).toBeGreaterThan(12)
+    for (const [step, strength] of [
+      ['passage dots colour', '0.64'],
+      ['passage dots', '0.16'],
+      ['passage ascii colour', '0.64'],
+      ['passage ascii', '0.16'],
+      // A field number of an earlier visit is the default.
+      ['301', '0.64'],
+    ]) {
+      await page.evaluate((step) => (document.documentElement.dataset.wallpaper = step), step)
+      await expect(canvas, step).toHaveCSS('opacity', strength)
+      await page.waitForTimeout(500)
+      const last = (await drawn(page)).at(-1)!
+      const signs = step.includes('ascii')
+      expect(last.dots > 0, step).toBe(!signs)
+      expect(last.signs > 0, step).toBe(signs)
+      expect(last.inks.length > 1, step).toBe(strength === '0.64')
+    }
   })
 
-  test('pours to its new place as the field turns', async ({ page }) => {
+  test('starts afresh on another dot', async ({ page }) => {
     await open(page)
-    const before = await middle(page, 2000)
-    await page.evaluate(() => (document.documentElement.dataset.wallpaper = '999'))
-    await page.waitForTimeout(2000)
-    const draws = (await drawn(page)).map((draw) => draw.x / draw.ink)
-    const after = draws.at(-1)!
+    await page.waitForTimeout(1000)
+    // Held still, it is drawn once for each change, so the last drawing is the scene as it stands.
+    const stands = async (name: string, value: string) => {
+      await page.evaluate(
+        ([name, value]) => (document.documentElement.dataset[name] = value),
+        [name, value],
+      )
+      await page.waitForTimeout(300)
+      const { at: _, ...last } = (await drawn(page)).at(-1)!
+      return last
+    }
+    const moved = await stands('pause', 'on')
+    await stands('pitch', '12')
+    const fresh = await stands('pitch', '8')
 
-    expect(after - before.x).toBeGreaterThan(150)
-    // It flows there: some drawings stand on the way.
-    expect(draws.some((x) => x > before.x + 30 && x < after - 30)).toBe(true)
+    expect(fresh).not.toEqual(moved)
+    await stands('pitch', '12')
+    expect(await stands('pitch', '8')).toEqual(fresh)
+  })
+
+  test('reads the pointer over the desk, not through a window', async ({ page }) => {
+    await page.addInitScript(() => {
+      const pointers: unknown[] = []
+      Object.assign(window, { pointers })
+      window.Worker = class extends window.Worker {
+        postMessage(message: unknown, transfer?: Transferable[] | StructuredSerializeOptions) {
+          if (message && typeof message === 'object' && 'pointer' in message)
+            pointers.push(message.pointer)
+          super.postMessage(message, transfer as StructuredSerializeOptions)
+        }
+      }
+    })
+    await open(page, '/work')
+    const last = () => page.evaluate(() => (Reflect.get(window, 'pointers') as unknown[]).at(-1))
+
+    await page.getByRole('link', { name: 'Services' }).hover()
+    expect(await last()).toHaveLength(2)
+    const box = (await page.locator('main article').boundingBox())!
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+    expect(await last()).toBeNull()
   })
 
   test('holds still under reduced motion and under pause, and stops while hidden or covered', async ({
@@ -287,6 +327,13 @@ test.describe('Wallpaper', () => {
     await open(page)
     await page.waitForTimeout(1000)
     expect(await rate(page)).toBeGreaterThan(20)
+    // Two pictures of the desk a second apart.
+    const pictures = async () => {
+      const before = await page.locator('main').screenshot()
+      await page.waitForTimeout(1000)
+      return before.equals(await page.locator('main').screenshot())
+    }
+    expect(await pictures()).toBe(false)
 
     for (const [name, value] of [
       ['motion', 'reduce'],
@@ -298,7 +345,8 @@ test.describe('Wallpaper', () => {
       )
       await page.waitForTimeout(200)
       expect(await rate(page), name).toBe(0)
-      // A pointer over the desk draws nothing on a form that holds still.
+      expect(await pictures(), name).toBe(true)
+      // A pointer over the desk draws nothing on a scene that holds still.
       await page.mouse.move(300, 300, { steps: 8 })
       await page.waitForTimeout(200)
       expect(await drawn(page), name).toEqual([])
@@ -319,6 +367,19 @@ test.describe('Wallpaper', () => {
     expect(await rate(page)).toBeGreaterThan(20)
   })
 
+  test('is not drawn as a plain wallpaper', async ({ page }) => {
+    await open(page)
+    const canvas = page.locator('.wallpaper canvas')
+    await expect(canvas).toHaveCount(1)
+
+    await page.evaluate(() => (document.documentElement.dataset.plain = 'on'))
+    await expect(canvas).toHaveCount(0)
+    await expect.poll(() => page.workers().length).toBe(0)
+    await page.evaluate(() => (document.documentElement.dataset.plain = 'off'))
+    await expect(canvas).toHaveCount(1)
+    await expect.poll(() => page.workers().length).toBe(1)
+  })
+
   test('stops under a window in full screen, which covers the apps with it', async ({ page }) => {
     await open(page, '/work')
     await page.waitForTimeout(1000)
@@ -335,10 +396,10 @@ test.describe('Wallpaper', () => {
     expect(await rate(page)).toBeGreaterThan(20)
   })
 
-  test('pours in without an error when a message comes before its first setting, as when a tab opened hidden is shown', async ({
+  test('is drawn without an error when a message comes before its first setting, as when a tab opened hidden is shown', async ({
     page,
   }) => {
-    // Right after the canvas the page sends what a hidden tab sends once shown, and a lean.
+    // Right after the canvas the page sends what a hidden tab sends once shown, and a pointer.
     await page.addInitScript(() => {
       const errors: string[] = []
       Object.assign(window, { errors })
@@ -351,7 +412,7 @@ test.describe('Wallpaper', () => {
           super.postMessage(message, transfer as StructuredSerializeOptions)
           if (message && typeof message === 'object' && 'canvas' in message) {
             super.postMessage({ runs: true })
-            super.postMessage({ lean: [10, 10] })
+            super.postMessage({ pointer: [10, 10] })
           }
         }
       }
@@ -359,29 +420,48 @@ test.describe('Wallpaper', () => {
     await open(page)
     await page.waitForTimeout(1000)
 
-    expect((await drawn(page))[0].dots).toBeLessThanOrEqual(4)
+    expect((await drawn(page))[0].dots).toBeGreaterThan(100)
     expect(await page.evaluate(() => Reflect.get(window, 'errors'))).toEqual([])
   })
 
-  test('is drawn at once and still when the device asks for reduced motion', async ({ page }) => {
+  test('is drawn once and still when the device asks for reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await open(page)
     await page.waitForTimeout(1000)
     const draws = await drawn(page)
 
-    expect(draws[0].dots).toBeGreaterThan(500)
+    expect(draws[0].dots).toBeGreaterThan(100)
     expect(draws.length).toBeLessThan(4)
   })
 
-  test('is drawn at once and still while generated visuals are paused', async ({ page }) => {
+  test('is drawn once and still while generated visuals are paused', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.addInitScript(() => localStorage.setItem('pause', 'on'))
     await open(page)
     await page.waitForTimeout(1000)
     const draws = await drawn(page)
 
-    expect(draws[0].dots).toBeGreaterThan(500)
+    expect(draws[0].dots).toBeGreaterThan(100)
     expect(draws.length).toBeLessThan(4)
+  })
+
+  test('causes no task over 50 ms', async ({ page }) => {
+    await open(page)
+    await page.waitForTimeout(3000)
+    await costs(page)
+    const long = await page.evaluate(
+      () =>
+        new Promise<number[]>((done) => {
+          const tasks: number[] = []
+          new PerformanceObserver((list) =>
+            tasks.push(...list.getEntries().map((entry) => entry.duration)),
+          ).observe({ type: 'longtask' })
+          setTimeout(() => done(tasks), 2000)
+        }),
+    )
+
+    expect(long).toEqual([])
+    expect(Math.max(...(await costs(page)))).toBeLessThanOrEqual(50)
   })
 })
 
