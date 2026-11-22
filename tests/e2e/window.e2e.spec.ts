@@ -259,35 +259,67 @@ test.describe('Window, in the catalogue', () => {
     expect(await window.evaluate((window: HTMLElement) => window.style.width)).toBe('')
   })
 
-  test('replaces its content with what comes one step from the direction of travel while the old fades', async ({
+  test('replaces its content: the old leaves together, then the title is decoded in place and the rest rises in turn', async ({
     page,
   }) => {
     const specimen = page.locator('article', { has: page.getByRole('button', { name: 'Next' }) })
     await specimen.scrollIntoViewIfNeeded()
     const views = specimen.locator('.window__view')
-
     await specimen.evaluate((window) => window.setAttribute('data-watched', ''))
-    for (const [button, from] of [
-      ['Next', 24],
-      ['Previous', -24],
-    ] as const) {
-      const old = await views.textContent()
-      await watch(page, '[data-watched] .window__view')
-      await specimen.getByRole('button', { name: button }).click()
-      await expect(views).toHaveCount(1)
-      await expect(views).not.toHaveText(old!)
-      await expect(views).toHaveCSS('opacity', '1')
-      // Two views are there at once, the old before the new: it only fades, the new travels in from a step away.
-      const frames = (await seen(page)).filter((parts) => parts.length === 2)
-      expect(frames.length).toBeGreaterThan(2)
-      expect(first(frames, 0).every(({ x }) => x === 0)).toBe(true)
-      expect(first(frames, 0).at(-1)!.opacity).toBeLessThan(first(frames, 0)[0].opacity)
-      const offsets = first(frames, 1).map(({ x }) => x)
-      const start = from > 0 ? Math.max(...offsets) : Math.min(...offsets)
-      expect(Math.abs(start)).toBeGreaterThan(12)
-      expect(Math.abs(start)).toBeLessThanOrEqual(24)
-      expect(Math.sign(start)).toBe(Math.sign(from))
+    // Every frame, the box of the new title, what stands over it, and the box, strength and rise of the text under it.
+    await page.evaluate(() => {
+      const looks: { title: number[]; shown: string | null; text: number[] }[] = []
+      Object.assign(window, { looks })
+      requestAnimationFrame(function look() {
+        const view = [...document.querySelectorAll('[data-watched] .window__view')].at(-1)
+        const title = view?.querySelector('h2')
+        const text = view?.querySelector<HTMLElement>('.hgroup__text')
+        if (title && text) {
+          const { width, height } = title.getBoundingClientRect()
+          const style = getComputedStyle(text)
+          looks.push({
+            title: [width, height],
+            shown: title.querySelector('[aria-hidden="true"]')?.textContent ?? null,
+            text: [text.offsetTop, Number(style.opacity), new DOMMatrix(style.transform).f],
+          })
+        }
+        requestAnimationFrame(look)
+      })
+    })
+    await watch(page, '[data-watched] .window__view')
+
+    await specimen.getByRole('button', { name: 'Next' }).click()
+    await expect(views).toHaveCount(1)
+    await expect(specimen.getByRole('heading', { level: 2 })).toHaveAccessibleName('Second')
+    await expect(specimen.locator('[data-decode], [data-enter]')).toHaveCount(0)
+
+    // The old only fades, gone within a few frames; the new view itself stands still.
+    const frames = (await seen(page)).filter((parts) => parts.length === 2)
+    expect(frames.length).toBeLessThan(12)
+    expect(first(frames, 0).every(({ x }) => x === 0)).toBe(true)
+    expect(first(frames, 0).at(-1)!.opacity).toBeLessThan(first(frames, 0)[0].opacity)
+    expect(first(frames, 1).every(({ x, opacity }) => x === 0 && opacity === 1)).toBe(true)
+
+    const looks = await page.evaluate(() =>
+      (Reflect.get(window, 'looks') as { title: number[]; shown: string | null; text: number[] }[])
+        .splice(0)
+        .filter(({ title }) => title[0]),
+    )
+    const [last] = looks.slice(-1)
+    // The title is decoded from its start, a run of its own letters ahead, while its box keeps its size and the text
+    // under it keeps its place.
+    const shown = looks.map(({ shown }) => shown).filter(Boolean) as string[]
+    expect(shown.length).toBeGreaterThan(0)
+    for (const text of shown) {
+      expect(text.length).toBeLessThanOrEqual(6)
+      expect([...text].every((letter) => 'Second'.includes(letter))).toBe(true)
     }
+    expect(looks.every(({ title }) => title.join() === last.title.join())).toBe(true)
+    expect(looks.every(({ text }) => text[0] === last.text[0])).toBe(true)
+    // The text rises 8 px as it fades in.
+    expect(looks.some(({ text: [, opacity, y] }) => opacity > 0 && opacity < 1 && y > 0)).toBe(true)
+    expect(Math.max(...looks.map(({ text }) => text[2]))).toBeLessThanOrEqual(8)
+    expect(last.text.slice(1)).toEqual([1, 0])
   })
 
   test('opens a waiting window at once, shows busy dots only after 300 ms, and fills it when its view arrives', async ({
@@ -576,5 +608,99 @@ test.describe('Window without script', () => {
     expect(box).toMatchObject({ width: 720, height: 480 })
     expect(box.x - desk.x).toBe(desk.x + desk.width - box.x - box.width)
     expect(box.y - desk.y).toBe(desk.y + desk.height - box.y - box.height)
+  })
+})
+
+test.describe('What a window holds', () => {
+  // Every frame, how far the window opening has come, and whether any of what it holds is arriving or waiting, and
+  // whether what waits is seen.
+  const arrivals = (page: Page, window: string) =>
+    page.evaluate((window) => {
+      const frames: {
+        scale: number
+        y: number
+        waiting: boolean
+        shown: boolean
+        arriving: boolean
+      }[] = []
+      Object.assign(globalThis, { looked: frames })
+      requestAnimationFrame(function look() {
+        const origin = document.querySelector(`${window} .window__origin`)
+        if (origin) {
+          const { a, f } = new DOMMatrix(getComputedStyle(origin).transform)
+          const waits = [...origin.querySelectorAll('[data-enter="wait"]')]
+          frames.push({
+            scale: a,
+            y: f,
+            waiting: waits.length > 0,
+            shown: waits.some((part) => getComputedStyle(part).opacity !== '0'),
+            arriving: !!origin.querySelector(
+              '[data-enter="in"], [data-decode] > [aria-hidden]:not(:empty)',
+            ),
+          })
+        }
+        requestAnimationFrame(look)
+      })
+    }, window)
+  const frames = (page: Page) =>
+    page.evaluate(
+      () =>
+        Reflect.get(globalThis, 'looked') as {
+          scale: number
+          y: number
+          waiting: boolean
+          shown: boolean
+          arriving: boolean
+        }[],
+    )
+
+  for (const [device, size] of [
+    ['a desk', { width: 1440, height: 900 }],
+    ['a phone', { width: 390, height: 844 }],
+  ] as const) {
+    test(`arrives once its window has opened, on ${device}`, async ({ page }) => {
+      await page.setViewportSize(size)
+      await page.goto('/work', { waitUntil: 'networkidle' })
+      await arrivals(page, '#window-services')
+      await page.keyboard.press('s')
+      const services = page.locator('#window-services')
+      await expect(services.getByRole('heading', { level: 1 })).toBeVisible()
+      // What lies below the fold still waits to be seen.
+      await expect(services.locator('[data-enter="in"], [data-decode]')).toHaveCount(0)
+
+      const seen = await frames(page)
+      expect(seen.some(({ waiting }) => waiting)).toBe(true)
+      // What waits is never seen, though a part has transitions of its own.
+      expect(seen.some(({ shown }) => shown)).toBe(false)
+      expect(seen.some(({ arriving }) => arriving)).toBe(true)
+      // Nothing arrives while the window grows or the drawer rises.
+      const opening = seen.filter(({ scale, y }) => scale < 0.99 || y > 1)
+      expect(opening.length).toBeGreaterThan(0)
+      expect(opening.every(({ arriving }) => !arriving)).toBe(true)
+    })
+  }
+
+  test('settles the count beside the title in its digits alone', async ({ page }) => {
+    await page.setViewportSize(screen)
+    await page.goto('/work/grow', { waitUntil: 'networkidle' })
+    const work = page.locator('#window-work')
+    const count = work.locator('.window__content > .bar').nth(1).locator('.decipher')
+    await count.locator('[aria-hidden]').evaluate((cipher) => {
+      const counts: string[] = []
+      Object.assign(window, { counts })
+      new MutationObserver(() => counts.push(cipher.textContent!)).observe(cipher, {
+        childList: true,
+        characterData: true,
+        subtree: true,
+      })
+    })
+
+    await work.getByRole('navigation').getByRole('link', { name: 'Field' }).click()
+    await expect(count).toHaveText('02 / 03')
+    const counts = await page.evaluate(() => Reflect.get(window, 'counts') as string[])
+    expect(counts.length).toBeGreaterThan(0)
+    // Whole throughout, only its position changing, as the total stays.
+    for (const shown of counts) expect(shown).toMatch(/^(\d\d \/ 03)?$/)
+    await expect(count.locator(':not([aria-hidden])')).toHaveText('02 / 03')
   })
 })

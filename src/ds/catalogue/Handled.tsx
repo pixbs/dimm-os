@@ -108,14 +108,10 @@ export function Handled({ t, words }: Props) {
   )
 }
 
-// A window whose foot asks for other content: what replaces the old comes from where the visitor is heading.
+// A window whose foot asks for other content: the old leaves and the new arrives part by part.
 export function Replaced({ t, words }: Props) {
   const [at, setAt] = useState(0)
-  const [travel, setTravel] = useState<'forward' | 'back'>('forward')
-  const go = (by: number) => () => {
-    setTravel(by > 0 ? 'forward' : 'back')
-    setAt((at + by + t.replaced.length) % t.replaced.length)
-  }
+  const go = (by: number) => () => setAt((at + by + t.replaced.length) % t.replaced.length)
 
   return (
     <Window
@@ -130,7 +126,6 @@ export function Replaced({ t, words }: Props) {
       name={[t.files[0]]}
       t={words}
       title={t.window}
-      travel={travel}
     >
       <div className="stage">
         <Heading level="heading" text={t.windowText} title={t.replaced[at]} />

@@ -16,24 +16,22 @@ const style = (part: Locator, property: string) =>
     property,
   )
 
-// How each row of the first list arrives: its delay along the spread and what it moves.
+// How each row of the first list arrives: its turn and what it plays.
 const arrivals = (page: Page) =>
   page.evaluate(() => {
-    const seen: { delay: string; moves: string }[] = []
+    const seen: { delay: string; name: string }[] = []
     ;(window as unknown as { arrived: typeof seen }).arrived = seen
     new MutationObserver((records) => {
       for (const { target } of records) {
         const row = target as HTMLElement
         if (row.dataset.enter !== 'in' || !row.matches('#window-services .list > .row')) continue
-        const { transitionDelay: delay, transitionProperty: moves } = getComputedStyle(row)
-        seen.push({ delay, moves })
+        const { animationDelay: delay, animationName: name } = getComputedStyle(row)
+        seen.push({ delay, name })
       }
     }).observe(document.body, { attributes: true, attributeFilter: ['data-enter'], subtree: true })
   })
 const arrived = (page: Page) =>
-  page.evaluate(
-    () => (window as unknown as { arrived: { delay: string; moves: string }[] }).arrived,
-  )
+  page.evaluate(() => (window as unknown as { arrived: { delay: string; name: string }[] }).arrived)
 
 test.describe('Lists', () => {
   test('lead with an index beside a name at the heading scale, and fold the name above in a compact window', async ({
@@ -155,7 +153,7 @@ test.describe('Lists', () => {
     await expect(answer).toHaveCount(0)
   })
 
-  test('bring their rows along the spread as a window opens, and keep what the server painted', async ({
+  test('bring their rows one after another as a window opens, and keep what the server painted', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
@@ -165,29 +163,27 @@ test.describe('Lists', () => {
     const first = win(page, 'services').locator('.list > .row').first()
     await expect.poll(async () => (await arrived(page)).length).toBeGreaterThan(1)
     const [one, two] = await arrived(page)
-    expect(one).toMatchObject({ delay: '0s', moves: 'transform, opacity' })
-    expect(parseFloat(two.delay)).toBeGreaterThan(0)
-    expect(parseFloat(two.delay)).toBeLessThan(0.22)
+    expect(one.name).toBe('arrive')
+    // 40 ms after the part before it, in reading order.
+    expect(parseFloat(two.delay) - parseFloat(one.delay)).toBeCloseTo(0.04)
     // In place, a row keeps its own transitions.
     await expect(first).not.toHaveAttribute('data-enter')
-    await expect(first).toHaveCSS('transition-delay', '0s')
+    await expect(first).toHaveCSS('animation-delay', '0s')
 
     await page.goto('/services')
     await expect(win(page, 'services').locator('.list > .row')).not.toHaveCount(0)
     await expect(win(page, 'services').locator('.list > [data-enter]')).toHaveCount(0)
   })
 
-  test('bring their rows at once under reduced motion, fading in place', async ({ page }) => {
+  test('bring their rows at once under reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/work', { waitUntil: 'networkidle' })
     await arrivals(page)
     await page.keyboard.press('s')
 
-    await expect.poll(async () => (await arrived(page)).length).toBeGreaterThan(1)
-    for (const { delay, moves } of await arrived(page)) {
-      expect(delay).toBe('0s')
-      expect(moves).not.toMatch(/transform/)
-    }
+    await expect(win(page, 'services').locator('.list > .row').first()).toBeVisible()
+    await expect(win(page, 'services').locator('[data-enter]')).toHaveCount(0)
+    expect(await arrived(page)).toEqual([])
   })
 })

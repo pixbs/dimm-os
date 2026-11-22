@@ -91,13 +91,12 @@ describe('the window manager', () => {
 
     expect(paths(state)).toEqual(['/work'])
     expect(showing(state)).toBe('/work/grow')
-    expect(state.open[0]).toMatchObject({ view: { path: '/work' }, travel: 'forward' })
+    expect(state.open[0]).toMatchObject({ view: { path: '/work' } })
     // A view that comes after its window went elsewhere is not shown.
     expect(after(state, { type: 'fill', window: view('/work') }).open[0].view?.path).toBe('/work')
 
     const grow = after(state, { type: 'fill', window: view('/work/grow') })
     expect(grow.open[0].view?.path).toBe('/work/grow')
-    expect(after(grow, { type: 'open', path: '/work' }).open[0].travel).toBe('back')
     // Back from the taskbar, a window shows what it showed.
     expect(showing(after(grow, { type: 'minimise' }, { type: 'task', path: '/work' }))).toBe(
       '/work/grow',
