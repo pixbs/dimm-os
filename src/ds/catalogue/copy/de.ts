@@ -916,7 +916,7 @@ const de: Copy = {
     bar: [
       'Leiste',
       'Größe: regular 48 · compact 32 | Linie: keine · unten · oben | Plätze: Buttons · Titel · Text · Raum',
-      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff und trägt nichts.',
+      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff: Er trägt nichts und hält den Namen mindestens 12 px von der Steuerung fern.',
     ],
     barCaps: [
       'regular 48',

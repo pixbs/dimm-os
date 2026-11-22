@@ -887,8 +887,8 @@ const en = {
     lampsCaps: ['a time, pitch 8', 'pitch 5', 'pitch 12', 'on paper'],
     bar: [
       'Bar',
-      'size: regular 48 · compact 32 | line: none · below · above | slots: buttons · title · text · space',
-      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle, and carries nothing.',
+      'size: regular 48 · compact 32 | line: none · below · above | slots: buttons · title · text · space · handle',
+      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle: it carries nothing, and keeps the name at least 12 px clear of the controls.',
     ],
     barCaps: [
       'regular 48',

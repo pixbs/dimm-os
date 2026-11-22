@@ -19,7 +19,7 @@ import { flushSync } from 'react-dom'
 
 import type { Dictionary } from '@/i18n/en'
 
-import { Bar, BarSpace, BarText } from '../molecules/Bar'
+import { Bar, BarHandle, BarText } from '../molecules/Bar'
 import { Dots } from '../molecules/Dots'
 import { Path } from '../molecules/Path'
 import { Tag } from '../molecules/Tag'
@@ -442,7 +442,7 @@ export function Window(props: Props) {
               <BarText>
                 <Path segments={props.name} />
               </BarText>
-              <BarSpace />
+              <BarHandle />
               {controls('squares')}
             </Bar>
             {props.toolbar}

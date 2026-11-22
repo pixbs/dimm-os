@@ -439,6 +439,11 @@
   flex: 1 1 0;
   min-width: 0;
 }
+.bar__handle {
+  flex: 1 1 0;
+  min-width: var(--s-3);
+  margin: 0 var(--s-2);
+}
 
 /* Match: the letters that were typed, underlined where a title holds them. */
 .match {

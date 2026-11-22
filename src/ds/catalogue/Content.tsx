@@ -4,7 +4,7 @@ import type { Dictionary } from '@/i18n/en'
 
 import { Icon } from '../atoms/Icon'
 import { App } from '../molecules/App'
-import { Bar, BarSpace, BarText, BarTitle } from '../molecules/Bar'
+import { Bar, BarHandle, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button } from '../molecules/Button'
 import { Heading, Stat } from '../molecules/Heading'
 import { Avatar, Media } from '../molecules/Media'
@@ -254,7 +254,7 @@ function Bars({ t, words }: Props) {
             <Bar line="below" size="compact">
               <WindowControls shape="dots" size="compact" t={words} />
               {name}
-              <BarSpace />
+              <BarHandle />
             </Bar>
           </div>
         </Cap>

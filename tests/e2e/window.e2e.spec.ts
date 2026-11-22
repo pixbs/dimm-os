@@ -180,6 +180,23 @@ test.describe('Window, in the catalogue', () => {
     expect(await behind.evaluate((window) => Number(getComputedStyle(window).zIndex))).toBe(2)
   })
 
+  test('keeps a long name clear of the controls by the handle', async ({ page }) => {
+    await open('one')
+    const bar = page.locator('#window-one .window__bar')
+    await bar.locator('.path__here').evaluate((here) => (here.textContent = 'name'.repeat(80)))
+    // Layout boxes, so the window's opening scale does not count.
+    const [text, handle, after] = await bar.evaluate((bar) => {
+      const handle = bar.querySelector<HTMLElement>('.bar__handle')!
+      return [handle.previousElementSibling, handle, handle.nextElementSibling].map((part) => {
+        const { offsetLeft, offsetWidth } = part as HTMLElement
+        return { left: offsetLeft, right: offsetLeft + offsetWidth, width: offsetWidth }
+      })
+    })
+    expect(handle.width).toBeGreaterThanOrEqual(12)
+    expect(handle.left - text.right).toBeGreaterThanOrEqual(12)
+    expect(after.left - handle.right).toBeGreaterThanOrEqual(12)
+  })
+
   test('follows the pointer exactly when dragged, and resizes in steps of 8 with its real size shown', async ({
     page,
   }) => {
