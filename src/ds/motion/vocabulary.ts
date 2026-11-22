@@ -7,6 +7,8 @@ type Time =
   | 'fast-exit'
   | 'slow-exit'
   | 'travel'
+  | 'back'
+  | 'lag'
   | 'spread'
   | 'next'
   | 'letter'

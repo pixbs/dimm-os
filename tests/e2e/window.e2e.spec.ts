@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test'
 
 import { expect, test } from './test'
+import { travelled } from './travels'
 
 const screen = { width: 1280, height: 720 }
 
@@ -29,15 +30,10 @@ const seen = (page: Page) =>
 // The frames of the first part, or of the part at a place, while it was there.
 const first = (frames: Seen[][], at = 0) => frames.flatMap((parts) => parts[at] ?? [])
 
-const centre = async (part: Locator) => {
-  const box = (await part.boundingBox())!
-  return [box.x + box.width / 2, box.y + box.height / 2]
+const near = (one: { x: number; y: number; width: number; height: number }, other: typeof one) => {
+  for (const side of ['x', 'y', 'width', 'height'] as const)
+    expect(Math.abs(one[side] - other[side]), side).toBeLessThanOrEqual(1)
 }
-const timing = (part: Locator) =>
-  part.evaluate((part) => {
-    const timing = part.getAnimations()[0]?.effect?.getTiming()
-    return [timing?.duration, String(timing?.easing).replace(/\(.*/, '')]
-  })
 const control = (window: Locator, name: string) => window.getByRole('button', { name })
 // A shortcut on the desk, apart from the links inside the windows.
 const app = (page: Page, name: string) =>
@@ -63,68 +59,56 @@ test.describe('Window, in the catalogue', () => {
     await desk.scrollIntoViewIfNeeded()
   })
 
-  test('opens out of the centre of its opener on the spring and closes back into it fast, or opens from 96% at its own place', async ({
+  test('travels as one box from the tile of its app to its place, what it holds unseen until it lands, and back to the tile as it closes', async ({
     page,
   }) => {
-    const part = page.locator('#window-one .window__origin')
-    await watch(page, '#window-one .window__origin')
-    await open('one')
-    await expect.poll(() => timing(part)).toEqual([expect.any(Number), 'linear'])
-    await expect(part).toHaveCSS('opacity', '1')
-    expect(Math.min(...first(await seen(page)).map(({ scale }) => scale))).toBeLessThan(0.5)
-    const [x, y] = await centre(desk.getByRole('link', { name: 'one' }))
-    const origin = await part.evaluate((part) => {
-      const { left, top } = part.getBoundingClientRect()
-      const [x, y] = getComputedStyle(part).transformOrigin.split(' ').map(parseFloat)
-      return [left + x, top + y]
-    })
-    expect(origin[0]).toBeCloseTo(x, 0)
-    expect(origin[1]).toBeCloseTo(y, 0)
+    const window = page.locator('#window-one')
+    const tile = desk.getByRole('link', { name: 'one' }).locator('.app__tile')
+    const from = (await tile.boundingBox())!
+    await watch(page, '#window-one .window__content')
+    const way = await travelled(page, window, () => open('one'))
+    expect(way.most).toBe(1)
+    near(way.boxes[0], from)
+    // What it holds keeps the size it lands at, and is not seen until three quarters of the way.
+    const place = (await window.boundingBox())!
+    const held = first(await seen(page)).slice(0, way.boxes.length)
+    expect(held.every(({ width }) => Math.abs(width - place.width) <= 1)).toBe(true)
+    expect(held.slice(0, Math.floor(held.length / 2)).every(({ opacity }) => opacity === 0)).toBe(
+      true,
+    )
+    await expect(window.locator('.window__content')).toHaveCSS('opacity', '1')
 
-    await control(page.locator('#window-one'), 'Close').click()
-    await expect.poll(() => timing(part)).toEqual([160, 'cubic-bezier'])
-    await expect(part).toHaveCount(0)
-    expect(first(await seen(page)).at(-1)!.scale).toBeLessThan(0.5)
+    await travelled(page, tile, () => control(window, 'Close').click())
+    await expect(window).toHaveCount(0)
     await expect(desk.locator('footer button')).toHaveCount(0)
 
-    await watch(page, '#window-other .window__origin')
-    await page.getByRole('button', { name: 'Open with no opener' }).click()
-    await expect(page.locator('#window-other .window__origin')).toHaveCSS('opacity', '1')
-    const scales = first(await seen(page)).map(({ scale }) => scale)
-    expect(Math.min(...scales)).toBeGreaterThanOrEqual(0.96)
-    expect(Math.min(...scales)).toBeLessThan(1)
+    // With no opener on screen it travels from just under its size at its own place.
+    const other = page.locator('#window-other')
+    const own = await travelled(page, other, () =>
+      page.getByRole('button', { name: 'Open with no opener' }).click(),
+    )
+    expect(own.boxes[0].width / (await other.boundingBox())!.width).toBeCloseTo(0.96, 2)
   })
 
-  test('minimises into its taskbar button, whose mark turns hollow as it arrives, and stays in the taskbar', async ({
+  test('minimises to where its taskbar button stands, whose mark turns hollow, and comes back from it', async ({
     page,
   }) => {
     const window = page.locator('#window-one')
     const button = desk.locator('footer button')
     await open('one')
-    await expect(window.locator('.window__origin')).toHaveCSS('opacity', '1')
+    await expect(window.locator('.window__content')).toHaveCSS('opacity', '1')
     await expect(button.locator('.mark')).toHaveCSS('transition-delay', '0s')
 
-    await watch(page, '#window-one .window__origin')
-    await control(window, 'Minimise').click()
-    await expect
-      .poll(() => timing(window.locator('.window__origin')))
-      .toEqual([320, 'cubic-bezier'])
+    await travelled(page, button, () => control(window, 'Minimise').click())
     await expect(window).toBeHidden()
-    const [x, y] = await centre(button)
-    const last = first(await seen(page))
-      .filter(({ width }) => width > 0)
-      .at(-1)!
-    expect(Math.abs(last.left + last.width / 2 - x)).toBeLessThan(8)
-    expect(Math.abs(last.top - y)).toBeLessThan(8)
     await expect(button).toHaveText('one')
     await expect(button.locator('.mark')).toHaveAttribute('data-tone', 'off')
     await expect(button.locator('.mark')).toHaveCSS('transition-delay', '0.32s')
 
     // Its button brings it back out of the taskbar.
-    await button.click()
-    await expect(window.locator('.window__origin')).toHaveCSS('opacity', '1')
-    const back = first(await seen(page)).find(({ width }) => width > 0)!
-    expect(Math.abs(back.left + back.width / 2 - x)).toBeLessThan(40)
+    const at = (await button.boundingBox())!
+    const back = await travelled(page, window, () => button.click())
+    near(back.boxes[0], at)
   })
 
   test('goes to full screen as one frame that travels to the desk while its content fades out and back in', async ({
@@ -132,7 +116,7 @@ test.describe('Window, in the catalogue', () => {
   }) => {
     const window = page.locator('#window-one')
     await open('one')
-    await expect(window.locator('.window__origin')).toHaveCSS('opacity', '1')
+    await expect(window.locator('.window__content')).toHaveCSS('opacity', '1')
     const before = (await window.boundingBox())!
 
     await watch(page, '#window-one .window__frame, #window-one .window__content')
@@ -161,7 +145,7 @@ test.describe('Window, in the catalogue', () => {
     await open('one')
     await open('two')
     const [behind, front] = [page.locator('#window-one'), page.locator('#window-two')]
-    await expect(front.locator('.window__origin')).toHaveCSS('opacity', '1')
+    await expect(front.locator('.window__content')).toHaveCSS('opacity', '1')
     await expect(behind).not.toHaveAttribute('data-front')
     await expect(page.locator('.window__bar .dotted')).toHaveCount(0)
     const quiet = await behind
@@ -202,7 +186,7 @@ test.describe('Window, in the catalogue', () => {
   }) => {
     const window = page.locator('#window-one')
     await open('one')
-    await expect(window.locator('.window__origin')).toHaveCSS('opacity', '1')
+    await expect(window.locator('.window__content')).toHaveCSS('opacity', '1')
     const from = (await window.boundingBox())!
     const placed = await window.getAttribute('style')
 
@@ -355,18 +339,20 @@ test.describe('Window, in the catalogue', () => {
     await expect(page.locator('html')).toHaveAttribute('data-motion', 'reduce')
     await desk.scrollIntoViewIfNeeded()
     const window = page.locator('#window-one')
-    const part = window.locator('.window__origin')
+    const part = window.locator('.window__frame')
 
-    await watch(page, '#window-one .window__origin')
+    await watch(page, '#window-one .window__frame')
     await open('one')
     await expect(part).toHaveCSS('opacity', '1')
     await control(window, 'Minimise').click()
     await expect(window).toBeHidden()
     await desk.locator('footer button').click()
     await expect(part).toHaveCSS('opacity', '1')
+    // It fades where it stands, and nothing travels or changes size.
     const moved = first(await seen(page)).filter(({ width }) => width > 0)
-    expect(moved.every(({ scale }) => scale === 1)).toBe(true)
+    expect(moved.every(({ scale, width }) => scale === 1 && width === moved[0].width)).toBe(true)
     expect(moved.some(({ opacity }) => opacity > 0 && opacity < 1)).toBe(true)
+    await expect(page.locator('[data-travels]')).toHaveCount(0)
 
     // To full screen the frame is there at once, and its content still fades.
     const before = (await window.boundingBox())!.width
@@ -530,14 +516,17 @@ test.describe('Window, on the desk', () => {
     await expect(window(page, 'Services')).toHaveAttribute('inert')
   })
 
-  test('brings each taskbar button in at its own place as its window opens', async ({ page }) => {
+  test('raises each taskbar button into the taskbar as its window sets off', async ({ page }) => {
     await watch(page, 'footer[data-for="desk"] button:nth-of-type(2)')
     await app(page, 'Services').click()
+    const button = page.locator('footer[data-for="desk"] button').nth(1)
     await expect(page.locator('footer[data-for="desk"] button')).toHaveText(['work', 'services'])
-    await expect(page.locator('footer[data-for="desk"] button').nth(1)).toHaveCSS('opacity', '1')
+    await expect(button).toHaveCSS('opacity', '1')
+    await expect(button).toHaveCSS('transform', 'none')
+    const rest = (await button.boundingBox())!.y
     const frames = first(await seen(page))
-    expect(frames.some(({ opacity }) => opacity < 1)).toBe(true)
-    expect(Math.min(...frames.map(({ scale }) => scale))).toBeGreaterThanOrEqual(0.96)
+    expect(frames.some(({ opacity, top }) => opacity < 1 && top > rest + 1)).toBe(true)
+    expect(frames.every(({ scale }) => scale === 1)).toBe(true)
   })
 })
 
@@ -596,6 +585,7 @@ test.describe('What a window holds', () => {
       const frames: {
         scale: number
         y: number
+        travels: boolean
         waiting: boolean
         shown: boolean
         arriving: boolean
@@ -609,6 +599,7 @@ test.describe('What a window holds', () => {
           frames.push({
             scale: a,
             y: f,
+            travels: !!origin.querySelector('[data-travels]'),
             waiting: waits.length > 0,
             shown: waits.some((part) => getComputedStyle(part).opacity !== '0'),
             arriving: !!origin.querySelector(
@@ -625,6 +616,7 @@ test.describe('What a window holds', () => {
         Reflect.get(globalThis, 'looked') as {
           scale: number
           y: number
+          travels: boolean
           waiting: boolean
           shown: boolean
           arriving: boolean
@@ -650,8 +642,8 @@ test.describe('What a window holds', () => {
       // What waits is never seen, though a part has transitions of its own.
       expect(seen.some(({ shown }) => shown)).toBe(false)
       expect(seen.some(({ arriving }) => arriving)).toBe(true)
-      // Nothing arrives while the window grows or the drawer rises.
-      const opening = seen.filter(({ scale, y }) => scale < 0.99 || y > 1)
+      // Nothing arrives while the window travels or the drawer rises.
+      const opening = seen.filter(({ scale, y, travels }) => travels || scale < 0.99 || y > 1)
       expect(opening.length).toBeGreaterThan(0)
       expect(opening.every(({ arriving }) => !arriving)).toBe(true)
     })
