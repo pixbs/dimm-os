@@ -12,8 +12,13 @@ const entry = (page: Page, name: string) =>
 const record = (page: Page) =>
   page.addInitScript(() => {
     const draws: { at: number; xs: number[] }[] = []
-    Object.assign(window, { draws })
-    const { clearRect, arc } = CanvasRenderingContext2D.prototype
+    const read: string[] = []
+    Object.assign(window, { draws, read })
+    const { clearRect, arc, getImageData } = CanvasRenderingContext2D.prototype
+    CanvasRenderingContext2D.prototype.getImageData = function (...rest) {
+      read.push(this.canvas.className)
+      return getImageData.apply(this, rest)
+    }
     const ours = (context: CanvasRenderingContext2D) =>
       context.canvas.classList.contains('media__dots')
     CanvasRenderingContext2D.prototype.clearRect = function (x, y, w, h) {
@@ -35,7 +40,7 @@ const steps = (page: Page) =>
         const step = Math.min(...across.slice(1).map((x, index) => x - across[index]))
         return { at, step }
       })
-      .filter(({ step }, index, all) => step !== all[index - 1]?.step),
+      .filter(({ step }, index, all) => step !== Infinity && step !== all[index - 1]?.step),
   )
 
 // The picture that comes again as if it had just arrived.
@@ -46,7 +51,7 @@ const again = async (page: Page) => {
 }
 
 test.describe('Content', () => {
-  test('resolves a picture through dots at four, two and one times the pitch, 80 ms a step, then fades the photo in', async ({
+  test('resolves a picture through swatches four, two and one pitch wide, 260 and 160 ms, without reading a pixel back, then fades it in', async ({
     page,
   }) => {
     await record(page)
@@ -56,10 +61,26 @@ test.describe('Content', () => {
     await expect(picture).toHaveAttribute('data-picture', 'shown')
     const drawn = await steps(page)
     expect(drawn.map(({ step }) => step)).toEqual([32, 16, 8])
-    for (const index of [1, 2]) {
-      expect(drawn[index].at - drawn[index - 1].at).toBeGreaterThanOrEqual(79)
-      expect(drawn[index].at - drawn[index - 1].at).toBeLessThan(160)
+    for (const [index, time] of [
+      [1, 260],
+      [2, 160],
+    ]) {
+      expect(drawn[index].at - drawn[index - 1].at).toBeGreaterThanOrEqual(time - 20)
+      expect(drawn[index].at - drawn[index - 1].at).toBeLessThan(time + 80)
     }
+    // Each swatch is the colour of the picture at its place, and nothing reads a pixel back to find it.
+    expect(await page.evaluate(() => Reflect.get(window, 'read'))).toEqual([])
+    const colours = await picture.locator('canvas').evaluate((canvas: HTMLCanvasElement) => {
+      const copy = document.createElement('canvas')
+      copy.width = canvas.width
+      copy.height = canvas.height
+      copy.getContext('2d')!.drawImage(canvas, 0, 0)
+      const { data } = copy.getContext('2d')!.getImageData(0, 0, copy.width, copy.height)
+      const seen = new Set<string>()
+      for (let at = 0; at < data.length; at += 4) seen.add(data.slice(at, at + 3).join())
+      return seen.size
+    })
+    expect(colours).toBeGreaterThan(8)
     await expect(picture.locator('img')).toHaveCSS('opacity', '1')
     await expect(picture.locator('canvas')).toHaveCSS('opacity', '0')
   })

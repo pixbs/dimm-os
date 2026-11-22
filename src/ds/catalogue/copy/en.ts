@@ -426,6 +426,8 @@ const en = {
       ['.55, 0, 1, .45', 'The postmark landing: it speeds up as it drops.'],
       ['.5, 0, .2, 1', 'A thing that travels, on its way across.'],
       ['.1, 0, 0, 1', 'A thing that travels, on its way up.'],
+      ['linear', 'A crossfade: a picture in as its swatches go out.'],
+      ['.33, 1, .67, 1', 'A swatch of a picture, growing and squaring off: quick, then settling.'],
     ],
     spread: [
       'Spread',
@@ -851,7 +853,7 @@ const en = {
     media: [
       'Media',
       'ratio: 16:9 · 4:3 · 1:1 · 3:1 | kind: image · video · embed | parts: caption',
-      'A box with a fixed ratio that the content fills. Empty, it shows the dot grid. A picture resolves from it in dots at four, two and one times the pitch, then fades in; the first on screen is there at once. A cover is a surface with the halftone of the system laid over it. The avatar is the same box at a control size, or twice the regular one for the person a screen is about. Without a picture it is named: initials or a glyph on a surface of its own.',
+      'A box with a fixed ratio that the content fills. Empty, it shows the dot grid. A picture resolves from it in round swatches of its own colours: cells four times the pitch sweep in over 260 ms, then two and one times the pitch for 160 ms each, each swatch filling 0.86 of its cell; then they square off and close up over 180 ms and the picture fades in under them over fast, 920 ms in all. With reduced motion or paused visuals it only fades in; the first on screen is there at once. A cover is a surface with the halftone of the system laid over it. The avatar is the same box at a control size, or twice the regular one for the person a screen is about. Without a picture it is named: initials or a glyph on a surface of its own.',
     ],
     mediaCaps: [
       '16:9',
