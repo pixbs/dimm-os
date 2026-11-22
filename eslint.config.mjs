@@ -9,6 +9,34 @@ const motion = [
   { name: 'framer-motion', message: whole },
 ]
 
+// A thing that goes from one place to another is one element that travels, which only the motion vocabulary moves.
+const reads = /^get(BoundingClientRect|ClientRects)$/
+const writes =
+  /\b(transform|translate|scale)\b|\.animate\(|\.style\.(left|top|right|bottom|inset)|\b(left|top|right|bottom|inset): /
+const moves = {
+  rules: {
+    'by-hand': {
+      meta: {
+        type: 'problem',
+        schema: [],
+        messages: {
+          made: 'A move made by hand: this reads the box of an element where a transform or a place is written. Use Travels of src/ds/motion.',
+        },
+      },
+      create: (context) => ({
+        CallExpression(node) {
+          if (!reads.test(node.callee.property?.name)) return
+          const within = context.sourceCode
+            .getAncestors(node)
+            .findLast((one) => /Function/.test(one.type))
+          if (within && writes.test(context.sourceCode.getText(within)))
+            context.report({ node, messageId: 'made' })
+        },
+      }),
+    },
+  },
+}
+
 const eslintConfig = [
   ...nextCoreWebVitals,
   ...nextTypescript,
@@ -67,6 +95,12 @@ const eslintConfig = [
         },
       ],
     },
+  },
+  {
+    files: ['src/**'],
+    ignores: ['src/ds/motion/**'],
+    plugins: { moves },
+    rules: { 'moves/by-hand': 'error' },
   },
   {
     ignores: ['.next/', 'src/payload-types.ts', 'src/payload-generated-schema.ts'],
