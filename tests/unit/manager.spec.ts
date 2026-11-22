@@ -236,6 +236,11 @@ describe('the window manager', () => {
       expect(x >= 0 && y >= 0 && x + w <= 1440 && y + h <= 820).toBe(true)
     }
 
+    // One as high as the desk cannot step down: it steps aside only, so two in a row do not pile up.
+    const high = open(open(five, '/high', 800, 820), '/higher', 800, 820)
+    expect(box(high, '/high')).toEqual({ x: 280 + 5 * 32, y: 0, w: 800, h: 820 })
+    expect(box(high, '/higher')).toEqual({ x: 280 + 6 * 32, y: 0, w: 800, h: 820 })
+
     // In a room too narrow to step aside, a window steps down only, at the room's end.
     const narrow = after(start(sized('/contact', 640, 512)), {
       type: 'desk',

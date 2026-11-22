@@ -121,11 +121,12 @@ const roomIn = (state: Windows): Room | null =>
   state.desk && !compact(state) ? (state.room ?? { x: 0, w: state.desk.w }) : null
 
 // A window of the stack keeps its top corner, unless it would reach past the room there: then it starts a new row,
-// a step in from the room's top corner. One too wide to step aside stands at the room's end and steps down only.
+// a step in from the room's top corner. One too wide to step aside stands at the room's end and steps down only;
+// one too high to step down stands at the room's foot and steps aside only.
 function inStack({ x, y, w, h }: Box, room: Room, desk: Size): Pick<Box, 'x' | 'y'> {
   const bar = room.bar ?? BAR
   const end = Math.min(room.x + room.w, desk.w)
-  const past = y + h > desk.h || (x + w > end && room.x + bar + w <= end)
+  const past = (y + h > desk.h && bar + h <= desk.h) || (x + w > end && room.x + bar + w <= end)
   return {
     x: clamp(past ? room.x + bar : x, 0, Math.max(0, end - w)),
     y: clamp(past ? bar : y, 0, desk.h - h),
