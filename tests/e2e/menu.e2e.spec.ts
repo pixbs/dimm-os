@@ -352,7 +352,10 @@ test.describe('The theme and the language', () => {
     page,
   }) => {
     await page.goto('/login', { waitUntil: 'networkidle' })
-    await bar(page, 'Language: English').click()
+    await page
+      .locator('[data-waiting] header')
+      .getByRole('button', { name: 'Language: English', exact: true })
+      .click()
     await expect(
       menu(page, 'Language').getByRole('menuitemradio', { name: 'Deutsch' }),
     ).toHaveAttribute('href', '/de')
