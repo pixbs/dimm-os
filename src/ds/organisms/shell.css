@@ -278,7 +278,7 @@
     }
   }
 }
-/* The bar is the handle: the window in front shows it in dots, one behind is quiet until the pointer comes. */
+/* The bar is the handle: one behind is quiet until the pointer comes. */
 .window__bar {
   user-select: none;
 
@@ -294,7 +294,7 @@
       cursor: grabbing;
     }
   }
-  & :is(.bar__grip, .path__here) {
+  & .path__here {
     transition-property: var(--m-fades);
     transition-duration: var(--m-fast);
     transition-timing-function: var(--m-standard);
@@ -313,13 +313,12 @@
     box-shadow: none;
   }
 }
-/* Nothing to grip: behind, in full screen, where nothing drags, and lying in the page of a compact screen. */
-.window:not([data-front]) :is(.bar__grip, .window__grip),
-.window:is([data-full], [data-still]) .bar__grip {
+/* Nothing to grip: behind, and lying in the page of a compact screen. */
+.window:not([data-front]) .window__grip {
   opacity: 0;
 }
 @container screen (width < 600px) {
-  .window :is(.bar__grip, .window__grip) {
+  .window .window__grip {
     opacity: 0;
   }
 }

@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
-import { Bar, BarGrip, BarSpace, BarText, BarTitle } from '../molecules/Bar'
+import { Bar, BarHandle, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
 import { Heading } from '../molecules/Heading'
 import { Path } from '../molecules/Path'
@@ -240,7 +240,7 @@ export function Shell(props: Props) {
                 <Bar line="below" size="compact">
                   <WindowControls shape="dots" size="compact" t={words} />
                   <BarTitle>{t.title}</BarTitle>
-                  <BarGrip />
+                  <BarHandle />
                 </Bar>
                 <div className="stage">
                   <Heading level="lead" text={t.text} title={t.title} />

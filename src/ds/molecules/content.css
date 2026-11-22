@@ -439,11 +439,9 @@
   flex: 1 1 0;
   min-width: 0;
 }
-/* The handle of a window: the empty part of its title bar, in rows of dots on the pitch. */
-.bar__grip {
+.bar__handle {
   flex: 1 1 0;
   min-width: var(--s-3);
-  height: calc(var(--pitch) * var(--pitch-rows));
   margin: 0 var(--s-2);
 }
 

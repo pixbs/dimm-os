@@ -206,23 +206,20 @@
   --m-spread: 0ms;
 }
 
-/* the pitch, the rows of a handle and the dots of a grip, declared wherever a pitch is set so the dot follows it */
+/* the pitch and the dots of a grip, declared wherever a pitch is set so the dot follows it */
 :root,
 [data-pitch] {
   --pitch: 8px;
   --pitch-dot: calc(var(--pitch) * 0.36);
-  --pitch-rows: 2;
   --pitch-grip: 3;
 }
-/* a small dot stands in more rows, a large one in a smaller grip */
 [data-pitch='5'] {
   --pitch: 5px;
-  --pitch-rows: 4;
 }
 [data-pitch='6'] {
   --pitch: 6px;
-  --pitch-rows: 3;
 }
+/* a large dot stands in a smaller grip */
 [data-pitch='10'] {
   --pitch: 10px;
   --pitch-grip: 2;

@@ -155,7 +155,7 @@ test.describe('Window, in the catalogue', () => {
     await expect.poll(async () => (await window.boundingBox())!.width).toBe(before.width)
   })
 
-  test('comes to the front without travelling: the handle and the filled controls fade in', async ({
+  test('comes to the front without travelling: the name and the filled controls fade in, and no bar carries dots', async ({
     page,
   }) => {
     await open('one')
@@ -163,17 +163,38 @@ test.describe('Window, in the catalogue', () => {
     const [behind, front] = [page.locator('#window-one'), page.locator('#window-two')]
     await expect(front.locator('.window__origin')).toHaveCSS('opacity', '1')
     await expect(behind).not.toHaveAttribute('data-front')
-    await expect(behind.locator('.bar__grip')).toHaveCSS('opacity', '0')
+    await expect(page.locator('.window__bar .dotted')).toHaveCount(0)
+    const quiet = await behind
+      .locator('.path__here')
+      .evaluate((here) => getComputedStyle(here).color)
     const boxes = [await behind.boundingBox(), await front.boundingBox()]
 
     await behind.locator('.window__bar').click({ position: { x: 16, y: 16 } })
     await expect(behind).toHaveAttribute('data-front')
     await expect(front).not.toHaveAttribute('data-front')
-    await expect(behind.locator('.bar__grip')).toHaveCSS('transition-duration', '0.16s')
-    await expect(behind.locator('.bar__grip')).toHaveCSS('opacity', '1')
-    await expect(front.locator('.bar__grip')).toHaveCSS('opacity', '0')
+    await expect(behind.locator('.path__here')).toHaveCSS('transition-duration', '0.16s')
+    await expect(behind.locator('.path__here')).not.toHaveCSS('color', quiet)
+    await expect(front.locator('.path__here')).toHaveCSS('color', quiet)
+    await expect(behind.locator('.window__bar')).toHaveCSS('cursor', 'grab')
     expect([await behind.boundingBox(), await front.boundingBox()]).toEqual(boxes)
     expect(await behind.evaluate((window) => Number(getComputedStyle(window).zIndex))).toBe(2)
+  })
+
+  test('keeps a long name clear of the controls by the handle', async ({ page }) => {
+    await open('one')
+    const bar = page.locator('#window-one .window__bar')
+    await bar.locator('.path__here').evaluate((here) => (here.textContent = 'name'.repeat(80)))
+    // Layout boxes, so the window's opening scale does not count.
+    const [text, handle, after] = await bar.evaluate((bar) => {
+      const handle = bar.querySelector<HTMLElement>('.bar__handle')!
+      return [handle.previousElementSibling, handle, handle.nextElementSibling].map((part) => {
+        const { offsetLeft, offsetWidth } = part as HTMLElement
+        return { left: offsetLeft, right: offsetLeft + offsetWidth, width: offsetWidth }
+      })
+    })
+    expect(handle.width).toBeGreaterThanOrEqual(12)
+    expect(handle.left - text.right).toBeGreaterThanOrEqual(12)
+    expect(after.left - handle.right).toBeGreaterThanOrEqual(12)
   })
 
   test('follows the pointer exactly when dragged, and resizes in steps of 8 with its real size shown', async ({
