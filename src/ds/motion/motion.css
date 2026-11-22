@@ -64,6 +64,8 @@
    animation, so the part keeps its own transitions. */
 [data-enter='wait'] {
   opacity: 0;
+  /* Hidden at once, though the part has transitions of its own. */
+  transition: none;
 }
 [data-enter='in'] {
   animation: var(--m-slow) var(--m-enter) backwards arrive;

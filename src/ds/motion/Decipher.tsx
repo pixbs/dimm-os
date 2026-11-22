@@ -11,8 +11,15 @@ const timeOf = (text: string) =>
   Math.min([...text].length * duration('letter'), duration('decode')) * 1000
 
 // A text decoded from its start into the element given: what is read is itself, a run of its own letters travels
-// ahead, past the run nothing shows yet, and what is not a letter or a digit stays itself. Once read it empties.
-function decoder(shown: HTMLElement, text: string, total: number, done?: () => void) {
+// ahead, past the run nothing shows yet, and what is not a letter or a digit stays itself. A count shows whole, only
+// the digits of its first number changing until it is read. Once read it empties.
+function decoder(
+  shown: HTMLElement,
+  text: string,
+  total: number,
+  done?: () => void,
+  count = false,
+) {
   const letters = [...text]
   const others = letters.filter((one) => letter.test(one))
   const run = amount('run')
@@ -21,16 +28,20 @@ function decoder(shown: HTMLElement, text: string, total: number, done?: () => v
 
   function show(read: number) {
     shown.textContent =
-      read < letters.length
-        ? letters
-            .slice(0, read + run)
-            .map((one, at) =>
-              at < read || !letter.test(one)
-                ? one
-                : others[Math.floor(Math.random() * others.length)],
+      read >= letters.length
+        ? ''
+        : count
+          ? text.replace(/\d+/, (digits) =>
+              digits.replace(/\d/g, () => String(Math.floor(Math.random() * 10))),
             )
-            .join('')
-        : ''
+          : letters
+              .slice(0, read + run)
+              .map((one, at) =>
+                at < read || !letter.test(one)
+                  ? one
+                  : others[Math.floor(Math.random() * others.length)],
+              )
+              .join('')
   }
 
   function tick(now: number) {
@@ -76,6 +87,8 @@ export function Decipher({ children: text, beside }: { children: string; beside?
   const cipher = useRef<HTMLSpanElement>(null)
   // The text the server painted, which does not animate in.
   const painted = useRef(usePainted() ? text : null)
+  // The text it showed before, which a count keeps until it settles.
+  const was = useRef(text)
 
   // Before paint, so the new text is covered before it is ever seen.
   useLayoutEffect(() => {
@@ -85,19 +98,32 @@ export function Decipher({ children: text, beside }: { children: string; beside?
     if (reduced()) return
 
     const total = beside === undefined ? timeOf(text) : timeOf(beside) * amount('settle')
-    const decoding = decoder(shown, text, total)
-    decoding.cover()
+    const decoding = decoder(shown, text, total, undefined, beside !== undefined)
+    if (beside === undefined) decoding.cover()
+    else shown.textContent = was.current
+    was.current = text
 
-    // Off screen nothing runs: it deciphers when it is first seen.
+    // Off screen nothing runs: it deciphers when it is first seen, and beside a title once what its window holds has
+    // stopped waiting, as the title begins to be decoded.
+    let waits: MutationObserver | undefined
     const watcher = new IntersectionObserver(([entry]) => {
       if (!entry.isIntersecting) return
       watcher.disconnect()
-      decoding.go()
+      const held =
+        beside === undefined ? null : shown.closest('article')?.querySelector('[data-hold]')
+      if (!held) return void decoding.go()
+      waits = new MutationObserver(() => {
+        if (held.hasAttribute('data-hold')) return
+        waits!.disconnect()
+        decoding.go()
+      })
+      waits.observe(held, { attributeFilter: ['data-hold'] })
     })
     watcher.observe(shown)
 
     return () => {
       watcher.disconnect()
+      waits?.disconnect()
       decoding.stop()
     }
   }, [text, beside])

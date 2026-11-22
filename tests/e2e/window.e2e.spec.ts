@@ -589,19 +589,28 @@ test.describe('Window without script', () => {
 })
 
 test.describe('What a window holds', () => {
-  // Every frame, how far the window opening has come, and whether any of what it holds is arriving or waiting.
+  // Every frame, how far the window opening has come, and whether any of what it holds is arriving or waiting, and
+  // whether what waits is seen.
   const arrivals = (page: Page, window: string) =>
     page.evaluate((window) => {
-      const frames: { scale: number; y: number; waiting: boolean; arriving: boolean }[] = []
+      const frames: {
+        scale: number
+        y: number
+        waiting: boolean
+        shown: boolean
+        arriving: boolean
+      }[] = []
       Object.assign(globalThis, { looked: frames })
       requestAnimationFrame(function look() {
         const origin = document.querySelector(`${window} .window__origin`)
         if (origin) {
           const { a, f } = new DOMMatrix(getComputedStyle(origin).transform)
+          const waits = [...origin.querySelectorAll('[data-enter="wait"]')]
           frames.push({
             scale: a,
             y: f,
-            waiting: !!origin.querySelector('[data-enter="wait"]'),
+            waiting: waits.length > 0,
+            shown: waits.some((part) => getComputedStyle(part).opacity !== '0'),
             arriving: !!origin.querySelector(
               '[data-enter="in"], [data-decode] > [aria-hidden]:not(:empty)',
             ),
@@ -617,6 +626,7 @@ test.describe('What a window holds', () => {
           scale: number
           y: number
           waiting: boolean
+          shown: boolean
           arriving: boolean
         }[],
     )
@@ -637,6 +647,8 @@ test.describe('What a window holds', () => {
 
       const seen = await frames(page)
       expect(seen.some(({ waiting }) => waiting)).toBe(true)
+      // What waits is never seen, though a part has transitions of its own.
+      expect(seen.some(({ shown }) => shown)).toBe(false)
       expect(seen.some(({ arriving }) => arriving)).toBe(true)
       // Nothing arrives while the window grows or the drawer rises.
       const opening = seen.filter(({ scale, y }) => scale < 0.99 || y > 1)
@@ -664,8 +676,8 @@ test.describe('What a window holds', () => {
     await expect(count).toHaveText('02 / 03')
     const counts = await page.evaluate(() => Reflect.get(window, 'counts') as string[])
     expect(counts.length).toBeGreaterThan(0)
-    for (const shown of counts)
-      expect('02 / 03'.startsWith(shown.replace(/\d/g, (_, at) => '02 / 03'[at]))).toBe(true)
+    // Whole throughout, only its position changing, as the total stays.
+    for (const shown of counts) expect(shown).toMatch(/^(\d\d \/ 03)?$/)
     await expect(count.locator(':not([aria-hidden])')).toHaveText('02 / 03')
   })
 })

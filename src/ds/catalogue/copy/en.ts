@@ -460,7 +460,7 @@ const en = {
     decipher: [
       'Decipher',
       'letter: 16 ms | at most: 480 ms | run: 6 | a count beside a title: 2/5 of its time',
-      'A text is decoded from its start once when it appears or changes: what is read is itself, a run of six of its own letters travels ahead, and past the run nothing shows yet. A space, and whatever is not a letter or a digit, stays itself. Mono text is decoded wherever it changes; of sans text only the title of a window, as it arrives. The real text keeps its place throughout, so nothing moves, and assistive technology reads it alone, once.',
+      'A text is decoded from its start once when it appears or changes: what is read is itself, a run of six of its own letters travels ahead, and past the run nothing shows yet. A space, and whatever is not a letter or a digit, stays itself. Mono text is decoded wherever it changes; of sans text only the title of a window, as it arrives. A count beside that title keeps what it said until the title begins, then shows whole, only the digits of its first number changing, for 2/5 of the time the title takes. The real text keeps its place throughout, so nothing moves, and assistive technology reads it alone, once.',
     ],
     decipherTexts: ['system/says · 12 items · 2026-11-10', 'work/grow.case · 3 of 12 · ⌘K'],
     decipherHeading: 'A sans heading stays as it is',

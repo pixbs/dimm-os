@@ -475,7 +475,7 @@ const de: Copy = {
     decipher: [
       'Entziffern',
       'Buchstabe: 16 ms | höchstens: 480 ms | Lauf: 6 | ein Zähler neben einem Titel: 2/5 seiner Zeit',
-      'Ein Text wird einmal von seinem Anfang her entschlüsselt, wenn er erscheint oder sich ändert: Was gelesen ist, ist es selbst, ein Lauf aus sechs seiner eigenen Zeichen zieht voraus, und hinter dem Lauf zeigt sich noch nichts. Ein Leerzeichen, und was kein Buchstabe und keine Ziffer ist, bleibt, wie es ist. Mono-Text wird entschlüsselt, wo immer er sich ändert; von Sans-Text nur der Titel eines Fensters, während er ankommt. Der echte Text behält die ganze Zeit seinen Platz, sodass sich nichts bewegt, und Hilfstechnologien lesen ihn allein, einmal.',
+      'Ein Text wird einmal von seinem Anfang her entschlüsselt, wenn er erscheint oder sich ändert: Was gelesen ist, ist es selbst, ein Lauf aus sechs seiner eigenen Zeichen zieht voraus, und hinter dem Lauf zeigt sich noch nichts. Ein Leerzeichen, und was kein Buchstabe und keine Ziffer ist, bleibt, wie es ist. Mono-Text wird entschlüsselt, wo immer er sich ändert; von Sans-Text nur der Titel eines Fensters, während er ankommt. Ein Zähler neben diesem Titel zeigt, was er sagte, bis der Titel beginnt, dann ganz, und nur die Ziffern seiner ersten Zahl ändern sich, für 2/5 der Zeit des Titels. Der echte Text behält die ganze Zeit seinen Platz, sodass sich nichts bewegt, und Hilfstechnologien lesen ihn allein, einmal.',
     ],
     decipherTexts: ['system/sagt · 12 Einträge · 2026-11-10', 'arbeit/grow.case · 3 von 12 · ⌘K'],
     decipherHeading: 'Eine Sans-Überschrift bleibt, wie sie ist',
