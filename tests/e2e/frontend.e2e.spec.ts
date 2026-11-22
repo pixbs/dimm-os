@@ -163,6 +163,73 @@ test.describe('Frontend', () => {
     expect(await phone.evaluate(() => document.activeElement === document.body)).toBe(true)
   })
 
+  for (const size of [
+    { width: 1440, height: 1080 },
+    { width: 820, height: 1180 },
+  ]) {
+    test(`stacks windows of three sizes a title bar apart at ${size.width} px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(size)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await emptyDesk(page)
+      await page.goto('/')
+      const inFront = page.locator('article[data-front]')
+      const boxes = []
+      // Contact, Work and the consent: three sizes.
+      for (const open of [
+        () => app(page, 'Contact').click(),
+        () => app(page, 'Work').click(),
+        async () => {
+          await page.getByRole('menuitem', { name: 'Legal' }).click()
+          await page.getByRole('menuitem', { name: 'Cookies' }).click()
+        },
+      ]) {
+        const before = await page.locator('article').count()
+        await open()
+        await expect(page.locator('article')).toHaveCount(before + 1)
+        await expect(inFront.locator('.window__bar')).toBeInViewport({ ratio: 1 })
+        await page.waitForLoadState('networkidle')
+        boxes.push((await inFront.boundingBox())!)
+      }
+      const step = (await inFront.locator('.window__bar').boundingBox())!.height
+      const desk = (await page.locator('main').boundingBox())!
+      expect(new Set(boxes.map(({ width, height }) => `${width}×${height}`)).size).toBe(3)
+      // Each stands one title bar below the one before, and beside it where the room is wide enough, whatever their
+      // sizes, inside the desk; so every bar shows.
+      for (const nth of [1, 2]) {
+        if (size.width > 1000) expect(boxes[nth].x - boxes[nth - 1].x).toBeCloseTo(step, 0)
+        expect(boxes[nth].y - boxes[nth - 1].y).toBeCloseTo(step, 0)
+      }
+      const bars = await page.locator('article .window__bar').all()
+      for (const bar of bars) {
+        const { x, y, width } = (await bar.boundingBox())!
+        const hit = await bar.evaluate(
+          (element, [x, y]) => element.contains(document.elementFromPoint(x, y)),
+          [x + width / 2, y + step / 2],
+        )
+        expect(hit).toBe(true)
+      }
+      for (const box of boxes) {
+        expect(box.x >= desk.x && box.x + box.width <= desk.x + desk.width + 1).toBe(true)
+        expect(box.y >= desk.y && box.y + box.height <= desk.y + desk.height + 1).toBe(true)
+      }
+
+      // After the first is moved, the next still follows the last.
+      const first = page.getByRole('article', { name: 'Contact' }).locator('.window__bar')
+      await first.dragTo(page.locator('main'), {
+        sourcePosition: { x: 16, y: step / 2 },
+        targetPosition: { x: boxes[0].x - desk.x - 24, y: boxes[0].y - desk.y + 80 },
+      })
+      await app(page, 'Services').click()
+      await expect(page.locator('article')).toHaveCount(4)
+      await page.waitForLoadState('networkidle')
+      const fourth = (await inFront.boundingBox())!
+      if (size.width > 1000) expect(fourth.x - boxes[2].x).toBeCloseTo(step, 0)
+      expect(fourth.y - boxes[2].y).toBeCloseTo(step, 0)
+    })
+  }
+
   test('closes a window behind by its control without touching the address or the history', async ({
     page,
   }) => {
