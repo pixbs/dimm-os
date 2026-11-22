@@ -106,3 +106,11 @@ export function between(from: number, to: number) {
   while (turn < -Math.PI) turn += 2 * Math.PI
   return turn
 }
+
+// Where the halftone of the first wallpaper stood: low on the right, by the shape of the screen, and as wide as its
+// nearest edge allows.
+export function home(width: number, height: number) {
+  const [ax, ay] = width < 600 ? [0.7, 0.82] : width < height ? [0.74, 0.76] : [0.78, 0.7]
+  const [x, y] = [ax * width, ay * height]
+  return { x, y, r: Math.min(x, width - x, y, height - y) }
+}

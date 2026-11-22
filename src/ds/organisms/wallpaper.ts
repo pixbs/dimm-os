@@ -2,10 +2,13 @@
 // grid of tones, and the grid is drawn through the filter of the step that is shown.
 import { TICK } from '../motion/engine'
 import { ascii, dots, type Face, SIZE } from './filters'
+import { bouquet } from './bouquet'
 import { catfish } from './catfish'
+import { contours } from './contours'
 import { dragonflies } from './dragonflies'
 import { koi } from './koi'
 import { passage } from './passage'
+import { pond } from './pond'
 import { type Grid, type Scene, grid as tones, seeded } from './tones'
 import type { Step } from './wallpapers'
 
@@ -30,9 +33,12 @@ export type Setting = {
 // Every scene by the name of its wallpaper: a message that names another gets the first.
 const scenes = new Map<string, typeof passage>([
   ['passage', passage],
+  ['bouquet', bouquet],
   ['koi', koi],
   ['dragonflies', dragonflies],
+  ['contours', contours],
   ['catfish', catfish],
+  ['pond', pond],
 ])
 // What every scene takes its chances from.
 const SEED = 299

@@ -1,10 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
+import { bouquet } from '@/ds/organisms/bouquet'
 import { catfish } from '@/ds/organisms/catfish'
+import { contours } from '@/ds/organisms/contours'
 import { dragonflies } from '@/ds/organisms/dragonflies'
 import { ascii, dots } from '@/ds/organisms/filters'
 import { koi } from '@/ds/organisms/koi'
-import { BLUE, grid, limb, ORANGE, PAPER, seeded } from '@/ds/organisms/tones'
+import { pond } from '@/ds/organisms/pond'
+import { BLUE, grid, limb, ORANGE, PAPER, type Scene, seeded } from '@/ds/organisms/tones'
 import { step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
 
 // A few signs of the mono face as it measures at a pitch of 8: the ink in the eight parts of a cell.
@@ -72,15 +75,18 @@ describe('the wallpaper', () => {
     expect(steps.filter((one) => one.startsWith(name))).toEqual([`${name} dots`, `${name} ascii`])
   })
 
-  it.each([
+  it.each<[string, typeof bouquet]>([
+    ['bouquet', bouquet],
     ['koi', koi],
     ['dragonflies', dragonflies],
+    ['contours', contours],
     ['catfish', catfish],
+    ['pond', pond],
   ])('pours the same ink into %s after the same ticks from the same start', (_, scene) => {
     const run = () => {
       const tones = grid(400, 300, 8)
       const shown = scene(tones, 400, 300, seeded(299))
-      for (let tick = 0; tick < 240; tick++) shown.step(tick < 120 ? [200, 150] : null)
+      for (let tick = 0; tick < 240; tick++) shown.step(tick < 120 ? [200, 150] : null, false)
       shown.paint(true)
       return tones
     }
@@ -88,5 +94,50 @@ describe('the wallpaper', () => {
     expect(one.tones.some((tone) => tone > 0)).toBe(true)
     expect(two.tones).toEqual(one.tones)
     expect(two.inks).toEqual(one.inks)
+  })
+
+  // The bouquet in signs after the same ticks, turned half round by a drag across half the screen or not.
+  const bouquetSigns = (drag: boolean) => {
+    const shown: Scene = bouquet(grid(800, 600, 8), 800, 600, seeded(299))
+    for (let tick = 0; tick <= 40; tick++) shown.step(drag ? [200 + tick * 10, 300] : null, drag)
+    return shown.signs!(true)
+  }
+
+  it('sets each kind of flower of the bouquet in signs of its own', () => {
+    const signs = new Set(bouquetSigns(false).map(([sign]) => sign))
+    for (const own of ['O', '@', '(', ')', '^', '*', '8']) expect(signs).toContain(own)
+  })
+
+  it('keeps the sparks of the bouquet where they stood when a drag turns it half round', () => {
+    const spark = ([sign, , , ink]: (string | number)[]) =>
+      ink === PAPER && '.+*'.includes(String(sign))
+    const [still, turned] = [bouquetSigns(false), bouquetSigns(true)]
+    const at = new Map(turned.map((one) => [`${one[1]} ${one[2]}`, one]))
+    const sparks = still.filter(spark)
+
+    expect(sparks.length).toBeGreaterThan(20)
+    expect(turned).not.toEqual(still)
+    // Each stands in its cell again, unless a nearer part of the turned bouquet covers it.
+    for (const one of sparks) {
+      const there = at.get(`${one[1]} ${one[2]}`)
+      expect(there && (!spark(there) || there[0] === one[0])).toBe(true)
+    }
+  })
+
+  it('starts a ring at a press on the pond that reaches the edge of the screen', () => {
+    const run = (press: boolean) => {
+      const tones = grid(400, 300, 8)
+      const shown = pond(tones, 400, 300, seeded(299))
+      for (let tick = 0; tick < 60; tick++) shown.step(press ? [200, 150] : null, press && !tick)
+      shown.paint(false)
+      return tones
+    }
+    const [still, stone] = [run(false), run(true)]
+    const { wide, high } = still
+    // The second column of samples from the left, beside the still edge itself.
+    const edge = Array.from({ length: high }, (_, row) => row * wide + 1)
+    expect(
+      Math.max(...edge.map((at) => Math.abs(stone.tones[at] - still.tones[at]))),
+    ).toBeGreaterThan(0.1)
   })
 })
