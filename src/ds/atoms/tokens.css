@@ -16,8 +16,9 @@
   --a-line: 16%;
   --a-faint: 48%;
   --a-muted: 64%;
-  /* the halftone of the wallpaper, and the weight and colour of a link's line */
+  /* the wallpaper in ink alone and in colour, and the weight and colour of a link's line */
   --a-wallpaper: var(--a-line);
+  --a-wallpaper-colour: var(--a-muted);
   --link-weight: var(--b-1);
 
   /* type: two families, two weights, eight styles */
@@ -84,11 +85,10 @@
   --ht-cell: radial-gradient(circle, var(--ht-light) 0%, var(--ht-dark) 122%);
   --ht-blend: multiply;
   --ht-cut: contrast(14);
-  /* where the form of the wallpaper sits, as a setting of a screen: by default, and on the screen of a wide desk, a tall desk and a phone */
+  /* where the form of a monitor's wallpaper sits: by default, and on the screen of a wide desk and a tall desk */
   --wallpaper-at: 80% 60%;
   --wallpaper-wide: 78% 70%;
   --wallpaper-tall: 74% 76%;
-  --wallpaper-phone: 70% 82%;
   /* a small copy of a screen: its shape on a desk, a tablet and a phone, and where its window stands on it, kept
      elsewhere when windows are remembered, and as a drawer */
   --monitor-desk: 16 / 10;
@@ -185,9 +185,10 @@
   --ws-wide: 0.16em;
 }
 
-/* plain wallpaper: the halftone is gone */
+/* plain wallpaper: it is gone */
 [data-plain='on'] {
   --a-wallpaper: 0%;
+  --a-wallpaper-colour: 0%;
 }
 
 /* underlined links: a full line in the text colour */

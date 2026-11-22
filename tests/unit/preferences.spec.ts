@@ -49,7 +49,7 @@ describe('Preferences', () => {
     expect(root).toMatchObject({
       theme: 'light',
       pitch: '8',
-      wallpaper: '299',
+      wallpaper: 'passage dots colour',
       hand: 'dots',
       boot: 'on',
       start: 'on',
@@ -82,10 +82,15 @@ describe('Preferences', () => {
 
   it('resets every setting to what the device asks for', () => {
     const { kept, root } = device(['prefers-reduced-motion: reduce'])
-    change({ pitch: '10', theme: 'light', wallpaper: '700', boot: 'on', remember: 'on' })
+    change({ pitch: '10', theme: 'light', wallpaper: 'passage ascii', boot: 'on', remember: 'on' })
     change(Object.fromEntries(settings.map((name) => [name, null])))
     expect(kept.size).toBe(0)
-    expect(root).toMatchObject({ pitch: '8', theme: 'dark', wallpaper: '299', boot: 'off' })
+    expect(root).toMatchObject({
+      pitch: '8',
+      theme: 'dark',
+      wallpaper: 'passage dots colour',
+      boot: 'off',
+    })
   })
 
   it('turns the dial: east is a quarter of the range, and a drag past the top holds at the end', () => {
