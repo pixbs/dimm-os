@@ -175,8 +175,11 @@ const onDesk = (state: Windows) => state.z.filter((path) => find(state, path)?.m
 // The window in front is the last on the desk: one in the taskbar is behind them all.
 export const front = (state: Windows): string | undefined => onDesk(state).at(-1)
 
-// What the window in front shows, which the address follows.
-export const showing = (state: Windows): string | undefined => find(state, front(state))?.at
+// What the window in front shows, which the address follows: the 404 window shows the address it answers.
+export const showing = (state: Windows): string | undefined => {
+  const window = find(state, front(state))
+  return window?.view?.asked ?? window?.at
+}
 
 // Until the desk is measured, and under 600 px, its windows have no place on it.
 export const compact = (state: Windows) => !state.desk || state.desk.w < COMPACT
