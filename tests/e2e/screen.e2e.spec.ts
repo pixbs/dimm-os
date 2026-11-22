@@ -374,8 +374,10 @@ test.describe('Wallpaper', () => {
 
     await page.evaluate(() => (document.documentElement.dataset.plain = 'on'))
     await expect(canvas).toHaveCount(0)
+    await expect.poll(() => page.workers().length).toBe(0)
     await page.evaluate(() => (document.documentElement.dataset.plain = 'off'))
     await expect(canvas).toHaveCount(1)
+    await expect.poll(() => page.workers().length).toBe(1)
   })
 
   test('stops under a window in full screen, which covers the apps with it', async ({ page }) => {
