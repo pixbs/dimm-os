@@ -14,7 +14,7 @@ import { Row } from '@/ds/molecules/Row'
 import { type CardProps, Cards as Grid, Tiles } from '@/ds/organisms/Card'
 import type { FormWords } from '@/ds/organisms/Form'
 import { Items, List } from '@/ds/organisms/List'
-import { Live } from '@/ds/organisms/Live'
+import { Live, surfaceFor } from '@/ds/organisms/Live'
 import { Prose } from '@/ds/organisms/Prose'
 import { Stats as Figures } from '@/ds/organisms/Stats'
 import { Table as Rows } from '@/ds/organisms/Table'
@@ -51,6 +51,7 @@ function cardsOf(cards: CardsView, width: number, first: boolean, under: boolean
     ...item,
     href: href ?? undefined,
     under,
+    surface: surfaceFor(picture?.live),
     media: picture
       ? {
           ratio: cards.tiles ? undefined : '4:3',

@@ -23,12 +23,14 @@ const strengths = [
   ['16', 'line', 'line'],
   ['8', 'hover', 'hover'],
 ]
-// Each surface of a theme with its background in dark; its foreground is the other of ink and paper.
+// Each surface of a theme with its background in dark; its foreground is the other of ink and paper. A print does not
+// turn.
 const surfaces = [
   ['desktop', 'ink-1', 'paper-1'],
   ['window', 'ink-2', 'paper-1'],
   ['raised', 'ink-3', 'paper-1'],
   ['paper', 'paper-1', 'ink-1'],
+  ['print', 'paper-1', 'ink-1'],
 ]
 const accents = ['orange', 'blue', 'mint']
 
@@ -114,7 +116,7 @@ export function Colour({ t }: { t: Copy['colour'] }) {
               <p className="t-mono">{name}</p>
               {[
                 ['dark', bg, fg],
-                ['light', reverse(bg), reverse(fg)],
+                ['light', ...(name === 'print' ? [bg, fg] : [reverse(bg), reverse(fg)])],
               ].map(([theme, back, text]) => (
                 <Fragment key={theme}>
                   <p className="t-mono c-muted" data-in={theme}>
