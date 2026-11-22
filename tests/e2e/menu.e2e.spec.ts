@@ -25,6 +25,15 @@ const keys: Record<string, string> = {
   'Next window': 'N',
 }
 
+// When each child of a menu starts to arrive, in ms, and what it plays.
+const turns = (page: Page, name: string) =>
+  menu(page, name).evaluate((list) =>
+    [...list.children].map((row) => {
+      const { animationDelay, animationName } = getComputedStyle(row)
+      return [Math.round(parseFloat(animationDelay) * 1000), animationName] as const
+    }),
+  )
+
 // Choose a row with the pointer: a menu of the menu bar, then a row of it or of one of its submenus.
 async function pick(page: Page, [first, ...rows]: string[]) {
   await top(page, first).click()
@@ -140,7 +149,7 @@ test.describe('Menus on a desk', () => {
     }
   })
 
-  test('a menu unfolds from the edge it hangs from within fast, and fades with reduced motion', async ({
+  test('a menu grows out of the corner under its button within fast, and fades with reduced motion', async ({
     page,
   }) => {
     for (const motion of ['no-preference', 'reduce'] as const) {
@@ -153,7 +162,8 @@ test.describe('Menus on a desk', () => {
         requestAnimationFrame(function look() {
           const part = document.querySelector('.menu__hang')
           if (part) {
-            const { d } = new DOMMatrix(getComputedStyle(part).transform)
+            const { a, d } = new DOMMatrix(getComputedStyle(part).transform)
+            if (a !== d) throw new Error('a menu grows alike both ways')
             seen.push([performance.now() - start, d, +getComputedStyle(part).opacity])
           }
           requestAnimationFrame(look)
@@ -165,15 +175,40 @@ test.describe('Menus on a desk', () => {
       const seen = (await page.evaluate(() => Reflect.get(window, 'seen'))) as number[][]
       const first = seen[0]
       const arrived = seen.find(([, scale, opacity]) => scale === 1 && opacity === 1)!
-      expect(arrived[0] - first[0]).toBeLessThanOrEqual(160 + 34)
+      expect(arrived[0] - first[0]).toBeLessThanOrEqual((motion === 'reduce' ? 80 : 160) + 34)
       if (motion === 'reduce') expect(seen.every(([, scale]) => scale === 1)).toBe(true)
-      else expect(first[1]).toBeLessThan(0.5)
+      else expect(first[1]).toBeGreaterThanOrEqual(0.96)
       expect(
         await page
           .locator('.menu__hang')
           .evaluate((part) => getComputedStyle(part).transformOrigin),
-      ).toMatch(/ 0px$/)
+      ).toBe('0px 0px')
     }
+  })
+
+  test('its rows arrive in turn; moved on to, a menu only fades in, its rows without the first wait', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+    await page.reload({ waitUntil: 'networkidle' })
+    await top(page, 'File').click()
+    expect(await turns(page, 'File')).toEqual([
+      [40, 'turn'],
+      [70, 'turn'],
+    ])
+    await top(page, 'View').hover()
+    await expect(menu(page, 'File')).toHaveCount(0)
+    expect(
+      await menu(page, 'View').evaluate(
+        (list) => new DOMMatrix(getComputedStyle(list.parentElement!).transform).a,
+      ),
+    ).toBe(1)
+    expect((await turns(page, 'View')).slice(0, 2).map(([delay]) => delay)).toEqual([0, 30])
+
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.reload({ waitUntil: 'networkidle' })
+    await top(page, 'File').click()
+    expect((await turns(page, 'File')).every(([, name]) => name === 'none')).toBe(true)
   })
 })
 

@@ -18,7 +18,7 @@ type Props = {
 }
 
 // The size a part opens from at its own place.
-const start = () =>
+export const start = () =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--m-start'))
 
 // The centre of the opener, when it is on screen.

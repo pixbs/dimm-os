@@ -1,5 +1,6 @@
 import { Fragment } from 'react'
 
+import { MenuButton } from '../organisms/Menu'
 import type { Copy } from './copy/en'
 import { Deciphers, Opens, Pictures, Played, Springs } from './Moves'
 import { Doc, Entry, Table } from './parts'
@@ -80,6 +81,14 @@ export function Motion({ t }: { t: Copy['motion'] }) {
             ))}
           </div>
         </Played>
+      </Entry>
+      <Entry text={t.turn}>
+        <MenuButton
+          button={{ label: t.turnOpen, tone: 'outline' }}
+          items={Array.from({ length: 12 }, (_, at) => ({ label: `${t.turnRow} ${at + 1}` }))}
+          label={t.turn[0]}
+          t={{ close: '' }}
+        />
       </Entry>
       <Entry text={t.spring}>
         <Springs label={t.play} />
