@@ -2,8 +2,6 @@
 
 import { type ReactNode, useState } from 'react'
 
-import { Dial } from '../molecules/Dial'
-import { Stat } from '../molecules/Heading'
 import { Lamps } from '../molecules/Lamps'
 import { Media } from '../molecules/Media'
 import { Path } from '../molecules/Path'
@@ -84,31 +82,6 @@ export function LivePicture({ picture }: { picture: Source }) {
   return (
     <Stage flush width={width.popover}>
       <Media live={<Liquid picture={disc} />} picture={picture} ratio="1:1" />
-    </Stage>
-  )
-}
-
-// The field of every wallpaper on the page, as Preferences will set it: each form pours to its new place.
-export function FieldDial({ label }: { label: string }) {
-  const [field, setField] = useState(299)
-
-  return (
-    <Stage>
-      <div className="spec" style={{ alignItems: 'center' }}>
-        <Dial
-          labelledBy="field"
-          max={999}
-          min={100}
-          onChange={(value) => {
-            setField(value)
-            document.documentElement.dataset.wallpaper = String(value)
-          }}
-          value={field}
-        />
-        <span id="field">
-          <Stat label={label} value={field} />
-        </span>
-      </div>
     </Stage>
   )
 }

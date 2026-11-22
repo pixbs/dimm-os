@@ -14,6 +14,7 @@ import { Lamps } from '@/ds/molecules/Lamps'
 import { Row } from '@/ds/molecules/Row'
 import { Slide } from '@/ds/molecules/Slide'
 import { Decipher } from '@/ds/motion/Decipher'
+import { fieldOf } from '@/ds/organisms/form'
 import { Monitor } from '@/ds/organisms/Monitor'
 import { Section } from '@/ds/sections/Section'
 import { type Language, languages, names, toAddress } from '@/i18n/address'
@@ -39,7 +40,7 @@ function Body({ t, language, site, path }: Props) {
   const theme = useSetting('theme')
   const hand = useSetting('hand')
   const pitch = useSetting('pitch') ?? '8'
-  const field = Number(useSetting('wallpaper') ?? 299)
+  const field = fieldOf(useSetting('wallpaper'))
   const clock = useSetting('clock')
   const on = {
     boot: useSetting('boot') === 'on',

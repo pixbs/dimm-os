@@ -123,11 +123,6 @@ export function engine(picture: Picture) {
       flowing = true
     },
 
-    // Particles set away from home start back at once, sweeping from the start to the end.
-    release() {
-      stirred = time - 380
-    },
-
     // One tick of the clock, which says whether anything still moves; the spread is in ms.
     tick(spread: number) {
       time += TICK

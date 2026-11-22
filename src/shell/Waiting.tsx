@@ -15,6 +15,7 @@ import { Avatar } from '@/ds/molecules/Media'
 import { Row } from '@/ds/molecules/Row'
 import { curve, duration, reduced } from '@/ds/motion/vocabulary'
 import { Card } from '@/ds/organisms/Card'
+import { fieldOf } from '@/ds/organisms/form'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
 import { Section } from '@/ds/sections/Section'
@@ -151,7 +152,7 @@ function Boot({ view, t, go }: Props) {
   const [share, setShare] = useState(0)
   const done = share >= 1
   const shown = Math.ceil(share * rows.length)
-  const field = useSetting('wallpaper') ?? ''
+  const field = fieldOf(useSetting('wallpaper'))
   const today = useMinute()
   const ended = useRef(false)
 
@@ -206,7 +207,7 @@ function Boot({ view, t, go }: Props) {
     }).format(today * 60000)
 
   return (
-    // The last row pours the wallpaper in.
+    // The last row brings the wallpaper in.
     <Screen fill ref={screen} waiting wallpaper={shown >= rows.length}>
       <div className="screen__main cq">
         <div className="screen__page">
