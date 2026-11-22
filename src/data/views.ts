@@ -809,10 +809,11 @@ export const getView = cache(async (lang: string, segments: string[] = []) => {
   return held ? getWindowView(path, lang, visitor) : getGuestView(path, lang)
 })
 
-// The desk with the 404 window.
-export async function getMissingView(language: Language): Promise<View> {
+// The desk with the 404 window, whose bar shows the address asked for.
+export async function getMissingView(language: Language, asked: string): Promise<View> {
   const { held, visitor } = await asking()
-  return held ? (await views(language, visitor)).missing() : getGuestMissing(language)
+  const view = held ? (await views(language, visitor)).missing() : await getGuestMissing(language)
+  return { ...view, window: view.window && { ...view.window, asked } }
 }
 
 // Every address a guest can open, in each language: the desk, the windows and the system's.
