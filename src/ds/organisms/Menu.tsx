@@ -36,6 +36,9 @@ export type Item =
       act?: () => void
       checked?: boolean
       radio?: boolean
+      // One of a set of choices, marked by a filled mark when taken and a hollow one when not.
+      mark?: boolean
+      lang?: string
       disabled?: boolean
       items?: Item[] | (() => Item[])
       // A state shown at rest, for the catalogue.
@@ -50,8 +53,15 @@ export type Top = {
   lead?: ReactNode
   for?: string
   items: Item[]
-  // What a drawer shows in place of the rows, given what closes it.
-  screen?: (done: () => void) => ReactNode
+  // What a drawer shows in place of the rows, given what closes it and what opens its rows' submenus in front.
+  screen?: (menus: Screen) => ReactNode
+}
+
+// What a screen in a drawer is given: its rows' submenus open by their place among the menu's rows.
+export type Screen = {
+  done: () => void
+  open: (at: number, from: Element) => void
+  expanded: (at: number) => boolean
 }
 
 // The open menus, one a level: which row opened each, the element it was opened from, and whether it took the place of
@@ -163,9 +173,11 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
           role:
             item.checked === undefined
               ? 'menuitem'
-              : `menuitem${item.radio ? 'radio' : 'checkbox'}`,
+              : `menuitem${item.radio || item.mark ? 'radio' : 'checkbox'}`,
           'aria-checked': item.checked,
-          icon: item.checked === undefined ? undefined : ('check' as const),
+          icon: item.checked === undefined || item.mark ? undefined : ('check' as const),
+          lead: item.mark && <span className="mark" data-tone={item.checked ? undefined : 'off'} />,
+          lang: item.lang,
           size: menus.size,
           state: item.state,
           tabIndex: -1,
@@ -177,6 +189,7 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
               {...row}
               end={drawer && item.href ? 'arrow-right' : undefined}
               href={item.href}
+              hrefLang={item.href && item.lang}
               key={at}
               style={style}
               onClick={() => {
@@ -237,7 +250,7 @@ function Level(props: {
   )
 
   if (menus.drawer) {
-    return (
+    const drawer = (
       <Dialog
         back={menus.chain.length - 1 - depth}
         bar
@@ -249,8 +262,38 @@ function Level(props: {
         shown={menus.shown}
         t={menus.t}
       >
-        {open && (props.screen ? props.screen(menus.done) : list())}
+        {open &&
+          (props.screen
+            ? props.screen({
+                done: menus.done,
+                open: (at, from) => menus.open(depth + 1, at, from),
+                expanded: (at) => menus.chain[depth + 1]?.at === at,
+              })
+            : list())}
       </Dialog>
+    )
+    const subs = props.screen && (typeof items === 'function' ? items() : items)
+    // A screen's submenus are drawers in front of it, as those of a menu are.
+    return subs ? (
+      <>
+        {drawer}
+        {subs.map(
+          (item, at) =>
+            item !== 'rule' &&
+            item.items && (
+              <Level
+                depth={depth + 1}
+                items={item.items}
+                key={at}
+                label={item.label}
+                menus={menus}
+                open={menus.chain[depth + 1]?.at === at}
+              />
+            ),
+        )}
+      </>
+    ) : (
+      drawer
     )
   }
   // Closed while another menu is open at its level, it gave that one its place: it goes in the same frame.

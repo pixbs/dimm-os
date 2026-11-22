@@ -125,9 +125,8 @@ test.describe('Menus on a desk', () => {
     await pick(page, ['View', 'Full screen'])
     await expect(work).not.toHaveAttribute('data-full', '')
 
-    const theme = await root.getAttribute('data-theme')
-    await pick(page, ['View', 'Theme'])
-    await expect(root).not.toHaveAttribute('data-theme', theme!)
+    await pick(page, ['View', 'Theme', 'Light'])
+    await expect(root).toHaveAttribute('data-theme', 'light')
     await pick(page, ['View', 'Dot', '12'])
     await expect(root).toHaveAttribute('data-pitch', '12')
 
@@ -269,6 +268,100 @@ test.describe('Menus on a desk', () => {
   })
 })
 
+test.describe('The theme and the language', () => {
+  const bar = (page: Page, name: string) =>
+    page.locator('header').getByRole('button', { name, exact: true })
+  // Each choice, and whether its mark is filled.
+  const choices = (page: Page, name: string) =>
+    menu(page, name)
+      .getByRole('menuitemradio')
+      .evaluateAll((rows) =>
+        rows.map((row) => [
+          (row as HTMLElement).innerText,
+          row.getAttribute('aria-checked'),
+          row.querySelector('.mark')?.getAttribute('data-tone') ?? 'filled',
+        ]),
+      )
+
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'dark' })
+    await page.goto('/work', { waitUntil: 'networkidle' })
+  })
+
+  test('the theme button opens three choices, changes nothing until one is chosen, and System hands back to the device', async ({
+    page,
+  }) => {
+    const root = page.locator('html')
+    const button = bar(page, 'Theme')
+    await expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    await button.click()
+    expect(await choices(page, 'Theme')).toEqual([
+      ['System', 'true', 'filled'],
+      ['Dark', 'false', 'off'],
+      ['Light', 'false', 'off'],
+    ])
+    await page.keyboard.press('Escape')
+    await expect(menu(page, 'Theme')).toHaveCount(0)
+    await expect(button).toBeFocused()
+    await expect(root).toHaveAttribute('data-theme', 'dark')
+
+    // With keys alone: open, move to Light, choose it.
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('ArrowDown')
+    await page.keyboard.press('Enter')
+    await expect(menu(page, 'Theme')).toHaveCount(0)
+    await expect(root).toHaveAttribute('data-theme', 'light')
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBe('light')
+
+    await pick(page, ['View', 'Theme'])
+    expect((await choices(page, 'Theme')).map(([, checked]) => checked)).toEqual([
+      'false',
+      'false',
+      'true',
+    ])
+    await menu(page, 'Theme').getByRole('menuitemradio', { name: 'System' }).click()
+    await expect(root).toHaveAttribute('data-theme', 'dark')
+    expect(await page.evaluate(() => localStorage.getItem('theme'))).toBeNull()
+  })
+
+  test('the language button opens the languages by their own names, and the other shows the same window', async ({
+    page,
+  }) => {
+    const button = bar(page, 'Language: English')
+    await expect(button).toHaveAttribute('aria-haspopup', 'menu')
+    await button.click()
+    expect(await choices(page, 'Language')).toEqual([
+      ['English', 'true', 'filled'],
+      ['Deutsch', 'false', 'off'],
+    ])
+    await menu(page, 'Language').getByRole('menuitemradio', { name: 'English' }).click()
+    await expect(menu(page, 'Language')).toHaveCount(0)
+    await expect(page).toHaveURL(/\/work$/)
+
+    await button.click()
+    const german = menu(page, 'Language').getByRole('menuitemradio', { name: 'Deutsch' })
+    await expect(german).toHaveAttribute('href', '/de/work')
+    await expect(german).toHaveAttribute('hreflang', 'de')
+    await german.click()
+    await expect(page).toHaveURL(/\/de\/work$/)
+    await expect(bar(page, 'Sprache: Deutsch')).toBeVisible()
+  })
+
+  test('the login screen keeps its language button, which opens the same menu', async ({
+    page,
+  }) => {
+    await page.goto('/login', { waitUntil: 'networkidle' })
+    await page
+      .locator('[data-waiting] header')
+      .getByRole('button', { name: 'Language: English', exact: true })
+      .click()
+    await expect(
+      menu(page, 'Language').getByRole('menuitemradio', { name: 'Deutsch' }),
+    ).toHaveAttribute('href', '/de')
+  })
+})
+
 test.describe('Menus on a tablet', () => {
   test.use({ hasTouch: true, isMobile: true, viewport: { width: 1194, height: 834 } })
 
@@ -356,19 +449,32 @@ test.describe('The Dimm OS screen on a phone', () => {
     await expect(top(page, 'Dimm OS')).toBeFocused()
   })
 
-  test('shows the theme in force, and the new one after a press', async ({ page }) => {
+  test('Theme and Language show the choice in force and open their choices as a drawer in front', async ({
+    page,
+  }) => {
+    await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/work', { waitUntil: 'networkidle' })
     await top(page, 'Dimm OS').click()
     const theme = screen(page).getByRole('button', { name: /^Theme/ })
-    const was = await page.evaluate(() => document.documentElement.dataset.theme)
-    await expect(theme.locator('.row__meta')).toHaveText(was === 'light' ? 'Light' : 'Dark')
-    await theme.click()
-    await expect(theme.locator('.row__meta')).toHaveText(was === 'light' ? 'Dark' : 'Light')
+    await expect(theme.locator('.row__meta')).toHaveText('System')
     await expect(
       screen(page)
-        .getByRole('link', { name: /^Language/ })
+        .getByRole('button', { name: /^Language/ })
         .locator('.row__meta'),
     ).toHaveText('English')
+    await theme.click()
+    await expect(screen(page, 'Theme')).toBeVisible()
+    await expect(theme).toHaveAttribute('aria-expanded', 'true')
+    // Esc puts the choices away first, the focus back on their row.
+    await page.keyboard.press('Escape')
+    await expect(menu(page, 'Theme')).toHaveCount(0)
+    await expect(theme).toBeFocused()
+    await theme.click()
+    await menu(page, 'Theme').getByRole('menuitemradio', { name: 'Light' }).click()
+    await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
+    await expect(page.locator('dialog')).toHaveCount(0)
+    await top(page, 'Dimm OS').click()
+    await expect(theme.locator('.row__meta')).toHaveText('Light')
   })
 
   test('at 360 wide no row wraps, and the body scrolls under its title where the screen is shorter', async ({

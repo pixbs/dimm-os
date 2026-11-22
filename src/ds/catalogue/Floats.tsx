@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState } from 'react'
 
-import type { Language } from '@/i18n/address'
+import { type Language, names } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named } from '@/i18n/keys'
 import { legalLinks } from '@/shell/menus'
@@ -174,6 +174,10 @@ export function Menus(props: Props) {
               { label: t.hover, hint: named(language, ['mod', 'S']), state: 'hover' },
               'rule',
               { label: t.checked, checked: true },
+              'rule',
+              { label: t.value, mark: true, checked: true },
+              { label: t.anotherValue, mark: true, checked: false },
+              'rule',
               { label: t.submenu, items: [] },
               'rule',
               { label: t.disabled, disabled: true },
@@ -241,12 +245,12 @@ export function Menus(props: Props) {
         <Phone {...props} height={134}>
           <Dialog bar drawer label={t.name} onClose={noop} open shown t={words}>
             <SystemScreen
-              done={noop}
-              here="/"
+              inForce={[words.system, names[language]]}
               language={language}
               legal={legalLinks(words, language, [])}
               lock={noop}
               login={noop}
+              menus={{ done: noop, open: noop, expanded: () => false }}
               name={t.name}
               shutDown={noop}
               t={words}

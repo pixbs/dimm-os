@@ -1,17 +1,43 @@
 import { change } from '@/ds/atoms/settings'
 import type { Item, Top } from '@/ds/organisms/Menu'
 import { Travels } from '@/ds/motion/Travels'
-import { type Language, toAddress } from '@/i18n/address'
+import { type Language, languages, names, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 
 import type { commandsOf, SystemCommand } from './commands'
-import { type Action, compact, front, phone, showing, type Windows } from './manager'
+import { type Action, compact, front, phone, type Windows } from './manager'
 import { tasksOf } from './OnDesk'
 import { SystemScreen } from './System'
 
 // The pitches the dot can be set to.
 const pitches = ['5', '6', '8', '10', '12']
+
+// The themes, the device's first; nothing changes until one is chosen.
+export function themeMenu(t: Dictionary, chosen: string | null): Item[] {
+  const themes = [
+    [null, t.system],
+    ['dark', t.dark],
+    ['light', t.light],
+  ] as const
+  return themes.map(([theme, label]) => ({
+    label,
+    mark: true,
+    checked: chosen === theme,
+    act: () => change({ theme }),
+  }))
+}
+
+// The languages by their own names: the other is a plain link to the same window, the one in force only closes.
+export function languageMenu(language: Language, path: string): Item[] {
+  return languages.map((one) => ({
+    label: names[one],
+    lang: one,
+    mark: true,
+    checked: one === language,
+    href: one === language ? undefined : toAddress(one, path),
+  }))
+}
 
 // The legal windows under the names they have, then consent.
 export function legalLinks(
@@ -50,6 +76,8 @@ export function menus(props: {
   legal: ReturnType<typeof legalLinks>
   visitor: string | null
   login: () => void
+  theme: Item[]
+  languages: Item[]
 }): Top[] {
   const { t, language, desk, act, commands } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -97,11 +125,7 @@ export function menus(props: {
       act: () => act({ type: 'full' }),
       disabled: !top || compact(desk) || oneSize,
     },
-    {
-      label: t.theme,
-      act: () =>
-        change({ theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light' }),
-    },
+    { label: t.theme, items: props.theme },
     {
       label: t.dot,
       items: () =>
@@ -164,6 +188,14 @@ export function menus(props: {
     command('lock'),
     command('shutDown'),
   ]
+  // On a phone the menu is the Dimm OS screen, whose rows of the theme and the language open these; each shows the
+  // choice in force at its end.
+  const inForce = (items: Item[]) =>
+    items.find((item) => item !== 'rule' && item.checked) as Exclude<Item, 'rule'> | undefined
+  const choices: Item[] = [
+    { label: t.theme, items: props.theme },
+    { label: t.prefsLanguage, items: props.languages },
+  ]
 
   return [
     { name: t.menu, icon: 'menu', for: 'desk touch', items: all },
@@ -171,19 +203,19 @@ export function menus(props: {
       name: props.name,
       label: props.name,
       lead: <Travels className="mark" data-surface="orange" id="mark" lands />,
-      items: system,
+      items: phone(desk) ? choices : system,
       screen: phone(desk)
-        ? (done) => (
+        ? (menus) => (
             <SystemScreen
-              done={done}
-              here={showing(desk) ?? '/'}
               language={language}
               legal={props.legal}
               lock={() => commands.lock.run()}
               login={props.login}
+              menus={menus}
               name={props.name}
               shutDown={() => commands.shutDown.run()}
               t={t}
+              inForce={[inForce(props.theme)?.label, inForce(props.languages)?.label]}
               visitor={props.visitor}
             />
           )

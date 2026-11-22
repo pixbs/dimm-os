@@ -144,6 +144,7 @@ test('switching theme is one crossfade, and no part changes on its own during it
   })
   await page.goto('/cv', { waitUntil: 'networkidle' })
   await page.getByRole('button', { name: 'Theme' }).click()
+  await page.getByRole('menuitemradio', { name: 'Light' }).click()
   await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
 
   // As the new theme is laid out under the crossfade, nothing starts a transition of its own.
