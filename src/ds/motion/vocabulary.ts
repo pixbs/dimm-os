@@ -16,6 +16,7 @@ type Time =
   | 'decode'
   | 'wait'
   | 'hold'
+  | 'press'
   | 'note'
   | 'swatch-sweep'
   | 'swatch-step'

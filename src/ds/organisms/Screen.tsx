@@ -66,6 +66,8 @@ export type Shortcut = {
   icon: IconName
   tile: Tile | null
   lang?: string
+  // The address of the file it offers, which makes it a file on the desk.
+  file?: string
   // Shown on one kind of screen only.
   screen?: 'phone' | 'desk'
 }
@@ -80,7 +82,7 @@ export function Apps(props: {
 }) {
   return (
     <nav aria-label={props.label} className="apps" data-layout={props.layout} inert={props.inert}>
-      {props.apps.map(({ tile, ...app }) => (
+      {props.apps.map(({ tile, file: _, ...app }) => (
         <App key={`${app.screen}${app.href}`} {...app} tile={tile ?? undefined} />
       ))}
     </nav>
