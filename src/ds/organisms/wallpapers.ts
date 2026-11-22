@@ -11,7 +11,7 @@ export type Step = {
 // The setting holds a step as words. Anything else, like the field number of an earlier visit, reads as the default.
 export function step(setting?: string | null): Step {
   const [wallpaper, filter, colour] = (setting ?? '').split(' ')
-  if (!(wallpaper in wallpapers) || (filter !== 'dots' && filter !== 'ascii'))
+  if (!Object.hasOwn(wallpapers, wallpaper) || (filter !== 'dots' && filter !== 'ascii'))
     return { wallpaper: 'passage', filter: 'dots', colour: true }
   const name = wallpaper as keyof typeof wallpapers
   return { wallpaper: name, filter, colour: wallpapers[name] && colour === 'colour' }

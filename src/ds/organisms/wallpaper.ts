@@ -45,6 +45,8 @@ let grid: Grid
 let scene: ReturnType<typeof passage> | undefined
 let read: ReturnType<typeof ascii> | undefined
 let loaded: boolean | undefined
+// The face as measured, once per pitch.
+const faces = new Map<number, Face>()
 let request = 0
 let last: number | undefined
 let owed = 0
@@ -97,7 +99,8 @@ function signs() {
       () => undefined,
     )
   }
-  return (read ??= ascii(loaded ? measure() : null))(grid)
+  if (loaded && !faces.has(now!.pitch)) faces.set(now!.pitch, measure())
+  return (read ??= ascii(faces.get(now!.pitch) ?? null))(grid)
 }
 
 function draw() {
