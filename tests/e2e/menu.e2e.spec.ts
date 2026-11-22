@@ -87,6 +87,8 @@ test.describe('Menus on a desk', () => {
   }) => {
     await top(page, 'View').focus()
     await page.keyboard.press('ArrowUp')
+    expect((await focused(page)).title).toBe('Next wallpaper')
+    await page.keyboard.press('ArrowUp')
     expect((await focused(page)).title).toBe('Dot')
     await page.keyboard.press('ArrowRight')
     await expect(menu(page, 'Dot')).toBeVisible()
@@ -94,6 +96,8 @@ test.describe('Menus on a desk', () => {
     await page.keyboard.press('ArrowLeft')
     await expect(menu(page, 'Dot')).toHaveCount(0)
     expect((await focused(page)).title).toBe('Dot')
+    await page.keyboard.press('Tab')
+    expect((await focused(page)).title).toBe('Next wallpaper')
     await page.keyboard.press('Tab')
     expect((await focused(page)).title).toBe('Full screen')
     await page.keyboard.press('ArrowLeft')
@@ -209,10 +213,10 @@ test.describe('Menus on a desk', () => {
       }),
     ).toBe(true)
     await row.evaluate((one) => one.getAnimations().forEach((move) => move.play()))
-    expect(await turns(page, 'File')).toEqual([
-      [40, 'turn'],
-      [70, 'turn'],
-    ])
+    // Its six children, the rule among them, each a turn after the one before.
+    expect(await turns(page, 'File')).toEqual(
+      [40, 70, 100, 130, 160, 190].map((delay) => [delay, 'turn']),
+    )
     // The menu it moved on from is gone as the next arrives.
     await top(page, 'View').hover()
     await expect(menu(page, 'View')).toHaveCount(1)

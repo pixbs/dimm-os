@@ -56,7 +56,7 @@ export type Action =
   | { type: 'task'; path: string; opener?: Element | null }
   // Without a path these act on the window in front, as a key or a menu does.
   | { type: 'minimise' | 'full'; path?: string }
-  | { type: 'next' | 'escape' }
+  | { type: 'next' | 'escape' | 'minimiseAll' | 'closeAll' }
   | { type: 'move'; path: string; dx: number; dy: number }
   | { type: 'pull'; path: string; edge: Edge; dx: number; dy: number }
   // An arrow key on the bar: one step of a move, or with Shift of a pull.
@@ -357,6 +357,11 @@ export function manager(state: Windows, action: Action): Windows {
         ...others(target.path),
       ])
     }
+    // Back to front, so the one in front comes back first.
+    case 'minimiseAll':
+      return onDesk(state).reduce((next, path) => manager(next, { type: 'minimise', path }), state)
+    case 'closeAll':
+      return { ...state, open: [], z: [], sizing: null }
     case 'full':
       if (!target || target.mode === 'min' || target.view?.frame.oneSize) return state
       return change(target.path, { mode: target.mode === 'full' ? 'float' : 'full' }, [

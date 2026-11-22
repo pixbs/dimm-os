@@ -18,6 +18,16 @@
   text-rendering: optimizeLegibility;
 }
 
+/* Said, not shown: assistive technology reads it, and it takes no room. */
+[data-unseen] {
+  position: absolute;
+  width: var(--b-1);
+  height: var(--b-1);
+  overflow: hidden;
+  white-space: nowrap;
+  clip-path: inset(50%);
+}
+
 /* Wider text spacing opens letters and words; the styles with a tracking of their own add it to theirs. */
 [data-spacing='wide'] {
   letter-spacing: var(--k-wide);

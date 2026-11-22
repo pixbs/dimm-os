@@ -43,4 +43,10 @@ export const systemCommands = {
   lock: 'user',
   replay: 'play',
   shutDown: 'power',
+  nextWallpaper: 'image',
+  minimiseAll: 'minus',
+  closeAll: 'close',
+  copyLink: 'link',
+  openInTab: 'arrow-up-right',
+  download: 'download',
 } as const satisfies Partial<Record<keyof Dictionary, IconName>>
