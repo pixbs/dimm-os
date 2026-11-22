@@ -14,7 +14,7 @@ import * as migration_20261118_211013_cleanup_job from './20261118_211013_cleanu
 import * as migration_20261118_211252_message_limit from './20261118_211252_message_limit';
 import * as migration_20261119_182115_alt_per_language from './20261119_182115_alt_per_language';
 import * as migration_20261119_185659_drop_unused from './20261119_185659_drop_unused';
-import * as migration_20261122_164633_icons_for_settings from './20261122_164633_icons_for_settings';
+import * as migration_20261122_174946_icons_for_settings from './20261122_174946_icons_for_settings';
 
 export const migrations = [
   {
@@ -98,8 +98,8 @@ export const migrations = [
     name: '20261119_185659_drop_unused',
   },
   {
-    up: migration_20261122_164633_icons_for_settings.up,
-    down: migration_20261122_164633_icons_for_settings.down,
-    name: '20261122_164633_icons_for_settings'
+    up: migration_20261122_174946_icons_for_settings.up,
+    down: migration_20261122_174946_icons_for_settings.down,
+    name: '20261122_174946_icons_for_settings'
   },
 ];

@@ -34,6 +34,10 @@
   &[data-surface] {
     background-color: var(--bg);
   }
+  /* Beside a lead taller than a line, as an avatar, what it says stands at the middle of it. */
+  &[data-align='middle'] {
+    align-items: center;
+  }
   &:is(a, button, label) {
     cursor: pointer;
   }
@@ -178,8 +182,8 @@
     align-self: center;
   }
 }
-/* A compact button, tile or avatar in a slot keeps the row at its height. */
-:is(.row__lead, .row__trail) > :is(.btn, .app__tile, .avatar)[data-size='compact'] {
+/* A compact button or tile in a slot keeps the row at its height. */
+:is(.row__lead, .row__trail) > :is(.btn, .app__tile)[data-size='compact'] {
   margin-block: calc(var(--s-1) * -1);
 }
 

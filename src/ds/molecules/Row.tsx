@@ -22,6 +22,8 @@ type Props = Omit<HTMLAttributes<HTMLElement>, 'title'> & {
   end?: IconName
   scale?: 'heading'
   size?: 'compact'
+  // Beside a lead taller than a line, as an avatar, what it says stands at the middle of it.
+  middle?: boolean
   // A link; without one, a row that acts, is pressed, current, opens or can be disabled is a button.
   href?: string
   hrefLang?: string
@@ -60,7 +62,19 @@ export function Row(props: Props) {
     end,
     ...own
   } = props
-  const { scale, size, href, toggles, expanded, pressed, current, disabled, state, ...rest } = own
+  const {
+    scale,
+    size,
+    middle,
+    href,
+    toggles,
+    expanded,
+    pressed,
+    current,
+    disabled,
+    state,
+    ...rest
+  } = own
   // A link that cannot be followed is a disabled button, and a row that acts or holds a state is a button.
   const link = !!href && !disabled
   const button =
@@ -76,6 +90,7 @@ export function Row(props: Props) {
       aria-expanded={expanded}
       aria-pressed={button ? pressed : undefined}
       className="row"
+      data-align={middle ? 'middle' : undefined}
       data-layout={above ? 'above' : side ? 'split' : undefined}
       data-scale={scale}
       data-size={size}

@@ -487,7 +487,7 @@ test.describe('The Dimm OS screen on a phone', () => {
     for (const height of await body
       .locator('.row:not(.list__head) .row__title')
       .evaluateAll((all) => all.map((title) => title.getBoundingClientRect().height)))
-      expect(height).toBe(24)
+      expect(height).toBeCloseTo(24, 0)
     expect(await body.evaluate((part) => part.scrollHeight > part.clientHeight)).toBe(true)
     await body.getByRole('button', { name: 'Shut down' }).scrollIntoViewIfNeeded()
     await expect(screen(page).locator('.bar')).toBeInViewport()

@@ -413,9 +413,8 @@ export interface Window {
         | 'ab'
         | 'eye-off'
         | 'accessibility'
-        | 'hand'
+        | 'touch'
         | 'cookie'
-        | 'shield'
       )
     | null;
   /**
@@ -777,9 +776,8 @@ export interface ListBlock {
               | 'ab'
               | 'eye-off'
               | 'accessibility'
-              | 'hand'
+              | 'touch'
               | 'cookie'
-              | 'shield'
             )
           | null;
         picture?: (number | null) | Media;

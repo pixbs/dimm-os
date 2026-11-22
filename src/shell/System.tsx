@@ -60,16 +60,13 @@ export function SystemScreen(props: {
         <List>
           <Row
             end="arrow-right"
-            lead={
-              <Avatar size="compact" surface="raised">
-                {name[0]}
-              </Avatar>
-            }
+            lead={<Avatar surface="raised">{name[0]}</Avatar>}
+            middle
             onClick={() => {
               done()
               props.login()
             }}
-            text={props.visitor ? undefined : t.logIn}
+            meta={props.visitor ? undefined : t.logIn}
             title={name}
           />
         </List>
@@ -93,13 +90,13 @@ export function SystemScreen(props: {
           {window('orange', 'info', t.about.replace('{name}', props.name), '/about')}
           {window('raised', 'sliders', t.preferences, '/preferences')}
           {window('blue', 'accessibility', t.accessibility, '/accessibility')}
-          {window('mint', 'hand', t.gestures, '/hotkeys')}
+          {window('mint', 'touch', t.gestures, '/hotkeys')}
         </List>
         <List head={{ title: t.legal, end: '' }}>
           {link('paper', 'file', imprint.label, imprint.href)}
-          {link('mint', 'shield', privacy.label, privacy.href)}
+          {link('mint', 'eye-off', privacy.label, privacy.href)}
           {link('orange', 'cookie', cookies.label, cookies.href)}
-          {link('raised', 'check', preferences.label, preferences.href)}
+          {link('raised', 'sliders', preferences.label, preferences.href)}
         </List>
         <List>
           {act('lock', t.lock, props.lock)}

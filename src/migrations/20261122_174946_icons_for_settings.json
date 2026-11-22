@@ -14709,9 +14709,8 @@
         "ab",
         "eye-off",
         "accessibility",
-        "hand",
-        "cookie",
-        "shield"
+        "touch",
+        "cookie"
       ]
     },
     "public.enum_windows_blocks_list_foot_type": {
@@ -14900,9 +14899,8 @@
         "ab",
         "eye-off",
         "accessibility",
-        "hand",
-        "cookie",
-        "shield"
+        "touch",
+        "cookie"
       ]
     },
     "public.enum_windows_aside_type": {
@@ -15064,9 +15062,8 @@
         "ab",
         "eye-off",
         "accessibility",
-        "hand",
-        "cookie",
-        "shield"
+        "touch",
+        "cookie"
       ]
     },
     "public.enum__windows_v_blocks_list_foot_type": {
@@ -15255,9 +15252,8 @@
         "ab",
         "eye-off",
         "accessibility",
-        "hand",
-        "cookie",
-        "shield"
+        "touch",
+        "cookie"
       ]
     },
     "public.enum__windows_v_published_locale": {
@@ -15415,6 +15411,6 @@
     "tables": {},
     "columns": {}
   },
-  "id": "8924d353-f41d-486b-9cb9-ac950a7911b9",
+  "id": "67ae0857-92f6-4bbd-95f3-906f768210c9",
   "prevId": "00000000-0000-0000-0000-000000000000"
 }
