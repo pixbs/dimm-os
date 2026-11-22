@@ -192,12 +192,31 @@ test.describe('Menus on a desk', () => {
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await page.reload({ waitUntil: 'networkidle' })
     await top(page, 'File').click()
+    // A row can be pressed as soon as it can be seen: held early in its turn, it is where the pointer finds it.
+    const row = menu(page, 'File').getByRole('menuitem').first()
+    await row.evaluate(async (one) => {
+      await new Promise(requestAnimationFrame)
+      for (const move of one.getAnimations()) move.pause()
+    })
+    expect(
+      await row.evaluate((one) => {
+        const { x, y, width, height } = one.getBoundingClientRect()
+        const seen = +getComputedStyle(one).opacity
+        const hit = document
+          .elementFromPoint(x + width / 2, y + height / 2)
+          ?.closest('[role=menuitem]')
+        return seen < 1 && hit === one
+      }),
+    ).toBe(true)
+    await row.evaluate((one) => one.getAnimations().forEach((move) => move.play()))
     expect(await turns(page, 'File')).toEqual([
       [40, 'turn'],
       [70, 'turn'],
     ])
+    // The menu it moved on from is gone as the next arrives.
     await top(page, 'View').hover()
-    await expect(menu(page, 'File')).toHaveCount(0)
+    await expect(menu(page, 'View')).toHaveCount(1)
+    expect(await page.getByRole('menu').count()).toBe(1)
     expect(
       await menu(page, 'View').evaluate(
         (list) => new DOMMatrix(getComputedStyle(list.parentElement!).transform).a,

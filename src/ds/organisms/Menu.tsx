@@ -71,20 +71,24 @@ type Context = {
 }
 
 // A menu grows out of the corner it hangs from as it fades in; one that takes the place of another, or with reduced
-// motion, only fades in, in half the time. Every menu fades as it closes.
+// motion, only fades in, evenly, in half the time. A menu that closes fades and can no longer be pressed; one whose
+// place another took is gone at once.
 const hangs = {
   closed: (moved: boolean) => ({ opacity: 0, scale: moved || reduced() ? 1 : from() }),
   open: (moved: boolean) => ({
     opacity: 1,
     scale: 1,
-    transition: {
-      duration: duration(moved || reduced() ? 'fast-exit' : 'fast'),
-      ease: curve('enter'),
-    },
+    transition:
+      moved || reduced()
+        ? { duration: duration('fast-exit'), ease: 'linear' as const }
+        : { duration: duration('fast'), ease: curve('enter') },
   }),
-  gone: () => ({
+  gone: (replaced: boolean) => ({
     opacity: 0,
-    transition: { duration: duration('fast-exit'), ease: curve('exit') },
+    pointerEvents: 'none' as const,
+    transition: replaced
+      ? { duration: 0 }
+      : { duration: duration('fast-exit'), ease: curve('exit') },
   }),
 }
 
@@ -222,6 +226,8 @@ function Level(props: {
   const { open, items, label, depth, menus } = props
   const painted = usePainted()
   const moved = Boolean(menus.chain[depth]?.moved)
+  // Closed while another menu is open at its level, it gave that one its place.
+  const replaced = !open && Boolean(menus.chain[depth])
   const list = () => (
     <List
       depth={depth}
@@ -249,7 +255,7 @@ function Level(props: {
     )
   }
   return (
-    <AnimatePresence initial={!painted}>
+    <AnimatePresence custom={replaced} initial={!painted}>
       {open && (
         <m.div
           animate="open"
