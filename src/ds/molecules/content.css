@@ -436,6 +436,10 @@
   & > span {
     flex: none;
   }
+  /* A segment before the last, the window's own name, takes half the bar at most and shortens past it. */
+  & > span:has(> .decipher):not(.path__here) {
+    max-width: calc(100% / 2);
+  }
   & > .path__here {
     flex: 0 1 auto;
     min-width: 0;
