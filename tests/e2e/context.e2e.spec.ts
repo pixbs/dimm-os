@@ -139,6 +139,28 @@ test.describe('right-click menus on a desk', () => {
   })
 })
 
+test.describe('right-click menus on a touch desk', () => {
+  test.use({ viewport: { width: 1180, height: 820 }, hasTouch: true })
+
+  test('a finger that drags a title bar is no long press', async ({ page }) => {
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    const at = (await page.locator('.window__bar .path').boundingBox())!
+    const finger = await page.context().newCDPSession(page)
+    const touch = (type: 'touchStart' | 'touchMove' | 'touchEnd', dx: number) =>
+      finger.send('Input.dispatchTouchEvent', {
+        type,
+        touchPoints: type === 'touchEnd' ? [] : [{ x: at.x + 10 + dx, y: at.y + 5 }],
+      })
+    await touch('touchStart', 0)
+    for (let step = 1; step <= 16; step++) {
+      await touch('touchMove', step * 8)
+      await page.waitForTimeout(50)
+    }
+    await expect(menu(page)).toHaveCount(0)
+    await touch('touchEnd', 0)
+  })
+})
+
 test.describe('right-click menus on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
 

@@ -664,14 +664,19 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     setContext((was) => ({ ...found, at: at ?? middle, key: (was?.key ?? 0) + 1 }))
     return true
   }
-  // A finger that rests is a long press, and lifting it after is no press.
-  const resting = useRef<{ timer?: ReturnType<typeof setTimeout>; long?: boolean }>({})
+  // A finger that rests is a long press, and lifting it after is no press; one that strays drags or scrolls instead.
+  const resting = useRef<{
+    timer?: ReturnType<typeof setTimeout>
+    long?: boolean
+    from?: { x: number; y: number }
+  }>({})
   function rest(event: PointerEvent<HTMLDivElement>) {
     clearTimeout(resting.current.timer)
     resting.current = {}
     removeEventListener('click', swallow, true)
     if (event.pointerType !== 'touch') return
     const { target, clientX: x, clientY: y } = event
+    resting.current.from = { x, y }
     resting.current.timer = setTimeout(
       () => {
         if (!point(target, { x, y })) return
@@ -682,6 +687,11 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     )
   }
   const lift = () => clearTimeout(resting.current.timer)
+  function stray(event: PointerEvent<HTMLDivElement>) {
+    const { from } = resting.current
+    const reach = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s-2'))
+    if (from && Math.hypot(event.clientX - from.x, event.clientY - from.y) > reach) lift()
+  }
   const clock = useSetting('clock')
   const shown =
     context &&
@@ -769,6 +779,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         }}
         onPointerCancel={lift}
         onPointerDown={rest}
+        onPointerMove={stray}
         onPointerUp={lift}
       >
         <Analytics visitor={view.visitor !== null} />
