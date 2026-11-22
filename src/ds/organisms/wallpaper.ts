@@ -170,7 +170,8 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
     canvas.height = now.height * now.ratio
     context.setTransform(now.ratio, 0, 0, now.ratio, 0, 0)
     grid = tones(now.width, now.height, now.pitch)
-    const start = scenes.get(now.step.wallpaper) ?? passage
+    const named = scenes.get(now.step.wallpaper)
+    const start = typeof named === 'function' ? named : passage
     scene = start(grid, now.width, now.height, seeded(SEED))
     read = undefined
   }
