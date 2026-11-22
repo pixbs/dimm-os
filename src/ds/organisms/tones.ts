@@ -7,6 +7,14 @@ export const ORANGE = 1
 export const BLUE = 2
 export const MINT = 3
 
+// A scene steps on the clock of the engine, given the pointer and whether it is pressed, and paints in colour or not.
+// One that sets its own signs says which: each, the middle of its cell and its ink.
+export type Scene = {
+  step(pointer: number[] | null, held: boolean): void
+  paint(colour: boolean): void
+  signs?(colour: boolean): [string, number, number, number][]
+}
+
 export type Grid = {
   pitch: number
   // How many dots, rows of dots and lines of signs the screen holds.
@@ -79,6 +87,9 @@ export function limb(
     }
 }
 
+// What every scene takes its chances from.
+export const SEED = 299
+
 // What is left to chance comes from one seeded source, the same each time.
 export function seeded(seed: number) {
   let s = (seed * 2654435761) >>> 0
@@ -97,4 +108,13 @@ export function between(from: number, to: number) {
   while (turn > Math.PI) turn -= 2 * Math.PI
   while (turn < -Math.PI) turn += 2 * Math.PI
   return turn
+}
+
+// Where the halftone of the first wallpaper stood, on the pitch, and how far it reached.
+export function home(width: number, height: number, pitch: number) {
+  return {
+    x: Math.round((width * 0.8) / pitch) * pitch,
+    y: Math.round((height * 0.6) / pitch) * pitch,
+    r: Math.min(width * 0.2, height * 0.4),
+  }
 }

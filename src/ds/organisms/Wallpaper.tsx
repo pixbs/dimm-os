@@ -58,14 +58,23 @@ function start(box: HTMLElement, copy: boolean) {
     })
   }
 
-  // It reads the pointer over the desk, not through a window.
+  // It reads the pointer over the desk, not through a window, and a press there until it is let go anywhere.
+  const open = (over: Element) =>
+    over === screen || (!!desk?.contains(over) && !over.closest('article, section'))
   function point(event: PointerEvent) {
     const box = canvas.getBoundingClientRect()
-    const over = event.target as Element
-    const open = over === screen || (!!desk?.contains(over) && !over.closest('article, section'))
-    send({ pointer: open ? [event.clientX - box.left, event.clientY - box.top] : null })
+    send({
+      pointer: open(event.target as Element)
+        ? [event.clientX - box.left, event.clientY - box.top]
+        : null,
+    })
+  }
+  function press(event: PointerEvent) {
+    point(event)
+    if (open(event.target as Element)) send({ held: true })
   }
   const away = () => send({ pointer: null })
+  const release = () => send({ held: false })
   const wake = () => send({ runs: runs() })
 
   const sized = new ResizeObserver(set)
@@ -82,6 +91,8 @@ function start(box: HTMLElement, copy: boolean) {
   document.addEventListener('visibilitychange', wake)
   screen?.addEventListener('pointermove', point as EventListener)
   screen?.addEventListener('pointerleave', away)
+  screen?.addEventListener('pointerdown', press as EventListener)
+  for (const type of ['pointerup', 'pointercancel']) addEventListener(type, release)
 
   return () => {
     sized.disconnect()
@@ -91,6 +102,8 @@ function start(box: HTMLElement, copy: boolean) {
     document.removeEventListener('visibilitychange', wake)
     screen?.removeEventListener('pointermove', point as EventListener)
     screen?.removeEventListener('pointerleave', away)
+    screen?.removeEventListener('pointerdown', press as EventListener)
+    for (const type of ['pointerup', 'pointercancel']) removeEventListener(type, release)
     worker.terminate()
     canvas.remove()
   }

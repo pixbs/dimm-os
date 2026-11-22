@@ -95,6 +95,8 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
     await (await row(page, ['View', 'Next wallpaper'])).click()
     await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'dragonflies ascii colour')
     await (await row(page, ['View', 'Next wallpaper'])).click()
+    await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'contours ascii colour')
+    await (await row(page, ['View', 'Next wallpaper'])).click()
     await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'catfish ascii')
   })
 
