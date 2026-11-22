@@ -83,12 +83,10 @@ const hangs = {
         ? { duration: duration('fast-exit'), ease: 'linear' as const }
         : { duration: duration('fast'), ease: curve('enter') },
   }),
-  gone: (replaced: boolean) => ({
+  gone: () => ({
     opacity: 0,
     pointerEvents: 'none' as const,
-    transition: replaced
-      ? { duration: 0 }
-      : { duration: duration('fast-exit'), ease: curve('exit') },
+    transition: { duration: duration('fast-exit'), ease: curve('exit') },
   }),
 }
 
@@ -226,8 +224,6 @@ function Level(props: {
   const { open, items, label, depth, menus } = props
   const painted = usePainted()
   const moved = Boolean(menus.chain[depth]?.moved)
-  // Closed while another menu is open at its level, it gave that one its place.
-  const replaced = !open && Boolean(menus.chain[depth])
   const list = () => (
     <List
       depth={depth}
@@ -254,8 +250,10 @@ function Level(props: {
       </Dialog>
     )
   }
+  // Closed while another menu is open at its level, it gave that one its place: it goes in the same frame.
+  if (!open && menus.chain[depth]) return null
   return (
-    <AnimatePresence custom={replaced} initial={!painted}>
+    <AnimatePresence initial={!painted}>
       {open && (
         <m.div
           animate="open"
