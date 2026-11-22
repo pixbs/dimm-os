@@ -438,8 +438,8 @@ const en = {
     turnOpen: 'Open',
     arrival: [
       'Arrival',
-      'before: what was there leaves together over fast-exit, on exit | title: decoded | every other part: rises 8 px over slow, on enter | next: 40 ms, in reading order | at most: 8 turns, the rest with the eighth',
-      'What a window holds arrives once the window has opened, and when it shows another item once what it held has left. Its title, the first heading, is decoded. Every other part, text, rows, facts, the box of a picture, a button, rises 8 px into place as it fades in, 40 ms after the part before it in reading order. The eighth and every later part arrive together, so a full window is never slower than a short one, and what is drawn without text, as a clock of lamps, arrives whole. What is below the fold arrives as it is first seen. Cards in a grid and the rows of a list arrive the same way. The frame, the title bar and the buttons at the foot do not move. Where the server painted the page, or with reduced motion, all of it is there at once.',
+      'before: what was there leaves together over fast-exit, on exit | title: decoded | every other part: rises 8 px over slow, on enter | next: 40 ms, in reading order | at most: 9 turns, the rest with the ninth',
+      'What a window holds arrives once the window has opened, and when it shows another item once what it held has left. Its title, the first heading, is decoded. Every other part, text, rows, facts, the box of a picture, a button, rises 8 px into place as it fades in, 40 ms after the part before it in reading order. The ninth and every later part arrive together, so a full window is never slower than 640 ms, and a control or a drawing, as a clock of lamps, arrives whole. What is below the fold arrives as it is first seen. Cards in a grid and the rows of a list arrive the same way. The frame, the title bar and the buttons at the foot do not move. Where the server painted the page, or with reduced motion, all of it is there at once.',
     ],
     arrivalTitle: 'A title is decoded',
     arrivalTexts: [

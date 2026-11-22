@@ -680,13 +680,13 @@ test.describe('What a window holds', () => {
     })
   }
 
-  test('arrives in a bounded time however many parts it holds, a clock of lamps as one', async ({
+  test('arrives in a bounded time however many parts it holds, a control or a clock of lamps as one', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/work', { waitUntil: 'networkidle' })
     const preferences = page.locator('article[aria-label="Preferences"]')
-    // Every frame, when any part of Preferences is arriving or waiting, and whether a lamp arrives on its own.
+    // Every frame, when any part of Preferences is arriving, and whether a piece of a control or a lamp arrives on its own.
     await page.evaluate(() => {
       const times: number[] = []
       let lamp = false
@@ -694,7 +694,9 @@ test.describe('What a window holds', () => {
       requestAnimationFrame(function look(now) {
         const view = document.querySelector('article[aria-label="Preferences"] .window__view')
         if (view?.querySelector('[data-enter="in"], [data-decode]')) times.push(now)
-        lamp ||= !!view?.querySelector('.lamps [data-enter]')
+        lamp ||= !!view?.querySelector(
+          ':is(.lamps, [role="radiogroup"], [role="group"]) [data-enter]',
+        )
         requestAnimationFrame(look)
       })
     })
@@ -706,8 +708,8 @@ test.describe('What a window holds', () => {
     })
 
     const seen = await times()
-    // Seven turns of 40 ms and a rise over slow, with a few frames to spare.
-    expect(seen.at(-1)! - seen[0]).toBeLessThan(7 * 40 + 320 + 200)
+    // Eight turns of 40 ms and a rise over slow, as the frame takes, with a few frames to spare.
+    expect(seen.at(-1)! - seen[0]).toBeLessThan(8 * 40 + 320 + 200)
     expect(await page.evaluate(() => (Reflect.get(window, 'lamp') as () => boolean)())).toBe(false)
   })
 

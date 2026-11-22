@@ -87,11 +87,11 @@ function watch(root: HTMLElement, parts: HTMLElement[]) {
   }
 }
 
-// What arrives of a view on its own: what holds text of its own, a picture, a control or a row, and whatever is drawn
-// without text, such as a clock of lamps, as one. A box that holds only boxes is walked through; what arrives by itself,
+// What arrives of a view on its own: what holds text of its own, a picture, a control or a row. A control or a drawing,
+// whatever has a role or is hidden from assistive technology or holds no text, arrives as one. A box that holds only boxes is walked through; what arrives by itself,
 // what Motion moves, and what has no box are left as they are.
 const whole =
-  'h1, h2, h3, h4, h5, h6, p, a, button, img, picture, figure, canvas, video, hr, li, tr, dt, dd, blockquote, pre, input, select, textarea, label'
+  'h1, h2, h3, h4, h5, h6, p, a, button, img, picture, figure, canvas, video, hr, li, tr, dt, dd, blockquote, pre, input, select, textarea, label, [role]:not([role="none"], [role="presentation"]), [aria-hidden="true"]'
 const single = (part: HTMLElement) =>
   part.matches(whole) ||
   !part.textContent!.trim() ||
