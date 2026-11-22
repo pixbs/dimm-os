@@ -258,12 +258,14 @@ export function manager(state: Windows, action: Action): Windows {
     case 'open': {
       const { path, opener = null, alone } = action
       const window = windowOf(path)
-      // Behind goes under the window in front, one restored from this tab too; alone, it waits in the taskbar.
+      // Behind goes under the window in front, one restored from this tab too; alone, it waits in the taskbar, or on
+      // a phone, which has none, as the drawer behind.
       const under = action.behind ? front(state) : undefined
       if (under && under !== window) {
+        const waits = alone && !phone(state)
         // It takes no focus, which would bring it forward.
         const asked = { ...(target ?? entry(path, null, undefined)), at: path, covered: alone }
-        const kept: Entry = alone
+        const kept: Entry = waits
           ? { ...asked, mode: 'min', was: asked.mode === 'min' ? asked.was : asked.mode }
           : { ...asked, mode: asked.mode === 'min' ? asked.was : asked.mode }
         // The window in front takes the focus, as one the visitor opened.
@@ -274,9 +276,9 @@ export function manager(state: Windows, action: Action): Windows {
         const behind = placed({
           ...state,
           open,
-          z: alone ? [window, ...rest, under] : [...rest, window, under],
+          z: waits ? [window, ...rest, under] : [...rest, window, under],
         })
-        return alone ? behind : beside(behind, window, under)
+        return waits ? behind : beside(behind, window, under)
       }
       // An open window comes forward where it stands in the page, back from the taskbar as what it was, and
       // what brought it is now its opener; given another path of its own, it goes there.
@@ -292,10 +294,14 @@ export function manager(state: Windows, action: Action): Windows {
               : one,
           )
         : [...state.open, entry(path, null, opener)]
+      // Alone, it closes the others, but not one that waits for an answer.
+      const kept = open.filter((one) => one.path === window || one.covered)
       return placed({
         ...state,
-        open: alone ? open.filter((one) => one.path === window) : open,
-        z: alone ? [window] : [...others(window), window],
+        open: alone ? kept : open,
+        z: alone
+          ? [...kept.map((one) => one.path).filter((one) => one !== window), window]
+          : [...others(window), window],
       })
     }
     // A view that comes after its window went elsewhere is not shown.
@@ -404,10 +410,12 @@ export function manager(state: Windows, action: Action): Windows {
       const kept = state.open.find((one) => one.path === front(state))
       if (!kept) return manager(state, { type: 'closeAll' })
       const box = kept.view ? { ...kept.box, ...sizeOf(kept.view) } : kept.box
+      // A window that waits for an answer stays behind.
+      const waiting = state.open.filter((one) => one.covered && one !== kept)
       return placed({
         ...state,
-        open: [{ ...kept, placed: false, pulled: false, box }],
-        z: [kept.path],
+        open: [{ ...kept, placed: false, pulled: false, box }, ...waiting],
+        z: [...waiting.map((one) => one.path), kept.path],
         sizing: null,
       })
     }

@@ -492,7 +492,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const of = all
       ? desk.open.map((one) => one.path)
       : action.type === 'alone'
-        ? desk.open.map((one) => one.path).filter((path) => path !== front(desk))
+        ? desk.open.filter((one) => !one.covered && one.path !== front(desk)).map((one) => one.path)
         : [('path' in action && action.path) || front(desk)]
     if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
@@ -651,7 +651,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   useEffect(() => {
     const switched = single === 'on' && was.current === 'off'
     was.current = single
-    if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
+    const shown = desk.open.filter((one) => !one.covered)
+    if (single === 'on' && restored.current && (switched || shown.length > 1)) alone()
   }, [desk, single])
 
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.

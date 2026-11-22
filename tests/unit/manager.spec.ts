@@ -260,6 +260,27 @@ describe('the window manager', () => {
     expect(front(empty)).toBe('/cookies')
   })
 
+  it('keeps a window that waits for an answer when one window at a time closes the others', () => {
+    const desk = { type: 'desk' as const, w: 1440, h: 820, room: { x: 112, w: 1304 } }
+    const asking = { type: 'open' as const, path: '/cookies', behind: true, alone: true }
+    const waits = after(start(view('/accessibility')), desk, asking)
+    expect(waits.open.find((one) => one.path === '/cookies')).toMatchObject({
+      mode: 'min',
+      covered: true,
+    })
+    expect(after(waits, { type: 'alone' }).open.map((one) => one.path)).toEqual([
+      '/accessibility',
+      '/cookies',
+    ])
+    expect(
+      after(waits, { type: 'open', path: '/cv', alone: true }).open.map((one) => one.path),
+    ).toEqual(['/cookies', '/cv'])
+
+    // On a phone, which has no taskbar, it is the drawer behind.
+    const phone = after(start(view('/accessibility')), { type: 'desk', w: 390, h: 760 }, asking)
+    expect(stack(phone)).toEqual(['/cookies', '/accessibility'])
+  })
+
   it('opens one window at a time when asked, closing the ones before', () => {
     const state = after(home(), { type: 'open', path: '/cv', alone: true })
 
