@@ -11,6 +11,7 @@ import {
   useSyncExternalStore,
 } from 'react'
 
+import { start } from './Origin'
 import { curve, duration, reduced } from './vocabulary'
 
 // How a place looks: its class and what it tells CSS.
@@ -242,4 +243,126 @@ export function Travels({
       )}
     </>
   )
+}
+
+// The box an element is drawn as where something travels from it or to it, as the tile of an app is for the app, when it
+// is on screen.
+function boxOf(element?: Element | null) {
+  const box = (element?.querySelector('[data-travels-from]') ?? element)?.getBoundingClientRect()
+  const seen =
+    box &&
+    box.width &&
+    box.bottom > 0 &&
+    box.right > 0 &&
+    box.top < innerHeight &&
+    box.left < innerWidth
+  return seen ? box : null
+}
+
+// A box at the size a part opens from, about the same middle.
+const shrunk = ({ x, y, width, height }: DOMRect, by = start()) =>
+  new DOMRect(x + (width * (1 - by)) / 2, y + (height * (1 - by)) / 2, width * by, height * by)
+
+const ms = (name: Parameters<typeof duration>[0]) => duration(name) * 1000
+
+// A box that travels over the place it belongs to, in from the element it leaves or out back to it, so one element is
+// seen to go; stopped, it stays where it is for the next move to set off from, or with `clear` goes back to its place.
+export function carry(
+  box: HTMLElement,
+  place: HTMLElement,
+  way: 'in' | 'out',
+  other: Element | null | undefined,
+  done: () => void,
+) {
+  const { style } = box
+  const coming = way === 'in'
+  const clear = () => {
+    delete box.dataset.travels
+    for (const property of ['position', 'left', 'top', 'width', 'height', '--lands-w', '--lands-h'])
+      style.removeProperty(property)
+  }
+  if (reduced()) {
+    const fades = box.animate(
+      { opacity: coming ? [0, 1] : [1, 0] },
+      { duration: ms('fast'), easing: 'linear', fill: coming ? 'backwards' : 'forwards' },
+    )
+    fades.onfinish = done
+    return () => fades.cancel()
+  }
+
+  const time = ms(coming ? 'slow' : 'back')
+  const lag = coming ? 0 : ms('lag')
+  const fade = ms('fast-exit')
+  const ease = cubicBezier(...curve(coming ? 'standard' : 'exit'))
+  const there = boxOf(other)
+  // One caught on its way turns back from where it is.
+  const flying = 'travels' in box.dataset
+  const from =
+    coming && !flying
+      ? (there ?? shrunk(place.getBoundingClientRect()))
+      : box.getBoundingClientRect()
+  const end = there ?? shrunk(from)
+  const fades =
+    coming && flying
+      ? undefined
+      : box.animate(
+          { opacity: coming ? [0, 1] : [1, 0] },
+          coming
+            ? { duration: fade, easing: 'linear', fill: 'backwards' }
+            : { duration: fade, delay: lag + time - fade, easing: 'linear', fill: 'forwards' },
+        )
+
+  // Coming, it lands where its place is at each moment, which its view can still change.
+  function step(share: number) {
+    const at = place.getBoundingClientRect()
+    const to = coming ? at : end
+    const mix = (side: 'x' | 'y' | 'width' | 'height') =>
+      from[side] + (to[side] - from[side]) * share
+    style.left = `${mix('x') - at.x}px`
+    style.top = `${mix('y') - at.y}px`
+    style.width = `${mix('width')}px`
+    style.height = `${mix('height')}px`
+    style.setProperty('--lands-w', `${at.width}px`)
+    style.setProperty('--lands-h', `${at.height}px`)
+  }
+
+  box.dataset.travels = 'flies'
+  style.position = 'absolute'
+  step(0)
+  let begun = 0
+  let frame = requestAnimationFrame(function tick(now) {
+    begun ||= now
+    const share = Math.min(1, Math.max(0, now - begun - lag) / time)
+    step(ease(share))
+    // It stays for the frame that shows it landed.
+    frame = requestAnimationFrame(
+      share < 1
+        ? tick
+        : () => {
+            if (coming) clear()
+            else delete box.dataset.travels
+            done()
+          },
+    )
+  })
+  return (clearing?: boolean) => {
+    cancelAnimationFrame(frame)
+    fades?.cancel()
+    if (clearing) clear()
+  }
+}
+
+// What comes and goes with a box that travels, as its button in the taskbar: it rises into its bar over slow as the
+// box sets off, and sinks out of it in half the time; with reduced motion it fades where it stands.
+export const rise = {
+  open: () => ({
+    opacity: 1,
+    y: '0%',
+    transition: { duration: duration('slow'), ease: curve('enter') },
+  }),
+  closed: () => ({
+    opacity: 0,
+    y: reduced() ? '0%' : '100%',
+    transition: { duration: duration('slow-exit'), ease: curve('exit') },
+  }),
 }

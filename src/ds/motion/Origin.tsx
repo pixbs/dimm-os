@@ -30,7 +30,7 @@ function centre(opener?: Element | null) {
 }
 
 // The point a part scales about is the centre of its opener, wherever both are by now.
-export function aim(part: HTMLElement, opener?: Element | null) {
+function aim(part: HTMLElement, opener?: Element | null) {
   const from = !reduced() && centre(opener)
   const box = part.getBoundingClientRect()
   const [x, y] = getComputedStyle(part).transformOrigin.split(' ').map(parseFloat)
