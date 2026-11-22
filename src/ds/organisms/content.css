@@ -139,6 +139,12 @@
   flex-direction: column;
   margin: 0 calc(var(--s-4) * -1);
 }
+/* Groups: lists a section step apart. */
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sect);
+}
 /* Rows that change: what leaves is lifted out of the flow where it stood, so the rows that stay slide past it. */
 .list__rows {
   position: relative;

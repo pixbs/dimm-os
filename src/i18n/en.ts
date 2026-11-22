@@ -45,6 +45,7 @@ const en = {
   accUnderline: { title: 'Underline links', text: 'Links stand out without colour' },
   accWrite: 'Hard to use? Write to',
   all: 'All',
+  appearance: 'Appearance',
   apps: 'Apps',
   // The boot screen: who starts, what it finds, and what it says while it does.
   bootTitle: '{name} Boot v{version}',
@@ -169,6 +170,7 @@ const en = {
   lock: 'Lock screen',
   legal: 'Legal',
   // The login screen: who comes in, and the other ways in.
+  logIn: 'Log in',
   loginEnter: 'Enter',
   loginLink: 'Signed in with your personal link.',
   loginNotYou: 'Not you? Continue as Guest',

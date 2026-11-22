@@ -412,6 +412,9 @@ export interface Window {
         | 'star'
         | 'ab'
         | 'eye-off'
+        | 'accessibility'
+        | 'touch'
+        | 'cookie'
       )
     | null;
   /**
@@ -772,6 +775,9 @@ export interface ListBlock {
               | 'star'
               | 'ab'
               | 'eye-off'
+              | 'accessibility'
+              | 'touch'
+              | 'cookie'
             )
           | null;
         picture?: (number | null) | Media;

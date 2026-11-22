@@ -289,7 +289,9 @@
   .app:is(:active, [data-state='pressed']) > & {
     --state: var(--pressed);
   }
-  [data-size='compact'] > & {
+  [data-size='compact'] > &,
+  &[data-size='compact'] {
+    flex: none;
     width: var(--h-compact);
     height: var(--h-compact);
   }
