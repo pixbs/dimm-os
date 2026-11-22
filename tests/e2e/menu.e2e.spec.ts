@@ -271,7 +271,7 @@ test.describe('Menus on a desk', () => {
 test.describe('The theme and the language', () => {
   const bar = (page: Page, name: string) =>
     page.locator('header').getByRole('button', { name, exact: true })
-  // Each choice, and whether it is marked with the filled dot.
+  // Each choice, and whether its mark is filled.
   const choices = (page: Page, name: string) =>
     menu(page, name)
       .getByRole('menuitemradio')
@@ -279,7 +279,7 @@ test.describe('The theme and the language', () => {
         rows.map((row) => [
           (row as HTMLElement).innerText,
           row.getAttribute('aria-checked'),
-          row.querySelector('.dot')?.getAttribute('data-tone') ?? 'filled',
+          row.querySelector('.mark')?.getAttribute('data-tone') ?? 'filled',
         ]),
       )
 
@@ -297,8 +297,8 @@ test.describe('The theme and the language', () => {
     await button.click()
     expect(await choices(page, 'Theme')).toEqual([
       ['System', 'true', 'filled'],
-      ['Dark', 'false', 'hollow'],
-      ['Light', 'false', 'hollow'],
+      ['Dark', 'false', 'off'],
+      ['Light', 'false', 'off'],
     ])
     await page.keyboard.press('Escape')
     await expect(menu(page, 'Theme')).toHaveCount(0)
@@ -333,7 +333,7 @@ test.describe('The theme and the language', () => {
     await button.click()
     expect(await choices(page, 'Language')).toEqual([
       ['English', 'true', 'filled'],
-      ['Deutsch', 'false', 'hollow'],
+      ['Deutsch', 'false', 'off'],
     ])
     await menu(page, 'Language').getByRole('menuitemradio', { name: 'English' }).click()
     await expect(menu(page, 'Language')).toHaveCount(0)

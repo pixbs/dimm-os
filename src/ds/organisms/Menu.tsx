@@ -36,7 +36,7 @@ export type Item =
       act?: () => void
       checked?: boolean
       radio?: boolean
-      // One of a set of choices, marked by a filled dot when taken and a hollow one when not.
+      // One of a set of choices, marked by a filled mark when taken and a hollow one when not.
       mark?: boolean
       lang?: string
       disabled?: boolean
@@ -167,9 +167,7 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
               : `menuitem${item.radio || item.mark ? 'radio' : 'checkbox'}`,
           'aria-checked': item.checked,
           icon: item.checked === undefined || item.mark ? undefined : ('check' as const),
-          lead: item.mark && (
-            <span className="dot" data-tone={item.checked ? undefined : 'hollow'} />
-          ),
+          lead: item.mark && <span className="mark" data-tone={item.checked ? undefined : 'off'} />,
           lang: item.lang,
           size: menus.size,
           state: item.state,

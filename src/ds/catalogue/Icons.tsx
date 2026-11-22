@@ -28,7 +28,7 @@ export function Icons({ t }: { t: Copy['icons'] }) {
       </Entry>
       <Entry text={t.dot}>
         <div className="spec" style={wide}>
-          {[undefined, 'off', 'signal', 'hollow'].map((tone, index) => (
+          {[undefined, 'off', 'signal'].map((tone, index) => (
             <Cap key={index} label={t.dotCaps[index]}>
               <span className="dot" data-tone={tone} />
             </Cap>
