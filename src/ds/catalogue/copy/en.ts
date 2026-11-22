@@ -85,7 +85,7 @@ const en = {
       'Layout answers to the width of the window, not of the screen. A window never holds more than three columns. Where three become two, a cell that leads keeps its column and the others stack beside it. On a phone a window is a drawer.',
       'Square by default. Round belongs to the dot and its relatives.',
       'A component is named for what it is, never for what it will hold.',
-      'One dot. Whatever is drawn in dots stands on the pitch: wallpaper and pictures, the handle and grip of a window, rings, lamps.',
+      'One dot. Whatever is drawn in dots stands on the pitch: wallpaper and pictures, the grip of a window, rings, lamps.',
       'A bar never holds an action. What a window can do sits at its foot.',
     ],
   },
@@ -372,7 +372,7 @@ const en = {
     pitch: [
       'Pitch',
       'pitch: 5 · 6 · 8 · 10 · 12 px | dot: 0.36 of the pitch | drawn as: dotted · dot ring · halftone',
-      'The distance between two dots of everything that is drawn in dots: the wallpaper and the pictures (a halftone, see Wallpaper), the handle of a window and the corner that resizes it (dotted), the rings of a postmark and the scale of a dial (dot ring), the lamps of the clock. One setting of Preferences, 8 px by default, set on the root of a screen. A handle stays about as high whatever the pitch: a small dot stands in more rows, a large one in fewer.',
+      'The distance between two dots of everything that is drawn in dots: the wallpaper and the pictures (a halftone, see Wallpaper), the corner that resizes a window (dotted), the rings of a postmark and the scale of a dial (dot ring), the lamps of the clock. One setting of Preferences, 8 px by default, set on the root of a screen.',
     ],
     pitchCap: 'pitch',
     pitchDefault: ', the default',
@@ -395,7 +395,7 @@ const en = {
     change: 'Change',
     doc: [
       'Atoms / Motion',
-      'One vocabulary: three durations, five curves, one spread and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
+      'One vocabulary: three durations, five curves, one spread, one turn and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
     ],
     duration: [
       'Duration',
@@ -426,6 +426,13 @@ const en = {
       'spread: 220 ms',
       'The delays across anything that comes as many: dots, letters, rows, lamps. It moves as one sweep on the dot pitch, from its first to its last, however many there are.',
     ],
+    turn: [
+      'Turn',
+      'first: 40 ms | turn: 30 ms | at most: 8 | each: fast',
+      'The rows of a menu arrive in turn: each fades in and drops 4 px into place, a turn after the one before, the first 40 ms after the menu. The eighth and every later one arrive together, so a long menu is never slower than a short one. A rule takes its turn as a row does. Nothing leaves in turn; with reduced motion the rows are there with the menu.',
+    ],
+    turnOpen: 'Open',
+    turnRow: 'Row',
     spring: [
       'Spring',
       'settles within: fast · slow | bounce: none',
@@ -889,15 +896,14 @@ const en = {
     lampsCaps: ['a time, pitch 8', 'pitch 5', 'pitch 12', 'on paper'],
     bar: [
       'Bar',
-      'size: regular 48 · compact 32 | line: none · below · above | slots: buttons · title · text · space',
-      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle, and is shown as one: rows of dots on the pitch.',
+      'size: regular 48 · compact 32 | line: none · below · above | slots: buttons · title · text · space · handle',
+      'Every strip of chrome: menu bar, title bar, toolbar, status bar, taskbar. Content sits on a 16 px keyline at both sizes. The empty part of the title bar of a floating window is its handle: it carries nothing, and keeps the name at least 12 px clear of the controls.',
     ],
     barCaps: [
       'regular 48',
       'compact 32',
       'text only',
       'the title bar of a floating window: its controls, its name, and the rest is its handle',
-      'the handle at pitch 5 and at pitch 12',
     ],
     back: 'Back',
     more: 'More',
@@ -1332,7 +1338,7 @@ const en = {
     windows: [
       'Window',
       'density: pointer · touch | parts: title bar · path line · body · actions · status bar · grip | controls: dots · squares | state: front · behind · full screen · minimised | surface: window · paper | size: free · one size | compact screen: a drawer',
-      'Every page is a window, and a window is a frame the visitor handles. Its title bar holds the controls, in the hand that is set, and what the window is called: a name, or its path. The rest of the bar is the handle, shown in dots while the window is in front. The bar never holds an action: what a window can do sits at its foot, as a button group flush with its edge. What a bar shows belongs to the window and comes from the CMS, not from a setting: a name or a path, a path line of its own with back and forward, a status bar, the paper surface, whether it has one size. Every edge and corner pulls, and the corner at the end says so with a grip of dots. On a compact screen a window is a drawer.',
+      'Every page is a window, and a window is a frame the visitor handles. Its title bar holds the controls, in the hand that is set, and what the window is called: a name, or its path. The rest of the bar is the handle, and empty. The bar never holds an action: what a window can do sits at its foot, as a button group flush with its edge. What a bar shows belongs to the window and comes from the CMS, not from a setting: a name or a path, a path line of its own with back and forward, a status bar, the paper surface, whether it has one size. Every edge and corner pulls, and the corner at the end says so with a grip of dots. On a compact screen a window is a drawer.',
     ],
     windowsCaps: [
       'in front, dots: controls, name, handle. A path line of its own, body, status bar, the grip in its corner',
@@ -1341,8 +1347,8 @@ const en = {
       'touch: bars of 48, dots that say what they do',
       'one size: no full screen, nothing to pull. Its actions are a button group at its foot',
       'on paper: a record. The same frame in ink, a heavier rule under its bar',
-      'pitch 5: handle and grip follow the dot setting',
-      'pitch 12: handle and grip follow the dot setting',
+      'pitch 5: the grip follows the dot setting',
+      'pitch 12: the grip follows the dot setting',
     ],
     handled: [
       'Window, handled',
@@ -1377,7 +1383,7 @@ const en = {
       ],
       [
         'Press a window behind',
-        'It comes to the front. Nothing travels: the dots of the handle and the filled controls fade in, the window behind goes quiet.',
+        'It comes to the front. Nothing travels: the name and the filled controls fade in, the window behind goes quiet.',
         'fast',
       ],
       [
@@ -1416,8 +1422,8 @@ const en = {
     ],
     menu: [
       'Menu',
-      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, unfolding from the edge it hangs from',
-      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and unfolds from that edge. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
+      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
+      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
     ],
     menuCaps: [
       'menu',

@@ -4,6 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import * as m from 'motion/react-m'
 import {
   type ComponentProps,
+  type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
   useEffect,
@@ -19,6 +20,7 @@ import { Bar } from '../molecules/Bar'
 import { Button } from '../molecules/Button'
 import { ForDevice } from '../molecules/Key'
 import { Row } from '../molecules/Row'
+import { start as from } from '../motion/Origin'
 import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
 import { Dialog } from './Dialog'
 
@@ -50,8 +52,9 @@ export type Top = {
   items: Item[]
 }
 
-// The open menus, one a level: which row opened each and the element it was opened from.
-type Chain = { at: number; from: Element | null; last?: boolean }[]
+// The open menus, one a level: which row opened each, the element it was opened from, and whether it took the place of
+// one open at its level.
+type Chain = { at: number; from: Element | null; last?: boolean; moved?: boolean }[]
 
 type Context = {
   chain: Chain
@@ -67,16 +70,22 @@ type Context = {
   t: Pick<Dictionary, 'close'>
 }
 
-// A menu unfolds from the edge it hangs from, and folds back into it, as fast as a menu goes.
-const unfolds = {
-  open: () => ({
+// A menu grows out of the corner it hangs from as it fades in; one that takes the place of another, or with reduced
+// motion, only fades in, evenly, in half the time. A menu that closes fades and can no longer be pressed; one whose
+// place another took is gone at once.
+const hangs = {
+  closed: (moved: boolean) => ({ opacity: 0, scale: moved || reduced() ? 1 : from() }),
+  open: (moved: boolean) => ({
     opacity: 1,
-    scaleY: 1,
-    transition: { duration: duration('fast'), ease: curve('enter') },
+    scale: 1,
+    transition:
+      moved || reduced()
+        ? { duration: duration('fast-exit'), ease: 'linear' as const }
+        : { duration: duration('fast'), ease: curve('enter') },
   }),
-  closed: () => ({
+  gone: () => ({
     opacity: 0,
-    scaleY: reduced() ? 1 : 0,
+    pointerEvents: 'none' as const,
     transition: { duration: duration('fast-exit'), ease: curve('exit') },
   }),
 }
@@ -94,6 +103,12 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
   const { items, depth, menus } = props
   const { chain, drawer } = menus
   const self = useRef<HTMLDivElement>(null)
+  const painted = usePainted()
+  // Its rows arrive in turn, without the first wait when it took another's place; not in a drawer, nor where it was
+  // painted or drawn open.
+  const [turns] = useState(() =>
+    painted || drawer || menus.shown ? undefined : chain[depth]?.moved ? 'moved' : '',
+  )
 
   const start = useEffectEvent(() => {
     if (menus.shown) return
@@ -129,12 +144,16 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
       aria-label={props.label}
       className="menu"
       data-surface={drawer ? undefined : 'raised'}
+      data-turns={turns}
       onKeyDown={key}
       ref={self}
       role="menu"
     >
       {items.map((item, at) => {
-        if (item === 'rule') return <div className="menu__rule" key={at} role="separator" />
+        const style = { '--turn': at } as CSSProperties
+        if (item === 'rule') {
+          return <div className="menu__rule" key={at} role="separator" style={style} />
+        }
         const row = {
           disabled: item.disabled,
           // A phone has no keys: its rows say where they lead.
@@ -157,6 +176,7 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
               end={drawer && item.href ? 'arrow-right' : undefined}
               href={item.href}
               key={at}
+              style={style}
               onClick={() => {
                 item.act?.()
                 menus.done()
@@ -166,7 +186,7 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
         }
         const open = chain[depth + 1]?.at === at
         return (
-          <div className="menu__sub" key={at} role="none">
+          <div className="menu__sub" key={at} role="none" style={style}>
             <Row
               {...row}
               aria-expanded={open}
@@ -203,6 +223,7 @@ function Level(props: {
 }) {
   const { open, items, label, depth, menus } = props
   const painted = usePainted()
+  const moved = Boolean(menus.chain[depth]?.moved)
   const list = () => (
     <List
       depth={depth}
@@ -229,16 +250,19 @@ function Level(props: {
       </Dialog>
     )
   }
+  // Closed while another menu is open at its level, it gave that one its place: it goes in the same frame.
+  if (!open && menus.chain[depth]) return null
   return (
     <AnimatePresence initial={!painted}>
       {open && (
         <m.div
           animate="open"
           className="menu__hang"
+          custom={moved}
           data-end={props.end ? '' : undefined}
-          exit="closed"
+          exit="gone"
           initial="closed"
-          variants={painted ? undefined : unfolds}
+          variants={painted ? undefined : hangs}
         >
           {list()}
         </m.div>
@@ -253,7 +277,7 @@ function useMenus(root: { current: HTMLElement | null }, shown?: number) {
   const [chain, setChain] = useState<Chain>(shown === undefined ? [] : [{ at: shown, from: null }])
 
   const open = (depth: number, at: number, from: Element | null, last?: boolean) =>
-    setChain([...chain.slice(0, depth), { at, from, last }])
+    setChain([...chain.slice(0, depth), { at, from, last, moved: Boolean(chain[depth]) }])
   function close(depth: number, restore: boolean) {
     const from = chain[depth]?.from
     setChain(chain.slice(0, depth))
@@ -360,6 +384,12 @@ export function MenuBar(props: Shared & { label: string; menus: Top[]; children?
                 chain[0]?.at === index ? close(0, false) : open(0, index, event.currentTarget)
               }
               onFocus={() => setCurrent(index)}
+              // With a menu open, the pointer moving onto another button opens its menu.
+              onPointerEnter={(event) => {
+                const open = chain[0]
+                if (event.pointerType !== 'mouse' || props.drawer || !open?.from) return
+                if (open.at !== index) move(0, event.currentTarget, true)
+              }}
               onKeyDown={(event) => key(event, index)}
               role="menuitem"
               size={props.size}

@@ -29,6 +29,25 @@
   touch-action: pan-y;
 }
 
+/* What arrives in turn fades in and drops a step into place, a turn after the one before, the first a wait after what
+   holds it; past the last turn the rest arrive together. Nothing leaves in turn; with reduced motion they are there. */
+[data-turns] > * {
+  animation: var(--m-fast) var(--m-enter) backwards turn;
+  animation-delay: calc(var(--m-turn-first) + var(--m-turn) * min(var(--turn), var(--m-turns) - 1));
+}
+[data-turns='moved'] > * {
+  animation-delay: calc(var(--m-turn) * min(var(--turn), var(--m-turns) - 1));
+}
+[data-motion='reduce'] [data-turns] > * {
+  animation: none;
+}
+@keyframes turn {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--s-1) * -1));
+  }
+}
+
 /* What enters by scroll rises a step into place as it fades in; with reduced motion it only fades. */
 [data-enter] {
   transition-property: var(--m-moves);

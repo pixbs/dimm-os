@@ -83,7 +83,7 @@ const de: Copy = {
       'Das Layout richtet sich nach der Breite des Fensters, nicht des Bildschirms. Ein Fenster hat nie mehr als drei Spalten. Wo aus drei zwei werden, behält die führende Zelle ihre Spalte, die anderen stapeln sich daneben. Auf dem Telefon ist ein Fenster eine Schublade.',
       'Eckig als Standard. Rund gehört dem Punkt und seinen Verwandten.',
       'Eine Komponente heißt nach dem, was sie ist, nie nach dem, was sie enthalten wird.',
-      'Ein Punkt. Was in Punkten gezeichnet ist, steht auf dem Raster: Hintergrund und Bilder, Griff und Ecke eines Fensters, Ringe, Lampen.',
+      'Ein Punkt. Was in Punkten gezeichnet ist, steht auf dem Raster: Hintergrund und Bilder, die Ecke eines Fensters, Ringe, Lampen.',
       'Eine Leiste enthält nie eine Aktion. Was ein Fenster kann, steht an seinem Fuß.',
     ],
   },
@@ -384,7 +384,7 @@ const de: Copy = {
     pitch: [
       'Raster',
       'Raster: 5 · 6 · 8 · 10 · 12 px | Punkt: 0,36 des Rasters | gezeichnet als: gepunktet · Punktring · Halbton',
-      'Der Abstand zwischen zwei Punkten von allem, was in Punkten gezeichnet ist: Hintergrund und Bilder (ein Halbton, siehe Wallpaper), der Griff eines Fensters und die Ecke, an der es die Größe ändert (gepunktet), die Ringe eines Poststempels und die Skala eines Drehreglers (Punktring), die Lampen der Uhr. Eine Einstellung, 8 px als Standard, gesetzt an der Wurzel eines Bildschirms. Ein Griff bleibt bei jedem Raster etwa gleich hoch: Ein kleiner Punkt steht in mehr Reihen, ein großer in weniger.',
+      'Der Abstand zwischen zwei Punkten von allem, was in Punkten gezeichnet ist: Hintergrund und Bilder (ein Halbton, siehe Wallpaper), die Ecke, an der ein Fenster die Größe ändert (gepunktet), die Ringe eines Poststempels und die Skala eines Drehreglers (Punktring), die Lampen der Uhr. Eine Einstellung, 8 px als Standard, gesetzt an der Wurzel eines Bildschirms.',
     ],
     pitchCap: 'Raster',
     pitchDefault: ', der Standard',
@@ -407,7 +407,7 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung, ein Takt und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
@@ -438,6 +438,13 @@ const de: Copy = {
       'spread: 220 ms',
       'Die Verzögerungen über alles, was als Vieles kommt: Punkte, Buchstaben, Zeilen, Lampen. Es bewegt sich als ein Durchlauf auf dem Punktraster, vom Ersten zum Letzten, wie viele es auch sind.',
     ],
+    turn: [
+      'Takt',
+      'first: 40 ms | turn: 30 ms | höchstens: 8 | je: fast',
+      'Die Zeilen eines Menüs kommen im Takt: Jede blendet ein und fällt 4 px an ihren Platz, einen Takt nach der vorigen, die erste 40 ms nach dem Menü. Die achte und jede spätere kommen zusammen, sodass ein langes Menü nie langsamer ist als ein kurzes. Eine Trennlinie nimmt ihren Takt wie eine Zeile. Nichts geht im Takt; bei reduzierter Bewegung sind die Zeilen mit dem Menü da.',
+    ],
+    turnOpen: 'Öffnen',
+    turnRow: 'Zeile',
     spring: [
       'Feder',
       'kommt zur Ruhe in: fast · slow | Nachfedern: keines',
@@ -918,14 +925,13 @@ const de: Copy = {
     bar: [
       'Leiste',
       'Größe: regular 48 · compact 32 | Linie: keine · unten · oben | Plätze: Buttons · Titel · Text · Raum',
-      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff und wird als solcher gezeigt: Reihen von Punkten auf dem Raster.',
+      'Jeder Streifen der Bedienoberfläche: Menüleiste, Titelleiste, Werkzeugleiste, Statusleiste, Taskleiste. Der Inhalt steht in beiden Größen auf einer Fluchtlinie von 16 px. Der leere Teil der Titelleiste eines freien Fensters ist sein Griff: Er trägt nichts und hält den Namen mindestens 12 px von der Steuerung fern.',
     ],
     barCaps: [
       'regular 48',
       'compact 32',
       'nur Text',
       'die Titelleiste eines freien Fensters: ihre Steuerung, ihr Name, und der Rest ist ihr Griff',
-      'der Griff bei Raster 5 und bei Raster 12',
     ],
     back: 'Zurück',
     more: 'Mehr',
@@ -1363,7 +1369,7 @@ const de: Copy = {
     windows: [
       'Fenster',
       'Dichte: Zeiger · Touch | Teile: Titelleiste · Pfadzeile · Körper · Aktionen · Statusleiste · Griffecke | Steuerung: Punkte · Quadrate | Zustand: vorn · dahinter · Vollbild · minimiert | Fläche: Fenster · Papier | Größe: frei · eine Größe | kompakter Bildschirm: eine Schublade',
-      'Jede Seite ist ein Fenster, und ein Fenster ist ein Rahmen, den man in die Hand nimmt. Seine Titelleiste trägt die Steuerung, in der Hand, die gilt, und wie das Fenster heißt: einen Namen oder seinen Pfad. Der Rest der Leiste ist der Griff, in Punkten gezeigt, solange das Fenster vorn ist. Die Leiste enthält nie eine Aktion: Was ein Fenster kann, steht an seinem Fuß, als Buttongruppe bündig mit seinem Rand. Was eine Leiste zeigt, gehört zum Fenster und kommt aus dem CMS, nicht aus einer Einstellung: ein Name oder ein Pfad, eine eigene Pfadzeile mit Zurück und Vor, eine Statusleiste, die Papierfläche, ob es nur eine Größe hat. Jede Kante und jede Ecke lässt sich ziehen, und die Ecke am Ende zeigt es mit einem Griff aus Punkten. Auf einem kompakten Bildschirm ist ein Fenster eine Schublade.',
+      'Jede Seite ist ein Fenster, und ein Fenster ist ein Rahmen, den man in die Hand nimmt. Seine Titelleiste trägt die Steuerung, in der Hand, die gilt, und wie das Fenster heißt: einen Namen oder seinen Pfad. Der Rest der Leiste ist der Griff, und leer. Die Leiste enthält nie eine Aktion: Was ein Fenster kann, steht an seinem Fuß, als Buttongruppe bündig mit seinem Rand. Was eine Leiste zeigt, gehört zum Fenster und kommt aus dem CMS, nicht aus einer Einstellung: ein Name oder ein Pfad, eine eigene Pfadzeile mit Zurück und Vor, eine Statusleiste, die Papierfläche, ob es nur eine Größe hat. Jede Kante und jede Ecke lässt sich ziehen, und die Ecke am Ende zeigt es mit einem Griff aus Punkten. Auf einem kompakten Bildschirm ist ein Fenster eine Schublade.',
     ],
     windowsCaps: [
       'vorn, Punkte: Steuerung, Name, Griff. Eine eigene Pfadzeile, Körper, Statusleiste, der Griff in seiner Ecke',
@@ -1372,8 +1378,8 @@ const de: Copy = {
       'Touch: Leisten von 48, Punkte, die zeigen, was sie tun',
       'eine Größe: kein Vollbild, nichts zu ziehen. Seine Aktionen sind eine Buttongruppe an seinem Fuß',
       'auf Papier: ein Beleg. Derselbe Rahmen in Tinte, eine stärkere Linie unter seiner Leiste',
-      'Raster 5: Griff und Griffecke folgen der Punkteinstellung',
-      'Raster 12: Griff und Griffecke folgen der Punkteinstellung',
+      'Raster 5: die Griffecke folgt der Punkteinstellung',
+      'Raster 12: die Griffecke folgt der Punkteinstellung',
     ],
     handled: [
       'Fenster, in der Hand',
@@ -1408,7 +1414,7 @@ const de: Copy = {
       ],
       [
         'Ein Fenster dahinter drücken',
-        'Es kommt nach vorn. Nichts bewegt sich: Die Punkte des Griffs und die gefüllte Steuerung blenden ein, das Fenster dahinter wird still.',
+        'Es kommt nach vorn. Nichts bewegt sich: Der Name und die gefüllte Steuerung blenden ein, das Fenster dahinter wird still.',
         'fast',
       ],
       [
@@ -1447,8 +1453,8 @@ const de: Copy = {
     ],
     menu: [
       'Menü',
-      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, entfaltet von der Kante, an der es hängt',
-      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und entfaltet sich von dieser Kante. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
+      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, aus 96 % an der Ecke, an der es hängt, seine Zeilen im Takt | weiter bewegt: ein Einblenden, halb so schnell',
+      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und wächst aus dieser Ecke, während seine Zeilen im Takt kommen. Ist ein Menü der Leiste offen, öffnet die Bewegung zu einem anderen dieses nur mit einem Einblenden. Ein Menü blendet aus, wenn es schließt. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
     ],
     menuCaps: [
       'Menü',

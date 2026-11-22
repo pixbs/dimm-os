@@ -53,6 +53,20 @@ test.describe('Motion', () => {
     await page.goto('/catalogue/motion', { waitUntil: 'networkidle' })
   })
 
+  test('no more than eight rows arrive in turn: a menu of twelve is at rest as soon as one of eight', async ({
+    page,
+  }) => {
+    await page.getByRole('button', { name: 'Open', exact: true }).click()
+    const delays = await page
+      .getByRole('menu', { name: 'Turn' })
+      .evaluate((list) =>
+        [...list.children].map((row) =>
+          Math.round(parseFloat(getComputedStyle(row).animationDelay) * 1000),
+        ),
+      )
+    expect(delays).toEqual([40, 70, 100, 130, 160, 190, 220, 250, 250, 250, 250, 250])
+  })
+
   test('times CSS and Motion from the same tokens, an exit in half its entrance', async ({
     page,
   }) => {
