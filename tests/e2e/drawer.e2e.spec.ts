@@ -67,7 +67,7 @@ test.describe('Drawer', () => {
     await page.goto('/', { waitUntil: 'networkidle' })
   })
 
-  test('rises from the bottom edge on the spring, not from its opener, and the one behind steps back at the same time', async ({
+  test('rises from the bottom edge over slow, not from its opener, and the one behind steps back at the same time', async ({
     page,
   }) => {
     await watch(page, 'article .window__origin')
@@ -98,7 +98,9 @@ test.describe('Drawer', () => {
     )
     expect(both.length).toBeGreaterThan(0)
     expect(frames.at(-1)![0]).toMatchObject({ left: 8, width: 374 })
-    expect(frames.at(-1)![0].top).toBeCloseTo(rest - 8, 0)
+    // A drawer as high as the room keeps its top at the menu bar.
+    const room = (await page.locator('.screen__main').boundingBox())!.y
+    expect(frames.at(-1)![0].top).toBeCloseTo(Math.max(rest - 8, room), 0)
     await expect(work).toHaveAttribute('data-back', '1')
     await expect(work).toHaveAttribute('inert')
   })
@@ -121,15 +123,17 @@ test.describe('Drawer', () => {
         ([x, y]) => document.elementFromPoint(x, y)?.className,
         [box.x + box.width / 2, box.y + box.height / 2 + dy],
       )
-    expect(await hit(-23)).toBe('drawer__handle')
+    // Above, as far as the menu bar, which stays over a drawer that reaches it.
+    const room = (await page.locator('.screen__main').boundingBox())!.y
+    expect(await hit(-Math.min(23, box.y + box.height / 2 - room - 1))).toBe('drawer__handle')
     expect(await hit(23)).toBe('drawer__handle')
     expect(await hit(26)).not.toBe('drawer__handle')
 
-    // Pressed, it puts the drawer away, and its button in the dock brings it back.
+    // Pressed, it puts the drawer away, closed, and its app opens it again.
     await handle.click()
-    await expect(work).toBeHidden()
+    await expect(work).toHaveCount(0)
     await expect(page).toHaveURL('/')
-    await page.getByRole('navigation', { name: 'Windows' }).getByRole('button').click()
+    await page.getByRole('link', { name: 'Work' }).click()
     await expect(work).toHaveAttribute('data-front')
     await expect(page).toHaveURL('/work')
   })
@@ -161,7 +165,7 @@ test.describe('Drawer', () => {
     await expect(work).toBeHidden()
     await expect(page).toHaveURL('/')
 
-    await page.getByRole('navigation', { name: 'Windows' }).getByRole('button').click()
+    await page.getByRole('link', { name: 'Work' }).click()
     await settled(work)
     // A flick a fraction of its height long puts it away too, from where the finger left it.
     await watch(page, 'article .window__origin')
@@ -212,9 +216,7 @@ test.describe('Drawer', () => {
     const work = page.locator('#window-work')
     await expect(work.getByRole('heading', { name: 'Work' })).toBeFocused()
     await expect(work.getByRole('dialog', { name: 'Work' })).toHaveAttribute('aria-modal', 'true')
-    for (const behind of ['nav.apps', 'footer[data-for="phone"]']) {
-      await expect(page.locator(behind)).toHaveAttribute('inert')
-    }
+    await expect(page.locator('nav.apps')).toHaveAttribute('inert')
     await expect(page.locator('header')).not.toHaveAttribute('inert')
 
     // Round and round, both ways, the focus stays in the drawer.
@@ -234,7 +236,7 @@ test.describe('Drawer', () => {
     await page.keyboard.press('Escape')
     await expect(work).toBeHidden()
     await expect(app).toBeFocused()
-    await expect(page.locator('main [inert], footer[inert]')).toHaveCount(1)
+    await expect(page.locator('main [inert], footer[inert]')).toHaveCount(0)
     await expect(page.locator('nav.apps')).not.toHaveAttribute('inert')
   })
 
@@ -269,11 +271,65 @@ test.describe('Drawer', () => {
     await expect(cv.locator('.window__scrim')).toBeHidden()
     await expect(services.locator('.window__scrim')).toBeHidden()
 
-    await contact.locator('.window__scrim').click({ position: { x: 195, y: 4 } })
+    // A drawer as high as the room leaves no scrim to press above it, so the press is sent to the scrim.
+    await contact.locator('.window__scrim').dispatchEvent('click')
     await expect(contact).toBeHidden()
     await expect(cv).toHaveAttribute('data-front')
     await expect(work).toHaveAttribute('data-back', '2')
     await expect(page).toHaveURL('/cv')
+  })
+
+  test('leaves over three quarters of slow, its scrim with it, and the one behind comes forward at once', async ({
+    page,
+  }) => {
+    await page.getByRole('link', { name: 'Work' }).click()
+    const work = drawer(page, 'Work')
+    await expect(work.getByRole('heading', { level: 1 })).toBeFocused()
+    await page.keyboard.press('s')
+    const services = drawer(page, 'Services')
+    await settled(services)
+    await settled(work, 8)
+
+    const rest = await top(services)
+    await watch(page, 'article[aria-label="Services"] :is(.window__origin, .window__scrim)')
+    const started = await page.evaluate(() => performance.now())
+    await services.locator('.drawer__handle').click()
+    await expect(work).toHaveAttribute('data-front')
+    await expect(services).toHaveCount(0)
+    const took = (await page.evaluate(() => performance.now())) - started
+    const leaving = (await seen(page)).filter((parts) => parts.length === 2)
+    // It sinks the way it came while its scrim fades, and is gone in about 240 ms.
+    expect(leaving.some(([, origin]) => origin.top > rest + 1)).toBe(true)
+    expect(leaving.some(([scrim]) => scrim.opacity > 0 && scrim.opacity < 1)).toBe(true)
+    expect(took).toBeLessThan(800)
+    await settled(work)
+  })
+
+  test('leaves nothing at the foot of the screen, and the window of the start opens again from its app, first on the desk', async ({
+    page,
+  }) => {
+    const apps = page.getByRole('navigation', { name: 'Apps' }).getByRole('link')
+    await expect(apps.first()).toHaveText('Welcome')
+    await expect(page.locator('footer:visible')).toHaveCount(0)
+
+    await apps.first().click()
+    const welcome = drawer(page, 'Welcome')
+    await settled(welcome)
+    await expect(page).toHaveURL('/welcome')
+    await welcome.locator('.drawer__handle').click()
+    await expect(welcome).toHaveCount(0)
+    await expect(page.locator('footer:visible')).toHaveCount(0)
+    await expect(page.locator('article')).toHaveCount(0)
+  })
+
+  test('as high as the screen, ends at the menu bar', async ({ page }) => {
+    await page.getByRole('link', { name: 'Work' }).click()
+    const work = drawer(page, 'Work')
+    await settled(work)
+    // A drawer taller than the room under the menu bar.
+    await work.locator('.window__body').evaluate((body) => (body.style.minHeight = '2000px'))
+    const bar = (await page.locator('header').boundingBox())!
+    await expect.poll(() => top(work)).toBeCloseTo(bar.y + bar.height, 0)
   })
 
   test('fades in place under reduced motion, and follows the finger as before', async ({

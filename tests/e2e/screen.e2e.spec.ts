@@ -113,7 +113,6 @@ test.describe('Screen', () => {
     await page.setViewportSize(desk)
     await page.goto('/')
     const taskbar = page.locator('footer[data-for="desk"]')
-    const home = page.locator('footer[data-for="phone"]')
     const apps = page.getByRole('navigation', { name: 'Apps' })
 
     for (const [width, onDesk] of [
@@ -124,21 +123,20 @@ test.describe('Screen', () => {
     ] as const) {
       await page.setViewportSize({ width, height: 800 })
       await expect(taskbar).toBeVisible({ visible: onDesk })
-      await expect(home).toBeVisible({ visible: !onDesk })
+      // A phone has nothing at its foot.
+      await expect(page.locator('footer:visible')).toHaveCount(onDesk ? 1 : 0)
       await expect(apps).toHaveCSS('display', onDesk ? 'flex' : 'grid')
     }
   })
 
-  test('holds Preferences in its tray on a desk and the legal links on a phone, as words, and no Lab, Rejected ideas or Bin', async ({
+  test('holds Preferences in its tray on a desk, as a word, and no Lab, Rejected ideas or Bin', async ({
     page,
   }) => {
     for (const size of [desk, phone]) {
       await page.setViewportSize(size)
       await page.goto('/')
       const tray = page.locator('footer:visible a')
-      await expect(tray).toHaveText(
-        size === desk ? ['Preferences'] : ['Imprint', 'Privacy', 'Cookies'],
-      )
+      await expect(tray).toHaveText(size === desk ? ['Preferences'] : [])
       await expect(tray.locator('svg')).toHaveCount(0)
       await expect(page.locator('body')).not.toContainText(/\bLab\b|Rejected ideas|\bBin\b/)
     }
@@ -150,18 +148,14 @@ test.describe('Screen', () => {
     for (const size of [desk, phone]) {
       await page.setViewportSize(size)
       await page.goto('/work', { waitUntil: 'networkidle' })
-      // A window in full screen takes the whole desk, and no more. On a phone the window is a drawer: it stays
-      // under the menu bar and rises over the dock, which cannot be reached while it is up.
+      // A window in full screen takes the whole desk, and no more. On a phone the window is a drawer under the
+      // menu bar, which stays over its handle.
       if (size === desk) {
         await page.locator('main article').getByRole('button', { name: 'Full screen' }).click()
         await expect(page.locator('main article')).toHaveAttribute('data-full')
-      } else {
-        await expect(page.locator('footer[data-for="phone"]')).toHaveAttribute('inert')
       }
       const bars = size === desk ? ':is(header, footer)' : 'header'
-      for (const control of await page
-        .locator(`${bars} :is(.bar, .dock) :is(a, button):visible`)
-        .all()) {
+      for (const control of await page.locator(`${bars} .bar :is(a, button):visible`).all()) {
         const onTop = await control.evaluate((control) => {
           const { x, y, width, height } = control.getBoundingClientRect()
           return (
@@ -179,7 +173,7 @@ test.describe('Screen', () => {
           return getComputedStyle(probe).color
         })
       })
-      for (const bar of await page.locator('.bar:visible, .dock:visible').all()) {
+      for (const bar of await page.locator('.bar:visible').all()) {
         const surface = await bar.evaluate(
           (bar) => getComputedStyle(bar.closest('[data-surface]')!).backgroundColor,
         )
@@ -188,7 +182,7 @@ test.describe('Screen', () => {
     }
   })
 
-  test('shows each open window in the taskbar and the dock, the one in front selected', async ({
+  test('shows each open window in the taskbar, the one in front selected, and on a phone nothing', async ({
     page,
   }) => {
     await page.setViewportSize(desk)
@@ -206,9 +200,7 @@ test.describe('Screen', () => {
     await expect(page.locator('article[data-front] h1')).toHaveText('Work')
 
     await page.setViewportSize(phone)
-    const dock = page.getByRole('navigation', { name: 'Windows' }).getByRole('button')
-    await expect(dock).toHaveText(['Work', 'Services'])
-    await expect(dock.nth(0)).toHaveAttribute('aria-current', 'true')
+    await expect(page.locator('footer:visible')).toHaveCount(0)
   })
 })
 

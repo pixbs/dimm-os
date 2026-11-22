@@ -509,13 +509,10 @@ describe('the drawers of a phone, as the reference checks them', () => {
   })
 
   it('closes by its handle', () => {
-    // The handle puts the drawer away; its button in the dock brings it back.
-    act({ type: 'minimise', path: '/welcome' })
+    // The handle puts the drawer away, and a phone has no minimised windows: it is closed.
+    act({ type: 'close', path: '/welcome' })
     expect(stack(desk)).toEqual([])
-    expect(mode(desk, '/welcome')).toBe('min')
-
-    act({ type: 'task', path: '/welcome' })
-    expect(stack(desk)).toEqual(['/welcome'])
+    expect(paths(desk)).toEqual([])
   })
 })
 
@@ -537,13 +534,45 @@ describe('the drawers of a phone', () => {
 
     expect(stack(desk)).toEqual(['/b', '/c', '/d'])
     // Putting the one in front away brings the next forward.
-    expect(stack(after(desk, { type: 'minimise' }))).toEqual(['/a', '/b', '/c'])
+    expect(stack(after(desk, { type: 'close', path: '/d' }))).toEqual(['/a', '/b', '/c'])
+  })
+
+  it('have no minimised windows: one put away by a key or a menu is closed, and so are all', () => {
+    const desk = after(
+      start(view('/a')),
+      { type: 'desk', w: 390, h: 796 },
+      { type: 'open', path: '/b' },
+    )
+    expect(paths(after(desk, { type: 'minimise' }))).toEqual(['/a'])
+    expect(paths(after(desk, { type: 'minimiseAll' }))).toEqual([])
+  })
+
+  it('remember nothing, and close the windows a desk had put away', () => {
+    const kept = [{ at: '/b', box: { x: 0, y: 0, w: 400, h: 300 } }]
+    const remembered = after(
+      start(view('/a')),
+      { type: 'remember', windows: kept },
+      { type: 'desk', w: 390, h: 796 },
+    )
+    expect(paths(remembered)).toEqual(['/a'])
+    expect(paths(after(remembered, { type: 'remember', windows: kept }))).toEqual(['/a'])
+
+    const narrowed = after(
+      start(view('/a')),
+      { type: 'desk', w: 1440, h: 820 },
+      { type: 'open', path: '/b' },
+      { type: 'minimise', path: '/a' },
+      { type: 'desk', w: 390, h: 796 },
+    )
+    expect(paths(narrowed)).toEqual(['/b'])
+    expect(narrowed.z).toEqual(['/b'])
   })
 
   it('take what brought a window back as its opener, for the focus to return to', () => {
     const [link, button] = [{} as Element, {} as Element]
     const desk = after(
       start(view('/a')),
+      { type: 'desk', w: 1440, h: 820 },
       { type: 'open', path: '/b', opener: link },
       { type: 'minimise', path: '/b' },
     )

@@ -134,6 +134,8 @@
   --m-long: 960ms;
   --m-fast-exit: calc(var(--m-fast) / 2);
   --m-slow-exit: calc(var(--m-slow) / 2);
+  /* but a part that slides off the screen leaves the way it came, so it takes three quarters */
+  --m-slide-exit: calc(var(--m-slow) * 0.75);
   /* the delays across what comes as many, from its first to its last */
   --m-spread: 220ms;
   /* what arrives in turn: the wait before the first, the turn between one and the next, and how many take a turn */
