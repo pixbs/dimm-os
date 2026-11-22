@@ -1,5 +1,6 @@
 import { change } from '@/ds/atoms/settings'
 import type { Item, Top } from '@/ds/organisms/Menu'
+import { Travels } from '@/ds/motion/Travels'
 import { type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
@@ -167,7 +168,7 @@ export function menus(props: {
     {
       name: props.name,
       label: props.name,
-      lead: <span className="mark" data-surface="orange" />,
+      lead: <Travels className="mark" data-surface="orange" id="mark" lands />,
       items: system,
     },
     ...all.map((menu) => ({
