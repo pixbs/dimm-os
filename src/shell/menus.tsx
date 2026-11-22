@@ -143,7 +143,10 @@ export function menus(props: {
       act: () => act({ type: 'open', path: desk.open[at].at }),
     })),
   ]
-  const help: Item[] = [hotkeys, link('/accessibility', t.accessibility), about]
+  const accessibility = link('/accessibility', t.accessibility)
+  // Each row stands in one menu; the phone keeps its drawer as it was.
+  const onPhone = phone(desk)
+  const help: Item[] = [hotkeys, accessibility, ...(onPhone ? [about] : [])]
   const others = [
     { label: t.file, items: file },
     { label: t.view, items: view },
@@ -154,12 +157,11 @@ export function menus(props: {
   const system: Item[] = [
     about,
     link('/preferences', t.preferences, 'preferences'),
-    link('/accessibility', t.accessibility),
-    hotkeys,
+    ...(onPhone ? [accessibility, hotkeys] : []),
     'rule',
     command('lock'),
     command('shutDown'),
-    ...(phone(desk) ? (['rule', ...others, 'rule', ...legal] as Item[]) : []),
+    ...(onPhone ? (['rule', ...others, 'rule', ...legal] as Item[]) : []),
   ]
 
   return [
