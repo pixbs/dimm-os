@@ -15,6 +15,29 @@ const screw = (page: Page, corner: string) =>
   about(page).getByRole('button', { name: `Take out the ${corner} screw` })
 
 test.describe('About', () => {
+  test('stands the portrait on a print: paper with ink in both themes, and a hairline in light', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const looks: string[][] = []
+    for (const colorScheme of ['dark', 'light'] as const) {
+      await page.emulateMedia({ colorScheme })
+      await page.goto('/about')
+      const card = about(page).locator('.card', { has: page.locator('[data-live]') })
+      await expect(card).toHaveAttribute('data-surface', 'print')
+      looks.push(
+        await card.evaluate((one) => {
+          const look = getComputedStyle(one)
+          return [look.backgroundColor, look.color, look.outlineColor]
+        }),
+      )
+    }
+    const [dark, light] = looks
+    expect(light.slice(0, 2)).toEqual(dark.slice(0, 2))
+    expect(dark[2]).toBe('rgba(0, 0, 0, 0)')
+    expect(light[2]).not.toBe('rgba(0, 0, 0, 0)')
+  })
+
   test('is the type plate: the version, the serial, the counts and the facts of the fixture', async ({
     page,
   }) => {

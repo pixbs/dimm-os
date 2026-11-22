@@ -12,7 +12,7 @@ import { useArrives } from '../motion/enters'
 type To = { href: string; label: string; lang?: string; download?: boolean }
 
 export type CardProps = {
-  surface?: 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
+  surface?: 'raised' | 'paper' | 'print' | 'orange' | 'blue' | 'mint'
   title?: string
   text?: string | null
   level?: 'display' | 'title' | 'heading' | 'lead'

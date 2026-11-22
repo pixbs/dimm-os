@@ -14,6 +14,10 @@ export const Stamping = createContext<{ words: string; lang: string } | null>(nu
 
 export type LiveName = keyof typeof pictures
 
+// The portrait is drawn in ink on paper, so the card that holds it is a print and never turns with the theme.
+export const surfaceFor = (name: LiveName | null | undefined) =>
+  name === 'portrait' ? ('print' as const) : undefined
+
 // A live picture by the name its media document gives it; until it is drawn the upload stands as its still.
 export function Live({ name }: { name: LiveName }) {
   const Picture = pictures[name]
