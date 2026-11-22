@@ -3,7 +3,7 @@
 import { useEffect, useLayoutEffect, useRef } from 'react'
 
 import { decodes } from './Decipher'
-import { duration, reduced, usePainted } from './vocabulary'
+import { amount, duration, reduced, usePainted } from './vocabulary'
 
 // The top of an element in the page as laid out, which a transform in flight does not move.
 const top = (element: Element | null): number =>
@@ -23,7 +23,8 @@ const starts = new WeakMap<Element, (delay: number) => void>()
 const inOrder = (one: Node, other: Node) =>
   one.compareDocumentPosition(other) & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1
 
-// What comes into view in one frame arrives in reading order, each part the next after the one before.
+// What comes into view in one frame arrives in reading order, each part the next after the one before, up to the last
+// that takes a turn of its own: the rest arrive with it.
 let arriving: HTMLElement[] = []
 function arrive(element: HTMLElement) {
   const hold = element.closest('[data-hold]')
@@ -31,10 +32,12 @@ function arrive(element: HTMLElement) {
   if (keep) return void keep.push(element)
   if (!arriving.length) {
     requestAnimationFrame(() => {
+      const last = amount('nexts') - 1
       arriving.sort(inOrder).forEach((one, at) => {
+        const turn = Math.min(at, last)
         const start = starts.get(one)
-        if (start) return start(at * duration('next') * 1000)
-        one.style.animationDelay = `calc(var(--m-next) * ${at})`
+        if (start) return start(turn * duration('next') * 1000)
+        one.style.animationDelay = `calc(var(--m-next) * ${turn})`
         one.dataset.enter = 'in'
       })
       arriving = []
@@ -84,12 +87,14 @@ function watch(root: HTMLElement, parts: HTMLElement[]) {
   }
 }
 
-// What arrives of a view on its own: what holds text of its own, a picture, a control or a row. A box that holds only
-// boxes is walked through; what arrives by itself, what Motion moves, and what has no box are left as they are.
+// What arrives of a view on its own: what holds text of its own, a picture, a control or a row. A control or a drawing,
+// whatever has a role or is hidden from assistive technology or holds no text, arrives as one. A box that holds only boxes is walked through; what arrives by itself,
+// what Motion moves, and what has no box are left as they are.
 const whole =
-  'h1, h2, h3, h4, h5, h6, p, a, button, img, picture, figure, canvas, video, hr, li, tr, dt, dd, blockquote, pre, input, select, textarea, label'
+  'h1, h2, h3, h4, h5, h6, p, a, button, img, picture, figure, canvas, video, hr, li, tr, dt, dd, blockquote, pre, input, select, textarea, label, [role]:not([role="none"], [role="presentation"]), [aria-hidden="true"]'
 const single = (part: HTMLElement) =>
   part.matches(whole) ||
+  !part.textContent!.trim() ||
   ![...part.children].some((child) => child instanceof HTMLElement) ||
   [...part.childNodes].some((node) =>
     node instanceof HTMLElement
