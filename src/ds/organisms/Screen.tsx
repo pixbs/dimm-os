@@ -8,7 +8,7 @@ import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
 import { Bar, BarSpace } from '../molecules/Bar'
 import { Button, ButtonGroup, ButtonLink } from '../molecules/Button'
-import { ways } from '../motion/Origin'
+import { rise } from '../motion/Travels'
 import { usePainted } from '../motion/vocabulary'
 import { Wallpaper } from './Wallpaper'
 
@@ -87,7 +87,7 @@ export function Apps(props: {
 
 // A window as the taskbar and the dock show it: the window in front is selected, one minimised has a hollow mark.
 export type Task = {
-  // The id of its button, which its window shrinks into.
+  // The id of its button, which its window travels to and back from.
   id?: string
   name: string
   tile?: Tile | null
@@ -98,9 +98,9 @@ export type Task = {
 }
 
 const TaskButton = m.create(Button)
-const fast = ways('fast')
 
-// One button per window, led by the mark of its app: it comes and goes at its own place as its window does.
+// One button per window, led by the mark of its app: it rises into its bar as its window sets off, and leaves it as
+// its window closes.
 function Tasks(props: {
   tasks: Task[]
   onPick?: (index: number, button: HTMLElement) => void
@@ -120,7 +120,7 @@ function Tasks(props: {
           key={task.id ?? index}
           label={task.name}
           onClick={props.onPick && ((event) => props.onPick!(index, event.currentTarget))}
-          variants={painted ? undefined : fast}
+          variants={painted ? undefined : rise}
         />
       ))}
     </AnimatePresence>

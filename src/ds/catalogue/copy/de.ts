@@ -411,7 +411,7 @@ const de: Copy = {
     ],
     duration: [
       'Dauer',
-      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | travel: zweimal slow',
+      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | travel: zweimal slow | back: 1,25 fast | lag: 40',
       'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat.',
     ],
     durationRows: [
@@ -425,6 +425,11 @@ const de: Copy = {
         'Ein Hinweis anstelle des Texts, den er verdeckt, wie Link kopiert in der Taskleiste.',
       ],
       ['640 ms', 'Etwas, das von einem Platz zu einem anderen wandert.'],
+      [
+        '200 ms',
+        'Ein Fenster, das zu seiner Taste in der Taskleiste oder zu seinem Auslöser zurückgeht.',
+      ],
+      ['40 ms', 'Die Pause, bevor ein Fenster zurückgeht, nachdem sein Inhalt gegangen ist.'],
     ],
     curve: [
       'Kurve',
@@ -439,6 +444,11 @@ const de: Copy = {
       ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
       ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
       ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
+      ['linear', 'Eine Überblendung: ein Bild herein, während seine Farbfelder gehen.'],
+      [
+        '.33, 1, .67, 1',
+        'Ein Farbfeld eines Bildes, das wächst und eckig wird: schnell, dann zur Ruhe kommend.',
+      ],
     ],
     spread: [
       'Streuung',
@@ -477,8 +487,8 @@ const de: Copy = {
     originPart: 'Ein Teil, das sich öffnet und schließt.',
     travel: [
       'Wandern',
-      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte',
-      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
+      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte | ein Fenster: slow hin, back zurück, sein Inhalt bei 3/4',
+      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet. Ein Fenster ist ein Kasten, der wandert: von seinem Auslöser an seinen Platz über slow auf der Standardkurve, sein Inhalt ungesehen, bis drei Viertel der Bewegung getan sind, und zurück zu seiner Taste in der Taskleiste oder zu seinem Auslöser einen Moment, nachdem sein Inhalt gegangen ist, über back auf der Kurve exit. Bei reduzierter Bewegung blendet es, wo es steht.',
     ],
     travelLetters: 'OS',
     decipher: [
@@ -880,7 +890,7 @@ const de: Copy = {
     media: [
       'Medien',
       'Format: 16:9 · 4:3 · 1:1 · 3:1 | Art: Bild · Video · Einbettung | Teile: Bildunterschrift',
-      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in Punkten auf, beim Vier-, Zwei- und Einfachen des Rasters, und blendet dann ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
+      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in runden Farbfeldern seiner eigenen Farben auf: Zellen vom Vierfachen des Rasters ziehen in 260 ms herein, dann vom Zwei- und Einfachen für je 160 ms, jedes Feld füllt 0,86 seiner Zelle; dann werden sie in 180 ms eckig und schließen sich, und das Bild blendet darunter in fast ein, 920 ms insgesamt. Bei reduzierter Bewegung oder angehaltenen Bildern blendet es nur ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
     ],
     mediaCaps: [
       '16:9',

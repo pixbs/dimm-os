@@ -5,7 +5,7 @@ import type { Copy } from './copy/en'
 import { Arrives, Deciphers, Opens, Pictures, Played, Springs, Travelled } from './Moves'
 import { Doc, Entry, Table } from './parts'
 
-const times = ['fast', 'slow', 'long', 'fast-exit', 'slow-exit', 'note', 'travel']
+const times = ['fast', 'slow', 'long', 'fast-exit', 'slow-exit', 'note', 'travel', 'back', 'lag']
 // Each curve is shown at the duration it is used with.
 const curves = [
   ['standard', 'slow'],
@@ -15,6 +15,8 @@ const curves = [
   ['drop', 'long'],
   ['across', 'travel'],
   ['up', 'travel'],
+  ['even', 'fast'],
+  ['swatch', 'swatch-grow'],
 ]
 const columns = Array.from({ length: 40 }, (_, column) => column)
 
