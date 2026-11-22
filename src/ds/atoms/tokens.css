@@ -180,6 +180,8 @@
   --m-up: cubic-bezier(0.1, 0, 0, 1);
   /* a crossfade: one fades in at the rate the other fades out */
   --m-even: linear;
+  /* a swatch of a picture growing and squaring off: quick, then settling, a cubic ease-out */
+  --m-swatch: cubic-bezier(0.333, 1, 0.667, 1);
   /* the size a part opens from at its own place */
   --m-start: 0.96;
   /* a screw: the angle of its slot, and how far it turns and grows as it comes out */

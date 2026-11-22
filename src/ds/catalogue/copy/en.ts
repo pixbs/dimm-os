@@ -425,6 +425,7 @@ const en = {
       ['.5, 0, .2, 1', 'A thing that travels, on its way across.'],
       ['.1, 0, 0, 1', 'A thing that travels, on its way up.'],
       ['linear', 'A crossfade: a picture in as its swatches go out.'],
+      ['.33, 1, .67, 1', 'A swatch of a picture, growing and squaring off: quick, then settling.'],
     ],
     spread: [
       'Spread',

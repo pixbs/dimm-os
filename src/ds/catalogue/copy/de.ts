@@ -440,6 +440,10 @@ const de: Copy = {
       ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
       ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
       ['linear', 'Eine Überblendung: ein Bild herein, während seine Farbfelder gehen.'],
+      [
+        '.33, 1, .67, 1',
+        'Ein Farbfeld eines Bildes, das wächst und eckig wird: schnell, dann zur Ruhe kommend.',
+      ],
     ],
     spread: [
       'Streuung',

@@ -66,7 +66,7 @@ export function swatches(
     amount('swatch-from'),
     amount('swatch-closed'),
   ]
-  const curved = cubicBezier(...curve('enter'))
+  const curved = cubicBezier(...curve('swatch'))
   const ease = (share: number) => curved(Math.min(1, Math.max(0, share)))
   // When each step begins, and when the swatches have closed up.
   const starts = [0, sweep, sweep + step]

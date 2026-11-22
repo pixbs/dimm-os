@@ -19,7 +19,7 @@ type Time =
   | 'swatch-close'
   | 'swatch-wave'
   | 'swatch-grow'
-type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up'
+type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up' | 'swatch'
 
 let probe: HTMLElement | undefined
 const known = new Map<string, string>()
