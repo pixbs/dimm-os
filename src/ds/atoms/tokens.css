@@ -85,10 +85,6 @@
   --ht-cell: radial-gradient(circle, var(--ht-light) 0%, var(--ht-dark) 122%);
   --ht-blend: multiply;
   --ht-cut: contrast(14);
-  /* where the form of a monitor's wallpaper sits: by default, and on the screen of a wide desk and a tall desk */
-  --wallpaper-at: 80% 60%;
-  --wallpaper-wide: 78% 70%;
-  --wallpaper-tall: 74% 76%;
   /* a small copy of a screen: its shape on a desk, a tablet and a phone, and where its window stands on it, kept
      elsewhere when windows are remembered, and as a drawer */
   --monitor-desk: 16 / 10;
@@ -99,7 +95,6 @@
   --monitor-window-tablet: 14% 14% 52% 14%;
   --monitor-kept-tablet: 40% 6% 26% 22%;
   --monitor-drawer: 40% 0 0 0;
-  --monitor-above: 50% 20%;
   /* the strip of bars that marks a record */
   --bars: repeating-linear-gradient(
     90deg,

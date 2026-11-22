@@ -568,7 +568,6 @@
    drawn with the settings in force and never reached. */
 .monitor {
   --monitor-at: var(--monitor-window);
-  --wallpaper-at: var(--wallpaper-wide);
 
   position: relative;
   overflow: hidden;
@@ -582,7 +581,6 @@
 @media not (pointer: fine) {
   .monitor {
     --monitor-at: var(--monitor-window-tablet);
-    --wallpaper-at: var(--wallpaper-tall);
 
     width: calc(var(--h-regular) * 5);
     max-width: 100%;
@@ -590,19 +588,6 @@
   }
   :root[data-remember='on'] .monitor {
     --monitor-at: var(--monitor-kept-tablet);
-  }
-}
-/* The wallpaper's form, in dots on the pitch, half its size in a copy. */
-.monitor__wall {
-  --tone: radial-gradient(circle closest-side, var(--ht-light) 0%, var(--ht-none) 100%);
-  --ht-sizes: calc(var(--pitch) / 2) calc(var(--pitch) / 2), auto;
-
-  inset: auto;
-  opacity: var(--a-wallpaper);
-
-  :root[data-theme='light'] & {
-    filter: var(--ht-cut) invert(1);
-    mix-blend-mode: multiply;
   }
 }
 .monitor__bar,
@@ -658,8 +643,6 @@
   .monitor,
   :root[data-remember='on'] .monitor {
     --monitor-at: var(--monitor-drawer);
-    /* The form shows above the drawer, where the copy can show it. */
-    --wallpaper-at: var(--monitor-above);
 
     width: calc(var(--h-regular) * 4);
     max-width: 100%;

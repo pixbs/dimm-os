@@ -240,6 +240,11 @@ function Dials({ t }: Props) {
             </Stage>
           </Cap>
         ))}
+        <Cap id="dial-ring" label={t.dialCaps[3]}>
+          <Stage>
+            <Dial groups={[0, 4]} labelledBy="dial-ring" steps={t.dialSteps} value={2} />
+          </Stage>
+        </Cap>
         <Cap label={t.dialCaps[2]}>
           <List width={width.dialog}>
             <Turned counts={t.counts} />

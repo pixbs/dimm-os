@@ -3,22 +3,24 @@
 import { useEffect, useRef } from 'react'
 
 import { useSetting } from '../atoms/useSetting'
-import { still } from '../motion/vocabulary'
+import { curve, duration, reduced, still } from '../motion/vocabulary'
 import type { Setting } from './wallpaper'
 import { step } from './wallpapers'
 
 // Starts the worker that draws into a canvas of its own, and returns what stops it.
-function start(box: HTMLElement) {
+function start(box: HTMLElement, copy: boolean) {
   // A canvas can hand its drawing over only once, so each start brings its own.
   const canvas = box.appendChild(document.createElement('canvas'))
   const worker = new Worker(new URL('./wallpaper.ts', import.meta.url), { type: 'module' })
   const offscreen = canvas.transferControlToOffscreen()
   worker.postMessage({ canvas: offscreen }, [offscreen])
 
-  const screen = canvas.closest('.screen')
+  // A copy follows neither the pointer nor the desk it stands on.
+  const screen = copy ? null : canvas.closest('.screen')
   const desk = screen?.querySelector('.screen__desk')
   const send = (setting: Partial<Setting>) => worker.postMessage(setting)
   let seen = true
+  let drawn: string | undefined
 
   // The apps lie on the desk, so a window in full screen covers the wallpaper when it covers them.
   const ground = desk?.querySelector('.apps') ?? desk ?? canvas
@@ -30,11 +32,19 @@ function start(box: HTMLElement) {
     const shown = step(canvas.closest<HTMLElement>('[data-wallpaper]')?.dataset.wallpaper)
     // In colour it stands stronger than in ink alone.
     box.toggleAttribute('data-colour', shown.colour)
+    // Another wallpaper fades in as it begins.
+    if (drawn && drawn !== shown.wallpaper && !reduced())
+      box.animate([{ opacity: 0 }, { opacity: 1 }], {
+        duration: duration('slow') * 1000,
+        easing: `cubic-bezier(${curve('enter')})`,
+      })
+    drawn = shown.wallpaper
     send({
       width: canvas.clientWidth,
       height: canvas.clientHeight,
       ratio: Math.min(2, devicePixelRatio || 1),
-      pitch: parseFloat(style.getPropertyValue('--pitch')),
+      // A copy is drawn on twice the dot.
+      pitch: parseFloat(style.getPropertyValue('--pitch')) * (copy ? 2 : 1),
       step: shown,
       // On a light surface the paper ink is the ink of the theme.
       inks: [
@@ -84,8 +94,9 @@ function start(box: HTMLElement) {
   }
 }
 
-// A scene behind everything, drawn by a worker in dots or in signs. A plain wallpaper is not drawn.
-export function Wallpaper() {
+// A scene behind everything, drawn by a worker in dots or in signs, or a copy of it in a monitor. A plain wallpaper
+// is not drawn.
+export function Wallpaper({ copy = false }: { copy?: boolean }) {
   const box = useRef<HTMLDivElement>(null)
   const plain = useSetting('plain') === 'on'
 
@@ -93,12 +104,12 @@ export function Wallpaper() {
     if (plain) return
     // It starts a task after the page is in place, so a mount that is undone at once starts no worker.
     let stop = () => {}
-    const timer = setTimeout(() => (stop = start(box.current!)))
+    const timer = setTimeout(() => (stop = start(box.current!, copy)))
     return () => {
       clearTimeout(timer)
       stop()
     }
-  }, [plain])
+  }, [plain, copy])
 
   return <div aria-hidden className="wallpaper" ref={box} />
 }

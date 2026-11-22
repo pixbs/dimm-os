@@ -24,8 +24,10 @@ test.describe('Preferences', () => {
     await page.emulateMedia({ colorScheme: 'dark' })
     await page.goto('/preferences', { waitUntil: 'networkidle' })
     const prefs = win(page, 'Preferences')
-    await expect(prefs.getByText('Follows your device: dark right now')).toBeVisible()
-    await expect(prefs.getByText('Saved on this device only')).toBeVisible()
+    await expect(prefs.getByRole('radiogroup', { name: 'Theme' })).toBeVisible()
+    // No control has a line of help, and the foot no status line.
+    await expect(prefs.locator('.row__help')).toHaveCount(0)
+    await expect(prefs.getByText('Saved on this device only')).toHaveCount(0)
     expect(await stored(page)).toEqual({})
 
     await choose(page, 'Theme', 'Light')
@@ -35,7 +37,6 @@ test.describe('Preferences', () => {
     expect(await root(page, 'theme')).toBe('light')
     expect(await root(page, 'pitch')).toBe('12')
     expect(await root(page, 'hand')).toBe('squares')
-    await expect(prefs.getByText('Where you are')).toBeVisible()
     expect(await stored(page)).toEqual({
       theme: 'light',
       pitch: '12',
@@ -46,7 +47,6 @@ test.describe('Preferences', () => {
     await page.reload({ waitUntil: 'networkidle' })
     expect(await root(page, 'theme')).toBe('light')
     await expect(prefs.getByRole('radio', { name: '12' })).toBeChecked()
-    await expect(prefs.getByText('Light, whatever your device says')).toBeVisible()
 
     // System hands the setting back to the device, and Reset hands back all of them.
     await choose(page, 'Theme', 'System')
@@ -56,9 +56,8 @@ test.describe('Preferences', () => {
     // A choice the device already makes stays chosen.
     await choose(page, 'Theme', 'Dark')
     await expect(prefs.getByRole('radio', { name: 'Dark' })).toBeChecked()
-    await expect(prefs.getByText('Dark, whatever your device says')).toBeVisible()
     expect((await stored(page)).theme).toBe('dark')
-    await prefs.getByRole('button', { name: 'Reset' }).click()
+    await prefs.getByRole('button', { name: 'Factory reset' }).click()
     expect(await stored(page)).toEqual({})
     await expect.poll(() => root(page, 'pitch')).toBe('8')
     await expect(prefs.getByRole('radio', { name: 'System' }).first()).toBeChecked()
@@ -75,18 +74,31 @@ test.describe('Preferences', () => {
     expect(await root(page, 'pitch')).toBe('5')
   })
 
-  test('turns the wallpaper field by the dial, and plays the boot on the monitor', async ({
+  test('steps the wallpaper round the dial, with no end, and plays the boot on the monitor', async ({
     page,
   }) => {
     await page.goto('/preferences', { waitUntil: 'networkidle' })
     const prefs = win(page, 'Preferences')
-    const dial = prefs.getByRole('slider', { name: 'Wallpaper field' })
+    const dial = prefs.getByRole('slider', { name: 'Wallpaper' })
+    await expect(dial).toHaveAttribute('aria-valuetext', 'Passage, dots, in colour')
+    await expect(prefs.locator('.stat__value')).toHaveText('Passage')
+    await expect(prefs.locator('.monitor canvas')).toBeAttached()
     await dial.press('ArrowRight')
+    expect(await root(page, 'wallpaper')).toBe('passage dots')
+    await expect(dial).toHaveAttribute('aria-valuetext', 'Passage, dots')
+    await dial.press('ArrowLeft')
+    await dial.press('ArrowLeft')
+    // Past the first step is the last.
+    const last = await dial.getAttribute('aria-valuemax')
+    await expect(dial).toHaveAttribute('aria-valuenow', last!)
     await dial.press('ArrowRight')
-    expect(await root(page, 'wallpaper')).toBe('301')
-    await expect(prefs.getByText('field no. 301')).toBeVisible()
+    await expect(dial).toHaveAttribute('aria-valuenow', '0')
     await dial.press('End')
-    expect(await root(page, 'wallpaper')).toBe('999')
+    await dial.press('Home')
+    expect(await root(page, 'wallpaper')).toBe('passage dots colour')
+    await dial.press('ArrowRight')
+    await prefs.getByRole('button', { name: 'Factory reset' }).click()
+    await expect(dial).toHaveAttribute('aria-valuenow', '0')
 
     const boot = prefs.getByRole('switch', { name: /Play the boot screen/ })
     await boot.click({ force: true })

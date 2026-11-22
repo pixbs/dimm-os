@@ -16,3 +16,17 @@ export function step(setting?: string | null): Step {
   const name = wallpaper as keyof typeof wallpapers
   return { wallpaper: name, filter, colour: wallpapers[name] && colour === 'colour' }
 }
+
+// Every step of the dial as the setting writes it: each wallpaper in the order of the list, in dots before signs,
+// and in colour first where it has colours.
+export const steps = Object.entries(wallpapers).flatMap(([name, colours]) =>
+  (['dots', 'ascii'] as const).flatMap((filter) =>
+    colours ? [`${name} ${filter} colour`, `${name} ${filter}`] : [`${name} ${filter}`],
+  ),
+)
+
+// The place on the dial of the step a setting holds.
+export function stepAt(setting?: string | null) {
+  const { wallpaper, filter, colour } = step(setting)
+  return steps.indexOf(`${wallpaper} ${filter}${colour ? ' colour' : ''}`)
+}
