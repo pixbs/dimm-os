@@ -395,7 +395,7 @@ const en = {
     change: 'Change',
     doc: [
       'Atoms / Motion',
-      'One vocabulary: three durations, seven curves, one spread, one turn and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
+      'One vocabulary: three durations, seven curves, one spread, one turn, one arrival and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
     ],
     duration: [
       'Duration',
@@ -436,6 +436,17 @@ const en = {
       'The rows of a menu arrive in turn: each fades in and drops 4 px into place, a turn after the one before, the first 40 ms after the menu. The eighth and every later one arrive together, so a long menu is never slower than a short one. A rule takes its turn as a row does. Nothing leaves in turn; with reduced motion the rows are there with the menu.',
     ],
     turnOpen: 'Open',
+    arrival: [
+      'Arrival',
+      'before: what was there leaves together over fast-exit, on exit | title: decoded | every other part: rises 8 px over slow, on enter | next: 40 ms, in reading order',
+      'What a window holds arrives once the window has opened, and when it shows another item once what it held has left. Its title, the first heading, is decoded. Every other part, text, rows, facts, the box of a picture, a button, rises 8 px into place as it fades in, 40 ms after the part before it in reading order; what is below the fold arrives as it is first seen. Cards in a grid and the rows of a list arrive the same way. The frame, the title bar and the buttons at the foot do not move. Where the server painted the page, or with reduced motion, all of it is there at once.',
+    ],
+    arrivalTitle: 'A title is decoded',
+    arrivalTexts: [
+      'Then the text rises into place,',
+      'one part after another,',
+      'in the order it is read.',
+    ],
     turnRow: 'Row',
     spring: [
       'Spring',
@@ -457,8 +468,8 @@ const en = {
     travelLetters: 'OS',
     decipher: [
       'Decipher',
-      'within: slow | text: mono only',
-      'Mono text deciphers once when it appears or changes, from characters of its own string, locking from start to end. Sans headings do not. The real text stays in the page for assistive technology.',
+      'letter: 16 ms | at most: 480 ms | run: 6 | a count beside a title: 2/5 of its time',
+      'A text is decoded from its start once when it appears or changes: what is read is itself, a run of six of its own letters travels ahead, and past the run nothing shows yet. A space, and whatever is not a letter or a digit, stays itself. Mono text is decoded wherever it changes; of sans text only the title of a window, as it arrives. A count beside that title keeps what it said until the title begins, then shows whole, only the digits of its first number changing, for 2/5 of the time the title takes. The real text keeps its place throughout, so nothing moves, and assistive technology reads it alone, once.',
     ],
     decipherTexts: ['system/says · 12 items · 2026-11-10', 'work/grow.case · 3 of 12 · ⌘K'],
     decipherHeading: 'A sans heading stays as it is',
@@ -480,6 +491,7 @@ const en = {
     settingsRows: [
       ['What enters, leaves or travels', 'fades in place', 'unchanged'],
       ['Decipher', 'the final text at once', 'unchanged'],
+      ['What a window holds', 'there at once', 'unchanged'],
       ['Everything the dot engine draws', 'still', 'still'],
       ['Hover, press, focus', 'colour only', 'unchanged'],
     ],
@@ -1073,7 +1085,7 @@ const en = {
     list: [
       'List',
       'rows: any row | scale: body · heading | parts: head · foot | items: a row · a row that opens in place',
-      'Rows under one another. Steps, navigation, facts and the groups of a record are all this list with different rows. Rows run 16 px past the text on both sides, so the hover fill has room and the text stays on the keyline. A head names the rows and their end over a line in the foreground, and then the rows need no line of their own. A meter shows a share in dots and reads as one: 9 of 12. Rows the page did not hold yet arrive along the spread as they are first seen.',
+      'Rows under one another. Steps, navigation, facts and the groups of a record are all this list with different rows. Rows run 16 px past the text on both sides, so the hover fill has room and the text stays on the keyline. A head names the rows and their end over a line in the foreground, and then the rows need no line of their own. A meter shows a share in dots and reads as one: 9 of 12. Rows the page did not hold yet arrive one after another as they are first seen.',
     ],
     lists: [
       'links',
@@ -1131,7 +1143,7 @@ const en = {
     card: [
       'Card',
       'surface: raised · paper · orange · blue · mint | parts: media · meta · heading · foot · actions | layout: media above · media beside | state: default · hover · pressed · focus',
-      'A surface that holds one item. Whatever is on it follows the surface. As a link the whole card is pressed. Actions are a button group flush with its bottom edge, and a button that opens a window carries its title. The meta row holds one or two items, the first at the start and the last at the end. Media sits beside the text only when the card has the row to itself. Cards in a grid arrive along the spread as they are first seen.',
+      'A surface that holds one item. Whatever is on it follows the surface. As a link the whole card is pressed. Actions are a button group flush with its bottom edge, and a button that opens a window carries its title. The meta row holds one or two items, the first at the start and the last at the end. Media sits beside the text only when the card has the row to itself. Cards in a grid arrive one after another as they are first seen.',
     ],
     cards: [
       'raised, media, link',
@@ -1374,7 +1386,7 @@ const en = {
     ],
     handledCaps: [
       'a desk: its shortcuts open windows, and the view of the last is a while coming',
-      'content replaced in a window: the new comes from where the visitor is heading',
+      'content replaced in a window: the old leaves, then the new arrives part by part',
     ],
     handledHead: ['By hand or key', 'What happens', 'Timing'],
     handledRows: [
@@ -1415,8 +1427,8 @@ const en = {
       ],
       [
         'Content replaced',
-        'The new comes one step, 24 px, from the direction of travel while the old fades.',
-        'slow',
+        'The old leaves together; then the new arrives part by part: its title is decoded, everything else rises 8 px in reading order.',
+        'fast-exit · slow',
       ],
       [
         'Waiting',

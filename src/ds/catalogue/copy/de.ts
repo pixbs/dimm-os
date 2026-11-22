@@ -407,7 +407,7 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, sieben Kurven, eine Streuung, ein Takt und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, sieben Kurven, eine Streuung, ein Takt, eine Ankunft und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
@@ -451,6 +451,17 @@ const de: Copy = {
       'Die Zeilen eines Menüs kommen im Takt: Jede blendet ein und fällt 4 px an ihren Platz, einen Takt nach der vorigen, die erste 40 ms nach dem Menü. Die achte und jede spätere kommen zusammen, sodass ein langes Menü nie langsamer ist als ein kurzes. Eine Trennlinie nimmt ihren Takt wie eine Zeile. Nichts geht im Takt; bei reduzierter Bewegung sind die Zeilen mit dem Menü da.',
     ],
     turnOpen: 'Öffnen',
+    arrival: [
+      'Ankunft',
+      'davor: Was da war, geht zusammen in fast-exit, auf exit | Titel: entschlüsselt | jeder andere Teil: steigt 8 px in slow, auf enter | nächster: 40 ms, in Lesereihenfolge',
+      'Was ein Fenster hält, kommt an, sobald das Fenster offen ist, und wenn es einen anderen Eintrag zeigt, sobald das, was es hielt, gegangen ist. Sein Titel, die erste Überschrift, wird entschlüsselt. Jeder andere Teil, Text, Zeilen, Fakten, die Box eines Bildes, ein Button, steigt 8 px an seinen Platz, während er einblendet, 40 ms nach dem Teil davor in Lesereihenfolge; was unter dem Rand liegt, kommt an, sobald es zum ersten Mal zu sehen ist. Karten in einem Raster und die Zeilen einer Liste kommen genauso an. Der Rahmen, die Titelleiste und die Buttons am Fuß bewegen sich nicht. Wo der Server die Seite gemalt hat, oder bei reduzierter Bewegung, ist alles sofort da.',
+    ],
+    arrivalTitle: 'Ein Titel wird entschlüsselt',
+    arrivalTexts: [
+      'Dann steigt der Text an seinen Platz,',
+      'ein Teil nach dem anderen,',
+      'in der Reihenfolge, in der er gelesen wird.',
+    ],
     turnRow: 'Zeile',
     spring: [
       'Feder',
@@ -472,8 +483,8 @@ const de: Copy = {
     travelLetters: 'OS',
     decipher: [
       'Entziffern',
-      'in: slow | Text: nur Mono',
-      'Mono-Text entziffert sich einmal, wenn er erscheint oder sich ändert, aus den Zeichen seiner eigenen Zeichenkette, und rastet vom Anfang zum Ende ein. Sans-Überschriften tun das nicht. Der echte Text bleibt für Hilfstechnologien in der Seite.',
+      'Buchstabe: 16 ms | höchstens: 480 ms | Lauf: 6 | ein Zähler neben einem Titel: 2/5 seiner Zeit',
+      'Ein Text wird einmal von seinem Anfang her entschlüsselt, wenn er erscheint oder sich ändert: Was gelesen ist, ist es selbst, ein Lauf aus sechs seiner eigenen Zeichen zieht voraus, und hinter dem Lauf zeigt sich noch nichts. Ein Leerzeichen, und was kein Buchstabe und keine Ziffer ist, bleibt, wie es ist. Mono-Text wird entschlüsselt, wo immer er sich ändert; von Sans-Text nur der Titel eines Fensters, während er ankommt. Ein Zähler neben diesem Titel zeigt, was er sagte, bis der Titel beginnt, dann ganz, und nur die Ziffern seiner ersten Zahl ändern sich, für 2/5 der Zeit des Titels. Der echte Text behält die ganze Zeit seinen Platz, sodass sich nichts bewegt, und Hilfstechnologien lesen ihn allein, einmal.',
     ],
     decipherTexts: ['system/sagt · 12 Einträge · 2026-11-10', 'arbeit/grow.case · 3 von 12 · ⌘K'],
     decipherHeading: 'Eine Sans-Überschrift bleibt, wie sie ist',
@@ -495,6 +506,7 @@ const de: Copy = {
     settingsRows: [
       ['Was kommt, geht oder wandert', 'blendet an seinem Platz', 'unverändert'],
       ['Entziffern', 'sofort der fertige Text', 'unverändert'],
+      ['Was ein Fenster hält', 'sofort da', 'unverändert'],
       ['Alles, was die Punktmaschine zeichnet', 'steht still', 'steht still'],
       ['Hover, Drücken, Fokus', 'nur Farbe', 'unverändert'],
     ],
@@ -1107,7 +1119,7 @@ const de: Copy = {
     list: [
       'Liste',
       'Zeilen: jede Zeile | Maßstab: Fließtext · Überschrift | Teile: Kopf · Fuß | Einträge: eine Zeile · eine Zeile, die sich an Ort und Stelle öffnet',
-      'Zeilen untereinander. Schritte, Navigation, Fakten und die Gruppen einer Akte sind alle diese Liste mit anderen Zeilen. Zeilen reichen auf beiden Seiten 16 px über den Text hinaus, damit die Hover-Fläche Platz hat und der Text auf der Satzkante bleibt. Ein Kopf benennt die Zeilen und ihr Ende über einer Linie in der Vordergrundfarbe, dann brauchen die Zeilen keine eigene Linie. Eine Anzeige zeigt einen Anteil in Punkten und liest sich als einer: 9 von 12. Zeilen, die die Seite noch nicht hatte, kommen entlang der Streuung an, sobald sie zum ersten Mal zu sehen sind.',
+      'Zeilen untereinander. Schritte, Navigation, Fakten und die Gruppen einer Akte sind alle diese Liste mit anderen Zeilen. Zeilen reichen auf beiden Seiten 16 px über den Text hinaus, damit die Hover-Fläche Platz hat und der Text auf der Satzkante bleibt. Ein Kopf benennt die Zeilen und ihr Ende über einer Linie in der Vordergrundfarbe, dann brauchen die Zeilen keine eigene Linie. Eine Anzeige zeigt einen Anteil in Punkten und liest sich als einer: 9 von 12. Zeilen, die die Seite noch nicht hatte, kommen eine nach der anderen an, sobald sie zum ersten Mal zu sehen sind.',
     ],
     lists: [
       'Links',
@@ -1165,7 +1177,7 @@ const de: Copy = {
     card: [
       'Karte',
       'Fläche: raised · paper · orange · blue · mint | Teile: Medien · Meta · Überschrift · Fuß · Aktionen | Anordnung: Medien darüber · Medien daneben | Zustand: Standard · Hover · gedrückt · Fokus',
-      'Eine Fläche, die einen Eintrag trägt. Was auf ihr steht, folgt der Fläche. Als Link wird die ganze Karte gedrückt. Aktionen sind eine Button-Gruppe bündig an ihrer Unterkante, und ein Button, der ein Fenster öffnet, trägt dessen Titel. Die Meta-Zeile hält ein oder zwei Dinge, das erste am Anfang, das letzte am Ende. Medien stehen nur neben dem Text, wenn die Karte die Reihe für sich hat. Karten in einem Raster kommen entlang der Streuung an, sobald sie zum ersten Mal zu sehen sind.',
+      'Eine Fläche, die einen Eintrag trägt. Was auf ihr steht, folgt der Fläche. Als Link wird die ganze Karte gedrückt. Aktionen sind eine Button-Gruppe bündig an ihrer Unterkante, und ein Button, der ein Fenster öffnet, trägt dessen Titel. Die Meta-Zeile hält ein oder zwei Dinge, das erste am Anfang, das letzte am Ende. Medien stehen nur neben dem Text, wenn die Karte die Reihe für sich hat. Karten in einem Raster kommen eine nach der anderen an, sobald sie zum ersten Mal zu sehen sind.',
     ],
     cards: [
       'raised, Medien, Link',
@@ -1408,7 +1420,7 @@ const de: Copy = {
     ],
     handledCaps: [
       'ein Desktop: Seine Verknüpfungen öffnen Fenster, und die Ansicht der letzten lässt auf sich warten',
-      'Inhalt in einem Fenster ersetzt: Das Neue kommt aus der Richtung, in die es geht',
+      'Inhalt in einem Fenster ersetzt: Das Alte geht, dann kommt das Neue Teil für Teil an',
     ],
     handledHead: ['Von Hand oder per Taste', 'Was geschieht', 'Dauer'],
     handledRows: [
@@ -1449,8 +1461,8 @@ const de: Copy = {
       ],
       [
         'Inhalt ersetzt',
-        'Das Neue kommt einen Schritt, 24 px, aus der Richtung, in die es geht, während das Alte ausblendet.',
-        'slow',
+        'Das Alte geht zusammen; dann kommt das Neue Teil für Teil an: Sein Titel wird entschlüsselt, alles andere steigt 8 px in Lesereihenfolge.',
+        'fast-exit · slow',
       ],
       [
         'Warten',

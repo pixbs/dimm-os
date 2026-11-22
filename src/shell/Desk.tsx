@@ -114,6 +114,10 @@ const never = () => () => {}
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
+// The first heading of a window: the title of a Header that opens it, or the title of its frame.
+const titleOf = ({ sections: [first], frame }: WindowView) =>
+  first?.type === 'header' ? first.title : frame.title
+
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
 // neighbours, which ends its body. On paper its head is a record's and its foot says when it was updated; beside it
 // stands its aside.
@@ -329,7 +333,14 @@ function parts(
         size="compact"
       />
       <BarSpace />
-      {counters && <BarText>{`${pad(counters.position)} / ${pad(counters.total)}`}</BarText>}
+      {counters && (
+        <BarText>
+          {/* The count stands with the title, and settles as the title is decoded. */}
+          <Decipher beside={titleOf(view)}>
+            {`${pad(counters.position)} / ${pad(counters.total)}`}
+          </Decipher>
+        </BarText>
+      )}
     </Bar>
   ) : filtering ? (
     <Bar line="below">
@@ -474,11 +485,15 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // when it leaves the next takes its place. The windows that open with the measured desk are picked by no one.
   function act(action: Action) {
     // Putting away a window of consent before answering it is a no.
-    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll'].includes(action.type)
+    const away = ['close', 'minimise', 'escape', 'closeAll', 'minimiseAll', 'alone'].includes(
+      action.type,
+    )
     const all = action.type === 'closeAll' || action.type === 'minimiseAll'
     const of = all
       ? desk.open.map((one) => one.path)
-      : [('path' in action && action.path) || front(desk)]
+      : action.type === 'alone'
+        ? desk.open.map((one) => one.path).filter((path) => path !== front(desk))
+        : [('path' in action && action.path) || front(desk)]
     if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
     const after = manager(desk, action)
@@ -614,6 +629,16 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       // A tab without storage remembers nothing past itself.
     }
   }, [desk, remember])
+
+  // Switched on, one window at a time acts on the windows already open, and on those a reload brings back.
+  const single = useSetting('single')
+  const was = useRef(single)
+  const alone = useEffectEvent(() => act({ type: 'alone' }))
+  useEffect(() => {
+    const switched = single === 'on' && was.current === 'off'
+    was.current = single
+    if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
+  }, [desk, single])
 
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
   function run(action: Action | 'search' | null, opener: Element | null) {

@@ -2,7 +2,7 @@ import { Fragment } from 'react'
 
 import { MenuButton } from '../organisms/Menu'
 import type { Copy } from './copy/en'
-import { Deciphers, Opens, Pictures, Played, Springs, Travelled } from './Moves'
+import { Arrives, Deciphers, Opens, Pictures, Played, Springs, Travelled } from './Moves'
 import { Doc, Entry, Table } from './parts'
 
 const times = ['fast', 'slow', 'long', 'fast-exit', 'slow-exit', 'note', 'travel']
@@ -103,6 +103,9 @@ export function Motion({ t }: { t: Copy['motion'] }) {
       </Entry>
       <Entry text={t.decipher}>
         <Deciphers heading={t.decipherHeading} label={t.change} texts={t.decipherTexts} />
+      </Entry>
+      <Entry text={t.arrival}>
+        <Arrives label={t.play} texts={t.arrivalTexts} title={t.arrivalTitle} />
       </Entry>
       <Entry text={t.dots}>
         <Pictures caps={t.dotsCaps} />

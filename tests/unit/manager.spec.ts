@@ -91,13 +91,12 @@ describe('the window manager', () => {
 
     expect(paths(state)).toEqual(['/work'])
     expect(showing(state)).toBe('/work/grow')
-    expect(state.open[0]).toMatchObject({ view: { path: '/work' }, travel: 'forward' })
+    expect(state.open[0]).toMatchObject({ view: { path: '/work' } })
     // A view that comes after its window went elsewhere is not shown.
     expect(after(state, { type: 'fill', window: view('/work') }).open[0].view?.path).toBe('/work')
 
     const grow = after(state, { type: 'fill', window: view('/work/grow') })
     expect(grow.open[0].view?.path).toBe('/work/grow')
-    expect(after(grow, { type: 'open', path: '/work' }).open[0].travel).toBe('back')
     // Back from the taskbar, a window shows what it showed.
     expect(showing(after(grow, { type: 'minimise' }, { type: 'task', path: '/work' }))).toBe(
       '/work/grow',
@@ -224,6 +223,25 @@ describe('the window manager', () => {
 
     expect(paths(state)).toEqual(['/cv'])
     expect(state.z).toEqual(['/cv'])
+  })
+
+  it('switched to one window at a time, keeps the one in front alone, back where nothing was dragged', () => {
+    const before = after(
+      home(),
+      { type: 'open', path: '/cv' },
+      { type: 'minimise', path: '/work' },
+      { type: 'move', path: '/cv', dx: 200, dy: 90 },
+    )
+    const state = after(before, { type: 'alone' })
+
+    expect(paths(state)).toEqual(['/cv'])
+    expect(state.z).toEqual(['/cv'])
+    expect(box(state, '/cv')).toEqual(
+      box(
+        after(start(null), { type: 'desk', w: 1440, h: 820 }, { type: 'open', path: '/cv' }),
+        '/cv',
+      ),
+    )
   })
 
   it('answers the four commands of the Window menu: left half, right half, fill, centre', () => {

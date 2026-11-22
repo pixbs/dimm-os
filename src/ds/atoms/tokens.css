@@ -140,6 +140,14 @@
   --m-turn-first: 40ms;
   --m-turn: 30ms;
   --m-turns: 8;
+  /* what a window holds arrives part by part in reading order: the wait from one part to the next */
+  --m-next: 40ms;
+  /* a text decoded from its start: the time a letter takes, the most it takes, how many letters run ahead, and the
+     share of that time a count beside it takes */
+  --m-letter: 16ms;
+  --m-decode: 480ms;
+  --m-run: 6;
+  --m-settle: 0.4;
   /* how long a part that waits for its content stays quiet before it says so */
   --m-wait: 300ms;
   /* how long a part lit by a key stays lit */
@@ -206,6 +214,7 @@
 /* reduced motion: what comes as many comes at once */
 [data-motion='reduce'] {
   --m-spread: 0ms;
+  --m-next: 0ms;
 }
 
 /* the pitch and the dots of a grip, declared wherever a pitch is set so the dot follows it */

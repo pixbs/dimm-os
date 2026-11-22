@@ -1,6 +1,5 @@
 import type { WindowView } from '@/data/views'
 import type { Box, Edge } from '@/ds/organisms/Window'
-import { fromAddress } from '@/i18n/address'
 import { oneSize } from '@/system/windows'
 
 type Size = Pick<Box, 'w' | 'h'>
@@ -11,8 +10,6 @@ type Entry = {
   at: string
   // Null while its view is on the way; until the next arrives, it keeps the one before.
   view: WindowView | null
-  // The way the visitor went when it came to show another path: what replaces its view comes from there.
-  travel?: 'forward' | 'back'
   // What opened it, where that is an element; a window the page came with has none.
   opener?: Element | null
   // Floating on the desk, taking the whole desk, or put away in the taskbar, and what it comes back as.
@@ -56,7 +53,8 @@ export type Action =
   | { type: 'task'; path: string; opener?: Element | null }
   // Without a path these act on the window in front, as a key or a menu does.
   | { type: 'minimise' | 'full'; path?: string }
-  | { type: 'next' | 'escape' | 'minimiseAll' | 'closeAll' }
+  // "One window at a time" switched on: the window in front stays, alone, where nothing overlaps it.
+  | { type: 'next' | 'escape' | 'minimiseAll' | 'closeAll' | 'alone' }
   | { type: 'move'; path: string; dx: number; dy: number }
   | { type: 'pull'; path: string; edge: Edge; dx: number; dy: number }
   // An arrow key on the bar: one step of a move, or with Shift of a pull.
@@ -172,13 +170,6 @@ export const start = (window: WindowView | null): Windows => ({
 const find = (state: Windows, path?: string) =>
   state.open.find((entry) => path && entry.path === windowOf(path))
 
-// Back to the window from its item, or to the item before; anywhere else is forward.
-const travel = ({ at, view }: Entry, path: string): Entry['travel'] =>
-  at.startsWith(`${path}/`) ||
-  (view?.neighbours.previous && fromAddress(view.neighbours.previous.href).path === path)
-    ? 'back'
-    : 'forward'
-
 const onDesk = (state: Windows) => state.z.filter((path) => find(state, path)?.mode !== 'min')
 
 // The window in front is the last on the desk: one in the taskbar is behind them all.
@@ -249,7 +240,7 @@ export function manager(state: Windows, action: Action): Windows {
                   ...one,
                   mode: one.mode === 'min' ? one.was : one.mode,
                   opener: opener ?? one.opener,
-                  ...(one.at === path ? {} : { at: path, travel: travel(one, path) }),
+                  at: path,
                 }
               : one,
           )
@@ -362,6 +353,17 @@ export function manager(state: Windows, action: Action): Windows {
       return onDesk(state).reduce((next, path) => manager(next, { type: 'minimise', path }), state)
     case 'closeAll':
       return { ...state, open: [], z: [], sizing: null }
+    case 'alone': {
+      const kept = state.open.find((one) => one.path === front(state))
+      if (!kept) return manager(state, { type: 'closeAll' })
+      const box = kept.view ? { ...kept.box, ...sizeOf(kept.view) } : kept.box
+      return placed({
+        ...state,
+        open: [{ ...kept, placed: false, pulled: false, box }],
+        z: [kept.path],
+        sizing: null,
+      })
+    }
     case 'full':
       if (!target || target.mode === 'min' || target.view?.frame.oneSize) return state
       return change(target.path, { mode: target.mode === 'full' ? 'float' : 'full' }, [

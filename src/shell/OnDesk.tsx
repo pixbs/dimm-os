@@ -4,7 +4,7 @@ import { AnimatePresence } from 'motion/react'
 import { type ReactNode, useEffect, useEffectEvent, useRef } from 'react'
 
 import type { WindowView } from '@/data/views'
-import { usePainted } from '@/ds/motion/vocabulary'
+import { useSetting } from '@/ds/atoms/useSetting'
 import { Apps, type Shortcut, type Task } from '@/ds/organisms/Screen'
 import { type Box, Window } from '@/ds/organisms/Window'
 import type { Dictionary } from '@/i18n/en'
@@ -71,7 +71,7 @@ export function OnDesk(props: {
   const { desk, dispatch, t } = props
   const ground = useRef<HTMLElement>(null)
   // "One window at a time" also means that nothing drags; the server does not know the setting.
-  const still = !usePainted() && document.documentElement.dataset.single === 'on'
+  const still = useSetting('single') === 'on'
   const measured = useEffectEvent((desk: HTMLElement) =>
     dispatch({ type: 'desk', w: desk.clientWidth, h: desk.clientHeight, room: roomOf(desk) }),
   )
@@ -141,7 +141,6 @@ export function OnDesk(props: {
               task={`task-${idOf(entry.path)}`}
               title={parts?.title ?? entry.view?.frame.title ?? named(entry)}
               toolbar={parts?.toolbar}
-              travel={entry.travel}
               waiting={!entry.view}
             >
               {parts?.body}

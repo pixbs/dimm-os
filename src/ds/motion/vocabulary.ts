@@ -8,6 +8,9 @@ type Time =
   | 'slow-exit'
   | 'travel'
   | 'spread'
+  | 'next'
+  | 'letter'
+  | 'decode'
   | 'wait'
   | 'hold'
   | 'note'
@@ -23,7 +26,10 @@ function read(property: 'transitionDuration' | 'transitionTimingFunction', token
   let value = known.get(key)
   if (value === undefined) {
     probe ??= document.head.appendChild(document.createElement('i'))
-    probe.style[property] = `var(--m-${token})`
+    // Important, since a crossfade turns every transition of the page off while it plays.
+    const name =
+      property === 'transitionDuration' ? 'transition-duration' : 'transition-timing-function'
+    probe.style.setProperty(name, `var(--m-${token})`, 'important')
     const style = getComputedStyle(probe)
     value = style[property]
     // An answer from before the stylesheet arrived is not a token's, so it is not kept.
@@ -39,6 +45,10 @@ export const curve = (name: Curve) =>
   read('transitionTimingFunction', name)
     .match(/-?[\d.]+/g)!
     .map(Number) as [number, number, number, number]
+
+// A token that counts rather than times.
+export const amount = (name: 'run' | 'settle') =>
+  parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--m-${name}`))
 
 // A move the visitor can interrupt: it settles within the token and never bounces.
 export const spring = (name: 'fast' | 'slow') =>
