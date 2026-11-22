@@ -820,10 +820,12 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         </div>
         <footer data-for="desk" data-surface="desktop">
           <Taskbar onPick={pick} size="chrome" tasks={tasks}>
-            <BarText role="status">
-              {noted > 0 && <Decipher>{dictionary.linkCopied}</Decipher>}
-            </BarText>
-            {!noted && (
+            {/* A copied link stands in place of the hint for a moment; it is said below, on every device. */}
+            {noted > 0 ? (
+              <BarText aria-hidden>
+                <Decipher>{dictionary.linkCopied}</Decipher>
+              </BarText>
+            ) : (
               <BarText data-for="wide pointer keys">
                 {before}
                 <Key name={named(language, systemKeys.hotkeys)} />
@@ -835,6 +837,10 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             ))}
           </Taskbar>
         </footer>
+        {/* Said on every device, a phone without a taskbar too. */}
+        <p data-unseen role="status">
+          {noted > 0 ? dictionary.linkCopied : ''}
+        </p>
         <Search
           drawer={phone(desk)}
           index={view.search.filter((one) => !one.command || commands[one.command].can())}

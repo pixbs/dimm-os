@@ -55,16 +55,18 @@ describe('the wallpaper', () => {
 })
 
 describe('the next wallpaper', () => {
-  const list = { koi: true, dragonflies: true, moths: false }
-
   it('keeps the filter and the colour where the next has colours, and comes back to the first after the last', () => {
-    expect(following('koi ascii colour', list)).toBe('dragonflies ascii colour')
-    expect(following('dragonflies dots colour', list)).toBe('moths dots')
-    expect(following('moths ascii', list)).toBe('koi ascii')
-    expect(following('koi dots', list)).toBe('dragonflies dots')
+    const names = Object.keys(wallpapers) as (keyof typeof wallpapers)[]
+    names.forEach((name, at) => {
+      const next = names[(at + 1) % names.length]
+      expect(following(`${name} ascii colour`)).toBe(
+        `${next} ascii${wallpapers[next] ? ' colour' : ''}`,
+      )
+      expect(following(`${name} dots`)).toBe(`${next} dots`)
+    })
   })
 
-  it('stays on the one wallpaper of a list of one', () => {
-    expect(following('passage ascii colour')).toBe('passage ascii colour')
+  it('reads the field number of an earlier visit as the step it shows', () => {
+    expect(following('301')).toBe(following('passage dots colour'))
   })
 })

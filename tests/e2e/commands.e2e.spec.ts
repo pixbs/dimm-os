@@ -11,7 +11,8 @@ const row = (page: Page, [first, name]: [string, string]) =>
     .click()
     .then(() => menu(page, first).getByRole('menuitem', { name, exact: true }))
 const clipboard = (page: Page) => page.evaluate(() => navigator.clipboard.readText())
-const status = (page: Page) => page.locator('footer[data-for="desk"] [role=status]')
+const status = (page: Page) => page.locator('p[role=status][data-unseen]')
+const taskbar = (page: Page) => page.locator('footer[data-for="desk"] .bar__text').first()
 
 test.describe('The commands for the wallpaper, all windows and links', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
@@ -31,8 +32,10 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
       await (await row(page, [file, copy])).click()
       await expect.poll(() => clipboard(page)).toBe(`${baseURL}${language}/work`)
       await expect(status(page)).toHaveText(copied)
+      await expect(taskbar(page)).toHaveText(copied)
       // After two seconds the hint is back.
       await expect(status(page)).toHaveText('', { timeout: 4000 })
+      await expect(taskbar(page)).not.toHaveText(copied)
     })
   }
 
@@ -114,5 +117,23 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
     await expect(page.getByRole('option')).toHaveText([/^Copy link/])
     await page.keyboard.press('Enter')
     await expect.poll(() => clipboard(page)).toBe(`${baseURL}/work`)
+  })
+})
+
+test.describe('Copy link on a phone', () => {
+  test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+
+  test('is said to assistive technology, though a phone has no taskbar', async ({
+    page,
+    context,
+    baseURL,
+  }) => {
+    await context.grantPermissions(['clipboard-read', 'clipboard-write'])
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    await page.getByRole('menubar').getByRole('menuitem').first().click()
+    await page.getByRole('menuitem', { name: 'File', exact: true }).click()
+    await page.getByRole('menuitem', { name: 'Copy link', exact: true }).click()
+    await expect.poll(() => clipboard(page)).toBe(`${baseURL}/work`)
+    await expect(page.getByRole('status').filter({ hasText: 'Link copied' })).toHaveCount(1)
   })
 })
