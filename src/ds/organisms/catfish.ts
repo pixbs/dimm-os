@@ -1,166 +1,242 @@
-// Catfish, seen from above: three cross the screen from one corner to the other on a curved way, in ink alone.
-import { fin, follow, spine } from './swim'
+// Catfish, seen from above: three cross the screen from corner to corner on a curved way, in ink alone.
 import { type Grid, limb, PAPER } from './tones'
 
-// The largest is the strongest and the smallest the faintest.
-const SIZES = [1.3, 1, 0.7]
-const SHADES = [1, 0.75, 0.5]
-// How long one of size 1 is in pixels, and its half width at each point of its spine, against its length.
-const LENGTH = 150
-const GIRTH = [0.075, 0.085, 0.082, 0.075, 0.066, 0.056, 0.046, 0.036, 0.026, 0.018]
-// Pixels a tick; near the pointer three times as fast, easing to it by this share a tick.
-const SPEED = 0.7
-const NEAR = { within: 160, faster: 3, ease: 0.05 }
-// How far off the screen a way starts and ends, and how far it bends against the length of the diagonal.
-const OFF = 40
-const BEND = 0.3
-// Its body waves from head to tail as it swims: how far at the tail, how fast against its speed, and how long.
-const WAVE = { far: 0.06, rate: 0.09, length: 0.7 }
-// Two long barbels trail beside its body, two short ones stand out ahead.
-const BARBEL = { parts: 5, spread: 0.05, wave: 0.04, root: 0.012, tip: 0.005, shade: 0.8 }
-const SHORT = { angle: 0.55, long: 0.12 }
-// Its fins paddle: where they are on its spine, the angle against its back, how far, their length and width.
-const FINS = { at: 1, angle: 1.6, far: 0.5, long: 0.18, root: 0.035, tip: 0.012 }
-const TAIL = { angle: 0.3, long: 0.15, root: 0.025, tip: 0.01 }
-const FAINT = 0.5
+// Its half width at each point of its spine, from head to tail, and how long the spine is, for a catfish of size 1.
+const GIRTH = [16, 22, 25, 25, 23, 20, 17, 14, 11.5, 9.5, 7.5, 6, 4.8, 3.8, 3, 2.4]
+const LONG = 300
+// The three, largest first: the largest the strongest and the smallest the faintest, each this far along its
+// first way.
+const FISH = [
+  { size: 1.5, shade: 1, t: 0.5 },
+  { size: 1.1, shade: 0.72, t: 0.2 },
+  { size: 0.8, shade: 0.5, t: 0.75 },
+]
+// The corners a way runs between, as shares of the screen, just off it.
+const CORNERS = [
+  [-0.14, -0.18],
+  [1.14, -0.18],
+  [1.14, 1.18],
+  [-0.14, 1.18],
+]
+// The two points that bend a way lie on the screen: the least and what chance adds.
+const BEND = [0.2, 0.6]
+// How many parts a way is measured in.
+const PARTS = 24
+// Pixels a tick: the least and what its size adds. Within this of the pointer it speeds up to three times, easing
+// by this share a tick, and it beats faster as it does.
+const SPEED = { least: 0.9, size: 0.5 }
+const NEAR = { within: 220, faster: 3, ease: 0.05 }
+const BEAT = { rate: 0.085, least: 0.6, rush: 0.4 }
+// Past the end of its way by this much of its size, it waits off the screen this many ticks at least, and what
+// chance adds.
+const PAST = 320
+const WAIT = { least: 60, more: 200 }
+// Its body waves from head to tail: how far at the tail, how it grows along it, and the wave.
+const SWAY = { far: 16, grows: 1.5, along: 0.55 }
+// Its tail fin: its length, width and tone.
+const TAIL = { long: 30, root: 2.4, tip: 11, shade: 0.6 }
+// Its fins paddle: where, how far out, how they paddle, lean back, length, width and tone.
+const FINS = {
+  at: 3,
+  out: 20,
+  reach: 0.9,
+  paddle: 0.25,
+  back: 0.6,
+  long: 36,
+  root: 7,
+  tip: 2.2,
+  shade: 0.7,
+}
+// Its barbels start at the corners of its mouth: a long pair whose ends drift and a short pair, each a curve through
+// a bend to an end, ahead and out in its own units, with its tone; all are drawn in parts, this wide.
+const MOUTH = { ahead: 13, out: 8 }
+const DRIFT = { rate: 0.7, far: 7 }
+const BARBELS = [
+  { bend: [36, 34], end: [14, 84], shade: 0.8, drifts: true },
+  { bend: [22, 6], end: [40, 20], shade: 0.7, drifts: false },
+]
+const BARBEL = { root: 1.7, tip: 1.5, parts: 6 }
 
 type Catfish = {
-  length: number
+  size: number
   shade: number
-  speed: number
-  // The way from corner to corner, as a curve from a by c to b, and how far along it the head is.
-  a: number[]
-  b: number[]
-  c: number[]
-  t: number
+  beat: number
+  rush: number
+  wait: number
+  // The way, a curve from one corner to another, its length, and how far along it the head is.
   way: number[][]
-  phase: number
+  length: number
+  t: number
+}
+
+// A point on the way, a share of the way along.
+function on(way: number[][], t: number) {
+  const m = 1 - t
+  return [0, 1].map(
+    (n) =>
+      m * m * m * way[0][n] +
+      3 * m * m * t * way[1][n] +
+      3 * m * t * t * way[2][n] +
+      t * t * t * way[3][n],
+  )
+}
+
+// The way it faces there.
+function facing(way: number[][], t: number) {
+  const m = 1 - t
+  const [x, y] = [0, 1].map(
+    (n) =>
+      3 * m * m * (way[1][n] - way[0][n]) +
+      6 * m * t * (way[2][n] - way[1][n]) +
+      3 * t * t * (way[3][n] - way[2][n]),
+  )
+  const l = Math.hypot(x, y) || 1
+  return [x / l, y / l]
 }
 
 export function catfish(grid: Grid, width: number, height: number, random: () => number) {
-  const at = ({ a, b, c }: Catfish, t: number) =>
-    [0, 1].map((n) => (1 - t) ** 2 * a[n] + 2 * (1 - t) * t * c[n] + t ** 2 * b[n])
-  const pace = ({ a, b, c }: Catfish, t: number) =>
-    Math.hypot(...[0, 1].map((n) => 2 * (1 - t) * (c[n] - a[n]) + 2 * t * (b[n] - c[n])))
-
-  // A new way from a corner to the one across from it, bent to one side.
-  const cross = (one: Catfish) => {
-    const out = one.length + OFF
-    const corners = [
-      [-out, -out],
-      [width + out, -out],
-      [width + out, height + out],
-      [-out, height + out],
+  // A new way from one corner to another, bent by two points on the screen.
+  const route = (one: Catfish) => {
+    const a = Math.floor(random() * 4)
+    const b = (a + 1 + Math.floor(random() * 3)) % 4
+    const bend = () => [
+      width * (BEND[0] + BEND[1] * random()),
+      height * (BEND[0] + BEND[1] * random()),
     ]
-    const from = Math.floor(random() * 4)
-    one.a = corners[from]
-    one.b = corners[(from + 2) % 4]
-    const [dx, dy] = [one.b[0] - one.a[0], one.b[1] - one.a[1]]
-    const bend = (random() * 2 - 1) * BEND
-    one.c = [(one.a[0] + one.b[0]) / 2 - dy * bend, (one.a[1] + one.b[1]) / 2 + dx * bend]
+    one.way = [
+      [CORNERS[a][0] * width, CORNERS[a][1] * height],
+      bend(),
+      bend(),
+      [CORNERS[b][0] * width, CORNERS[b][1] * height],
+    ]
+    let length = 0
+    let was = one.way[0]
+    for (let k = 1; k <= PARTS; k++) {
+      const now = on(one.way, k / PARTS)
+      length += Math.hypot(now[0] - was[0], now[1] - was[1])
+      was = now
+    }
+    one.length = length
+    one.t = 0
   }
-  // Its body lies along the way behind its head, even where the way began before the screen.
-  const lay = (one: Catfish) => {
-    one.way = []
-    // A step of one pixel back along the way at a time.
-    for (let t = one.t, n = 0; n <= one.length + 1; n++, t -= 1 / pace(one, t))
-      one.way.push(at(one, t))
-  }
-
-  const fish = SIZES.map((size, index) => {
-    const one = { length: LENGTH * size, shade: SHADES[index], speed: SPEED, phase: 0 } as Catfish
-    cross(one)
-    // To begin with they are on the screen.
-    one.t = 0.3 + random() * 0.4
-    lay(one)
+  const fish = FISH.map(({ size, shade, t }) => {
+    const one = { size, shade, beat: random() * 6.28, rush: 1, wait: 0 } as Catfish
+    route(one)
+    one.t = t
     return one
   })
+
+  // A barbel: a curve from a by b to c, in parts.
+  const barbel = (a: number[], b: number[], c: number[], shade: number) => {
+    let was = a
+    for (let k = 1; k <= BARBEL.parts; k++) {
+      const t = k / BARBEL.parts
+      const m = 1 - t
+      const now = [0, 1].map((n) => m * m * a[n] + 2 * m * t * b[n] + t * t * c[n])
+      limb(grid, was, now, BARBEL.root, BARBEL.tip, shade, PAPER)
+      was = now
+    }
+  }
 
   return {
     step(pointer: number[] | null) {
       for (const one of fish) {
-        const [x, y] = one.way[0]
-        const near = pointer && Math.hypot(x - pointer[0], y - pointer[1]) < NEAR.within
-        one.speed += (SPEED * (near ? NEAR.faster : 1) - one.speed) * NEAR.ease
-        one.phase += one.speed * WAVE.rate
-        one.t += one.speed / pace(one, one.t)
-        if (one.t > 1) {
-          cross(one)
-          one.t = 0
-          lay(one)
-        } else follow(one.way, at(one, one.t), one.length)
+        if (one.wait > 0) {
+          one.wait--
+          continue
+        }
+        const head = on(one.way, one.t)
+        const near =
+          !!pointer && Math.hypot(head[0] - pointer[0], head[1] - pointer[1]) < NEAR.within
+        one.rush += ((near ? NEAR.faster : 1) - one.rush) * NEAR.ease
+        one.t += ((SPEED.least + SPEED.size * one.size) * one.rush) / one.length
+        one.beat += BEAT.rate * (BEAT.least + BEAT.rush * one.rush)
+        if (one.t - (PAST * one.size) / one.length > 1) {
+          route(one)
+          one.wait = WAIT.least + Math.floor(random() * WAIT.more)
+        }
       }
     },
     paint() {
       grid.tones.fill(0)
       grid.inks.fill(0)
-      for (const { length, shade, way, phase } of fish) {
-        const count = GIRTH.length
-        // The spine waves to either side, more towards the tail.
-        const points = spine(way, count, length).map(([x, y, facing], k) => {
-          const off = Math.sin(phase - k * WAVE.length) * WAVE.far * length * (k / (count - 1))
-          return [x - Math.sin(facing) * off, y + Math.cos(facing) * off, facing]
-        })
-        const faint = shade * FAINT
-        const paddle = Math.sin(phase) * FINS.far
-        for (const side of [-1, 1]) {
-          fin(
-            grid,
-            points[FINS.at],
-            side * (FINS.angle + paddle),
-            FINS.long * length,
-            [FINS.root * length, FINS.tip * length],
-            faint,
-            PAPER,
-          )
-          fin(
-            grid,
-            points[count - 1],
-            Math.PI + side * TAIL.angle,
-            TAIL.long * length,
-            [TAIL.root * length, TAIL.tip * length],
-            faint,
-            PAPER,
-          )
-          fin(
-            grid,
-            points[0],
-            side * SHORT.angle,
-            SHORT.long * length,
-            [BARBEL.root * length, BARBEL.tip * length],
-            shade * BARBEL.shade,
-            PAPER,
-          )
-          // A long barbel trails from the corner of its mouth, wider of the body the farther back.
-          const barbel = points.slice(0, BARBEL.parts).map(([x, y, facing], j) => {
-            const out =
-              GIRTH[0] * length +
-              (BARBEL.spread + Math.sin(phase - j) * BARBEL.wave) *
-                length *
-                (j / (BARBEL.parts - 1))
-            return [x - Math.sin(facing) * out * side, y + Math.cos(facing) * out * side]
-          })
-          for (let j = 0; j < barbel.length - 1; j++)
-            limb(
-              grid,
-              barbel[j],
-              barbel[j + 1],
-              BARBEL.root * length,
-              BARBEL.tip * length,
-              shade * BARBEL.shade,
-              PAPER,
-            )
+      // The smallest first, so the larger lie over it.
+      for (let k = fish.length - 1; k >= 0; k--) {
+        const one = fish[k]
+        if (one.wait > 0) continue
+        const { size: s, shade, beat, way } = one
+        const long = LONG * s
+        const n = GIRTH.length
+        const xs: number[] = []
+        const ys: number[] = []
+        let [tx, ty] = [0, 0]
+        for (let i = 0; i < n; i++) {
+          const t = one.t - (i * long) / (n - 1) / one.length
+          const at = on(way, t)
+          const dir = facing(way, t)
+          const sway =
+            SWAY.far * s * Math.pow(i / (n - 1), SWAY.grows) * Math.sin(beat - i * SWAY.along)
+          xs.push(at[0] - dir[1] * sway)
+          ys.push(at[1] + dir[0] * sway)
+          if (i === 0) [tx, ty] = dir
         }
-        for (let n = 0; n < count - 1; n++)
+        for (let i = 0; i < n - 1; i++)
           limb(
             grid,
-            points[n],
-            points[n + 1],
-            GIRTH[n] * length,
-            GIRTH[n + 1] * length,
+            [xs[i], ys[i]],
+            [xs[i + 1], ys[i + 1]],
+            GIRTH[i] * s,
+            GIRTH[i + 1] * s,
             shade,
             PAPER,
           )
+        const [bx, by] = [xs[n - 1] - xs[n - 2], ys[n - 1] - ys[n - 2]]
+        const bl = Math.hypot(bx, by) || 1
+        limb(
+          grid,
+          [xs[n - 1], ys[n - 1]],
+          [xs[n - 1] + (bx / bl) * TAIL.long * s, ys[n - 1] + (by / bl) * TAIL.long * s],
+          TAIL.root * s,
+          TAIL.tip * s,
+          shade * TAIL.shade,
+          PAPER,
+        )
+        const [nx, ny] = [-ty, tx]
+        const paddle = FINS.paddle * Math.sin(beat * 0.5)
+        for (let side = -1; side <= 1; side += 2) {
+          const rx = xs[FINS.at] + nx * side * FINS.out * s
+          const ry = ys[FINS.at] + ny * side * FINS.out * s
+          limb(
+            grid,
+            [rx, ry],
+            [
+              rx + (nx * side * (FINS.reach + paddle) - tx * FINS.back) * FINS.long * s,
+              ry + (ny * side * (FINS.reach + paddle) - ty * FINS.back) * FINS.long * s,
+            ],
+            FINS.root * s,
+            FINS.tip * s,
+            shade * FINS.shade,
+            PAPER,
+          )
+          const mx = xs[0] + tx * MOUTH.ahead * s + nx * side * MOUTH.out * s
+          const my = ys[0] + ty * MOUTH.ahead * s + ny * side * MOUTH.out * s
+          const drift = Math.sin(beat * DRIFT.rate + side) * DRIFT.far * s
+          for (const { bend, end, shade: tone, drifts } of BARBELS) {
+            const off = drifts ? drift : 0
+            barbel(
+              [mx, my],
+              [
+                mx + (tx * bend[0] + nx * side * bend[1]) * s,
+                my + (ty * bend[0] + ny * side * bend[1]) * s,
+              ],
+              [
+                mx + (tx * end[0] + nx * side * end[1]) * s - tx * off,
+                my + (ty * end[0] + ny * side * end[1]) * s - ty * off,
+              ],
+              shade * tone,
+            )
+          }
+        }
       }
     },
   }
