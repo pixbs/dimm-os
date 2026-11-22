@@ -41,7 +41,8 @@ export function Plate(props: PlateProps) {
   useEffect(() => {
     if (!moves) return
     if (fallen) inside.current?.focus()
-    else plate.current?.querySelector<HTMLElement>('.screw')?.focus()
+    // Without scrolling the bay, which would bring the plate up from where it fell before it moves.
+    else plate.current?.querySelector<HTMLElement>('.screw')?.focus({ preventScroll: true })
   }, [moves, fallen])
 
   const take = (corner: Corner) => {
