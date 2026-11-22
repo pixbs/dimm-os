@@ -739,7 +739,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             <Button
               data-visitor
               label={view.visitor?.name ?? dictionary.guest}
-              lead={<Tag>{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
+              lead={<Tag lands="visitor">{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
               onClick={() => go('login')}
               size="chrome"
             />
