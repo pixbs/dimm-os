@@ -1,19 +1,21 @@
 import { MigrateUpArgs, MigrateDownArgs, sql } from '@payloadcms/db-postgres'
 
+// A preview database may hold these values from an earlier version of this migration, so each add is skipped there.
+
 export async function up({ db, payload, req }: MigrateUpArgs): Promise<void> {
   await db.execute(sql`
-   ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE 'accessibility';
-  ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE 'touch';
-  ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE 'cookie';
-  ALTER TYPE "public"."enum_windows_icon" ADD VALUE 'accessibility';
-  ALTER TYPE "public"."enum_windows_icon" ADD VALUE 'touch';
-  ALTER TYPE "public"."enum_windows_icon" ADD VALUE 'cookie';
-  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE 'accessibility';
-  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE 'touch';
-  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE 'cookie';
-  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE 'accessibility';
-  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE 'touch';
-  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE 'cookie';`)
+   ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'accessibility';
+  ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'touch';
+  ALTER TYPE "public"."enum_windows_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'cookie';
+  ALTER TYPE "public"."enum_windows_icon" ADD VALUE IF NOT EXISTS 'accessibility';
+  ALTER TYPE "public"."enum_windows_icon" ADD VALUE IF NOT EXISTS 'touch';
+  ALTER TYPE "public"."enum_windows_icon" ADD VALUE IF NOT EXISTS 'cookie';
+  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'accessibility';
+  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'touch';
+  ALTER TYPE "public"."enum__windows_v_blocks_list_items_icon" ADD VALUE IF NOT EXISTS 'cookie';
+  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE IF NOT EXISTS 'accessibility';
+  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE IF NOT EXISTS 'touch';
+  ALTER TYPE "public"."enum__windows_v_version_icon" ADD VALUE IF NOT EXISTS 'cookie';`)
 }
 
 export async function down({ db, payload, req }: MigrateDownArgs): Promise<void> {
