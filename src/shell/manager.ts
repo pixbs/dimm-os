@@ -56,7 +56,8 @@ export type Action =
   | { type: 'task'; path: string; opener?: Element | null }
   // Without a path these act on the window in front, as a key or a menu does.
   | { type: 'minimise' | 'full'; path?: string }
-  | { type: 'next' | 'escape' | 'minimiseAll' | 'closeAll' }
+  // "One window at a time" switched on: the window in front stays, alone, where nothing overlaps it.
+  | { type: 'next' | 'escape' | 'minimiseAll' | 'closeAll' | 'alone' }
   | { type: 'move'; path: string; dx: number; dy: number }
   | { type: 'pull'; path: string; edge: Edge; dx: number; dy: number }
   // An arrow key on the bar: one step of a move, or with Shift of a pull.
@@ -362,6 +363,17 @@ export function manager(state: Windows, action: Action): Windows {
       return onDesk(state).reduce((next, path) => manager(next, { type: 'minimise', path }), state)
     case 'closeAll':
       return { ...state, open: [], z: [], sizing: null }
+    case 'alone': {
+      const kept = state.open.find((one) => one.path === front(state))
+      if (!kept) return manager(state, { type: 'closeAll' })
+      const box = kept.view ? { ...kept.box, ...sizeOf(kept.view) } : kept.box
+      return placed({
+        ...state,
+        open: [{ ...kept, placed: false, pulled: false, box }],
+        z: [kept.path],
+        sizing: null,
+      })
+    }
     case 'full':
       if (!target || target.mode === 'min' || target.view?.frame.oneSize) return state
       return change(target.path, { mode: target.mode === 'full' ? 'float' : 'full' }, [
