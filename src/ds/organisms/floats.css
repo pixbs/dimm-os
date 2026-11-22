@@ -41,7 +41,7 @@
   }
 }
 /* It hangs from what opens it, 4 px under, flush with its start, or with its end when that closes a bar; a
-   submenu hangs beside its row, its first row level with it. It unfolds from the edge it hangs from. */
+   submenu hangs beside its row, its first row level with it. It grows out of the corner it hangs from. */
 /* Without weight, so a screen still hides the menus it does not show. */
 :where(.menu-anchor, .menu__sub) {
   position: relative;
@@ -62,10 +62,11 @@
   margin-block-start: var(--s-1);
   /* As wide as its longest row, whatever the width of what it hangs from. */
   white-space: nowrap;
-  transform-origin: top;
+  transform-origin: top left;
 
   &[data-end] {
     inset-inline: auto 0;
+    transform-origin: top right;
   }
   .menu__sub > & {
     top: calc(var(--s-1) * -1);

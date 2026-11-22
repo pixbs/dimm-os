@@ -141,6 +141,10 @@
   --m-slow-exit: calc(var(--m-slow) / 2);
   /* the delays across what comes as many, from its first to its last */
   --m-spread: 220ms;
+  /* what arrives in turn: the wait before the first, the turn between one and the next, and how many take a turn */
+  --m-turn-first: 40ms;
+  --m-turn: 30ms;
+  --m-turns: 8;
   /* how long a part that waits for its content stays quiet before it says so */
   --m-wait: 300ms;
   /* how long a part lit by a key stays lit */

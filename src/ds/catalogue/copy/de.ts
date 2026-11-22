@@ -407,7 +407,7 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung, ein Takt und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
@@ -438,6 +438,13 @@ const de: Copy = {
       'spread: 220 ms',
       'Die Verzögerungen über alles, was als Vieles kommt: Punkte, Buchstaben, Zeilen, Lampen. Es bewegt sich als ein Durchlauf auf dem Punktraster, vom Ersten zum Letzten, wie viele es auch sind.',
     ],
+    turn: [
+      'Takt',
+      'first: 40 ms | turn: 30 ms | höchstens: 8 | je: fast',
+      'Die Zeilen eines Menüs kommen im Takt: Jede blendet ein und fällt 4 px an ihren Platz, einen Takt nach der vorigen, die erste 40 ms nach dem Menü. Die achte und jede spätere kommen zusammen, sodass ein langes Menü nie langsamer ist als ein kurzes. Eine Trennlinie nimmt ihren Takt wie eine Zeile. Nichts geht im Takt; bei reduzierter Bewegung sind die Zeilen mit dem Menü da.',
+    ],
+    turnOpen: 'Öffnen',
+    turnRow: 'Zeile',
     spring: [
       'Feder',
       'kommt zur Ruhe in: fast · slow | Nachfedern: keines',
@@ -1438,8 +1445,8 @@ const de: Copy = {
     ],
     menu: [
       'Menü',
-      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, entfaltet von der Kante, an der es hängt',
-      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und entfaltet sich von dieser Kante. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
+      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, aus 96 % an der Ecke, an der es hängt, seine Zeilen im Takt | weiter bewegt: ein Einblenden, halb so schnell',
+      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und wächst aus dieser Ecke, während seine Zeilen im Takt kommen. Ist ein Menü der Leiste offen, öffnet die Bewegung zu einem anderen dieses nur mit einem Einblenden. Ein Menü blendet aus, wenn es schließt. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
     ],
     menuCaps: [
       'Menü',
