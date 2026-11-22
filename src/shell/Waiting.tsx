@@ -16,6 +16,7 @@ import { Row } from '@/ds/molecules/Row'
 import { curve, duration, reduced } from '@/ds/motion/vocabulary'
 import { Card } from '@/ds/organisms/Card'
 import { fieldOf } from '@/ds/organisms/form'
+import { MenuButton } from '@/ds/organisms/Menu'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
 import { Section } from '@/ds/sections/Section'
@@ -23,6 +24,7 @@ import { fromAddress, type Language, languages, toAddress } from '@/i18n/address
 import type { Dictionary } from '@/i18n/en'
 
 import { useMinute, useZone } from './Clock'
+import { legalMenu } from './menus'
 
 // The screens that wait: the start, who comes in (as a guest, by a personal link, by a password), and the end.
 export type Waiting = 'boot' | 'login' | 'link' | 'other' | 'shutdown'
@@ -42,7 +44,7 @@ const say = (text: string, values: Record<string, string | number>) =>
 
 const wait = (seconds: number) => new Promise((done) => setTimeout(done, seconds * 1000))
 
-// The legal links, which every screen holds in its bottom bar.
+// The legal links, which a phone holds in the bottom bar of every screen.
 export const legalOf = (t: Dictionary, language: Language) =>
   (
     [
@@ -81,7 +83,9 @@ export function invited() {
 }
 
 function Legal({ t, language }: { t: Dictionary; language: Language }) {
-  return legalOf(t, language).map((link) => <ButtonLink key={link.href} {...link} size="chrome" />)
+  return legalOf(t, language).map((link) => (
+    <ButtonLink data-for="phone" key={link.href} {...link} size="chrome" />
+  ))
 }
 
 // What leaves for the menu bar travels to its place there, as the screen it stood on fades.
@@ -156,9 +160,10 @@ function Boot({ view, t, go }: Props) {
   const today = useMinute()
   const ended = useRef(false)
 
-  // Any key, press or scroll ends it at once and hands over to the desk.
-  const end = useEffectEvent(async () => {
-    if (ended.current) return
+  // Any key, press or scroll ends it at once and hands over to the desk, except in its menu bar.
+  const end = useEffectEvent(async (event?: Event) => {
+    const top = screen.current?.querySelector(':scope > header')
+    if (ended.current || top?.contains(event?.target as Node)) return
     ended.current = true
     setShare(1)
     try {
@@ -179,7 +184,7 @@ function Boot({ view, t, go }: Props) {
       const at = Math.min(1, (now - start) / long)
       setShare(at)
       if (at < 1) frame = requestAnimationFrame(step)
-      else setTimeout(end, duration('hold') * 1000)
+      else setTimeout(() => end(), duration('hold') * 1000)
     })
     const events = ['keydown', 'pointerdown', 'wheel', 'touchmove'] as const
     for (const event of events) addEventListener(event, end, { capture: true })
@@ -209,6 +214,7 @@ function Boot({ view, t, go }: Props) {
   return (
     // The last row brings the wallpaper in.
     <Screen fill ref={screen} waiting wallpaper={shown >= rows.length}>
+      <Top name={view.site.name} t={t} view={view} />
       <div className="screen__main cq">
         <div className="screen__page">
           <div data-part="head" ref={head}>
@@ -275,8 +281,16 @@ function Boot({ view, t, go }: Props) {
   )
 }
 
-// The menu bar of a screen that waits: the mark and the name, and what it holds at its end.
-function Top(props: { name: string; off?: boolean; children: ReactNode }) {
+// The menu bar of a screen that waits: the mark and the name, what it holds, and at its end the legal menu, which a
+// phone holds in its bottom bar.
+function Top(props: {
+  name: string
+  off?: boolean
+  t: Dictionary
+  view: View
+  children?: ReactNode
+}) {
+  const { t, view } = props
   return (
     <header>
       <Bar line="below" size="chrome">
@@ -290,6 +304,16 @@ function Top(props: { name: string; off?: boolean; children: ReactNode }) {
         </BarTitle>
         <BarSpace />
         {props.children}
+        <span data-for="desk">
+          <MenuButton
+            button={{ label: t.legal }}
+            end
+            items={legalMenu(t, view.language, view.search)}
+            label={t.legal}
+            size="chrome"
+            t={t}
+          />
+        </span>
       </Bar>
     </header>
   )
@@ -360,7 +384,7 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
 
   return (
     <Screen fill ref={screen} waiting>
-      <Top name={site.name}>
+      <Top name={site.name} t={t} view={view}>
         <ButtonLink
           aria-label={t.language}
           href={toAddress(other, '/')}
@@ -459,7 +483,7 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
           </nav>
         </div>
       </div>
-      <footer>
+      <footer data-for="phone">
         <Bar line="above">
           <Legal language={language} t={t} />
         </Bar>
@@ -482,7 +506,7 @@ function Shutdown({ view, t }: Props) {
 
   return (
     <Screen fill waiting wallpaper={false}>
-      <Top name={site.name} off>
+      <Top name={site.name} off t={t} view={view}>
         <BarText>{say(t.shutDownAt, { time: at })}</BarText>
       </Top>
       <div className="screen__main cq">

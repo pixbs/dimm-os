@@ -55,7 +55,7 @@ test.describe('Menus on a desk', () => {
     // The menu bar is one stop of the keyboard, after the link that skips to the window.
     await page.keyboard.press('Tab')
     await page.keyboard.press('Tab')
-    for (const name of ['Dimm OS', 'File', 'View', 'Window', 'Help']) {
+    for (const name of ['Dimm OS', 'File', 'View', 'Window', 'Help', 'Legal']) {
       await expect(top(page, name)).toBeFocused()
       await page.keyboard.press('ArrowDown')
       const count = await menu(page, name).evaluate(
@@ -112,7 +112,7 @@ test.describe('Menus on a desk', () => {
   test('each command acts', async ({ page }) => {
     const work = win(page, 'Work')
     const root = page.locator('html')
-    await page.getByRole('link', { name: 'Imprint' }).click()
+    await pick(page, ['Legal', 'Imprint'])
     await expect(win(page, 'Imprint')).toHaveAttribute('data-front', '')
 
     await pick(page, ['Window', 'Next window'])
@@ -145,12 +145,32 @@ test.describe('Menus on a desk', () => {
       ['Hotkeys', '/hotkeys'],
       ['Accessibility', '/accessibility'],
       ['About Dimm OS', '/about'],
-      ['Imprint', '/imprint'],
-      ['Privacy', '/privacy-policy'],
-      ['Cookies', '/cookies'],
     ]) {
       await expect(menu(page, 'Help').getByRole('menuitem', { name })).toHaveAttribute('href', path)
     }
+    await expect(menu(page, 'Help').getByRole('menuitem')).toHaveCount(3)
+  })
+
+  test('Legal, after Help, holds the legal windows and consent, each a link, and no bottom bar does', async ({
+    page,
+  }) => {
+    await expect(page.getByRole('menubar').getByRole('menuitem').last()).toHaveText('Legal')
+    await expect(page.locator('footer[data-for="desk"]').getByRole('link')).toHaveText([
+      'Preferences',
+    ])
+    await top(page, 'Legal').click()
+    const rows = menu(page, 'Legal').getByRole('menuitem')
+    await expect(rows).toHaveText(['Imprint', 'Privacy', 'Cookies', 'Cookie preferences…'])
+    for (const [at, path] of [
+      '/imprint',
+      '/privacy-policy',
+      '/cookies',
+      '/cookies/preferences',
+    ].entries())
+      await expect(rows.nth(at)).toHaveAttribute('href', path)
+    await expect(menu(page, 'Legal').getByRole('separator')).toHaveCount(1)
+    await rows.first().click()
+    await expect(win(page, 'Imprint')).toHaveAttribute('data-front', '')
   })
 
   test('a menu grows out of the corner under its button within fast, and fades with reduced motion', async ({
@@ -232,6 +252,29 @@ test.describe('Menus on a desk', () => {
     await page.reload({ waitUntil: 'networkidle' })
     await top(page, 'File').click()
     expect((await turns(page, 'File')).every(([, name]) => name === 'none')).toBe(true)
+  })
+})
+
+test.describe('Menus on a tablet', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 1194, height: 834 } })
+
+  test('the one menu ends with Legal, its rows in the same order', async ({ page }) => {
+    await page.goto('/work', { waitUntil: 'networkidle' })
+    await top(page, 'Menu').click()
+    await expect(menu(page, 'Menu').getByRole('menuitem')).toHaveText([
+      'File',
+      'View',
+      'Window',
+      'Help',
+      'Legal',
+    ])
+    await menu(page, 'Menu').getByRole('menuitem', { name: 'Legal' }).click()
+    await expect(menu(page, 'Legal').getByRole('menuitem')).toHaveText([
+      'Imprint',
+      'Privacy',
+      'Cookies',
+      'Cookie preferences…',
+    ])
   })
 })
 

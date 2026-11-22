@@ -48,7 +48,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, stack, start, windowOf } from './manager'
-import { menus } from './menus'
+import { legalMenu, menus } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
@@ -682,6 +682,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               desk,
               act,
               commands,
+              legal: legalMenu(dictionary, language, view.search),
               // Once the menu has closed and given the focus back to its button, which gets it again after.
               search: () => queueMicrotask(() => search(document.activeElement)),
             })}
@@ -689,6 +690,14 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
             size="chrome"
             t={dictionary}
           >
+            {/* Without script the legal menu cannot open, so its links stand in the bar. */}
+            <noscript>
+              <span data-for="desk">
+                {legal.map((link) => (
+                  <ButtonLink key={link.href} {...link} size="chrome" />
+                ))}
+              </span>
+            </noscript>
             <BarSpace />
             <Button
               data-for="pointer"
@@ -832,9 +841,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
                 {after}
               </BarText>
             )}
-            {[...legal, preferences].map((link) => (
-              <ButtonLink key={link.href} {...link} size="chrome" />
-            ))}
+            <ButtonLink {...preferences} size="chrome" />
           </Taskbar>
         </footer>
         {/* Said on every device, a phone without a taskbar too. */}

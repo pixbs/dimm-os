@@ -129,7 +129,7 @@ test.describe('Screen', () => {
     }
   })
 
-  test('holds Imprint, Privacy, Cookies and Preferences in its tray, as words, and no Lab, Rejected ideas or Bin', async ({
+  test('holds Preferences in its tray on a desk and the legal links on a phone, as words, and no Lab, Rejected ideas or Bin', async ({
     page,
   }) => {
     for (const size of [desk, phone]) {
@@ -137,9 +137,7 @@ test.describe('Screen', () => {
       await page.goto('/')
       const tray = page.locator('footer:visible a')
       await expect(tray).toHaveText(
-        size === desk
-          ? ['Imprint', 'Privacy', 'Cookies', 'Preferences']
-          : ['Imprint', 'Privacy', 'Cookies'],
+        size === desk ? ['Preferences'] : ['Imprint', 'Privacy', 'Cookies'],
       )
       await expect(tray.locator('svg')).toHaveCount(0)
       await expect(page.locator('body')).not.toContainText(/\bLab\b|Rejected ideas|\bBin\b/)
@@ -299,26 +297,41 @@ test.describe('Wallpaper', () => {
     expect(await stands('pitch', '8')).toEqual(fresh)
   })
 
-  test('reads the pointer over the desk, not through a window', async ({ page }) => {
+  test('reads the pointer and a press over the desk, not through a window', async ({ page }) => {
     await page.addInitScript(() => {
       const pointers: unknown[] = []
-      Object.assign(window, { pointers })
+      const presses: unknown[] = []
+      Object.assign(window, { pointers, presses })
       window.Worker = class extends window.Worker {
         postMessage(message: unknown, transfer?: Transferable[] | StructuredSerializeOptions) {
           if (message && typeof message === 'object' && 'pointer' in message)
             pointers.push(message.pointer)
+          if (message && typeof message === 'object' && 'held' in message)
+            presses.push(message.held)
           super.postMessage(message, transfer as StructuredSerializeOptions)
         }
       }
     })
     await open(page, '/work')
-    const last = () => page.evaluate(() => (Reflect.get(window, 'pointers') as unknown[]).at(-1))
+    const last = (name: string) =>
+      page.evaluate((name) => (Reflect.get(window, name) as unknown[]).at(-1), name)
 
     await page.getByRole('link', { name: 'Services' }).hover()
-    expect(await last()).toHaveLength(2)
+    expect(await last('pointers')).toHaveLength(2)
     const box = (await page.locator('main article').boundingBox())!
-    await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
-    expect(await last()).toBeNull()
+    await page.mouse.move(box.x + box.width / 2, box.y + 10)
+    expect(await last('pointers')).toBeNull()
+    await page.mouse.down()
+    expect(await last('presses')).toBeUndefined()
+    await page.mouse.up()
+
+    // A press on the desk holds until it is let go.
+    const desk = (await page.locator('main').boundingBox())!
+    await page.mouse.move(desk.x + desk.width - 10, desk.y + desk.height - 10)
+    await page.mouse.down()
+    expect(await last('presses')).toBe(true)
+    await page.mouse.up()
+    expect(await last('presses')).toBe(false)
   })
 
   test('holds still under reduced motion and under pause, and stops while hidden or covered', async ({

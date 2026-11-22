@@ -106,9 +106,10 @@ test.describe('Consent', () => {
     await expect(details).toHaveCount(0)
     expect((await consent(page)).on).toEqual([])
 
+    await page.getByRole('menubar').getByRole('menuitem', { name: 'Legal' }).click()
     await page
-      .locator('footer[data-for="desk"]')
-      .getByRole('link', { name: 'Cookies', exact: true })
+      .getByRole('menu', { name: 'Legal' })
+      .getByRole('menuitem', { name: 'Cookies' })
       .click()
     await page.locator('#window-cookies').getByRole('link', { name: 'Details' }).click()
     await expect(details.getByRole('switch', { name: 'Analytics' })).not.toBeChecked()

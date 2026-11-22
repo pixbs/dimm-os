@@ -32,11 +32,9 @@ const apps = (name: string, tiles: (keyof typeof icons)[]): Shortcut[] =>
 // A desk drawn as the dot grid of an empty box.
 const desk = { backgroundImage: 'var(--pattern)', backgroundSize: 'var(--s-4) var(--s-4)' }
 
-// The tray of the site: the three legal links, then Preferences, as words.
+// The tray of the site: Preferences, as a word.
 function Tray({ words, size }: { words: Dictionary; size?: 'compact' }) {
-  return [words.imprint, words.privacy, words.cookies, words.preferences].map((label) => (
-    <ButtonLink href="#" key={label} label={label} size={size} />
-  ))
+  return <ButtonLink href="#" label={words.preferences} size={size} />
 }
 
 // A patch of desk for a window, in the hand and at the pitch its caption names.
@@ -289,7 +287,14 @@ export function Shell(props: Props) {
             data-wallpaper="passage dots colour"
             style={sized(90, 45)}
           />
-          {['koi dots colour', 'dragonflies ascii colour', 'catfish dots'].map((step) => (
+          {[
+            'bouquet ascii',
+            'koi dots colour',
+            'dragonflies ascii colour',
+            'contours dots colour',
+            'catfish dots',
+            'pond ascii',
+          ].map((step) => (
             <Screen className="box" data-wallpaper={step} key={step} style={sized(90, 45)} />
           ))}
         </Specs>

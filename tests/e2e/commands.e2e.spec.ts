@@ -73,7 +73,7 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
     page,
   }) => {
     await page.goto('/work', { waitUntil: 'networkidle' })
-    await page.getByRole('link', { name: 'Imprint' }).click()
+    await (await row(page, ['Legal', 'Imprint'])).click()
     await expect(page.locator('article.window')).toHaveCount(2)
 
     await (await row(page, ['Window', 'Minimise all windows'])).click()
@@ -94,6 +94,8 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
     await page.goto('/work', { waitUntil: 'networkidle' })
     await (await row(page, ['View', 'Next wallpaper'])).click()
     await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'dragonflies ascii colour')
+    await (await row(page, ['View', 'Next wallpaper'])).click()
+    await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'contours ascii colour')
     await (await row(page, ['View', 'Next wallpaper'])).click()
     await expect(page.locator('html')).toHaveAttribute('data-wallpaper', 'catfish ascii')
   })

@@ -266,7 +266,15 @@ const en = {
   view: 'View',
   waiting: 'Loading',
   wallpaper: 'Wallpaper',
-  wallpapers: { passage: 'Passage', koi: 'Koi', dragonflies: 'Dragonflies', catfish: 'Catfish' },
+  wallpapers: {
+    passage: 'Passage',
+    bouquet: 'Bouquet',
+    koi: 'Koi',
+    dragonflies: 'Dragonflies',
+    contours: 'Contours',
+    catfish: 'Catfish',
+    pond: 'Pond',
+  },
   window: 'Window',
   windows: 'Windows',
 }
