@@ -380,7 +380,7 @@ const en = {
     mark: [
       'Mark',
       'size: 8 | colour: the foreground · any surface | state: on · off',
-      'A small square in the colour of an app. It says whose a thing is: the site in the menu bar, a window in the taskbar. Square, so it is never taken for the signal dot. Off is an outline: the app is not open.',
+      'A small square in the colour of an app. It says whose a thing is: the site in the menu bar, a window in the taskbar. Square, so it is never taken for the signal dot. Off is an outline: the app is not open. In a menu it marks a set of choices: on for the one taken, off for the others.',
     ],
     markCaps: ['foreground', 'orange', 'blue', 'mint', 'off', 'on paper'],
     barcode: [
@@ -1450,8 +1450,8 @@ const en = {
     ],
     menu: [
       'Menu',
-      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
-      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
+      'rows: item · checked · choice · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
+      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. A set of choices marks the one taken with a filled mark and the others with a hollow one. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
     ],
     menuCaps: [
       'menu',
