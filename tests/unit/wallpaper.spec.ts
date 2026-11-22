@@ -8,7 +8,7 @@ import { ascii, dots } from '@/ds/organisms/filters'
 import { koi } from '@/ds/organisms/koi'
 import { pond } from '@/ds/organisms/pond'
 import { BLUE, grid, limb, ORANGE, PAPER, type Scene, seeded } from '@/ds/organisms/tones'
-import { step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
+import { following, step, stepAt, steps, wallpapers } from '@/ds/organisms/wallpapers'
 
 // A few signs of the mono face as it measures at a pitch of 8: the ink in the eight parts of a cell.
 const face = [
@@ -139,5 +139,27 @@ describe('the wallpaper', () => {
     expect(
       Math.max(...edge.map((at) => Math.abs(stone.tones[at] - still.tones[at]))),
     ).toBeGreaterThan(0.1)
+  })
+})
+
+describe('the next wallpaper', () => {
+  it('keeps the filter and the colour where the next has colours, and comes back to the first after the last', () => {
+    const names = Object.keys(wallpapers) as (keyof typeof wallpapers)[]
+    names.forEach((name, at) => {
+      const next = names[(at + 1) % names.length]
+      expect(following(`${name} ascii colour`)).toBe(
+        `${next} ascii${wallpapers[name] && wallpapers[next] ? ' colour' : ''}`,
+      )
+      expect(following(`${name} dots`)).toBe(`${next} dots`)
+    })
+  })
+
+  it('goes from Koi, ASCII, in colour to Dragonflies in ASCII and in colour, and from colour to one without', () => {
+    expect(following('koi ascii colour')).toBe('dragonflies ascii colour')
+    expect(following('contours dots colour')).toBe('catfish dots')
+  })
+
+  it('reads the field number of an earlier visit as the step it shows', () => {
+    expect(following('301')).toBe(following('passage dots colour'))
   })
 })

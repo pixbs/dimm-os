@@ -38,3 +38,12 @@ export function stepAt(setting?: string | null) {
   const { wallpaper, filter, colour } = step(setting)
   return steps.indexOf(`${wallpaper} ${filter}${colour ? ' colour' : ''}`)
 }
+
+// The step after a setting's: the next wallpaper of the list, the first after the last, through the same filter, and
+// in colour where it was and the next has colours.
+export function following(setting?: string | null) {
+  const { wallpaper, filter, colour } = step(setting)
+  const names = Object.keys(wallpapers) as (keyof typeof wallpapers)[]
+  const next = names[(names.indexOf(wallpaper) + 1) % names.length]
+  return `${next} ${filter}${colour && wallpapers[next] ? ' colour' : ''}`
+}

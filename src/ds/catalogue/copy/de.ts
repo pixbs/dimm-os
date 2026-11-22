@@ -420,6 +420,10 @@ const de: Copy = {
       ['960 ms', 'Die Übergabe beim Start; was schwingt oder fällt.'],
       ['80 ms', 'Was mit fast gekommen ist und geht.'],
       ['160 ms', 'Was mit slow gekommen ist und geht.'],
+      [
+        '2000 ms',
+        'Ein Hinweis anstelle des Texts, den er verdeckt, wie Link kopiert in der Taskleiste.',
+      ],
     ],
     curve: [
       'Kurve',

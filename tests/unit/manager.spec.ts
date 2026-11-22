@@ -244,6 +244,21 @@ describe('the window manager', () => {
 })
 
 // The checks of the handoff's reference that concern windows, in its order and by its names.
+describe('the commands for all windows', () => {
+  it('minimise all puts every window on the desk away, and the one in front comes back first', () => {
+    const away = after(home(), { type: 'minimiseAll' })
+    expect([mode(away, '/welcome'), mode(away, '/work')]).toEqual(['min', 'min'])
+    expect(front(away)).toBeUndefined()
+    expect(front(after(away, { type: 'minimise' }))).toBe('/welcome')
+  })
+
+  it('close all closes every window, those in the taskbar too', () => {
+    const closed = after(home(), { type: 'minimise' }, { type: 'closeAll' })
+    expect(paths(closed)).toEqual([])
+    expect(closed.z).toEqual([])
+  })
+})
+
 describe('the window manager, as the reference checks it', () => {
   let desk = home()
   const act = (...actions: Action[]) => (desk = after(desk, ...actions))
