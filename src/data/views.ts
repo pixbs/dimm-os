@@ -30,6 +30,7 @@ import { stats, type StatsView } from '@/blocks/stats/view'
 import { table, type TableView } from '@/blocks/table/view'
 import { text, type TextView } from '@/blocks/text/view'
 import { icons } from '@/ds/atoms/icons'
+import numerals from '@/ds/motion/numerals.png'
 import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
@@ -663,7 +664,25 @@ async function views(language: Language, viewer: Viewer) {
   }
 
   const shown = windows.filter((one) => one.doc.slug !== missing)
-  const notFound = windows.find((one) => one.doc.slug === missing)
+  // Where the admin made no 404 window, the system's stands in: the numerals in dots over their still.
+  const notFound = windows.find((one) => one.doc.slug === missing) ?? {
+    doc: {
+      slug: missing,
+      title: t.notFoundTitle,
+      sections: [
+        {
+          blockType: 'media',
+          columns: '1',
+          ratio: '16:9',
+          items: [
+            { picture: { url: numerals.src, alt: t.notFoundPicture, live: 'not-found' } as Media },
+          ],
+        },
+      ],
+    } as Doc,
+    lang: language,
+    path: `/${missing}`,
+  }
   // A file's shortcut is named with its kind: CV.pdf.
   const shortcuts = shown.flatMap(({ doc, path, lang, parent }) =>
     doc.icon && !parent
@@ -751,7 +770,7 @@ async function views(language: Language, viewer: Viewer) {
       const moved = shown.find((one) => one.doc.slug === path.split('/').pop())
       return moved ? { moved: moved.path } : null
     },
-    missing: () => at(notFound ? view(notFound) : null),
+    missing: () => at(view(notFound)),
   }
 }
 
