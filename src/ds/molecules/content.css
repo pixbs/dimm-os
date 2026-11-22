@@ -428,6 +428,30 @@
   color: var(--muted);
   white-space: nowrap;
 }
+/* A path too long for its bar shortens at its end, so what stands beside it stays in the bar. */
+.bar__text > .path {
+  flex-wrap: nowrap;
+  min-width: 0;
+
+  & > span {
+    flex: none;
+  }
+  & > .path__here {
+    flex: 0 1 auto;
+    min-width: 0;
+  }
+  & .decipher {
+    grid-template-columns: minmax(0, auto);
+    min-width: 0;
+  }
+  & .decipher > * {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+.bar__text:has(> .path) {
+  min-width: 0;
+}
 .bar__space {
   flex: 1 1 0;
   min-width: 0;

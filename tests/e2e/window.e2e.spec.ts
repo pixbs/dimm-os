@@ -1,6 +1,6 @@
 import type { Locator, Page } from '@playwright/test'
 
-import { expect, test } from './test'
+import { emptyDesk, expect, test } from './test'
 import { travelled } from './travels'
 
 const screen = { width: 1280, height: 720 }
@@ -746,4 +746,35 @@ test.describe('What a window holds', () => {
     for (const shown of counts) expect(shown).toMatch(/^(\d\d \/ 03)?$/)
     await expect(count.locator(':not([aria-hidden])')).toHaveText('02 / 03')
   })
+})
+
+test.describe('Window with a long name', () => {
+  for (const width of [360, 768, 1280])
+    test(`shortens the name and keeps its controls inside the window at ${width}`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 })
+      await emptyDesk(page)
+      await page.goto('/work', { waitUntil: 'networkidle' })
+      const work = page.locator('article[aria-label="Work"]')
+      await expect(work.locator('.window__bar .path__here')).toBeVisible()
+      const name = 'A name long enough to run past the edge of any title bar '.repeat(4)
+      // What the bar shows, standing for a long name from the admin.
+      await work
+        .locator('.window__bar .path__here .decipher > :last-child')
+        .evaluate((text, name) => (text.textContent = name), name)
+      const box = (await work.boundingBox())!
+      const parts = await work
+        .locator('.window__bar > *')
+        .evaluateAll((parts) => parts.map((part) => part.getBoundingClientRect().toJSON()))
+      // The controls of the hand that is not set take no room.
+      for (const part of parts.filter(({ width }) => width > 0)) {
+        expect(part.left).toBeGreaterThanOrEqual(box.x - 1)
+        expect(part.right).toBeLessThanOrEqual(box.x + box.width + 1)
+      }
+      const shortened = await work
+        .locator('.window__bar .path__here .decipher > :last-child')
+        .evaluate((text) => text.scrollWidth > text.clientWidth)
+      expect(shortened).toBe(true)
+    })
 })
