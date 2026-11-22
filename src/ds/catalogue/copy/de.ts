@@ -907,6 +907,7 @@ const de: Copy = {
     appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'Kachel: raised · orange · blue · mint · paper',
+    tileCap: 'kompakte Kachel allein, vor einer Zeile der Einstellungen',
     name: 'Name',
     longName: 'Ein längerer Name',
     path: [
@@ -1472,6 +1473,7 @@ const de: Copy = {
       'an einem Button: darunter, bündig mit seinem Ende',
       'Touch: reguläre Zeilen',
       'auf einem kompakten Bildschirm: eine Schublade davor',
+      'auf einem Telefon ist das Systemmenü ein Bildschirm der Einstellungen: Gruppen von Zeilen, jede mit einer kompakten Kachel davor',
     ],
     dialog: [
       'Dialog',

@@ -93,6 +93,15 @@ export function List(props: {
   )
 }
 
+// Lists one under another, a section step apart, as a screen of settings holds its groups.
+export function Groups({ children }: { children: ReactNode }) {
+  return (
+    <div className="cq">
+      <div className="groups">{children}</div>
+    </div>
+  )
+}
+
 // A row that opens in place: what it says beyond its title comes under it, and leaves again as it closes.
 function Opens({ lines, ...row }: ComponentProps<typeof Row> & { lines: ReactNode[] }) {
   const [open, setOpen] = useState(false)

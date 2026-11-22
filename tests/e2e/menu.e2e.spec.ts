@@ -292,71 +292,99 @@ test.describe('Menus on a tablet', () => {
   })
 })
 
-test.describe('Menus on a phone', () => {
+test.describe('The Dimm OS screen on a phone', () => {
   test.use({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true })
+  const screen = (page: Page, name = 'Dimm OS') => page.getByRole('dialog', { name })
 
   for (const [language, names] of [
-    ['', ['Dimm OS', 'Window', 'Imprint', 'Privacy', 'Cookies']],
-    ['/de', ['Dimm OS', 'Fenster', 'Impressum', 'Datenschutz', 'Cookies']],
+    ['', ['Dimm OS', 'Imprint', 'Privacy', 'Cookies', 'Cookie preferences']],
+    ['/de', ['Dimm OS', 'Impressum', 'Datenschutz', 'Cookies', 'Cookie-Einstellungen']],
   ] as const) {
-    test(`the system menu is a modal drawer that holds the menus and ends with the legal rows${language && ', in German'}`, async ({
+    test(`is a modal drawer of groups, and opens the legal windows as drawers${language && ', in German'}`, async ({
       page,
     }) => {
-      const [system, windows, ...legal] = names
+      const [system, ...legal] = names
       for (const name of legal) {
         await page.goto(`${language}/work`, { waitUntil: 'networkidle' })
         await top(page, system).click()
-        const drawer = page.locator('dialog', { has: menu(page, system) })
-        await expect(drawer).toHaveJSProperty('open', true)
-        expect(await drawer.evaluate((dialog) => dialog.matches(':modal'))).toBe(true)
-        // The window behind steps back, and the rows end with the three legal links.
+        await expect(screen(page, system)).toHaveJSProperty('open', true)
+        expect(await screen(page, system).evaluate((dialog) => dialog.matches(':modal'))).toBe(true)
         await expect(page.locator('article.window[data-back="1"]')).toHaveCount(1)
-        const last = await menu(page, system).evaluate((list) =>
-          [
-            ...list.querySelectorAll<HTMLElement>(
-              ':scope > [role=menuitem], :scope > * > [role=menuitem]',
-            ),
-          ]
-            .slice(-3)
-            .map((row) => row.innerText),
-        )
-        expect(last).toEqual(legal)
-        // A submenu goes in front, and Esc puts it away first, the focus back on its row.
-        await menu(page, system).getByRole('menuitem', { name: windows }).click()
-        await expect(menu(page, windows)).toBeVisible()
-        await page.keyboard.press('Escape')
-        await expect(menu(page, windows)).toHaveCount(0)
-        await expect(menu(page, system).getByRole('menuitem', { name: windows })).toBeFocused()
-
-        await menu(page, system).getByRole('menuitem', { name, exact: true }).click()
+        await screen(page, system).getByRole('link', { name, exact: true }).click()
         await expect(page.locator('dialog')).toHaveCount(0)
         await expect(win(page, name)).toHaveAttribute('data-front', '')
       }
     })
   }
 
-  test('Esc closes the system menu and the focus returns to its button', async ({ page }) => {
+  test('reads in the order drawn, each group under its heading, every row 48 high or more', async ({
+    page,
+  }) => {
     await page.goto('/work', { waitUntil: 'networkidle' })
     await top(page, 'Dimm OS').click()
-    await expect(menu(page, 'Dimm OS').getByRole('menuitem').first()).toBeFocused()
+    const body = screen(page).locator('.dialog__body')
+    await expect(body.getByRole('heading')).toHaveText(['Appearance', 'System', 'Legal'])
+    const rows = body.locator('.row:not(.list__head)')
+    await expect(rows.locator('.row__title')).toHaveText([
+      'Guest',
+      'Theme',
+      'Language',
+      'About Dimm OS',
+      'Preferences',
+      'Accessibility',
+      'Gestures',
+      'Imprint',
+      'Privacy',
+      'Cookies',
+      'Cookie preferences',
+      'Lock screen',
+      'Shut down',
+    ])
+    await expect(rows.first()).toContainText('Log in')
+    for (const height of await rows.evaluateAll((all) =>
+      all.map((row) => row.getBoundingClientRect().height),
+    ))
+      expect(height).toBeGreaterThanOrEqual(48)
+    // Theme and Language lead to no window, so they end with no arrow; the rows of the windows do.
+    await expect(rows.nth(1).locator('.row__trail')).toHaveCount(0)
+    await expect(rows.nth(2).locator('.row__trail')).toHaveCount(0)
+    await expect(rows.nth(3).locator('.row__trail .icon')).toHaveCount(1)
+    // The focus starts on the first row and the handle puts the drawer away, the focus back on its button.
+    await expect(rows.first()).toBeFocused()
     await page.keyboard.press('Escape')
     await expect(page.locator('dialog')).toHaveCount(0)
     await expect(top(page, 'Dimm OS')).toBeFocused()
   })
 
-  test('opened again while it leaves, the system menu stands open, and its hotkeys are gestures', async ({
-    page,
-  }) => {
+  test('shows the theme in force, and the new one after a press', async ({ page }) => {
     await page.goto('/work', { waitUntil: 'networkidle' })
     await top(page, 'Dimm OS').click()
-    await menu(page, 'Dimm OS').getByRole('menuitem', { name: 'View' }).click()
-    await menu(page, 'View').getByRole('menuitem', { name: 'Theme' }).click()
+    const theme = screen(page).getByRole('button', { name: /^Theme/ })
+    const was = await page.evaluate(() => document.documentElement.dataset.theme)
+    await expect(theme.locator('.row__meta')).toHaveText(was === 'light' ? 'Light' : 'Dark')
+    await theme.click()
+    await expect(theme.locator('.row__meta')).toHaveText(was === 'light' ? 'Dark' : 'Light')
+    await expect(
+      screen(page)
+        .getByRole('link', { name: /^Language/ })
+        .locator('.row__meta'),
+    ).toHaveText('English')
+  })
+
+  test('at 360 wide no row wraps, and the body scrolls under its title where the screen is shorter', async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width: 360, height: 640 })
+    await page.goto('/work', { waitUntil: 'networkidle' })
     await top(page, 'Dimm OS').click()
-    const drawer = page.locator('dialog', { has: menu(page, 'Dimm OS') })
-    await expect(drawer).toBeVisible()
-    expect(await drawer.evaluate((dialog) => dialog.matches(':modal'))).toBe(true)
-    await menu(page, 'Dimm OS').getByRole('menuitem', { name: 'Help' }).click()
-    await expect(menu(page, 'Help').getByRole('menuitem', { name: 'Gestures' })).toBeVisible()
+    const body = screen(page).locator('.dialog__body')
+    for (const height of await body
+      .locator('.row:not(.list__head) .row__title')
+      .evaluateAll((all) => all.map((title) => title.getBoundingClientRect().height)))
+      expect(height).toBe(24)
+    expect(await body.evaluate((part) => part.scrollHeight > part.clientHeight)).toBe(true)
+    await body.getByRole('button', { name: 'Shut down' }).scrollIntoViewIfNeeded()
+    await expect(screen(page).locator('.bar')).toBeInViewport()
   })
 })
 

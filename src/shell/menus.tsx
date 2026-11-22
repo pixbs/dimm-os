@@ -5,18 +5,19 @@ import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 
 import type { commandsOf, SystemCommand } from './commands'
-import { type Action, compact, front, phone, type Windows } from './manager'
+import { type Action, compact, front, phone, showing, type Windows } from './manager'
 import { tasksOf } from './OnDesk'
+import { SystemScreen } from './System'
 
 // The pitches the dot can be set to.
 const pitches = ['5', '6', '8', '10', '12']
 
-// The legal windows under the names they have, then consent; the row of its preferences opens a window that asks.
-export function legalMenu(
+// The legal windows under the names they have, then consent.
+export function legalLinks(
   t: Dictionary,
   language: Language,
   found: { title: string; href?: string }[],
-): Item[] {
+) {
   const link = (path: string, words: string) => {
     const href = toAddress(language, path)
     return { label: found.find((one) => one.href === href)?.title ?? words, href }
@@ -24,14 +25,19 @@ export function legalMenu(
   return [
     link('/imprint', t.imprint),
     link('/privacy-policy', t.privacy),
-    'rule',
     link('/cookies', t.cookies),
-    { label: `${t.cookiePreferences}…`, href: toAddress(language, '/cookies/preferences') },
+    { label: t.cookiePreferences, href: toAddress(language, '/cookies/preferences') },
   ]
 }
 
-// The menus of the menu bar hold only what the system does, so they hold whatever content exists. On a phone
-// File, View, Window and Help stay behind the system menu, which ends with the three legal links.
+// The legal links as a menu; the row of the preferences opens a window that asks.
+export function legalMenu(links: ReturnType<typeof legalLinks>): Item[] {
+  const [imprint, privacy, cookies, preferences] = links
+  return [imprint, privacy, 'rule', cookies, { ...preferences, label: `${preferences.label}…` }]
+}
+
+// The menus of the menu bar hold only what the system does, so they hold whatever content exists. On a phone the
+// system menu is the Dimm OS screen.
 export function menus(props: {
   t: Dictionary
   language: Language
@@ -40,7 +46,9 @@ export function menus(props: {
   act: (action: Action) => void
   search: () => void
   commands: ReturnType<typeof commandsOf>
-  legal: Item[]
+  legal: ReturnType<typeof legalLinks>
+  visitor: string | null
+  login: () => void
 }): Top[] {
   const { t, language, desk, act, commands } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -55,11 +63,6 @@ export function menus(props: {
   const onDesk = desk.open.filter((entry) => entry.mode !== 'min').length
   const about = link('/about', t.about.replace('{name}', props.name))
   const hotkeys = link('/hotkeys', phone(desk) ? t.gestures : t.hotkeys, 'hotkeys')
-  const legal = [
-    link('/imprint', t.imprint),
-    link('/privacy-policy', t.privacy),
-    link('/cookies', t.cookies),
-  ]
   // A command of the system, dimmed where it cannot act on the window in front.
   const command = (name: SystemCommand) => ({
     label: t[name],
@@ -144,25 +147,21 @@ export function menus(props: {
     })),
   ]
   const accessibility = link('/accessibility', t.accessibility)
-  // Each row stands in one menu; the phone keeps its drawer as it was.
-  const onPhone = phone(desk)
-  const help: Item[] = [hotkeys, accessibility, ...(onPhone ? [about] : [])]
-  const others = [
+  // Each row stands in one menu.
+  const all = [
     { label: t.file, items: file },
     { label: t.view, items: view },
     { label: t.window, items: window },
-    { label: t.help, items: help },
+    { label: t.help, items: [hotkeys, accessibility] },
+    { label: t.legal, items: legalMenu(props.legal) },
   ]
-  const all = [...others, { label: t.legal, items: props.legal }]
   const system: Item[] = [
     about,
-    // It opens a window of settings, so it ends in an ellipsis; the phone keeps its row as it was.
-    link('/preferences', onPhone ? t.preferences : `${t.preferences}…`, 'preferences'),
-    ...(onPhone ? [accessibility, hotkeys] : []),
+    // It opens a window of settings, so it ends in an ellipsis.
+    link('/preferences', `${t.preferences}…`, 'preferences'),
     'rule',
     command('lock'),
     command('shutDown'),
-    ...(onPhone ? (['rule', ...others, 'rule', ...legal] as Item[]) : []),
   ]
 
   return [
@@ -172,6 +171,22 @@ export function menus(props: {
       label: props.name,
       lead: <span className="mark" data-surface="orange" />,
       items: system,
+      screen: phone(desk)
+        ? (done) => (
+            <SystemScreen
+              done={done}
+              here={showing(desk) ?? '/'}
+              language={language}
+              legal={props.legal}
+              lock={() => commands.lock.run()}
+              login={props.login}
+              name={props.name}
+              shutDown={() => commands.shutDown.run()}
+              t={t}
+              visitor={props.visitor}
+            />
+          )
+        : undefined,
     },
     ...all.map((menu) => ({
       name: menu.label,

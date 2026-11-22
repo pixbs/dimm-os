@@ -876,6 +876,7 @@ const en = {
     appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'tile: raised · orange · blue · mint · paper',
+    tileCap: 'compact tile alone, leading a row of settings',
     name: 'Name',
     longName: 'A longer name',
     path: [
@@ -1438,6 +1439,7 @@ const en = {
       'from a button: under it, flush with its end',
       'touch: regular rows',
       'on a compact screen: a drawer in front',
+      'on a phone, the system menu is a screen of settings: groups of rows, each led by a compact tile',
     ],
     dialog: [
       'Dialog',

@@ -149,8 +149,11 @@
     padding-block-end: var(--s-6);
     overflow-y: auto;
   }
+  /* As high as its content, its body scrolls under the title where the screen is shorter. */
   & > .dialog__frame > .dialog__body {
+    min-height: 0;
     padding-inline: var(--s-4);
+    overflow-y: auto;
   }
   /* Stacked, each action reaches both edges and keeps the line under it, but for the last. */
   & > .dialog__frame > .btngroup > .btn {

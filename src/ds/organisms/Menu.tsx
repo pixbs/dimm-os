@@ -50,6 +50,8 @@ export type Top = {
   lead?: ReactNode
   for?: string
   items: Item[]
+  // What a drawer shows in place of the rows, given what closes it.
+  screen?: (done: () => void) => ReactNode
 }
 
 // The open menus, one a level: which row opened each, the element it was opened from, and whether it took the place of
@@ -219,6 +221,7 @@ function Level(props: {
   label: string
   depth: number
   end?: boolean
+  screen?: Top['screen']
   menus: Context
 }) {
   const { open, items, label, depth, menus } = props
@@ -246,7 +249,7 @@ function Level(props: {
         shown={menus.shown}
         t={menus.t}
       >
-        {open && list()}
+        {open && (props.screen ? props.screen(menus.done) : list())}
       </Dialog>
     )
   }
@@ -401,6 +404,7 @@ export function MenuBar(props: Shared & { label: string; menus: Top[]; children?
               items={menu.items}
               label={menu.name}
               open={chain[0]?.at === index}
+              screen={menu.screen}
             />
           </span>
         ))}

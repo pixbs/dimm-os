@@ -5,7 +5,9 @@ import { type ReactNode, useState } from 'react'
 import type { Language } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named } from '@/i18n/keys'
+import { legalLinks } from '@/shell/menus'
 import { marked } from '@/shell/palette'
+import { SystemScreen } from '@/shell/System'
 
 import { Bar, BarSpace, BarText, BarTitle } from '../molecules/Bar'
 import { Button, ButtonGroup } from '../molecules/Button'
@@ -234,6 +236,22 @@ export function Menus(props: Props) {
           </Window>
           <Dialog bar drawer label={t.title} onClose={noop} open shown t={words}>
             <Menu drawer items={values(t, false)} label={t.title} />
+          </Dialog>
+        </Phone>
+        <Phone {...props} height={134}>
+          <Dialog bar drawer label={t.name} onClose={noop} open shown t={words}>
+            <SystemScreen
+              done={noop}
+              here="/"
+              language={language}
+              legal={legalLinks(words, language, [])}
+              lock={noop}
+              login={noop}
+              name={t.name}
+              shutDown={noop}
+              t={words}
+              visitor={null}
+            />
           </Dialog>
         </Phone>
       </Specs>

@@ -178,8 +178,8 @@
     align-self: center;
   }
 }
-/* A compact button in a slot keeps the row at its height. */
-:is(.row__lead, .row__trail) > .btn[data-size='compact'] {
+/* A compact button, tile or avatar in a slot keeps the row at its height. */
+:is(.row__lead, .row__trail) > :is(.btn, .app__tile, .avatar)[data-size='compact'] {
   margin-block: calc(var(--s-1) * -1);
 }
 

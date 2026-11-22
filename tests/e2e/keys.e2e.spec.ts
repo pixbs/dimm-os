@@ -221,7 +221,9 @@ test.describe('The hotkeys hint in the taskbar', () => {
     await page.goto('/')
     await expect(hint(page)).toBeHidden()
     await page.getByRole('menubar').getByRole('menuitem', { name: 'Dimm OS' }).click()
-    await expect(page.getByRole('menuitem', { name: 'Gestures' })).toBeVisible()
+    await expect(
+      page.getByRole('dialog', { name: 'Dimm OS' }).getByRole('link', { name: 'Gestures' }),
+    ).toBeVisible()
 
     // A desk under 960 px keeps its taskbar for the windows.
     await page.setViewportSize({ width: 959, height: 720 })
