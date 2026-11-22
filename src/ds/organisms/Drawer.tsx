@@ -1,9 +1,9 @@
 'use client'
 
 import type { MotionValue } from 'motion/react'
-import { type KeyboardEvent, type PointerEvent, type RefObject, useRef } from 'react'
+import { type KeyboardEvent, type PointerEvent, useRef } from 'react'
 
-import { curve, duration, reduced, spring } from '../motion/vocabulary'
+import { curve, duration, reduced } from '../motion/vocabulary'
 import { follow } from './follow'
 
 // A press that moves less than a step is a press; let go faster than this, in px a second, a drawer is flicked.
@@ -16,32 +16,44 @@ const RECENT = 100
 // its place while its content arrives.
 const share = (part: number) => `${part * 100}%`
 
-// What a drawer does: it rises from the bottom edge, not from its opener, and sinks back to it on the spring,
-// from where the finger left it and as fast; with reduced motion it fades in place. How fast it was let go, in
-// heights a second, reaches its moves as their custom value.
+// With reduced motion a drawer, and its scrim, fade in place.
+const fade = () => ({ duration: duration('fast'), ease: 'linear' as const })
+
+// What a drawer does: it rises from the bottom edge, not from its opener, over slow on the enter curve, and leaves
+// the way it came, from where the finger left it, over slide-exit on the exit curve.
 export function rises() {
-  const sinks = (flung: RefObject<number>) =>
+  const sinks = () =>
     reduced()
-      ? { opacity: 0, transition: { duration: duration('slow-exit'), ease: curve('exit') } }
+      ? { opacity: 0, transition: fade() }
       : {
           y: share(1),
           opacity: 1,
           scale: 1,
-          transition: { ...spring('slow'), velocity: flung.current * 100 },
+          transition: { duration: duration('slide-exit'), ease: curve('exit') },
         }
   const open = () => ({
     y: share(0),
     opacity: 1,
     scale: 1,
-    // It sets out from rest: the speed Motion reads off its value would count the jump to where it starts.
     transition: reduced()
-      ? { duration: duration('slow'), ease: curve('enter'), y: { duration: 0 } }
-      : { ...spring('slow'), velocity: 0 },
+      ? { ...fade(), y: { duration: 0 } }
+      : { duration: duration('slow'), ease: curve('enter') },
   })
   // Let go before it is put away, it springs back from where the finger left it: written as keyframes, the target
   // differs from the last one, so Motion moves it again.
   const kept = () => ({ ...open(), y: [null, share(0)] })
   return { closed: sinks, away: sinks, open, kept }
+}
+
+// The scrim behind a drawer fades with it, both ways.
+export function dims() {
+  const to = (opacity: number, time: 'slow' | 'slide-exit') => () => ({
+    opacity,
+    transition: reduced() ? fade() : { duration: duration(time), ease: 'linear' as const },
+  })
+  const shown = to(1, 'slow')
+  const gone = to(0, 'slide-exit')
+  return { open: shown, kept: shown, closed: gone, away: gone }
 }
 
 // The way out of a drawer, and it has no other: pressed, dragged down past half the drawer or flicked, it puts the
@@ -50,8 +62,7 @@ export function Handle(props: {
   label: string
   y: MotionValue<string>
   height: () => number
-  // How fast it was let go, in heights of the drawer a second.
-  leave: (speed: number) => void
+  leave: () => void
   stay: () => void
 }) {
   const { y } = props
@@ -75,7 +86,7 @@ export function Handle(props: {
         const now = performance.now()
         const from = seen.find(([at]) => now - at <= RECENT)
         const speed = from && now > from[0] ? ((dy - from[1]) / (now - from[0])) * 1000 : 0
-        if (speed >= FLICK || dy >= height / 2) return props.leave(Math.max(0, speed) / height)
+        if (speed >= FLICK || dy >= height / 2) return props.leave()
         // With reduced motion it is back at once, so whatever follows sets out from its place.
         if (reduced()) y.jump(share(0))
         props.stay()
@@ -89,9 +100,7 @@ export function Handle(props: {
       className="drawer__handle"
       // A drag ends in its own way, and the click a mouse makes after it is let pass; a press, or Enter and Space,
       // whose click counts no press of a pointer, puts the drawer away.
-      onClick={(event) =>
-        moved.current && event.detail ? (moved.current = false) : props.leave(0)
-      }
+      onClick={(event) => (moved.current && event.detail ? (moved.current = false) : props.leave())}
       onPointerDown={grab}
       type="button"
     />

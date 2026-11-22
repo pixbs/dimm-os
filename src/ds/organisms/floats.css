@@ -121,7 +121,7 @@
   gap: var(--s-6);
   padding: var(--s-6);
 }
-/* On a compact screen a dialog, and a menu, is a drawer: under the menu bar, over the dock, its scrim behind it.
+/* On a compact screen a dialog, and a menu, is a drawer: under the menu bar, its scrim behind it.
    Behind one opened from it, it steps back as a drawer does. */
 .dialog[data-drawer] {
   position: absolute;

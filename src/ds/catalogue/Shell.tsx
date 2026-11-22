@@ -9,7 +9,7 @@ import { Heading } from '../molecules/Heading'
 import { Path } from '../molecules/Path'
 import { Row } from '../molecules/Row'
 import { WindowControls } from '../molecules/WindowControls'
-import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
+import { Apps, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
 import { Asking, Dialogs, Menubar, Menus, Notices, Palettes, Phone } from './Floats'
 import type { Copy } from './copy/en'
@@ -258,19 +258,6 @@ export function Shell(props: Props) {
             <main className="screen__desk">
               <Apps apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])} layout="screen" />
             </main>
-            <footer>
-              <Bar>
-                {[words.imprint, words.privacy, words.cookies].map((label) => (
-                  <ButtonLink href="#" key={label} label={label} />
-                ))}
-              </Bar>
-              <Dock
-                tasks={[
-                  { name: t.name, front: true },
-                  { name: t.name, minimised: true },
-                ]}
-              />
-            </footer>
           </Screen>
         </Specs>
       </Entry>
@@ -320,16 +307,6 @@ export function Shell(props: Props) {
               )}
             </Cap>
           ))}
-          <Cap label={t.taskbarCaps[3]}>
-            <div data-surface="desktop" style={sized(46.875)}>
-              <Dock
-                tasks={[
-                  { name: t.name, front: true },
-                  { name: t.name, minimised: true },
-                ]}
-              />
-            </div>
-          </Cap>
         </div>
       </Entry>
       <Entry text={t.apps}>

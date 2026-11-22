@@ -61,17 +61,15 @@
   }
 }
 
-/* The room under the menu bar: the desk, and on a phone its foot, which drawers rise over. */
+/* The room under the menu bar: the desk, which a phone's drawers rise over. It keeps its layers to itself, so the
+   menu bar stays over a drawer that reaches it, the handle about its top too. */
 .screen__main {
   position: relative;
+  isolation: isolate;
   flex: 1 1 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
-
-  & > footer {
-    position: relative;
-  }
 }
 
 /* The desk: what lies between the bars. On it the apps, and the windows it holds. */
@@ -183,12 +181,6 @@
   }
 }
 
-/* The dock: the taskbar of a phone, a button group one step in from the edges. */
-.dock {
-  flex: none;
-  padding: var(--s-3) var(--s-3) var(--s-6);
-}
-
 /* Window: a frame the visitor handles. Where it lies in a page it is as high as what it holds. */
 .window {
   display: flex;
@@ -260,6 +252,37 @@
   flex-direction: column;
   min-width: 0;
   min-height: 0;
+}
+/* On a desk a window is one box that travels, and what it holds keeps the size of its place so nothing reflows on the
+   way: it arrives at three quarters of the move as its body rises a step, leaves first, and under reduced motion
+   fades with the box. */
+.window__frame[data-travels] > .window__content {
+  flex: none;
+  width: var(--lands-w);
+  height: var(--lands-h);
+}
+.window[data-travel='in'] > .window__origin > .window__frame {
+  & > :is(.window__content, .window__grip) {
+    animation: var(--m-fast) var(--m-enter) calc(var(--m-slow) * var(--m-lands)) backwards
+      travels-in;
+  }
+  & > .window__content > .window__main > .window__body {
+    animation: var(--m-slow) var(--m-enter) calc(var(--m-slow) * var(--m-lands)) backwards rises;
+  }
+}
+.window[data-travel='out'] > .window__origin > .window__frame {
+  & > :is(.window__content, .window__grip) {
+    animation: var(--m-fast-exit) var(--m-exit) forwards travels-out;
+  }
+  & > .window__content > .window__main > .window__body {
+    animation: var(--m-fast-exit) var(--m-exit) forwards sinks;
+  }
+}
+[data-motion='reduce'] .window[data-travel] > .window__origin > .window__frame {
+  & > :is(.window__content, .window__grip),
+  & > .window__content > .window__main > .window__body {
+    animation: none;
+  }
 }
 /* What scrolls: the body, and the actions at its foot, a button group flush with its edges. */
 .window__main {
@@ -472,9 +495,9 @@
   display: flex;
 }
 
-/* Drawer: what a window is on a phone. It rises from the bottom edge as wide as the screen, under the menu bar and
-   over the dock, with its scrim between it and what is behind. It is as high as what it holds, and when that is
-   more than the room, 24 px of the room stay in view above it and its body scrolls. */
+/* Drawer: what a window is on a phone. It rises from the bottom edge as wide as the screen, under the menu bar, with
+   its scrim between it and what is behind. It is as high as what it holds, and when that is more than the room it
+   ends at the menu bar and its body scrolls. */
 .window__scrim,
 .drawer__handle {
   display: none;
@@ -498,7 +521,7 @@
       position: relative;
       flex: 0 1 auto;
       min-height: 0;
-      max-height: calc(100% - var(--s-6));
+      max-height: 100%;
     }
     & .window__frame {
       padding-block-end: var(--s-6);

@@ -399,8 +399,8 @@ const en = {
     ],
     duration: [
       'Duration',
-      'fast: 160 | slow: 320 | long: 960 | exit: half | travel: twice slow',
-      'What leaves takes half the time it took to arrive.',
+      'fast: 160 | slow: 320 | long: 960 | exit: half | slide exit: three quarters | travel: twice slow | back: 1.25 fast | lag: 40',
+      'What leaves takes half the time it took to arrive; what slides off the screen, three quarters.',
     ],
     durationRows: [
       ['160 ms', 'Menus, tooltips, switches, rows, colour.'],
@@ -408,8 +408,11 @@ const en = {
       ['960 ms', 'The start hand-over; what swings or falls.'],
       ['80 ms', 'What took fast to arrive, leaving.'],
       ['160 ms', 'What took slow to arrive, leaving.'],
+      ['240 ms', 'A drawer leaving the way it came.'],
       ['2000 ms', 'A note in place of the text it covers, as Link copied in the taskbar.'],
       ['640 ms', 'A thing that travels from one place to another.'],
+      ['200 ms', 'A window going back to its taskbar button or to what opened it.'],
+      ['40 ms', 'The wait before a window sets off back, once what it holds has left.'],
     ],
     curve: [
       'Curve',
@@ -424,6 +427,8 @@ const en = {
       ['.55, 0, 1, .45', 'The postmark landing: it speeds up as it drops.'],
       ['.5, 0, .2, 1', 'A thing that travels, on its way across.'],
       ['.1, 0, 0, 1', 'A thing that travels, on its way up.'],
+      ['linear', 'A crossfade: a picture in as its swatches go out.'],
+      ['.33, 1, .67, 1', 'A swatch of a picture, growing and squaring off: quick, then settling.'],
     ],
     spread: [
       'Spread',
@@ -462,8 +467,8 @@ const en = {
     originPart: 'A part that opens and closes.',
     travel: [
       'Travel',
-      'takes: travel | across: across | up: up | size and surface: standard | letters: fade in the middle half',
-      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands.',
+      'takes: travel | across: across | up: up | size and surface: standard | letters: fade in the middle half | a window: slow in, back out, what it holds at 3/4',
+      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands. A window is one box that travels: from what opened it to its place over slow on the standard curve, what it holds unseen until three quarters of the move are done, and back to its taskbar button or to what opened it a lag after what it holds has left, over back on the exit curve. With reduced motion it fades where it stands.',
     ],
     travelLetters: 'OS',
     decipher: [
@@ -849,7 +854,7 @@ const en = {
     media: [
       'Media',
       'ratio: 16:9 · 4:3 · 1:1 · 3:1 | kind: image · video · embed | parts: caption',
-      'A box with a fixed ratio that the content fills. Empty, it shows the dot grid. A picture resolves from it in dots at four, two and one times the pitch, then fades in; the first on screen is there at once. A cover is a surface with the halftone of the system laid over it. The avatar is the same box at a control size, or twice the regular one for the person a screen is about. Without a picture it is named: initials or a glyph on a surface of its own.',
+      'A box with a fixed ratio that the content fills. Empty, it shows the dot grid. A picture resolves from it in round swatches of its own colours: cells four times the pitch sweep in over 260 ms, then two and one times the pitch for 160 ms each, each swatch filling 0.86 of its cell; then they square off and close up over 180 ms and the picture fades in under them over fast, 920 ms in all. With reduced motion or paused visuals it only fades in; the first on screen is there at once. A cover is a surface with the halftone of the system laid over it. The avatar is the same box at a control size, or twice the regular one for the person a screen is about. Without a picture it is named: initials or a glyph on a surface of its own.',
     ],
     mediaCaps: [
       '16:9',
@@ -1319,8 +1324,8 @@ const en = {
     ],
     screen: [
       'Screen',
-      'parts: wallpaper · menu bar · desk · taskbar | compact: menu bar · apps · links · dock · drawers | waiting: menu bar · sections · splash · bar',
-      'The whole display. Windows sit freely on the desk and can be dragged; a window in full screen takes the desk, and both bars stay in view. A screen under 600 px wide is compact, whatever the device: the desk holds the apps, the legal links stand in one line under them, the dock closes the screen, and windows open as drawers over all of it. A screen that waits (starting up, locked, shut down) has no desk: between its bars it holds sections and a Splash.',
+      'parts: wallpaper · menu bar · desk · taskbar | compact: menu bar · apps · drawers | waiting: menu bar · sections · splash · bar',
+      'The whole display. Windows sit freely on the desk and can be dragged; a window in full screen takes the desk, and both bars stay in view. A screen under 600 px wide is compact, whatever the device: the desk holds the apps, the window the site opens at the start first among them, nothing stands at its foot, and windows open as drawers over it. A screen that waits (starting up, locked, shut down) has no desk: between its bars it holds sections and a Splash.',
     ],
     screenCaps: ['pointer', 'compact'],
     wallpaper: [
@@ -1349,14 +1354,13 @@ const en = {
     menubarCaps: ['pointer: compact bar', 'touch: regular bar'],
     taskbar: [
       'Taskbar',
-      'density: pointer · touch | compact screen: dock | slots: windows · tray',
-      'The bottom edge of the screen. It shows what is open: one button per window, led by the mark of its app, the window in front selected. A window that is minimised leaves the desk and stays here, its mark hollow; its button brings it back. Pressing the button of the window in front minimises that one. A closed window leaves the taskbar. The tray at its end holds Preferences, as a word. On a compact screen it is a dock: a button group with one cell per app.',
+      'density: pointer · touch | slots: windows · tray',
+      'The bottom edge of the screen. It shows what is open: one button per window, led by the mark of its app, the window in front selected. A window that is minimised leaves the desk and stays here, its mark hollow; its button brings it back. Pressing the button of the window in front minimises that one. A closed window leaves the taskbar. The tray at its end holds Preferences, as a word. A compact screen has none.',
     ],
     taskbarCaps: [
       'pointer: compact buttons, each led by the mark of its app, the window in front selected',
       'a window that was minimised keeps its button, with a hollow mark; a closed one leaves the taskbar',
       'touch: regular buttons',
-      'compact screen: a dock. The mark is hollow when the app is not open',
     ],
     apps: [
       'App grid',
@@ -1438,8 +1442,8 @@ const en = {
     ],
     drawers: [
       'Drawer',
-      'height: its content · at most the screen less 24 | parts: handle · title bar · toolbar · body · actions | stack: front · one back · two back | moves: slow, spring · a fade with reduced motion',
-      'What a window is on a phone, under 600 px of width. It rises from the bottom edge, not from its opener, as wide as the screen, under the menu bar and over the dock, with the scrim between it and what is behind. It is as high as its content. When that is more than the screen, 24 px of the screen stay in view above it and the body scrolls; in a short drawer the actions at its foot scroll with the body. It has no close button: the handle is the way out, a finger high to hold. It follows the finger, and goes away when the handle is pressed, dragged down past half the drawer or flicked, by a tap on the scrim, or by Esc; let go sooner, it springs back. Its button in the dock brings it back. It is modal: the focus moves in and stays in, what lies behind cannot be reached, and the focus returns to what opened it. A drawer opened from a drawer goes in front. The one behind steps back at the same time: 8 px in at each side and 8 px up, so its top edge stays in view, and under the scrim. Two can be seen behind. Closing the one in front brings the next forward. With reduced motion a drawer fades in place.',
+      'height: its content · at most up to the menu bar | parts: handle · title bar · toolbar · body · actions | stack: front · one back · two back | moves: rises over slow on enter · leaves over slide-exit on exit · steps back over slow · a fade with reduced motion',
+      'What a window is on a phone, under 600 px of width. It rises from the bottom edge, not from its opener, as wide as the screen, under the menu bar, with the scrim between it and what is behind, which fades with it. It is as high as its content. When that is more than the screen, it ends at the menu bar and the body scrolls; in a short drawer the actions at its foot scroll with the body. It has no close button: the handle is the way out, a finger high to hold. It follows the finger, and goes away when the handle is pressed, dragged down past half the drawer or flicked, by a tap on the scrim, or by Esc; let go sooner, it springs back. Put away, it is closed, and its app opens it again. It is modal: the focus moves in and stays in, what lies behind cannot be reached, and the focus returns to what opened it. A drawer opened from a drawer goes in front. The one behind steps back at the same time: 8 px in at each side and 8 px up, so its top edge stays in view, and under the scrim. Two can be seen behind. Closing the one in front brings the next forward. With reduced motion a drawer fades in place.',
     ],
     drawersCaps: [
       'as high as its content',

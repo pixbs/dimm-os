@@ -1,6 +1,7 @@
 import type { Page } from '@playwright/test'
 
 import { emptyDesk, expect, test } from './test'
+import { travelled } from './travels'
 
 const palette = (page: Page) => page.getByRole('dialog', { name: 'Search' })
 const field = (page: Page) => page.getByRole('combobox')
@@ -55,7 +56,7 @@ test.describe('Search on a desk', () => {
     await expect(opener).toBeFocused()
   })
 
-  test('moves with the arrows, opens with Enter, and the window grows out of its row', async ({
+  test('moves with the arrows, opens with Enter, and the window travels from its row', async ({
     page,
   }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
@@ -67,33 +68,26 @@ test.describe('Search on a desk', () => {
     const row = options(page).nth(1)
     await expect(row).toHaveAttribute('aria-selected', 'true')
     await expect(row).toContainText('Loop')
-    // Where the window scales about as it appears, and the centre of the row as the palette leaves.
-    const grows = page.evaluate(
+    // The window sets off from its row, wherever the leaving palette has it by then, and lands in its place.
+    const sets = page.evaluate(
       () =>
-        new Promise<number[]>((done) => {
+        new Promise<number[][]>((done) => {
+          const rect = (one: Element) => {
+            const { x, y, width, height } = one.getBoundingClientRect()
+            return [x, y, width, height]
+          }
           const seen = new MutationObserver(() => {
-            const part = document.querySelector<HTMLElement>('article .window__origin')
-            if (!part?.style.transformOrigin) return
+            const box = document.querySelector('[data-travels="flies"]')
+            if (!box) return
             seen.disconnect()
-            const { left, top } = part.parentElement!.getBoundingClientRect()
-            const [x, y] = part.style.transformOrigin.split(' ').map(parseFloat)
-            const row = document.querySelector('[role=option][aria-selected=true]')!
-            const at = row.getBoundingClientRect()
-            done([
-              left + part.offsetLeft + x,
-              top + part.offsetTop + y,
-              at.left + at.width / 2,
-              at.top + at.height / 2,
-            ])
+            done([rect(box), rect(document.querySelector('[role=option][aria-selected=true]')!)])
           })
-          seen.observe(document.body, { subtree: true, childList: true, attributes: true })
+          seen.observe(document.body, { subtree: true, attributeFilter: ['data-travels'] })
         }),
     )
-
-    await page.keyboard.press('Enter')
-    const [x, y, ...from] = await grows
-    expect(x).toBeCloseTo(from[0], 0)
-    expect(y).toBeCloseTo(from[1], 0)
+    await travelled(page, page.locator('#window-work'), () => page.keyboard.press('Enter'))
+    const [box, from] = await sets
+    box.forEach((side, at) => expect(Math.abs(side - from[at])).toBeLessThanOrEqual(1))
     await expect(palette(page)).toBeHidden()
     await expect(page).toHaveURL('/work/loop')
     const window = page.locator('article[data-front]')

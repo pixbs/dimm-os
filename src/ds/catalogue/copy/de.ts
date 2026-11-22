@@ -411,8 +411,8 @@ const de: Copy = {
     ],
     duration: [
       'Dauer',
-      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | travel: zweimal slow',
-      'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat.',
+      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | slide exit: drei Viertel | travel: zweimal slow | back: 1,25 fast | lag: 40',
+      'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat; was vom Bildschirm gleitet, drei Viertel.',
     ],
     durationRows: [
       ['160 ms', 'Menüs, Tooltips, Schalter, Zeilen, Farbe.'],
@@ -420,11 +420,17 @@ const de: Copy = {
       ['960 ms', 'Die Übergabe beim Start; was schwingt oder fällt.'],
       ['80 ms', 'Was mit fast gekommen ist und geht.'],
       ['160 ms', 'Was mit slow gekommen ist und geht.'],
+      ['240 ms', 'Eine Schublade, die geht, wie sie gekommen ist.'],
       [
         '2000 ms',
         'Ein Hinweis anstelle des Texts, den er verdeckt, wie Link kopiert in der Taskleiste.',
       ],
       ['640 ms', 'Etwas, das von einem Platz zu einem anderen wandert.'],
+      [
+        '200 ms',
+        'Ein Fenster, das zu seiner Taste in der Taskleiste oder zu seinem Auslöser zurückgeht.',
+      ],
+      ['40 ms', 'Die Pause, bevor ein Fenster zurückgeht, nachdem sein Inhalt gegangen ist.'],
     ],
     curve: [
       'Kurve',
@@ -439,6 +445,11 @@ const de: Copy = {
       ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
       ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
       ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
+      ['linear', 'Eine Überblendung: ein Bild herein, während seine Farbfelder gehen.'],
+      [
+        '.33, 1, .67, 1',
+        'Ein Farbfeld eines Bildes, das wächst und eckig wird: schnell, dann zur Ruhe kommend.',
+      ],
     ],
     spread: [
       'Streuung',
@@ -477,8 +488,8 @@ const de: Copy = {
     originPart: 'Ein Teil, das sich öffnet und schließt.',
     travel: [
       'Wandern',
-      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte',
-      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
+      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte | ein Fenster: slow hin, back zurück, sein Inhalt bei 3/4',
+      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet. Ein Fenster ist ein Kasten, der wandert: von seinem Auslöser an seinen Platz über slow auf der Standardkurve, sein Inhalt ungesehen, bis drei Viertel der Bewegung getan sind, und zurück zu seiner Taste in der Taskleiste oder zu seinem Auslöser einen Moment, nachdem sein Inhalt gegangen ist, über back auf der Kurve exit. Bei reduzierter Bewegung blendet es, wo es steht.',
     ],
     travelLetters: 'OS',
     decipher: [
@@ -880,7 +891,7 @@ const de: Copy = {
     media: [
       'Medien',
       'Format: 16:9 · 4:3 · 1:1 · 3:1 | Art: Bild · Video · Einbettung | Teile: Bildunterschrift',
-      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in Punkten auf, beim Vier-, Zwei- und Einfachen des Rasters, und blendet dann ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
+      'Eine Fläche mit festem Format, die der Inhalt füllt. Leer zeigt sie das Punktraster. Ein Bild löst sich daraus in runden Farbfeldern seiner eigenen Farben auf: Zellen vom Vierfachen des Rasters ziehen in 260 ms herein, dann vom Zwei- und Einfachen für je 160 ms, jedes Feld füllt 0,86 seiner Zelle; dann werden sie in 180 ms eckig und schließen sich, und das Bild blendet darunter in fast ein, 920 ms insgesamt. Bei reduzierter Bewegung oder angehaltenen Bildern blendet es nur ein; das erste auf dem Bildschirm ist sofort da. Ein Cover ist eine Fläche, über die der Halbton des Systems gelegt ist. Der Avatar ist dieselbe Fläche in der Größe eines Bedienelements, oder doppelt so groß für die Person, um die es auf einem Bildschirm geht. Ohne Bild trägt er einen Namen: Initialen oder ein Zeichen auf einer eigenen Fläche.',
     ],
     mediaCaps: [
       '16:9',
@@ -1353,8 +1364,8 @@ const de: Copy = {
     ],
     screen: [
       'Bildschirm',
-      'Teile: Hintergrund · Menüleiste · Desktop · Taskleiste | kompakt: Menüleiste · Apps · Links · Dock · Schubladen | wartend: Menüleiste · Abschnitte · Splash · Leiste',
-      'Die ganze Anzeige. Fenster liegen frei auf dem Desktop und lassen sich ziehen; ein Fenster im Vollbild nimmt den Desktop ein, und beide Leisten bleiben sichtbar. Ein Bildschirm unter 600 px Breite ist kompakt, gleich auf welchem Gerät: Der Desktop trägt die Apps, die rechtlichen Links stehen in einer Zeile darunter, das Dock schließt den Bildschirm ab, und Fenster öffnen sich als Schubladen über allem. Ein wartender Bildschirm (Starten, Sperren, Ausschalten) hat keinen Desktop: Zwischen seinen Leisten trägt er Abschnitte und einen Splash.',
+      'Teile: Hintergrund · Menüleiste · Desktop · Taskleiste | kompakt: Menüleiste · Apps · Schubladen | wartend: Menüleiste · Abschnitte · Splash · Leiste',
+      'Die ganze Anzeige. Fenster liegen frei auf dem Desktop und lassen sich ziehen; ein Fenster im Vollbild nimmt den Desktop ein, und beide Leisten bleiben sichtbar. Ein Bildschirm unter 600 px Breite ist kompakt, gleich auf welchem Gerät: Der Desktop trägt die Apps, als erste die des Fensters, das die Seite beim Start öffnet, an seinem Fuß steht nichts, und Fenster öffnen sich als Schubladen darüber. Ein wartender Bildschirm (Starten, Sperren, Ausschalten) hat keinen Desktop: Zwischen seinen Leisten trägt er Abschnitte und einen Splash.',
     ],
     screenCaps: ['Zeiger', 'kompakt'],
     wallpaper: [
@@ -1383,14 +1394,13 @@ const de: Copy = {
     menubarCaps: ['Zeiger: kompakte Leiste', 'Touch: reguläre Leiste'],
     taskbar: [
       'Taskleiste',
-      'Dichte: Zeiger · Touch | kompakter Bildschirm: Dock | Plätze: Fenster · Tray',
-      'Der untere Rand des Bildschirms. Sie zeigt, was offen ist: ein Button je Fenster, angeführt vom Zeichen seiner App, das vordere Fenster ausgewählt. Ein minimiertes Fenster verlässt den Desktop und bleibt hier, mit hohlem Zeichen; sein Button holt es zurück. Der Button des vorderen Fensters minimiert es. Ein geschlossenes Fenster verlässt die Taskleiste. Das Tray an ihrem Ende trägt Einstellungen, als Wort. Auf einem kompakten Bildschirm ist sie ein Dock: eine Buttongruppe mit einer Zelle je App.',
+      'Dichte: Zeiger · Touch | Plätze: Fenster · Tray',
+      'Der untere Rand des Bildschirms. Sie zeigt, was offen ist: ein Button je Fenster, angeführt vom Zeichen seiner App, das vordere Fenster ausgewählt. Ein minimiertes Fenster verlässt den Desktop und bleibt hier, mit hohlem Zeichen; sein Button holt es zurück. Der Button des vorderen Fensters minimiert es. Ein geschlossenes Fenster verlässt die Taskleiste. Das Tray an ihrem Ende trägt Einstellungen, als Wort. Ein kompakter Bildschirm hat keine.',
     ],
     taskbarCaps: [
       'Zeiger: kompakte Buttons, jeder vom Zeichen seiner App angeführt, das vordere Fenster ausgewählt',
       'ein minimiertes Fenster behält seinen Button, mit hohlem Zeichen; ein geschlossenes verlässt die Taskleiste',
       'Touch: reguläre Buttons',
-      'kompakter Bildschirm: ein Dock. Das Zeichen ist hohl, wenn die App nicht offen ist',
     ],
     apps: [
       'App-Raster',
@@ -1472,8 +1482,8 @@ const de: Copy = {
     ],
     drawers: [
       'Schublade',
-      'Höhe: ihr Inhalt · höchstens der Bildschirm weniger 24 | Teile: Griff · Titelleiste · Werkzeugleiste · Körper · Aktionen | Stapel: vorn · einer zurück · zwei zurück | Bewegung: langsam, Feder · bei reduzierter Bewegung ein Überblenden',
-      'Was ein Fenster auf einem Telefon ist, unter 600 px Breite. Sie steigt vom unteren Rand auf, nicht aus dem, was sie geöffnet hat, so breit wie der Bildschirm, unter der Menüleiste und über dem Dock, mit dem Schleier zwischen ihr und dem, was dahinter liegt. Sie ist so hoch wie ihr Inhalt. Ist er höher als der Bildschirm, bleiben 24 px des Bildschirms über ihr sichtbar, und der Körper scrollt; in einer kurzen Schublade scrollen die Aktionen an ihrem Fuß mit dem Körper. Sie hat keinen Schließen-Button: Der Griff ist der Weg hinaus, einen Finger hoch zu fassen. Sie folgt dem Finger und geht weg, wenn der Griff gedrückt, über die halbe Schublade nach unten gezogen oder weggeschnippt wird, bei einem Tippen auf den Schleier oder mit Esc; früher losgelassen, federt sie zurück. Ihr Button im Dock holt sie zurück. Sie ist modal: Der Fokus geht hinein und bleibt darin, was dahinter liegt, ist nicht erreichbar, und der Fokus kehrt zu dem zurück, was sie geöffnet hat. Eine Schublade, die aus einer Schublade geöffnet wird, kommt nach vorn. Die dahinter tritt im selben Moment zurück: 8 px an jeder Seite hinein und 8 px nach oben, sodass ihre Oberkante sichtbar bleibt, und unter den Schleier. Zwei können dahinter zu sehen sein. Schließt man die vordere, kommt die nächste nach vorn. Bei reduzierter Bewegung blendet eine Schublade an ihrem Platz ein und aus.',
+      'Höhe: ihr Inhalt · höchstens bis zur Menüleiste | Teile: Griff · Titelleiste · Werkzeugleiste · Körper · Aktionen | Stapel: vorn · einer zurück · zwei zurück | Bewegung: steigt in slow auf enter · geht in slide-exit auf exit · tritt in slow zurück · bei reduzierter Bewegung ein Überblenden',
+      'Was ein Fenster auf einem Telefon ist, unter 600 px Breite. Sie steigt vom unteren Rand auf, nicht aus dem, was sie geöffnet hat, so breit wie der Bildschirm, unter der Menüleiste, mit dem Schleier zwischen ihr und dem, was dahinter liegt, der mit ihr ein- und ausblendet. Sie ist so hoch wie ihr Inhalt. Ist er höher als der Bildschirm, endet sie an der Menüleiste, und der Körper scrollt; in einer kurzen Schublade scrollen die Aktionen an ihrem Fuß mit dem Körper. Sie hat keinen Schließen-Button: Der Griff ist der Weg hinaus, einen Finger hoch zu fassen. Sie folgt dem Finger und geht weg, wenn der Griff gedrückt, über die halbe Schublade nach unten gezogen oder weggeschnippt wird, bei einem Tippen auf den Schleier oder mit Esc; früher losgelassen, federt sie zurück. Weggelegt ist sie geschlossen, und ihre App öffnet sie wieder. Sie ist modal: Der Fokus geht hinein und bleibt darin, was dahinter liegt, ist nicht erreichbar, und der Fokus kehrt zu dem zurück, was sie geöffnet hat. Eine Schublade, die aus einer Schublade geöffnet wird, kommt nach vorn. Die dahinter tritt im selben Moment zurück: 8 px an jeder Seite hinein und 8 px nach oben, sodass ihre Oberkante sichtbar bleibt, und unter den Schleier. Zwei können dahinter zu sehen sein. Schließt man die vordere, kommt die nächste nach vorn. Bei reduzierter Bewegung blendet eine Schublade an ihrem Platz ein und aus.',
     ],
     drawersCaps: [
       'so hoch wie ihr Inhalt',

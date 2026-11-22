@@ -1,6 +1,6 @@
 'use client'
 
-import { AnimatePresence, useIsPresent, useMotionValue } from 'motion/react'
+import { AnimatePresence, useMotionValue, usePresence } from 'motion/react'
 import * as m from 'motion/react-m'
 import { catchError } from 'next/error'
 import {
@@ -26,9 +26,9 @@ import { Path } from '../molecules/Path'
 import { Tag } from '../molecules/Tag'
 import { WindowControls } from '../molecules/WindowControls'
 import { useArrival } from '../motion/enters'
-import { aim, ways } from '../motion/Origin'
-import { curve, duration, reduced, spring, usePainted } from '../motion/vocabulary'
-import { Handle, rises, trap } from './Drawer'
+import { carry } from '../motion/Travels'
+import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
+import { dims, Handle, rises, trap } from './Drawer'
 import { follow } from './follow'
 
 export type Box = { x: number; y: number; w: number; h: number }
@@ -67,7 +67,7 @@ type Props = {
   // An edge is held, so the size shows; its view is on the way, so dots do.
   sizing?: boolean
   waiting?: boolean
-  // What opened it and the id of its taskbar button: it grows out of the one and shrinks into the other.
+  // What opened it and the id of its taskbar button: it travels from the one, back to it, and to the other.
   opener?: Element | null
   task?: string
   // Opened by the visitor just now: it takes the focus at its heading.
@@ -154,15 +154,15 @@ export function Window(props: Props) {
   const { id, title, box, front, full, away = false, opener, task, waiting, t, act, after } = props
   const root = useRef<HTMLElement>(null)
   const origin = useRef<HTMLDivElement>(null)
-  // How far down a drawer is, and how fast it was let go.
+  const frame = useRef<HTMLDivElement>(null)
+  // How far down a drawer is.
   const y = useMotionValue('0%')
-  const flung = useRef(0)
   const [kept, setKept] = useState(false)
   const size = useRef<HTMLSpanElement>(null)
   const painted = usePainted()
   // Whether it has opened, so what it holds can arrive; what the server painted is open.
   const [opened, setOpened] = useState(painted)
-  const present = useIsPresent()
+  const [present, removed] = usePresence()
   const [gone, setGone] = useState(away)
   // It is back in the page before it sets out from the taskbar again.
   if (!away && gone) setGone(false)
@@ -172,21 +172,54 @@ export function Window(props: Props) {
 
   const placed = !!box && 'x' in box
   const drawer = props.back !== undefined
+  // On a desk it is one box that travels, in as it opens or comes back from the taskbar, out as it is put away or
+  // closed; a drawer rises and leaves as it does, and what the server painted is there already.
+  const leaving = away || !present
+  const [travel, setTravel] = useState<'in' | 'out' | undefined>(
+    painted || drawer ? undefined : 'in',
+  )
+  if (!drawer && leaving && travel !== 'out') setTravel('out')
+  if (!drawer && !leaving && travel === 'out') setTravel('in')
   const modal = drawer && !!act
   const handled = !!act && !!after && placed && !full && !props.still
   const sized = handled && !props.oneSize
   // Chrome follows the device unless a density is asked for: compact under a pointer, regular under a finger.
   const chrome = props.density === 'pointer' ? 'compact' : props.density ? undefined : 'chrome'
-  const wasAway = useRef(away)
   const focused = useRef(false)
 
-  // It shrinks into its taskbar button and grows back out of it; opening and closing are its opener's.
-  useLayoutEffect(() => {
-    if (origin.current?.offsetWidth) {
-      aim(origin.current, away || wasAway.current ? byId(task) : opener)
-    }
+  // It goes to its taskbar button and comes back from it; opening and closing are its opener's.
+  const stop = useRef<(clear?: boolean) => void>(undefined)
+  const wasAway = useRef(false)
+  // What it closes back to: what opened it, which its taskbar button does not become by bringing it back.
+  const home = useRef(opener)
+  useEffect(() => {
+    if (opener?.id !== task) home.current = opener
+  }, [opener, task])
+  const travelled = useEffectEvent((way: 'in' | 'out') => {
+    const fromTask = way === 'in' ? wasAway.current : away
     wasAway.current = away
-  }, [away, present, opener, task])
+    // One remembered in the taskbar is hidden from the start, with nowhere to travel from.
+    if (root.current!.hidden) return
+    const back = opener?.id === task ? home.current : opener
+    return carry(frame.current!, root.current!, way, fromTask ? byId(task) : back, () => {
+      if (way === 'in') return setOpened(true)
+      if (!away) return removed?.()
+      // Hidden before it goes back to its place.
+      flushSync(() => setGone(true))
+      stop.current?.(true)
+    })
+  })
+  // Before paint, so its first frame stands on what it leaves.
+  useLayoutEffect(() => {
+    // One that became a drawer on its way is set down in its place.
+    if (!travel || drawer) return stop.current?.(true)
+    stop.current = travelled(travel)
+    return () => stop.current?.()
+  }, [travel, drawer])
+  // A drawer leaves as it does, and one put away already has nowhere to travel as it is closed.
+  useEffect(() => {
+    if (!present && (drawer || gone)) removed?.()
+  }, [present, drawer, gone, removed])
 
   // It takes the focus at its heading, or itself until its view brings one, where it stands: a drawer on its way
   // up is still below the screen.
@@ -230,33 +263,13 @@ export function Window(props: Props) {
   const frames = useMemo(() => {
     if (painted) return
     if (drawer) return rises()
-    // A move the visitor can interrupt, so it opens on the spring; a drawer let go and kept is a window opened.
-    const open = () => ({ opacity: 1, scale: 1, y: '0%', transition: spring('slow') })
-    return {
-      ...ways('slow', () => opener),
-      open,
-      kept: open,
-      away: () => ({
-        ...ways('slow', () => byId(task)).closed(),
-        transition: { duration: duration('slow'), ease: curve('standard') },
-      }),
-    }
-  }, [painted, opener, task, drawer])
-  // A drawer behind steps back on the spring as the one in front rises.
+  }, [painted, drawer])
+  // It moves and sizes as one piece; a drawer behind steps back as the one in front rises, and comes forward again.
   const travels = useMemo(() => {
     if (painted) return
-    return {
-      layout: drawer ? spring('slow') : { duration: duration('slow'), ease: curve('standard') },
-    }
-  }, [painted, drawer])
-  const scrim = useMemo(() => {
-    if (painted) return
-    const fades = (opacity: number) => () => ({
-      opacity,
-      transition: { duration: duration('slow'), ease: curve('standard') },
-    })
-    return { open: fades(1), kept: fades(1), closed: fades(0), away: fades(0) }
+    return { layout: { duration: duration('slow'), ease: curve('standard') } }
   }, [painted])
+  const scrim = useMemo(() => (painted ? undefined : dims()), [painted])
   // A view that is replaced leaves first, all of it together.
   const views = useMemo(() => {
     if (painted) return
@@ -324,10 +337,9 @@ export function Window(props: Props) {
     event.preventDefault()
   }
 
-  // A drawer goes away by its handle, its scrim or Esc, and the focus goes back to what opened it.
-  function putAway(speed = 0) {
-    flung.current = speed
-    flushSync(() => act!({ type: 'minimise' }))
+  // A drawer goes away by its handle, its scrim or Esc, closed, and the focus goes back to what opened it.
+  function putAway() {
+    flushSync(() => act!({ type: 'close' }))
     if (opener instanceof HTMLElement) opener.focus({ preventScroll: true })
   }
   const state = away ? 'away' : kept ? 'kept' : 'open'
@@ -349,6 +361,7 @@ export function Window(props: Props) {
       aria-label={title}
       className="window"
       data-back={props.back || undefined}
+      data-travel={drawer ? undefined : travel}
       data-front={front && present ? '' : undefined}
       data-full={full ? '' : undefined}
       data-placed={placed ? '' : undefined}
@@ -399,18 +412,20 @@ export function Window(props: Props) {
         exit="closed"
         initial="closed"
         onAnimationComplete={(arrived) => {
+          // On a desk the box that travels says so instead.
+          if (!drawer) return
           if (arrived === 'away' && away) setGone(true)
           if (arrived === 'open' || arrived === 'kept') setOpened(true)
         }}
         ref={origin}
         role={modal ? 'dialog' : undefined}
-        custom={flung}
         style={{ y }}
         variants={frames}
       >
         <m.div
           className="window__frame"
           data-surface={props.surface ?? 'window'}
+          ref={frame}
           // It moves and sizes to the desk as one piece, steps back as a drawer, and takes the size its view
           // brings, unless motion is reduced.
           layout={!painted && !reduced()}
@@ -422,7 +437,7 @@ export function Window(props: Props) {
               height={() => origin.current!.offsetHeight}
               label={t.close}
               // A drawer that is only shown, with nothing to put it away, springs back.
-              leave={(speed) => (modal ? putAway(speed) : setKept((kept) => !kept))}
+              leave={() => (modal ? putAway() : setKept((kept) => !kept))}
               stay={() => setKept((kept) => !kept)}
               y={y}
             />

@@ -134,6 +134,8 @@
   --m-long: 960ms;
   --m-fast-exit: calc(var(--m-fast) / 2);
   --m-slow-exit: calc(var(--m-slow) / 2);
+  /* but a part that slides off the screen leaves the way it came, so it takes three quarters */
+  --m-slide-exit: calc(var(--m-slow) * 0.75);
   /* the delays across what comes as many, from its first to its last */
   --m-spread: 220ms;
   /* what arrives in turn: the wait before the first, the turn between one and the next, and how many take a turn */
@@ -156,6 +158,17 @@
   --m-hold: 480ms;
   /* how long a note stands in place of the text it covers */
   --m-note: 2000ms;
+  /* a picture resolving in swatches of its own colours: the coarsest sweep in across it, each finer step follows, then
+     they close up; a swatch takes grow to come, the sweep runs over wave, and a swatch fills a share of its cell, starts
+     a finer step at a share of that, and closes up past it so none show between */
+  --m-swatch-sweep: 260ms;
+  --m-swatch-step: var(--m-fast);
+  --m-swatch-close: 180ms;
+  --m-swatch-wave: 160ms;
+  --m-swatch-grow: 100ms;
+  --m-swatch-fill: 0.86;
+  --m-swatch-from: 0.6;
+  --m-swatch-closed: 1.04;
   /* curves: a move that stays on screen, what arrives, what leaves, and the two of the long move */
   --m-standard: cubic-bezier(0.2, 0, 0, 1);
   --m-enter: cubic-bezier(0, 0, 0, 1);
@@ -167,6 +180,15 @@
   --m-travel: calc(var(--m-slow) * 2);
   --m-across: cubic-bezier(0.5, 0, 0.2, 1);
   --m-up: cubic-bezier(0.1, 0, 0, 1);
+  /* a crossfade: one fades in at the rate the other fades out */
+  --m-even: linear;
+  /* a swatch of a picture growing and squaring off: quick, then settling, a cubic ease-out */
+  --m-swatch: cubic-bezier(0.333, 1, 0.667, 1);
+  /* a window is a box that travels: what it holds shows once this share of the move is done; on the way back the box
+     sets off this long after what it holds has left, and takes this long */
+  --m-lands: 0.75;
+  --m-lag: 40ms;
+  --m-back: calc(var(--m-fast) * 1.25);
   /* the size a part opens from at its own place */
   --m-start: 0.96;
   /* a screw: the angle of its slot, and how far it turns and grows as it comes out */
