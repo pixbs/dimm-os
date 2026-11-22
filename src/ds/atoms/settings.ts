@@ -17,8 +17,8 @@ export function apply(homes: string[] = []) {
     theme: asks('prefers-color-scheme: light') ? 'light' : 'dark',
     contrast: asks('prefers-contrast: more') ? 'more' : 'standard',
     pitch: '8',
-    // The field number that seeds the wallpaper's form.
-    wallpaper: '299',
+    // The step of the wallpaper: which one, through which filter, and in colour.
+    wallpaper: 'passage dots colour',
     hand: apple ? 'dots' : 'squares',
     keys: apple ? 'apple' : 'other',
     motion,

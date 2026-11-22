@@ -16,25 +16,14 @@
     position: relative;
     z-index: var(--z-above);
   }
-  /* The screen of the site fills the browser's window, and sets where the wallpaper's form sits by its shape. */
+  /* The screen of the site fills the browser's window. */
   &[data-fill] {
     height: var(--h-screen);
-
-    & > .wallpaper {
-      --wallpaper-at: var(--wallpaper-wide);
-
-      @media (orientation: portrait) {
-        --wallpaper-at: var(--wallpaper-tall);
-      }
-    }
   }
 }
 /* What only one kind of screen shows: a phone, a desk or a wide one by its width, a pointer or a finger by the
    device. */
 @container screen (width < 600px) {
-  .screen[data-fill] > .wallpaper {
-    --wallpaper-at: var(--wallpaper-phone);
-  }
   [data-for~='desk'] {
     display: none;
   }
@@ -128,20 +117,20 @@
   }
 }
 
-/* The wallpaper: one form in dots, at the strength of a line. Its canvas is the size of the halftone it stands for. */
+/* The wallpaper: a scene as large as the screen, at the strength of a line, and in colour at the strength of muted. */
 .wallpaper {
   position: absolute;
   inset: 0;
-  overflow: hidden;
   pointer-events: none;
 
   & > canvas {
-    position: absolute;
-    top: calc(var(--s-3) * -1);
-    left: calc(var(--s-3) * -1);
-    width: calc(100% + var(--s-3) * 2);
-    height: calc(100% + var(--s-3) * 2);
+    display: block;
+    width: 100%;
+    height: 100%;
     opacity: var(--a-wallpaper);
+  }
+  &[data-colour] > canvas {
+    opacity: var(--a-wallpaper-colour);
   }
 }
 

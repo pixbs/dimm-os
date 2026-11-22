@@ -395,7 +395,7 @@ const en = {
     change: 'Change',
     doc: [
       'Atoms / Motion',
-      'One vocabulary: three durations, five curves, one spread and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
+      'One vocabulary: three durations, five curves, one spread, one turn and one spring, read alike by CSS, by Motion and by the canvas. A part says what it does and the vocabulary times it, so no part sets a timing of its own.',
     ],
     duration: [
       'Duration',
@@ -426,6 +426,13 @@ const en = {
       'spread: 220 ms',
       'The delays across anything that comes as many: dots, letters, rows, lamps. It moves as one sweep on the dot pitch, from its first to its last, however many there are.',
     ],
+    turn: [
+      'Turn',
+      'first: 40 ms | turn: 30 ms | at most: 8 | each: fast',
+      'The rows of a menu arrive in turn: each fades in and drops 4 px into place, a turn after the one before, the first 40 ms after the menu. The eighth and every later one arrive together, so a long menu is never slower than a short one. A rule takes its turn as a row does. Nothing leaves in turn; with reduced motion the rows are there with the menu.',
+    ],
+    turnOpen: 'Open',
+    turnRow: 'Row',
     spring: [
       'Spring',
       'settles within: fast · slow | bounce: none',
@@ -1286,16 +1293,16 @@ const en = {
     screenCaps: ['pointer', 'compact'],
     wallpaper: [
       'Wallpaper',
-      'form: one halftone shape | strength: 16 % | dot: 8 px | field: 100 to 999',
-      'One generated halftone form in paper, behind everything, at the strength of a line. Where the form sits is a setting of the screen; the field number moves it from there. It pours in at the start, drifts on a path of its field, slowly enough to look still at a glance, leans toward the pointer over the empty desk, and pours to its new place as the dial turns. Under reduced motion and under pause it is still; while the tab is hidden or the desk covered, it stops.',
+      'scene: Passage | filter: dots · ASCII | inks: paper · orange · blue · mint | strength: 16 %, in colour 64 % | dot: 8 px',
+      'A scene behind everything that moves and answers the pointer over the desk. It pours ink into a grid of tones, two samples to the pitch each way, and names one of four inks for each sample. The grid is drawn through one of two filters. Dots: one dot to the pitch, as wide as the ink under it is strong, so two full dots touch. ASCII: a cell is one pitch wide and two high, and its sign is the one of the mono face whose shape fits the ink best. In colour each dot or sign is in the ink of its place, at the strength of muted. Without colour everything is in the paper ink, at the strength of a line; on a light surface that is the ink of the theme. A scene is laid out on the size of its screen and on the pitch, and a change of either starts it afresh. It runs at 30 frames a second, and stops while the tab is hidden or the desk covered. Under reduced motion and under pause it is drawn once and holds still. A plain wallpaper is not drawn. Passage: dragonflies come in at the bottom left and leave at the top right, the near ones larger, faster and stronger, and each moves aside for the pointer.',
     ],
     wallpaperCaps: [
-      'pitch 8, the default; where the circle sits is a setting of the screen',
-      'pitch 5, set in Preferences',
+      'dots, in colour: the default',
+      'dots',
+      'ASCII, in colour',
+      'ASCII',
       'pitch 12, set in Preferences',
-      'the field, turned by the dial of Preferences',
     ],
-    field: 'Wallpaper field',
     menubar: [
       'Menu bar',
       'density: compact · regular | slots: mark and name · menus · status',
@@ -1406,8 +1413,8 @@ const en = {
     ],
     menu: [
       'Menu',
-      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, unfolding from the edge it hangs from',
-      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and unfolds from that edge. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
+      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
+      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
     ],
     menuCaps: [
       'menu',

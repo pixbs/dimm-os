@@ -407,7 +407,7 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung, ein Takt und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
@@ -438,6 +438,13 @@ const de: Copy = {
       'spread: 220 ms',
       'Die Verzögerungen über alles, was als Vieles kommt: Punkte, Buchstaben, Zeilen, Lampen. Es bewegt sich als ein Durchlauf auf dem Punktraster, vom Ersten zum Letzten, wie viele es auch sind.',
     ],
+    turn: [
+      'Takt',
+      'first: 40 ms | turn: 30 ms | höchstens: 8 | je: fast',
+      'Die Zeilen eines Menüs kommen im Takt: Jede blendet ein und fällt 4 px an ihren Platz, einen Takt nach der vorigen, die erste 40 ms nach dem Menü. Die achte und jede spätere kommen zusammen, sodass ein langes Menü nie langsamer ist als ein kurzes. Eine Trennlinie nimmt ihren Takt wie eine Zeile. Nichts geht im Takt; bei reduzierter Bewegung sind die Zeilen mit dem Menü da.',
+    ],
+    turnOpen: 'Öffnen',
+    turnRow: 'Zeile',
     spring: [
       'Feder',
       'kommt zur Ruhe in: fast · slow | Nachfedern: keines',
@@ -1317,16 +1324,16 @@ const de: Copy = {
     screenCaps: ['Zeiger', 'kompakt'],
     wallpaper: [
       'Hintergrund',
-      'Form: eine Rasterform | Stärke: 16 % | Punkt: 8 px | Feld: 100 bis 999',
-      'Eine erzeugte Rasterform in Papier, hinter allem, in der Stärke einer Linie. Wo die Form sitzt, ist eine Einstellung des Bildschirms; die Feldnummer verschiebt sie von dort. Zu Beginn fließt sie ein, sie wandert auf einem Pfad ihres Felds, so langsam, dass sie auf einen Blick still wirkt, neigt sich über dem leeren Desktop zum Zeiger und fließt an ihren neuen Ort, wenn das Rad gedreht wird. Bei reduzierter Bewegung und angehaltenen Bildern steht sie still; solange der Tab verborgen oder der Desktop verdeckt ist, hält sie an.',
+      'Szene: Passage | Filter: Punkte · ASCII | Tinten: Papier · Orange · Blau · Mint | Stärke: 16 %, in Farbe 64 % | Punkt: 8 px',
+      'Eine Szene hinter allem, die sich bewegt und über dem Desktop auf den Zeiger antwortet. Sie gießt Tinte in ein Raster aus Tonwerten, zwei Proben je Rasterschritt in jede Richtung, und nennt für jede Probe eine von vier Tinten. Das Raster wird durch einen von zwei Filtern gezeichnet. Punkte: ein Punkt je Rasterschritt, so breit, wie die Tinte darunter stark ist; zwei volle Punkte berühren sich. ASCII: Eine Zelle ist einen Rasterschritt breit und zwei hoch, und ihr Zeichen ist das der Mono-Schrift, dessen Form am besten zur Tinte passt. In Farbe trägt jeder Punkt und jedes Zeichen die Tinte seines Orts, in der gedämpften Stärke. Ohne Farbe steht alles in der Papiertinte, in der Stärke einer Linie; auf einer hellen Fläche ist das die Tinte des Modus. Eine Szene richtet sich nach der Größe ihres Bildschirms und nach dem Raster, und eine Änderung an einem von beiden beginnt sie neu. Sie läuft mit 30 Bildern pro Sekunde und hält an, solange der Tab verborgen oder der Desktop verdeckt ist. Bei reduzierter Bewegung und angehaltenen Bildern wird sie einmal gezeichnet und steht still. Ein schlichter Hintergrund wird nicht gezeichnet. Passage: Libellen kommen unten links herein und verlassen den Bildschirm oben rechts, die nahen größer, schneller und kräftiger, und jede weicht dem Zeiger aus.',
     ],
     wallpaperCaps: [
-      'Raster 8, die Voreinstellung; wo der Kreis sitzt, ist eine Einstellung des Bildschirms',
-      'Raster 5, in den Einstellungen gewählt',
+      'Punkte, in Farbe: die Voreinstellung',
+      'Punkte',
+      'ASCII, in Farbe',
+      'ASCII',
       'Raster 12, in den Einstellungen gewählt',
-      'das Feld, gedreht mit dem Rad der Einstellungen',
     ],
-    field: 'Hintergrundfeld',
     menubar: [
       'Menüleiste',
       'Dichte: kompakt · regulär | Plätze: Zeichen und Name · Menüs · Status',
@@ -1437,8 +1444,8 @@ const de: Copy = {
     ],
     menu: [
       'Menü',
-      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, entfaltet von der Kante, an der es hängt',
-      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und entfaltet sich von dieser Kante. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
+      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, aus 96 % an der Ecke, an der es hängt, seine Zeilen im Takt | weiter bewegt: ein Einblenden, halb so schnell',
+      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und wächst aus dieser Ecke, während seine Zeilen im Takt kommen. Ist ein Menü der Leiste offen, öffnet die Bewegung zu einem anderen dieses nur mit einem Einblenden. Ein Menü blendet aus, wenn es schließt. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
     ],
     menuCaps: [
       'Menü',

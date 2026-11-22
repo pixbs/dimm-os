@@ -1,6 +1,10 @@
-// The wallpaper, run by the dot engine in a worker so the page never waits for it.
-import { engine, TICK } from '../motion/engine'
-import { place, seed } from './form'
+// The wallpaper: one engine for every scene, in a worker so the page never waits for it. A scene pours ink into the
+// grid of tones, and the grid is drawn through the filter of the step that is shown.
+import { TICK } from '../motion/engine'
+import { ascii, dots, type Face, SIZE } from './filters'
+import { passage } from './passage'
+import { type Grid, grid as tones, seeded } from './tones'
+import type { Step } from './wallpapers'
 
 // What the page tells it, in CSS pixels: a message may carry any part of it.
 export type Setting = {
@@ -8,110 +12,135 @@ export type Setting = {
   height: number
   ratio: number
   pitch: number
-  // Where the form sits on the screen, as shares of its width and height.
-  at: [number, number]
-  field: number
-  colour: string
-  spread: number
+  step: Step
+  // Paper, orange, blue and mint, as the theme has them.
+  inks: string[]
   // Neither hidden nor covered nor off screen.
   runs: boolean
   // Under reduced motion or pause.
   still: boolean
-  // Where the pointer is over the empty desk.
-  lean: [number, number] | null
+  // Where the pointer is over the desk.
+  pointer: number[] | null
 }
 
-// The grey at which the system's halftone has no dot left, and how far into a cell a full dot reaches.
-const NONE = 122 / 255
-const REACH = 1.22 / Math.SQRT2
-// At most 30 frames a second.
+// Every scene by the name of its wallpaper: a message that names another gets the first.
+const scenes = new Map([['passage', passage]])
+// What every scene takes its chances from.
+const SEED = 299
+// At most 30 frames a second, and a frame that comes late counts as six ticks at most.
 const FRAME = 1000 / 30
+const LATE = 6
+// The face is measured this many times larger than it is drawn, sign by sign through the printable ones.
+const PROBE = 4
+const SIGNS = Array.from({ length: 95 }, (_, index) => String.fromCharCode(32 + index))
+const MONO = 'wallpaper-mono'
+// A canvas draws light text fuller than dark, so the face is measured in white.
+const LIGHT = 'white'
+const FILE = new URL('../../app/(frontend)/[lang]/jetbrains-mono-latin.woff2', import.meta.url)
 
 let canvas: OffscreenCanvas
 let context: OffscreenCanvasRenderingContext2D
 let now: Setting | undefined
-let dots: ReturnType<typeof engine> | undefined
-let form = { x: 0, y: 0, r: 0 }
-// Each particle's home on a form at rest, and how far the form has drifted and leant.
-let homes: Float32Array
-let time = 0
-const lean = { x: 0, y: 0 }
+let grid: Grid
+let scene: ReturnType<typeof passage> | undefined
+let read: ReturnType<typeof ascii> | undefined
+let loaded: boolean | undefined
+// The face as measured, once per pitch.
+const faces = new Map<number, Face>()
 let request = 0
 let last: number | undefined
 let owed = 0
 
-function draw() {
-  dots?.draw(context, now!.colour, 0)
+const font = (size: number) => `400 ${size}px ${MONO}, ui-monospace, monospace`
+
+// How much ink each sign puts in each of the eight parts of its cell, read off the face itself.
+function measure(): Face {
+  const { pitch } = now!
+  const [wide, high] = [pitch * PROBE, pitch * 2 * PROBE]
+  const pen = new OffscreenCanvas(wide, high).getContext('2d', { willReadFrequently: true })!
+  pen.font = font(Math.round(pitch * SIZE) * PROBE)
+  pen.textAlign = 'center'
+  pen.textBaseline = 'middle'
+  pen.fillStyle = LIGHT
+  const most = new Array<number>(8).fill(0)
+  const face = SIGNS.map((sign) => {
+    const parts = new Array<number>(8).fill(0)
+    pen.clearRect(0, 0, wide, high)
+    pen.fillText(sign, wide / 2, high / 2)
+    const { data } = pen.getImageData(0, 0, wide, high)
+    for (let y = 0; y < high; y++)
+      for (let x = 0; x < wide; x++)
+        parts[Math.floor((y * 4) / high) * 2 + Math.floor((x * 2) / wide)] +=
+          data[(y * wide + x) * 4 + 3]
+    parts.forEach((ink, n) => {
+      parts[n] = ink / (255 * (wide / 2) * (high / 4))
+      most[n] = Math.max(most[n], parts[n])
+    })
+    return { sign, parts }
+  })
+  for (const { parts } of face) parts.forEach((ink, n) => (parts[n] = ink / (most[n] || 1)))
+  return face
 }
 
-function build(from: 'pour' | 'form' | 'home') {
-  const { width, height, pitch: step } = now!
-  const cols = Math.ceil(width / step)
-  const rows = Math.ceil(height / step)
-  const old = form
-  form = place(now!)
-  // The halftone of the system, cell by cell: a full dot in the middle, none at the edge, smaller between.
-  const cover = new Uint8Array(cols * rows)
-  for (let cell = 0; cell < cover.length; cell++) {
-    const far = Math.hypot(
-      ((cell % cols) + 0.5) * step - form.x,
-      (Math.floor(cell / cols) + 0.5) * step - form.y,
+// The mono face is fetched when signs are first drawn. Until it has arrived, and in a worker that cannot fetch one,
+// the ramp stands in.
+function signs() {
+  const fonts = (self as unknown as { fonts?: FontFaceSet }).fonts
+  if (loaded === undefined && fonts) {
+    loaded = false
+    const face = new FontFace(MONO, `url(${FILE})`)
+    fonts.add(face)
+    face.load().then(
+      () => {
+        loaded = true
+        read = undefined
+        draw()
+      },
+      () => undefined,
     )
-    const tone = Math.max(NONE, 1 - ((1 - NONE) * far) / form.r)
-    cover[cell] = Math.min(100, Math.max(0, (1 - 0.5 / tone) * (REACH / 0.43) * 100))
   }
-  dots = engine({ step, cols, rows, cover })
-  homes = new Float32Array(dots.particles.length * 2)
-  dots.particles.forEach((p, index) => {
-    homes[index * 2] = p.hx
-    homes[index * 2 + 1] = p.hy
-    if (from === 'home') return
-    // Poured, every dot starts in the middle; formed again, from its place on the form before.
-    const [start, share] = from === 'pour' ? [form, 0] : [old, old.r / form.r]
-    p.x = (start.x + ((p.hx + 0.5) * step - form.x) * share) / step - 0.5
-    p.y = (start.y + ((p.hy + 0.5) * step - form.y) * share) / step - 0.5
-  })
-  if (from !== 'home') dots.release()
-  move()
-  if (from === 'home') dots.settle()
+  if (loaded && !faces.has(now!.pitch)) faces.set(now!.pitch, measure())
+  return (read ??= ascii(faces.get(now!.pitch) ?? null))(grid)
 }
 
-// The form drifts on a path of its field, slowly enough to look still at a glance, and leans toward the pointer.
-function move() {
-  const { width, height, pitch, lean: pointer } = now!
-  const reach = (Math.min(width, height) * 0.06) / pitch
-  const path = (k: number) => {
-    const turn = (2 * Math.PI * time) / ((90 + 60 * seed(now!.field, k)) * 1000)
-    const start = 2 * Math.PI * seed(now!.field, k + 1)
-    return reach * (Math.sin(turn + start) - Math.sin(start))
+function draw() {
+  const { width, height, pitch, inks, step } = now!
+  const ink = (index: number) => inks[step.colour ? index : 0]
+  scene!.paint()
+  context.clearRect(0, 0, width, height)
+  if (step.filter === 'dots') {
+    const all = dots(grid)
+    for (let index = 0; index < (step.colour ? inks.length : 1); index++) {
+      context.fillStyle = inks[index]
+      context.beginPath()
+      for (const [x, y, radius, named] of all)
+        if (!step.colour || named === index) {
+          context.moveTo(x + radius, y)
+          context.arc(x, y, radius, 0, Math.PI * 2)
+        }
+      context.fill()
+    }
+    return
   }
-  const towards = (to: number | undefined, from: number) =>
-    to === undefined ? 0 : Math.max(-3, Math.min(3, ((to - from) * 0.1) / pitch))
-  lean.x += (towards(pointer?.[0], form.x) - lean.x) * 0.04
-  lean.y += (towards(pointer?.[1], form.y) - lean.y) * 0.04
-  const x = path(5) + lean.x
-  const y = path(7) + lean.y
-  dots!.particles.forEach((p, index) => {
-    p.hx = homes[index * 2] + x
-    p.hy = homes[index * 2 + 1] + y
-  })
+  context.font = font(Math.round(pitch * SIZE))
+  context.textAlign = 'center'
+  context.textBaseline = 'middle'
+  for (const [sign, x, y, named] of signs()) {
+    context.fillStyle = ink(named)
+    context.fillText(sign, x, y)
+  }
 }
 
-const moves = () => !!dots && now!.runs && !now!.still
+const moves = () => !!scene && now!.runs && !now!.still
 
 function frame(at: number) {
   request = 0
   if (!moves()) return
   request = requestAnimationFrame(frame)
   if (last !== undefined && at - last < FRAME - 4) return
-  // A frame that comes late counts as five ticks at most: the form slows down, it does not jump.
-  owed += last === undefined ? TICK : Math.min(at - last, TICK * 5)
+  owed += last === undefined ? TICK : Math.min(at - last, TICK * LATE)
   last = at
-  for (; owed >= TICK; owed -= TICK) {
-    time += TICK
-    move()
-    dots!.tick(now!.spread)
-  }
+  for (; owed >= TICK; owed -= TICK) scene!.step(now!.pointer)
   draw()
 }
 
@@ -129,25 +158,27 @@ self.onmessage = ({ data }: MessageEvent<Partial<Setting> & { canvas?: Offscreen
     context = canvas.getContext('2d')!
     return
   }
-  // What was drawn before, if anything was: a message may arrive before the first whole setting.
-  const was = dots && now
+  const was = now
   now = { ...now!, ...data }
-  // A lean alone changes nothing on a form that holds still.
-  if (!moves() && Object.keys(data).every((name) => name === 'lean')) return
-  const sized = ['width', 'height', 'ratio', 'pitch', 'at'].some(
-    (name) =>
-      JSON.stringify(was?.[name as keyof Setting]) !== JSON.stringify(now![name as keyof Setting]),
-  )
-  if (sized) {
+  // A message may arrive before the first whole setting.
+  if (!now.step) return
+  // Another size of the screen, dot or wallpaper starts the scene afresh; another filter, colour or theme only
+  // draws the same moment of it another way.
+  const fresh =
+    !scene ||
+    (['width', 'height', 'ratio', 'pitch'] as const).some((name) => was![name] !== now![name]) ||
+    was!.step.wallpaper !== now.step.wallpaper
+  if (fresh) {
     canvas.width = now.width * now.ratio
     canvas.height = now.height * now.ratio
     context.setTransform(now.ratio, 0, 0, now.ratio, 0, 0)
-    // It pours in at the start; a screen that changes size or dot is drawn again at rest.
-    build(was || now.still ? 'home' : 'pour')
-  } else if (was && was.field !== now.field) {
-    build(now.still ? 'home' : 'form')
+    grid = tones(now.width, now.height, now.pitch)
+    const named = scenes.get(now.step.wallpaper)
+    const start = typeof named === 'function' ? named : passage
+    scene = start(grid, now.width, now.height, seeded(SEED))
+    read = undefined
   }
-  if (now.still) dots?.settle()
-  if (!moves() || sized || data.colour) draw()
+  // The pointer alone changes nothing that is not already being drawn.
+  if (fresh || Object.keys(data).some((name) => name !== 'pointer' && name !== 'runs')) draw()
   wake()
 }

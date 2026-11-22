@@ -11,7 +11,6 @@ import { Row } from '../molecules/Row'
 import { WindowControls } from '../molecules/WindowControls'
 import { Apps, Dock, Screen, type Shortcut, type Task, Taskbar } from '../organisms/Screen'
 import { Window } from '../organisms/Window'
-import { FieldDial } from './Changing'
 import { Asking, Dialogs, Menubar, Menus, Notices, Palettes, Phone } from './Floats'
 import type { Copy } from './copy/en'
 import { Handled, Replaced } from './Handled'
@@ -279,10 +278,17 @@ export function Shell(props: Props) {
       </Entry>
       <Entry text={t.wallpaper}>
         <Specs caps={t.wallpaperCaps}>
-          <Screen className="box" style={sized(70, 35)} />
-          <Screen className="box" data-pitch="5" style={sized(35, 35)} />
-          <Screen className="box" data-pitch="12" style={sized(35, 35)} />
-          <FieldDial label={t.field} />
+          {['passage dots colour', 'passage dots', 'passage ascii colour', 'passage ascii'].map(
+            (step) => (
+              <Screen className="box" data-wallpaper={step} key={step} style={sized(90, 45)} />
+            ),
+          )}
+          <Screen
+            className="box"
+            data-pitch="12"
+            data-wallpaper="passage dots colour"
+            style={sized(90, 45)}
+          />
         </Specs>
       </Entry>
       <Entry text={t.menubar}>
