@@ -365,10 +365,10 @@ const en = {
     ],
     dot: [
       'Dot',
-      'size: 8 | tone: on · off · signal',
-      'On and off count and show position. Signal marks the one thing that wants attention.',
+      'size: 8 | tone: on · off · signal · hollow',
+      'On and off count and show position. Signal marks the one thing that wants attention. Hollow is a choice not taken, beside the filled dot of the one taken.',
     ],
-    dotCaps: ['on', 'off', 'signal'],
+    dotCaps: ['on', 'off', 'signal', 'hollow'],
     pitch: [
       'Pitch',
       'pitch: 5 · 6 · 8 · 10 · 12 px | dot: 0.36 of the pitch | drawn as: dotted · dot ring · halftone',
@@ -1429,8 +1429,8 @@ const en = {
     ],
     menu: [
       'Menu',
-      'rows: item · checked · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
-      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
+      'rows: item · checked · choice · submenu · disabled | density: compact · regular | parts: rule | compact screen: a drawer | moves: fast, from 96 % at the corner it hangs from, its rows in turn | moved on to: a fade, half of fast',
+      'A raised list of rows: compact where a pointer opens it, regular where a finger does. It hangs from the button that opens it or from the menu bar, 4 px under, flush with the start of the button, or with its end when the button closes a bar, and grows out of that corner as its rows arrive in turn. With one menu of the bar open, moving to another opens that one with a fade alone. A menu fades as it closes. A compact screen has no room to hang anything, so there a menu is a drawer in front of the one it was opened from, and modal. A set of choices marks the one taken with a filled dot and the others with a hollow one. The arrows walk its rows and the menus of the bar, Right opens a submenu, Esc closes the menu and the focus returns to what opened it. Each row shows its key.',
     ],
     menuCaps: [
       'menu',

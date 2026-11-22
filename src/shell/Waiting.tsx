@@ -20,11 +20,11 @@ import { MenuButton } from '@/ds/organisms/Menu'
 import { Screen } from '@/ds/organisms/Screen'
 import { Splash } from '@/ds/organisms/Splash'
 import { Section } from '@/ds/sections/Section'
-import { fromAddress, type Language, languages, toAddress } from '@/i18n/address'
+import { fromAddress, type Language, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 
 import { useMinute, useZone } from './Clock'
-import { legalMenu } from './menus'
+import { languageMenu, legalMenu } from './menus'
 
 // The screens that wait: the start, who comes in (as a guest, by a personal link, by a password), and the end.
 export type Waiting = 'boot' | 'login' | 'link' | 'other' | 'shutdown'
@@ -333,7 +333,6 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
     minute === null
       ? ''
       : new Intl.DateTimeFormat(locales[language], { timeZone, ...options }).format(minute * 60000)
-  const other = languages.find((one) => one !== language)!
   const visitor = at === 'other' ? null : view.visitor
 
   const enter = async () => {
@@ -385,12 +384,13 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
   return (
     <Screen fill ref={screen} waiting>
       <Top name={site.name} t={t} view={view}>
-        <ButtonLink
-          aria-label={t.language}
-          href={toAddress(other, '/')}
-          hrefLang={other}
-          label={language.toUpperCase()}
+        <MenuButton
+          button={{ 'aria-label': t.language, label: language.toUpperCase() }}
+          end
+          items={languageMenu(language, '/')}
+          label={t.prefsLanguage}
           size="chrome"
+          t={t}
         />
       </Top>
       <div className="screen__main cq">

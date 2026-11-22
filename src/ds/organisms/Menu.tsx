@@ -36,6 +36,9 @@ export type Item =
       act?: () => void
       checked?: boolean
       radio?: boolean
+      // One of a set of choices, marked by a filled dot when taken and a hollow one when not.
+      mark?: boolean
+      lang?: string
       disabled?: boolean
       items?: Item[] | (() => Item[])
       // A state shown at rest, for the catalogue.
@@ -161,9 +164,13 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
           role:
             item.checked === undefined
               ? 'menuitem'
-              : `menuitem${item.radio ? 'radio' : 'checkbox'}`,
+              : `menuitem${item.radio || item.mark ? 'radio' : 'checkbox'}`,
           'aria-checked': item.checked,
-          icon: item.checked === undefined ? undefined : ('check' as const),
+          icon: item.checked === undefined || item.mark ? undefined : ('check' as const),
+          lead: item.mark && (
+            <span className="dot" data-tone={item.checked ? undefined : 'hollow'} />
+          ),
+          lang: item.lang,
           size: menus.size,
           state: item.state,
           tabIndex: -1,
@@ -175,6 +182,7 @@ function List(props: { items: Item[]; label: string; depth: number; menus: Conte
               {...row}
               end={drawer && item.href ? 'arrow-right' : undefined}
               href={item.href}
+              hrefLang={item.href && item.lang}
               key={at}
               style={style}
               onClick={() => {
