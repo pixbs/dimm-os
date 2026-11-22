@@ -56,13 +56,19 @@ test.describe('German interface', () => {
       }
     })
 
-  test('reads the legal links as Impressum, Datenschutz and Cookies', async ({ page }) => {
+  test('reads the legal menu as Rechtliches, with Impressum, Datenschutz and Cookies', async ({
+    page,
+  }) => {
     await emptyDesk(page)
     await page.setViewportSize({ width: 1440, height: 1000 })
     await page.goto('/de', { waitUntil: 'networkidle' })
-    const foot = page.locator('footer[data-for="desk"]')
+    await page.getByRole('menubar').getByRole('menuitem', { name: 'Rechtliches' }).click()
 
-    for (const name of ['Impressum', 'Datenschutz', 'Cookies'])
-      await expect(foot.getByRole('link', { name, exact: true })).toBeVisible()
+    await expect(page.getByRole('menu', { name: 'Rechtliches' }).getByRole('menuitem')).toHaveText([
+      'Impressum',
+      'Datenschutz',
+      'Cookies',
+      'Cookie-Einstellungen…',
+    ])
   })
 })
