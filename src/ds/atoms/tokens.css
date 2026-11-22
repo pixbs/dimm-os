@@ -169,6 +169,11 @@
   --m-travel: calc(var(--m-slow) * 2);
   --m-across: cubic-bezier(0.5, 0, 0.2, 1);
   --m-up: cubic-bezier(0.1, 0, 0, 1);
+  /* a window is a box that travels: what it holds shows once this share of the move is done; on the way back the box
+     sets off this long after what it holds has left, and takes this long */
+  --m-lands: 0.75;
+  --m-lag: 40ms;
+  --m-back: calc(var(--m-fast) * 1.25);
   /* the size a part opens from at its own place */
   --m-start: 0.96;
   /* a screw: the angle of its slot, and how far it turns and grows as it comes out */
