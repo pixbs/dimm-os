@@ -4,10 +4,13 @@ import type { Transition } from 'motion/react'
 import * as m from 'motion/react-m'
 import { type ReactNode, useState } from 'react'
 
+import { Avatar } from '../molecules/Media'
+import { Tag } from '../molecules/Tag'
 import { Decipher } from '../motion/Decipher'
 import { Liquid } from '../motion/Liquid'
 import type { Picture } from '../motion/liquid'
 import { Origin } from '../motion/Origin'
+import { travel } from '../motion/Travels'
 import { reduced, spring } from '../motion/vocabulary'
 import { Cap, u } from './parts'
 
@@ -91,6 +94,32 @@ export function Opens({ caps, text }: { caps: string[]; text: string }) {
       <Origin className="opens__part" open={open} {...way}>
         <p data-surface="window">{text}</p>
       </Origin>
+    </div>
+  )
+}
+
+// An avatar travels into a tag when its button is pressed, and stands where it was when it is pressed again.
+export function Travelled({ label, letters }: { label: string; letters: string }) {
+  const [round, setRound] = useState(0)
+  const [gone, setGone] = useState(false)
+
+  function press() {
+    if (gone) setRound(round + 1)
+    else travel('catalogue')
+    setGone(!gone)
+  }
+
+  return (
+    <div className="played">
+      <button aria-pressed={gone} className="play" onClick={press} type="button">
+        {label}
+      </button>
+      <div className="travelled">
+        <Avatar key={round} leaves="catalogue" size="large" surface="paper">
+          {letters}
+        </Avatar>
+        <Tag lands="catalogue">{letters[0]}</Tag>
+      </div>
     </div>
   )
 }
