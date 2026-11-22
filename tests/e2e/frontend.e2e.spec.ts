@@ -294,6 +294,37 @@ test.describe('Frontend at an address without a window', () => {
     }
   })
 
+  test('answers 404 with the 404 window of the system where the content holds none', async ({
+    page,
+  }) => {
+    await login(page)
+    const id = (
+      await (await page.request.get('/api/windows?where[slug][equals]=404&depth=0')).json()
+    ).docs[0].id
+    const hide = (hidden: boolean) =>
+      page.request.patch(`/api/windows/${id}?locale=en`, { data: { hidden } })
+    try {
+      await hide(true)
+      for (const [path, title, alt] of [
+        ['/does-not-exist', 'Not found', 'The numerals 404 in dots'],
+        ['/de/gibt-es-nicht', 'Nicht gefunden', 'Die Ziffern 404 aus Punkten'],
+      ]) {
+        expect((await page.goto(path))?.status(), path).toBe(404)
+        await expect(front(page)).toHaveText(title)
+        const missing = page.locator('article[data-front]')
+        await expect(missing.locator('.window__bar .path')).toHaveText(
+          path.replace(/^\/de/, '').slice(1),
+        )
+        // The numerals in dots, over their still from the system rather than an upload.
+        await expect(missing.locator('.media__live canvas')).toBeVisible()
+        await expect(missing.locator('figure img')).toHaveAttribute('alt', alt)
+        await expect(missing.locator('figure img')).toHaveAttribute('src', /numerals/)
+      }
+    } finally {
+      await hide(false)
+    }
+  })
+
   test('leaves a real file with a dot to load as it is', async ({ request }) => {
     for (const path of ['/block-previews/cards.png', '/licenses/inter-tight.txt'])
       expect((await request.get(path)).status(), path).toBe(200)
