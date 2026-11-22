@@ -47,7 +47,7 @@ export const curve = (name: Curve) =>
     .map(Number) as [number, number, number, number]
 
 // A token that counts rather than times.
-export const amount = (name: 'run' | 'settle') =>
+export const amount = (name: 'run' | 'settle' | 'nexts') =>
   parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--m-${name}`))
 
 // A move the visitor can interrupt: it settles within the token and never bounces.
