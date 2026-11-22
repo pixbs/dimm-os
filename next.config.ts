@@ -76,6 +76,8 @@ const nextConfig: NextConfig = {
   // AGENTS.md points at the docs Next.js ships instead of carrying a copy of its notes.
   agentRules: false,
   poweredByHeader: false,
+  // Each of the two root layouts has its own document, so the 404 of an address no route answers is a file of its own.
+  experimental: { globalNotFound: true },
   headers: async () => [{ source: '/:path*', headers: security }],
   images: {
     // A picture is made at these widths alone and kept 31 days: the plan makes 5,000 sizes a month and then stops.

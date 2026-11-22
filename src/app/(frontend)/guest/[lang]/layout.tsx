@@ -74,7 +74,7 @@ export const metadata: Metadata = {
   title: { default: 'Dimm OS', template: '%s · Dimm OS' },
 }
 
-export default async function RootLayout({ children, params }: LayoutProps<'/[lang]'>) {
+export default async function RootLayout({ children, params }: LayoutProps<'/guest/[lang]'>) {
   const { lang } = await params
 
   return (
