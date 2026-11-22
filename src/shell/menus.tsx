@@ -1,7 +1,7 @@
 import { change } from '@/ds/atoms/settings'
 import type { Item, Top } from '@/ds/organisms/Menu'
 import { Travels } from '@/ds/motion/Travels'
-import { type Language, toAddress } from '@/i18n/address'
+import { type Language, languages, names, toAddress } from '@/i18n/address'
 import type { Dictionary } from '@/i18n/en'
 import { named, systemKeys } from '@/i18n/keys'
 
@@ -11,6 +11,32 @@ import { tasksOf } from './OnDesk'
 
 // The pitches the dot can be set to.
 const pitches = ['5', '6', '8', '10', '12']
+
+// The themes, the device's first; nothing changes until one is chosen.
+export function themeMenu(t: Dictionary, chosen: string | null): Item[] {
+  const themes = [
+    [null, t.system],
+    ['dark', t.dark],
+    ['light', t.light],
+  ] as const
+  return themes.map(([theme, label]) => ({
+    label,
+    mark: true,
+    checked: chosen === theme,
+    act: () => change({ theme }),
+  }))
+}
+
+// The languages by their own names: the other is a plain link to the same window, the one in force only closes.
+export function languageMenu(language: Language, path: string): Item[] {
+  return languages.map((one) => ({
+    label: names[one],
+    lang: one,
+    mark: true,
+    checked: one === language,
+    href: one === language ? undefined : toAddress(one, path),
+  }))
+}
 
 // The legal windows under the names they have, then consent; the row of its preferences opens a window that asks.
 export function legalMenu(
@@ -42,6 +68,8 @@ export function menus(props: {
   search: () => void
   commands: ReturnType<typeof commandsOf>
   legal: Item[]
+  theme: Item[]
+  languages: Item[]
 }): Top[] {
   const { t, language, desk, act, commands } = props
   const key = (command: keyof typeof systemKeys) => named(language, systemKeys[command])
@@ -94,11 +122,7 @@ export function menus(props: {
       act: () => act({ type: 'full' }),
       disabled: !top || compact(desk) || oneSize,
     },
-    {
-      label: t.theme,
-      act: () =>
-        change({ theme: document.documentElement.dataset.theme === 'light' ? 'dark' : 'light' }),
-    },
+    { label: t.theme, items: props.theme },
     {
       label: t.dot,
       items: () =>
@@ -155,7 +179,16 @@ export function menus(props: {
     { label: t.help, items: help },
   ]
   const all = [...others, { label: t.legal, items: props.legal }]
+  // On a phone the theme and the language stand here, each showing the choice in force at its end.
+  const inForce = (items: Item[]) =>
+    items.find((item) => item !== 'rule' && item.checked) as Exclude<Item, 'rule'> | undefined
+  const appearance: Item[] = [
+    { label: t.theme, meta: inForce(props.theme)?.label, items: props.theme },
+    { label: t.prefsLanguage, meta: inForce(props.languages)?.label, items: props.languages },
+    'rule',
+  ]
   const system: Item[] = [
+    ...(onPhone ? appearance : []),
     about,
     // It opens a window of settings, so it ends in an ellipsis; the phone keeps its row as it was.
     link('/preferences', onPhone ? t.preferences : `${t.preferences}…`, 'preferences'),
