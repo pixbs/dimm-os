@@ -71,9 +71,10 @@ test.describe('Consent', () => {
     await page.locator('#window-cookies').getByRole('button', { name: 'Close' }).click()
     expect((await consent(page)).on).toEqual([])
 
+    // At the desk's own address the question opens in front again.
     await page.evaluate(() => localStorage.removeItem('consent'))
-    await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.locator('#window-cookies')).toBeVisible()
+    await page.goto('/', { waitUntil: 'networkidle' })
+    await expect(page.locator('#window-cookies')).toHaveAttribute('data-front')
     await page.locator('#window-cookies').getByRole('heading', { level: 1 }).focus()
     await page.keyboard.press('Escape')
     await expect(page.locator('#window-cookies')).toHaveCount(0)

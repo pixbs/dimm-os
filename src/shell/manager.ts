@@ -159,7 +159,7 @@ function beside(state: Windows, path: string, under: string): Windows {
   const ahead = fit(front.box, desk)
   const free = front.mode === 'float' && front.placed && ahead.x + ahead.w <= x
   const to: Partial<Entry> = free
-    ? { box: { ...one.box, x, y: Math.round((desk.h - h) / 2) }, placed: true }
+    ? { box: { ...one.box, x, y: Math.round((desk.h - h) / 2) }, placed: true, covered: false }
     : { covered: true }
   return {
     ...state,
@@ -258,19 +258,23 @@ export function manager(state: Windows, action: Action): Windows {
     case 'open': {
       const { path, opener = null, alone } = action
       const window = windowOf(path)
-      // Only a window not yet open goes behind, and only behind one; alone, it waits in the taskbar.
-      const under = action.behind && !target ? front(state) : undefined
-      if (under) {
+      // Behind goes under the window in front, one restored from this tab too; alone, it waits in the taskbar.
+      const under = action.behind ? front(state) : undefined
+      if (under && under !== window) {
         // It takes no focus, which would bring it forward.
-        const added = { ...entry(path, null, undefined), covered: alone }
+        const asked = { ...(target ?? entry(path, null, undefined)), at: path, covered: alone }
+        const kept: Entry = alone
+          ? { ...asked, mode: 'min', was: asked.mode === 'min' ? asked.was : asked.mode }
+          : { ...asked, mode: asked.mode === 'min' ? asked.was : asked.mode }
         // The window in front takes the focus, as one the visitor opened.
-        const open = state.open.map((one) =>
-          one.path === under ? { ...one, opener: one.opener ?? null } : one,
-        )
+        const open = (
+          target ? state.open.map((one) => (one === target ? kept : one)) : [...state.open, kept]
+        ).map((one) => (one.path === under ? { ...one, opener: one.opener ?? null } : one))
+        const rest = others(window).filter((path) => path !== under)
         const behind = placed({
           ...state,
-          open: [...open, alone ? { ...added, mode: 'min' as const } : added],
-          z: alone ? [window, ...state.z] : [...others(under), window, under],
+          open,
+          z: alone ? [window, ...rest, under] : [...rest, window, under],
         })
         return alone ? behind : beside(behind, window, under)
       }

@@ -248,6 +248,14 @@ describe('the window manager', () => {
       { type: 'open', path: '/cookies', behind: true },
     )
     expect(stack(drawer)).toEqual(['/cookies', '/accessibility'])
+    // One restored from the tab stays behind as well.
+    const restored = after(
+      start(view('/about')),
+      { type: 'restore', windows: [view('/cookies')] },
+      { type: 'desk', w: 1440, h: 820, room: { x: 112, w: 1304 } },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(front(restored)).toBe('/about')
     const empty = after(start(null), { type: 'open', path: '/cookies', behind: true })
     expect(front(empty)).toBe('/cookies')
   })
