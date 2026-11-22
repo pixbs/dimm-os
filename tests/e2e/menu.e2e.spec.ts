@@ -347,6 +347,16 @@ test.describe('The theme and the language', () => {
     await expect(page).toHaveURL(/\/de\/work$/)
     await expect(bar(page, 'Sprache: Deutsch')).toBeVisible()
   })
+
+  test('the login screen keeps its language button, which opens the same menu', async ({
+    page,
+  }) => {
+    await page.goto('/login', { waitUntil: 'networkidle' })
+    await bar(page, 'Language: English').click()
+    await expect(
+      menu(page, 'Language').getByRole('menuitemradio', { name: 'Deutsch' }),
+    ).toHaveAttribute('href', '/de')
+  })
 })
 
 test.describe('Menus on a tablet', () => {
@@ -427,7 +437,7 @@ test.describe('Menus on a phone', () => {
       menu(page, 'Dimm OS').getByRole('menuitem', { name: 'Language' }).locator('.row__meta'),
     ).toHaveText('English')
     await theme.click()
-    await expect(page.locator('dialog', { has: menu(page, 'Theme') })).toBeVisible()
+    await expect(page.getByRole('dialog', { name: 'Theme' })).toBeVisible()
     await menu(page, 'Theme').getByRole('menuitemradio', { name: 'Light' }).click()
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'light')
     await expect(page.locator('dialog')).toHaveCount(0)

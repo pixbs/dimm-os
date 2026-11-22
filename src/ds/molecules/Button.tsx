@@ -42,7 +42,7 @@ export function Button(props: Props) {
       type="button"
       {...rest}
       aria-busy={busy ? true : undefined}
-      aria-label={label ? undefined : name}
+      aria-label={rest['aria-label'] ?? (label ? undefined : name)}
       className="btn"
       data-icon={label || keyed ? undefined : ''}
       data-size={size}
@@ -79,7 +79,7 @@ export function ButtonLink({
   return (
     <a
       aria-disabled={rest.href ? undefined : true}
-      aria-label={label ? undefined : name}
+      aria-label={rest['aria-label'] ?? (label ? undefined : name)}
       role={rest.href ? undefined : 'link'}
       {...rest}
       className="btn"
