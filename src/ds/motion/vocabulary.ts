@@ -8,6 +8,8 @@ type Time =
   | 'slow-exit'
   | 'slide-exit'
   | 'travel'
+  | 'back'
+  | 'lag'
   | 'spread'
   | 'next'
   | 'letter'

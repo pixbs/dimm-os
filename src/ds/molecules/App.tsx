@@ -55,7 +55,8 @@ export function App({
       onClick={onClick}
       type={href ? undefined : 'button'}
     >
-      <span className="app__tile" data-surface={tile}>
+      {/* What a window it opens travels from, and back to. */}
+      <span className="app__tile" data-surface={tile} data-travels-from="">
         <Icon name={icon} size={size ? 's' : undefined} />
         {open && (
           <span className="dot app__open" data-pops={painted ? undefined : ''} data-tone="signal" />

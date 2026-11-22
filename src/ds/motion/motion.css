@@ -78,7 +78,8 @@
 }
 
 /* A thing that travels flies in the top layer, over every screen, as the place it lands in and at that place; what it
-   was lies over what it becomes, in the middle of its box and cut to it. A class of its own outweighs all of this. */
+   was lies over what it becomes, in the middle of its box and cut to it. A box that travels over its own place is cut
+   the same way. A class of its own outweighs all of this. */
 :where([data-travels='flies']) {
   inset: auto;
   margin: 0;
@@ -114,6 +115,17 @@
 @keyframes travels-in {
   from {
     opacity: 0;
+  }
+}
+/* What a box that travels holds rises a step into place as it arrives, and sinks a step as it leaves. */
+@keyframes rises {
+  from {
+    transform: translateY(var(--s-2));
+  }
+}
+@keyframes sinks {
+  to {
+    transform: translateY(var(--s-2));
   }
 }
 

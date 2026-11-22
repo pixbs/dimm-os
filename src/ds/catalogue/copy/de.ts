@@ -411,7 +411,7 @@ const de: Copy = {
     ],
     duration: [
       'Dauer',
-      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | slide exit: drei Viertel | travel: zweimal slow',
+      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | slide exit: drei Viertel | travel: zweimal slow | back: 1,25 fast | lag: 40',
       'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat; was vom Bildschirm gleitet, drei Viertel.',
     ],
     durationRows: [
@@ -426,6 +426,11 @@ const de: Copy = {
         'Ein Hinweis anstelle des Texts, den er verdeckt, wie Link kopiert in der Taskleiste.',
       ],
       ['640 ms', 'Etwas, das von einem Platz zu einem anderen wandert.'],
+      [
+        '200 ms',
+        'Ein Fenster, das zu seiner Taste in der Taskleiste oder zu seinem Auslöser zurückgeht.',
+      ],
+      ['40 ms', 'Die Pause, bevor ein Fenster zurückgeht, nachdem sein Inhalt gegangen ist.'],
     ],
     curve: [
       'Kurve',
@@ -478,8 +483,8 @@ const de: Copy = {
     originPart: 'Ein Teil, das sich öffnet und schließt.',
     travel: [
       'Wandern',
-      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte',
-      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
+      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte | ein Fenster: slow hin, back zurück, sein Inhalt bei 3/4',
+      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet. Ein Fenster ist ein Kasten, der wandert: von seinem Auslöser an seinen Platz über slow auf der Standardkurve, sein Inhalt ungesehen, bis drei Viertel der Bewegung getan sind, und zurück zu seiner Taste in der Taskleiste oder zu seinem Auslöser einen Moment, nachdem sein Inhalt gegangen ist, über back auf der Kurve exit. Bei reduzierter Bewegung blendet es, wo es steht.',
     ],
     travelLetters: 'OS',
     decipher: [

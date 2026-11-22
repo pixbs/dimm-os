@@ -399,7 +399,7 @@ const en = {
     ],
     duration: [
       'Duration',
-      'fast: 160 | slow: 320 | long: 960 | exit: half | slide exit: three quarters | travel: twice slow',
+      'fast: 160 | slow: 320 | long: 960 | exit: half | slide exit: three quarters | travel: twice slow | back: 1.25 fast | lag: 40',
       'What leaves takes half the time it took to arrive; what slides off the screen, three quarters.',
     ],
     durationRows: [
@@ -411,6 +411,8 @@ const en = {
       ['240 ms', 'A drawer leaving the way it came.'],
       ['2000 ms', 'A note in place of the text it covers, as Link copied in the taskbar.'],
       ['640 ms', 'A thing that travels from one place to another.'],
+      ['200 ms', 'A window going back to its taskbar button or to what opened it.'],
+      ['40 ms', 'The wait before a window sets off back, once what it holds has left.'],
     ],
     curve: [
       'Curve',
@@ -463,8 +465,8 @@ const en = {
     originPart: 'A part that opens and closes.',
     travel: [
       'Travel',
-      'takes: travel | across: across | up: up | size and surface: standard | letters: fade in the middle half',
-      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands.',
+      'takes: travel | across: across | up: up | size and surface: standard | letters: fade in the middle half | a window: slow in, back out, what it holds at 3/4',
+      'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands. A window is one box that travels: from what opened it to its place over slow on the standard curve, what it holds unseen until three quarters of the move are done, and back to its taskbar button or to what opened it a lag after what it holds has left, over back on the exit curve. With reduced motion it fades where it stands.',
     ],
     travelLetters: 'OS',
     decipher: [
