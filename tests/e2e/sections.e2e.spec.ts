@@ -85,7 +85,7 @@ test.describe('Sections', () => {
     await expect(grow(page).getByRole('heading', { level: 1 })).toHaveText('Grow')
   })
 
-  test('lets a section that enters by scroll play once, and leaves what the server painted as it is', async ({
+  test('lets what lies below the fold arrive once, as it is scrolled to, and leaves what the server painted as it is', async ({
     page,
   }) => {
     await page.setViewportSize({ width: 1280, height: 720 })
@@ -94,34 +94,34 @@ test.describe('Sections', () => {
     await body.evaluate((body) => body.scrollTo(0, body.scrollHeight))
     await expect(grow(page).locator('[data-enter]')).toHaveCount(0)
 
-    // An item opened in its window is drawn here: what lies below the fold waits for the scroll.
+    // An item opened in its window is drawn here: its parts below the fold wait for the scroll, not its sections.
     await page.goto('/work')
     await grow(page).getByRole('link', { name: 'Grow' }).click()
     const call = section(grow(page), 'A closing line that asks for one thing')
-    await expect(call).toHaveAttribute('data-enter', 'wait')
-    await expect(section(grow(page), 'Grow')).not.toHaveAttribute('data-enter')
+    const heading = call.getByRole('heading', { level: 2 })
+    await expect(heading).toHaveAttribute('data-enter', 'wait')
+    await expect(call).not.toHaveAttribute('data-enter')
+    await expect(grow(page).getByText('Grow', { exact: true }).first()).toBeVisible()
 
     await body.evaluate((body) => body.scrollTo(0, body.scrollHeight))
-    await expect(call).toHaveAttribute('data-enter', 'in')
-    await expect(call).toHaveCSS('transition-duration', '0.32s')
-    await expect(call).toHaveCSS('opacity', '1')
-    await expect(call).toHaveCSS('transform', 'none')
+    await expect(heading).not.toHaveAttribute('data-enter')
+    await expect(heading).toHaveCSS('opacity', '1')
+    await expect(heading).toHaveCSS('transform', 'none')
 
     // Once is once: scrolled away and back, it stays.
     await body.evaluate((body) => body.scrollTo(0, 0))
     await body.evaluate((body) => body.scrollTo(0, body.scrollHeight))
-    await expect(call).toHaveAttribute('data-enter', 'in')
+    await expect(heading).not.toHaveAttribute('data-enter')
   })
 
-  test('fades a section in place under reduced motion', async ({ page }) => {
+  test('has everything there at once under reduced motion', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize({ width: 1280, height: 720 })
     await page.goto('/work')
     await grow(page).getByRole('link', { name: 'Grow' }).click()
-    const call = section(grow(page), 'A closing line that asks for one thing')
+    await expect(grow(page).locator('.window__view')).toHaveCount(1)
+    await expect(grow(page).getByRole('heading', { level: 1 })).toHaveText('Grow')
 
-    await expect(call).toHaveAttribute('data-enter', 'wait')
-    await expect(call).not.toHaveCSS('transition-property', /transform/)
-    await expect(call).toHaveCSS('transition-property', /opacity/)
+    await expect(grow(page).locator('[data-enter], [data-decode]')).toHaveCount(0)
   })
 })

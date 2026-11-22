@@ -115,6 +115,10 @@ const never = () => () => {}
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
+// The first heading of a window: the title of a Header that opens it, or the title of its frame.
+const titleOf = ({ sections: [first], frame }: WindowView) =>
+  first?.type === 'header' ? first.title : frame.title
+
 // A window's sections in the language they are in, its title until it has any, and as an item the way to its
 // neighbours, which ends its body. On paper its head is a record's and its foot says when it was updated; beside it
 // stands its aside.
@@ -330,7 +334,14 @@ function parts(
         size="compact"
       />
       <BarSpace />
-      {counters && <BarText>{`${pad(counters.position)} / ${pad(counters.total)}`}</BarText>}
+      {counters && (
+        <BarText>
+          {/* The count stands with the title, and settles as the title is decoded. */}
+          <Decipher beside={titleOf(view)}>
+            {`${pad(counters.position)} / ${pad(counters.total)}`}
+          </Decipher>
+        </BarText>
+      )}
     </Bar>
   ) : filtering ? (
     <Bar line="below">

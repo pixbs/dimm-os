@@ -7,6 +7,9 @@ type Time =
   | 'fast-exit'
   | 'slow-exit'
   | 'spread'
+  | 'next'
+  | 'letter'
+  | 'decode'
   | 'wait'
   | 'hold'
   | 'note'
@@ -38,6 +41,10 @@ export const curve = (name: Curve) =>
   read('transitionTimingFunction', name)
     .match(/-?[\d.]+/g)!
     .map(Number) as [number, number, number, number]
+
+// A token that counts rather than times.
+export const amount = (name: 'run' | 'settle') =>
+  parseFloat(getComputedStyle(document.documentElement).getPropertyValue(`--m-${name}`))
 
 // A move the visitor can interrupt: it settles within the token and never bounces.
 export const spring = (name: 'fast' | 'slow') =>

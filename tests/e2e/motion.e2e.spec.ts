@@ -154,18 +154,24 @@ test.describe('Motion', () => {
     const ciphers = await shown()
     const letters = ciphers.slice(0, -1).map(([letters]) => [...letters])
     expect(letters.length).toBeGreaterThan(3)
-    // Its own characters only, the spaces in place, and the start locked before the end.
+    // Read from its start: what is read is itself, a run of six of its own letters ahead, nothing past the run, and
+    // what is not a letter or a digit in place.
+    const own = /[\p{L}\p{N}]/u
     for (const cipher of letters) {
-      expect(cipher.length).toBe([...text].length)
+      const read = cipher.findIndex((letter, at) => letter !== text[at])
+      expect(cipher.length - (read < 0 ? cipher.length : read)).toBeLessThanOrEqual(6)
       expect(
         cipher.every(
-          (letter, at) => text.includes(letter) && (letter === ' ') === (text[at] === ' '),
+          (letter, at) =>
+            letter === text[at] ||
+            (own.test(letter) && own.test(text[at]) && text.includes(letter)),
         ),
       ).toBe(true)
     }
+    expect(letters[0].length).toBe(6)
     expect(letters.at(-1)!.slice(0, 12).join('')).toBe(text.slice(0, 12))
-    expect(letters[0].join('')).not.toBe(text)
-    expect(ciphers.at(-1)![1] - ciphers[0][1]).toBeLessThan(320 + 200)
+    // 16 ms a letter.
+    expect(ciphers.at(-1)![1] - ciphers[0][1]).toBeLessThan([...text].length * 16 + 200)
 
     // With reduced motion the final text is there at once.
     await setting(page, 'motion', 'reduce')

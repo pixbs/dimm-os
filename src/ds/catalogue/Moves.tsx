@@ -4,7 +4,9 @@ import type { Transition } from 'motion/react'
 import * as m from 'motion/react-m'
 import { type ReactNode, useState } from 'react'
 
+import { Heading } from '../molecules/Heading'
 import { Decipher } from '../motion/Decipher'
+import { useArrival } from '../motion/enters'
 import { Liquid } from '../motion/Liquid'
 import type { Picture } from '../motion/liquid'
 import { Origin } from '../motion/Origin'
@@ -91,6 +93,31 @@ export function Opens({ caps, text }: { caps: string[]; text: string }) {
       <Origin className="opens__part" open={open} {...way}>
         <p data-surface="window">{text}</p>
       </Origin>
+    </div>
+  )
+}
+
+// What a window holds, arriving again each time its button is pressed.
+export function Arrives(props: { label: string; title: string; texts: string[] }) {
+  const [played, setPlayed] = useState(0)
+
+  return (
+    <div className="played">
+      <button className="play" onClick={() => setPlayed(played + 1)} type="button">
+        {props.label}
+      </button>
+      <Arrived key={played} texts={props.texts} title={props.title} />
+    </div>
+  )
+}
+
+function Arrived(props: { title: string; texts: string[] }) {
+  return (
+    <div ref={useArrival(true, false)}>
+      <Heading level="heading" title={props.title} />
+      {props.texts.map((text) => (
+        <p key={text}>{text}</p>
+      ))}
     </div>
   )
 }
