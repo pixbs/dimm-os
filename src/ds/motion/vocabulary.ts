@@ -6,6 +6,7 @@ type Time =
   | 'long'
   | 'fast-exit'
   | 'slow-exit'
+  | 'travel'
   | 'spread'
   | 'next'
   | 'letter'
@@ -13,7 +14,7 @@ type Time =
   | 'wait'
   | 'hold'
   | 'note'
-type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop'
+type Curve = 'standard' | 'enter' | 'exit' | 'swing' | 'drop' | 'across' | 'up'
 
 let probe: HTMLElement | undefined
 const known = new Map<string, string>()

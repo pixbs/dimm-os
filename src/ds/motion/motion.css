@@ -77,6 +77,46 @@
   }
 }
 
+/* A thing that travels flies in the top layer, over every screen, as the place it lands in and at that place; what it
+   was lies over what it becomes, in the middle of its box and cut to it. A class of its own outweighs all of this. */
+:where([data-travels='flies']) {
+  inset: auto;
+  margin: 0;
+  border: 0;
+  padding: 0;
+  background-color: transparent;
+  color: inherit;
+  overflow: hidden;
+}
+[data-travels='was'] {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+}
+/* The place it left keeps its room, and the place it lands in waits for it unseen. */
+[data-travels='left'],
+[data-travels='awaited'] {
+  visibility: hidden;
+}
+/* Where nothing travels, it fades out where it was and in where it lands. */
+[data-travels='out'] {
+  animation: var(--m-slow-exit) var(--m-exit) forwards travels-out;
+}
+[data-travels='in'] {
+  animation: var(--m-slow) var(--m-enter) backwards travels-in;
+}
+@keyframes travels-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes travels-in {
+  from {
+    opacity: 0;
+  }
+}
+
 /* The portrait, in the colours of the surface it stands on: line and shirt in its foreground, skin in its background,
    hair at the strength of a line, flattened so that overlapping locks stay opaque. */
 .portrait {

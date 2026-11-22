@@ -2,10 +2,10 @@ import { Fragment } from 'react'
 
 import { MenuButton } from '../organisms/Menu'
 import type { Copy } from './copy/en'
-import { Arrives, Deciphers, Opens, Pictures, Played, Springs } from './Moves'
+import { Arrives, Deciphers, Opens, Pictures, Played, Springs, Travelled } from './Moves'
 import { Doc, Entry, Table } from './parts'
 
-const times = ['fast', 'slow', 'long', 'fast-exit', 'slow-exit', 'note']
+const times = ['fast', 'slow', 'long', 'fast-exit', 'slow-exit', 'note', 'travel']
 // Each curve is shown at the duration it is used with.
 const curves = [
   ['standard', 'slow'],
@@ -13,6 +13,8 @@ const curves = [
   ['exit', 'slow-exit'],
   ['swing', 'long'],
   ['drop', 'long'],
+  ['across', 'travel'],
+  ['up', 'travel'],
 ]
 const columns = Array.from({ length: 40 }, (_, column) => column)
 
@@ -95,6 +97,9 @@ export function Motion({ t }: { t: Copy['motion'] }) {
       </Entry>
       <Entry text={t.origin}>
         <Opens caps={t.originCaps} text={t.originPart} />
+      </Entry>
+      <Entry text={t.travel}>
+        <Travelled label={t.play} letters={t.travelLetters} />
       </Entry>
       <Entry text={t.decipher}>
         <Deciphers heading={t.decipherHeading} label={t.change} texts={t.decipherTexts} />

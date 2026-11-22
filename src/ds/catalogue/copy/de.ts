@@ -407,11 +407,11 @@ const de: Copy = {
     change: 'Ändern',
     doc: [
       'Atome / Bewegung',
-      'Ein Vokabular: drei Dauern, fünf Kurven, eine Streuung, ein Takt, eine Ankunft und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
+      'Ein Vokabular: drei Dauern, sieben Kurven, eine Streuung, ein Takt, eine Ankunft und eine Feder, gleich gelesen von CSS, von Motion und vom Canvas. Ein Teil sagt, was es tut, und das Vokabular gibt den Takt, sodass kein Teil ein eigenes Timing setzt.',
     ],
     duration: [
       'Dauer',
-      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte',
+      'fast: 160 | slow: 320 | long: 960 | exit: die Hälfte | travel: zweimal slow',
       'Was geht, braucht halb so lange, wie es zum Kommen gebraucht hat.',
     ],
     durationRows: [
@@ -424,10 +424,11 @@ const de: Copy = {
         '2000 ms',
         'Ein Hinweis anstelle des Texts, den er verdeckt, wie Link kopiert in der Taskleiste.',
       ],
+      ['640 ms', 'Etwas, das von einem Platz zu einem anderen wandert.'],
     ],
     curve: [
       'Kurve',
-      'im Bild: standard | kommt: enter | geht: exit | long: swing · drop',
+      'im Bild: standard | kommt: enter | geht: exit | long: swing · drop | wandert: across · up',
       'Was kommt, bremst ab; was endgültig geht, beschleunigt. Nur Orange schwingt über, also ist der Signalpunkt das Einzige, das aufspringt.',
     ],
     curveRows: [
@@ -436,6 +437,8 @@ const de: Copy = {
       ['.3, 0, 1, 1', 'Was endgültig geht.'],
       ['.3, 1.5, .55, 1', 'Das Schild: Es schwingt vorbei und kommt zur Ruhe.'],
       ['.55, 0, 1, .45', 'Der Poststempel landet: Er wird im Fallen schneller.'],
+      ['.5, 0, .2, 1', 'Etwas, das wandert, auf seinem Weg hinüber.'],
+      ['.1, 0, 0, 1', 'Etwas, das wandert, auf seinem Weg hinauf.'],
     ],
     spread: [
       'Streuung',
@@ -472,6 +475,12 @@ const de: Copy = {
     ],
     originCaps: ['Aus seinem Auslöser, fast', 'Aus seinem Auslöser, slow', 'Ohne Auslöser im Bild'],
     originPart: 'Ein Teil, das sich öffnet und schließt.',
+    travel: [
+      'Wandern',
+      'dauert: travel | hinüber: across | hinauf: up | Größe und Fläche: standard | Buchstaben: blenden in der mittleren Hälfte',
+      'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet.',
+    ],
+    travelLetters: 'OS',
     decipher: [
       'Entziffern',
       'Buchstabe: 16 ms | höchstens: 480 ms | Lauf: 6 | ein Zähler neben einem Titel: 2/5 seiner Zeit',

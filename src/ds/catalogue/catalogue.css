@@ -321,6 +321,13 @@
   transform: translateX(100%);
   opacity: 100%;
 }
+/* The two places of a thing that travels, at the two ends of a track. */
+.travelled {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: calc(var(--h-regular) * 5);
+}
 /* Columns of dots on the pitch, each arriving later than the one before. */
 .sweep {
   display: flex;
