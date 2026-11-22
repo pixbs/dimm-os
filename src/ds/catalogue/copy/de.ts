@@ -392,7 +392,7 @@ const de: Copy = {
     mark: [
       'Marke',
       'Größe: 8 | Farbe: der Vordergrund · jede Fläche | Zustand: on · off',
-      'Ein kleines Quadrat in der Farbe einer App. Es sagt, wem etwas gehört: der Website in der Menüleiste, einem Fenster in der Taskleiste. Eckig, damit es nie für den Signalpunkt gehalten wird. Off ist ein Umriss: Die App ist nicht geöffnet.',
+      'Ein kleines Quadrat in der Farbe einer App. Es sagt, wem etwas gehört: der Website in der Menüleiste, einem Fenster in der Taskleiste. Eckig, damit es nie für den Signalpunkt gehalten wird. Off ist ein Umriss: Die App ist nicht geöffnet. In einem Menü markiert sie eine Reihe von Wahlen: on die getroffene, off die anderen.',
     ],
     markCaps: ['Vordergrund', 'orange', 'blue', 'mint', 'off', 'auf Papier'],
     barcode: [
@@ -1472,8 +1472,8 @@ const de: Copy = {
     ],
     menu: [
       'Menü',
-      'Zeilen: Eintrag · ausgewählt · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, aus 96 % an der Ecke, an der es hängt, seine Zeilen im Takt | weiter bewegt: ein Einblenden, halb so schnell',
-      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und wächst aus dieser Ecke, während seine Zeilen im Takt kommen. Ist ein Menü der Leiste offen, öffnet die Bewegung zu einem anderen dieses nur mit einem Einblenden. Ein Menü blendet aus, wenn es schließt. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
+      'Zeilen: Eintrag · ausgewählt · Wahl · Untermenü · deaktiviert | Dichte: kompakt · regulär | Teile: Trennlinie | kompakter Bildschirm: eine Schublade | Bewegung: schnell, aus 96 % an der Ecke, an der es hängt, seine Zeilen im Takt | weiter bewegt: ein Einblenden, halb so schnell',
+      'Eine erhabene Liste von Zeilen: kompakt, wo ein Zeiger es öffnet, regulär, wo ein Finger es tut. Es hängt am Button, der es öffnet, oder an der Menüleiste, 4 px darunter, bündig mit dem Anfang des Buttons oder mit seinem Ende, wenn der Button eine Leiste abschließt, und wächst aus dieser Ecke, während seine Zeilen im Takt kommen. Ist ein Menü der Leiste offen, öffnet die Bewegung zu einem anderen dieses nur mit einem Einblenden. Ein Menü blendet aus, wenn es schließt. Ein kompakter Bildschirm hat keinen Platz, etwas aufzuhängen, also ist ein Menü dort eine Schublade vor der, aus der es geöffnet wurde, und modal. Eine Reihe von Wahlen markiert die getroffene mit einer gefüllten Marke und die anderen mit einer hohlen. Die Pfeiltasten gehen durch seine Zeilen und die Menüs der Leiste, Rechts öffnet ein Untermenü, Esc schließt das Menü, und der Fokus kehrt zu dem zurück, was es geöffnet hat. Jede Zeile zeigt ihre Taste.',
     ],
     menuCaps: [
       'Menü',
