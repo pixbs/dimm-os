@@ -422,7 +422,7 @@ export interface Window {
    */
   key?: string | null;
   /**
-   * For previews, search and sharing. Empty, the text of the first Header.
+   * The text of previews, and of search where the SEO tab is empty. Empty, the text of the first Header.
    */
   description?: string | null;
   /**
@@ -443,6 +443,14 @@ export interface Window {
       }[]
     | null;
   related?: (number | Window)[] | null;
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
   slug: string;
   parent?: (number | null) | Window;
   /**
@@ -1420,6 +1428,13 @@ export interface WindowsSelect<T extends boolean = true> {
         id?: T;
       };
   related?: T;
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
+      };
   slug?: T;
   parent?: T;
   kind?: T;
@@ -2114,6 +2129,14 @@ export interface Site {
         }[]
       | null;
   };
+  meta?: {
+    title?: string | null;
+    description?: string | null;
+    /**
+     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
+     */
+    image?: (number | null) | Media;
+  };
   updatedAt?: string | null;
   createdAt?: string | null;
 }
@@ -2176,6 +2199,13 @@ export interface SiteSelect<T extends boolean = true> {
               label?: T;
               id?: T;
             };
+      };
+  meta?:
+    | T
+    | {
+        title?: T;
+        description?: T;
+        image?: T;
       };
   updatedAt?: T;
   createdAt?: T;
