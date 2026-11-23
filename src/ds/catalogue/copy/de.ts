@@ -1436,6 +1436,11 @@ const de: Copy = {
       'Die Apps, die die Redaktion angelegt hat, auf dem Desktop. Der Desktop ist kein Fenster, also gilt die Grenze von drei Spalten für ihn nicht. Auf einem Desktop stehen sie in quadratischen Zellen im 8-px-Raster, die erste Spalte hinab, dann die nächste. Ein Druck, der wandert, trägt eine App in eine andere Zelle, wie Umschalt und ein Pfeil; die Zelle, in der sie landen würde, zeigt das Punktraster einer leeren Box, und Aufräumen stellt alle Apps zurück.',
     ],
     appsCaps: ['Desktop: eine Spalte von oben', 'kompakter Bildschirm: vier nebeneinander'],
+    selectionBox: [
+      'Auswahlrahmen',
+      'Ecken: eckig | Umriss: Haarlinie · Linie | Fläche: Hover | geht: blendet über schnell aus',
+      'Gezogen von einem Ziehen, das auf dem leeren Desktop beginnt, von dort bis zum Zeiger. Jede App, die er berührt, ist ausgewählt, solange er gezogen wird, und zeigt es mit umgekehrtem Namen. Er erscheint sofort und geht, indem er ausblendet; sonst ändert sich nichts auf dem Desktop.',
+    ],
     windows: [
       'Fenster',
       'Dichte: Zeiger · Touch | Teile: Titelleiste · Pfadzeile · Körper · Aktionen · Statusleiste · Griffecke | Steuerung: Punkte · Quadrate | Zustand: vorn · dahinter · Vollbild · minimiert | Fläche: Fenster · Papier | Größe: frei · eine Größe | kompakter Bildschirm: eine Schublade',

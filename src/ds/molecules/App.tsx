@@ -27,6 +27,8 @@ type Props = {
   screen?: 'phone' | 'desk'
   // Its cell on a desk.
   style?: CSSProperties
+  // One of a selection: it says whether it is selected.
+  role?: 'option'
 }
 
 // An icon on a tile with its name under it; the admin picks icon, name and tile.
@@ -43,6 +45,7 @@ export function App({
   state,
   screen,
   style,
+  role,
 }: Props) {
   // A dot the server painted is there already; one that comes later pops.
   const painted = usePainted()
@@ -51,6 +54,7 @@ export function App({
   return (
     <Root
       aria-label={size ? name : undefined}
+      aria-selected={role ? !!selected : undefined}
       className="app"
       data-for={screen}
       data-size={size}
@@ -58,6 +62,7 @@ export function App({
       href={href}
       lang={lang}
       onClick={onClick}
+      role={role}
       style={style}
       type={href ? undefined : 'button'}
     >

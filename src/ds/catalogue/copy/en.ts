@@ -1385,6 +1385,11 @@ const en = {
       'The apps the admin has defined, on the desk. The desk is not a window, so the limit of three columns does not apply to it. On a desk they stand in square cells on the 8 px step, down the first column and then the next. A press that strays carries an app to another cell, as Shift and an arrow do; the cell it would settle into shows the dot grid of an empty box, and Clean up puts every app back.',
     ],
     appsCaps: ['desktop: a column from the top', 'compact screen: four across'],
+    selectionBox: [
+      'Selection box',
+      'corners: square | outline: hairline · line | fill: hover | leaves: fades over fast',
+      'Drawn by a drag that starts on the empty desk, from where it started to the pointer. Every app it touches is selected while it is drawn, and shows it with its name inverted. It appears at once and leaves by fading; nothing else on the desk changes.',
+    ],
     windows: [
       'Window',
       'density: pointer · touch | parts: title bar · path line · body · actions · status bar · grip | controls: dots · squares | state: front · behind · full screen · minimised | surface: window · paper | size: free · one size | compact screen: a drawer',

@@ -5,7 +5,7 @@ import { travelled } from './travels'
 
 const palette = (page: Page) => page.getByRole('dialog', { name: 'Search' })
 const field = (page: Page) => page.getByRole('combobox')
-const options = (page: Page) => page.getByRole('option')
+const options = (page: Page) => page.getByRole('dialog').getByRole('option')
 
 test.describe('Search on a desk', () => {
   test.beforeEach(async ({ page }) => {

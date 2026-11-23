@@ -352,18 +352,31 @@ export function carry(
   }
 }
 
-// A thing let go settles from where it is into the place it is given, over fast on the standard curve; with reduced
-// motion it is there at once.
-export function settle(thing: HTMLElement, place: () => void) {
-  const from = thing.getBoundingClientRect()
-  thing.style.transform = ''
+// Things let go settle from where they are into the places they are given, over fast on the standard curve; with
+// reduced motion they are there at once.
+export function settle(things: HTMLElement[], place: () => void) {
+  const from = things.map((thing) => thing.getBoundingClientRect())
+  for (const thing of things) thing.style.transform = ''
   place()
   if (reduced()) return
-  const to = thing.getBoundingClientRect()
-  thing.animate(
-    { transform: [`translate(${from.x - to.x}px, ${from.y - to.y}px)`, 'none'] },
-    { duration: ms('fast'), easing: `cubic-bezier(${curve('standard')})` },
-  )
+  things.forEach((thing, at) => {
+    const to = thing.getBoundingClientRect()
+    thing.animate(
+      { transform: [`translate(${from[at].x - to.x}px, ${from[at].y - to.y}px)`, 'none'] },
+      { duration: ms('fast'), easing: `cubic-bezier(${curve('standard')})` },
+    )
+  })
+}
+
+// A thing that has done its work fades where it stands over fast on the exit curve, and is gone; a fade changes
+// strength only, so reduced motion keeps it.
+export function fade(thing: HTMLElement, gone: () => void) {
+  thing
+    .animate(
+      { opacity: [1, 0] },
+      { duration: ms('fast'), easing: `cubic-bezier(${curve('exit')})`, fill: 'forwards' },
+    )
+    .finished.then(gone, () => {})
 }
 
 // What comes and goes with a box that travels, as its button in the taskbar: it rises into its bar over slow as the

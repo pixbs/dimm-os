@@ -52,7 +52,7 @@ import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
 import { menuOf, type Place, placeOf } from './context'
 import { commandAction, keyAction, pressed } from './keys'
-import { type Action, front, manager, phone, showing, start, windowOf } from './manager'
+import { type Action, compact, front, manager, phone, showing, start, windowOf } from './manager'
 import { languageMenu, legalLinks, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
 import { deskLeaves, handOver, playing, playOut, screenArrives, screenGoes } from './handover'
@@ -450,6 +450,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   const restored = useRef(false)
   // Where the apps stand once one has been moved, for the visit.
   const [cells, setCells] = useState<Cells | null>(null)
+  // The apps selected together on a desk, by address.
+  const [selection, setSelection] = useState<string[]>([])
   // The remembered windows in the taskbar whose views wait until they are brought back.
   const unloaded = useRef(new Set<string>())
   const top = showing(desk)
@@ -579,6 +581,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     opener: Element | null,
     lost: () => void,
     behind?: boolean,
+    quiet?: boolean,
   ) {
     // Drawing it is a transition, so a slow device still answers the press that asked for it within a frame.
     startTransition(() =>
@@ -588,6 +591,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         opener,
         alone: document.documentElement.dataset.single === 'on',
         behind,
+        quiet,
       }),
     )
     unloaded.current.delete(windowOf(path))
@@ -614,6 +618,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const inside = anchor.closest('article')?.id === idOf(windowOf(path))
     void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
+
+  // The apps of a selection open one after another, each once the one before has its view, so each stands a step off
+  // it; only the last takes the focus, and the address with it.
+  const [queued, setQueued] = useState<string[]>([])
+  const openAll = (hrefs: string[]) => setQueued(hrefs)
+  const openNext = useEffectEvent(([href, ...rest]: string[]) => {
+    const app = document.querySelector(
+      `.apps > .app:not([data-for="phone"])[href="${CSS.escape(href)}"]`,
+    )
+    const path = fromAddress(href).path
+    void open(act, path, app, () => {}, false, rest.length > 0).then(() => setQueued(rest))
+  })
+  useEffect(() => {
+    if (queued.length) openNext(queued)
+  }, [queued])
 
   // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
   // the start stand on the measured desk, so the question opens in front of them. The window an address names stays
@@ -735,7 +754,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     key: number
   } | null>(null)
   function point(target: EventTarget | null, at?: { x: number; y: number }) {
-    const found = target instanceof Element && placeOf(target, desk, view.shortcuts, language)
+    const found =
+      target instanceof Element && placeOf(target, desk, view.shortcuts, language, selection)
     if (!found) return false
     const box = found.subject.getBoundingClientRect()
     const middle = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
@@ -782,6 +802,12 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       subject: context.subject,
       site: view.site.place,
       clock,
+      open: openAll,
+      copy: (text) =>
+        void navigator.clipboard.writeText(text).then(
+          () => setNoted((count) => count + 1),
+          () => {},
+        ),
     })
 
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
@@ -802,6 +828,30 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     unlit.current = setTimeout(() => setLit(null), duration('hold') * 1000)
   }
 
+  // With the focus on the desk or on an app of a desk: Ctrl A (⌘ A) selects every app, Escape none, and Enter opens
+  // those selected.
+  function selects(event: KeyboardEvent) {
+    const focus = document.activeElement
+    const app = focus?.matches('.apps > .app') && focus.getAttribute('href')
+    if ((focus !== document.body && !app) || compact(desk) || event.altKey) return false
+    const apple = document.documentElement.dataset.keys === 'apple'
+    const held = apple ? event.metaKey : event.ctrlKey
+    const plain = !event.metaKey && !event.ctrlKey && !event.shiftKey
+    if (held && !event.shiftKey && event.key.toLowerCase() === 'a')
+      setSelection(view.shortcuts.filter((one) => one.screen !== 'phone').map((one) => one.href))
+    else if (plain && event.key === 'Escape' && selection.length) setSelection([])
+    else if (
+      plain &&
+      event.key === 'Enter' &&
+      selection.length &&
+      (!app || selection.includes(app))
+    )
+      openAll(selection)
+    else return false
+    event.preventDefault()
+    return true
+  }
+
   // The keys act from wherever the focus is; the switch on the root is read at each press.
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
     if (waiting) return
@@ -812,6 +862,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       }
       return
     }
+    if (selects(event)) return
     const { shortcuts, keys } = document.documentElement.dataset
     const single = shortcuts !== 'off'
     const action = keyAction(event, view.keys, single, desk, keys === 'apple')
@@ -968,6 +1019,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               label={dictionary.apps}
               over={phone(desk) ? unfolded + filtering : 0}
               place={setCells}
+              select={setSelection}
+              selected={selection}
               t={dictionary}
             >
               {(opened, width) =>
