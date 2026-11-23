@@ -45,14 +45,36 @@ test.describe('Consent', () => {
     })
   })
 
+  test('at the address of a window, asks behind it and leaves it in front', async ({ page }) => {
+    await page.goto('/accessibility', { waitUntil: 'networkidle' })
+    const addressed = page.locator('#window-accessibility')
+    const asking = page.locator('#window-cookies')
+
+    await expect(addressed).toHaveAttribute('data-front')
+    await expect(asking).toBeAttached()
+    await expect(asking).not.toHaveAttribute('data-front')
+    await expect(addressed.getByRole('heading', { level: 1 })).toBeFocused()
+    // Covered at this size, its taskbar button signals it.
+    await expect(page.locator('#task-window-cookies .dot[data-tone="signal"]')).toBeVisible()
+    expect(await analytics(page)).toBe(false)
+
+    await page.locator('#task-window-cookies').click()
+    await asking.getByRole('button', { name: 'Decline' }).click()
+    await expect(asking).toHaveCount(0)
+    expect((await consent(page)).on).toEqual([])
+    await expect(addressed).toHaveAttribute('data-front')
+    await expect(page).toHaveURL(/\/accessibility$/)
+  })
+
   test('closing the window, or Esc, is a no', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
     await page.locator('#window-cookies').getByRole('button', { name: 'Close' }).click()
     expect((await consent(page)).on).toEqual([])
 
+    // At the desk's own address the question opens in front again.
     await page.evaluate(() => localStorage.removeItem('consent'))
-    await page.reload({ waitUntil: 'networkidle' })
-    await expect(page.locator('#window-cookies')).toBeVisible()
+    await page.goto('/', { waitUntil: 'networkidle' })
+    await expect(page.locator('#window-cookies')).toHaveAttribute('data-front')
     await page.locator('#window-cookies').getByRole('heading', { level: 1 }).focus()
     await page.keyboard.press('Escape')
     await expect(page.locator('#window-cookies')).toHaveCount(0)

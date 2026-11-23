@@ -23,8 +23,9 @@ export function addressOf(desk: Windows, language: Language, origin: string, pat
   return at ? new URL(toAddress(language, at), origin).href : undefined
 }
 
-// The commands of the system, which the menu bar, search and the keys read alike: each acts on its subject, the window
-// in front unless another is named, and says whether it can, so a menu dims it and search leaves it out.
+// The commands of the system, which the menu bar, search, the keys and a right click read alike: each acts on its
+// subject, the window in front unless another window or an address is named, and says whether it can, so a menu dims
+// it and search leaves it out.
 export function commandsOf(props: {
   desk: Windows
   language: Language
@@ -36,9 +37,12 @@ export function commandsOf(props: {
 }): Record<SystemCommand, Command> {
   const { desk, language, act } = props
   const always = () => true
-  const address = (subject = front(desk)) => addressOf(desk, language, location.origin, subject)
+  const given = (subject?: string) => !!subject && URL.canParse(subject)
+  const address = (subject = front(desk)) =>
+    given(subject) ? subject : addressOf(desk, language, location.origin, subject)
   // Read while the server renders, which has no address of its own.
-  const linked = (subject = front(desk)) => desk.open.some((one) => one.path === subject)
+  const linked = (subject = front(desk)) =>
+    given(subject) || desk.open.some((one) => one.path === subject)
 
   return {
     lock: { run: props.lock, can: always },
@@ -69,14 +73,14 @@ export function commandsOf(props: {
     },
     download: {
       run: (subject = front(desk)) => {
-        const file = fileOf(desk, subject)
+        const file = given(subject) ? subject : fileOf(desk, subject)?.href
         if (!file) return
         const anchor = document.createElement('a')
-        anchor.href = file.href
+        anchor.href = file
         anchor.download = ''
         anchor.click()
       },
-      can: (subject = front(desk)) => !!fileOf(desk, subject),
+      can: (subject = front(desk)) => given(subject) || !!fileOf(desk, subject),
     },
   }
 }

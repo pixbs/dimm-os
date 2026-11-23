@@ -38,7 +38,8 @@ const named = (entry: Entry) => segmentsOf(entry).at(-1)!
 // A hyphen of the path is doubled, so /a-b and /a/b keep apart.
 export const idOf = (path: string) => `window${path.replaceAll('-', '--').replaceAll('/', '-')}`
 
-// Each open window has a button: the one in front is selected, one put away has a hollow mark.
+// Each open window has a button: the one in front is selected, one put away has a hollow mark, one that waits
+// covered signals.
 export const tasksOf = (desk: Windows): Task[] =>
   desk.open.map((entry) => ({
     id: `task-${idOf(entry.path)}`,
@@ -46,6 +47,7 @@ export const tasksOf = (desk: Windows): Task[] =>
     tile: entry.view?.frame.tile,
     front: entry.path === front(desk),
     minimised: entry.mode === 'min',
+    signal: entry.covered,
   }))
 
 // Windows open beside the apps, and keep the gap of the desk's top from its far edge. They stack a title bar apart,

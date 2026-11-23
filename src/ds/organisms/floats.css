@@ -75,6 +75,32 @@
   }
 }
 
+/* A menu opened at a point grows out of the corner at the pointer, the lower one when it opens upward; a submenu hangs
+   towards the start where there is no room at the end. */
+.menu__point {
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  overflow: visible;
+
+  &[data-drawer] {
+    display: contents;
+  }
+  & > .menu__hang {
+    position: relative;
+    margin: 0;
+  }
+  &[data-up] > .menu__hang {
+    transform-origin: bottom left;
+  }
+  &[data-start] .menu__sub > .menu__hang {
+    inset-inline: auto 100%;
+    transform-origin: top right;
+  }
+}
 /* Dialog: a window that asks one question, in front of everything, as wide as a dialog. */
 .dialog {
   max-width: 100%;

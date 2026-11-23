@@ -406,14 +406,14 @@ test.describe('Frontend at an address without a window', () => {
       }) => {
         await page.setViewportSize(viewport)
         const theirs = 'This page could not be found'
-        for (const [path, title, decline] of [
-          ['/does-not-exist', 'Not found', 'Decline'],
-          ['/de/gibt-es-nicht', 'Nicht gefunden', 'Ablehnen'],
+        for (const [path, title] of [
+          ['/does-not-exist', 'Not found'],
+          ['/de/gibt-es-nicht', 'Nicht gefunden'],
           // No file and no window: an address with a dot outside a language, and a page the catalogue has not.
-          ['/nothing.html', 'Not found', 'Decline'],
-          ['/catalogue/nothing', 'Not found', 'Decline'],
+          ['/nothing.html', 'Not found'],
+          ['/catalogue/nothing', 'Not found'],
           // What the platform keeps for its own page.
-          ['/404', 'Not found', 'Decline'],
+          ['/404', 'Not found'],
         ]) {
           // Before script: the answer is the desk with the window, in its language.
           const answer = await request.get(path)
@@ -423,10 +423,10 @@ test.describe('Frontend at an address without a window', () => {
           expect(markup, path).toContain(`>${title}</h1>`)
           expect(markup, path).not.toContain(theirs)
 
-          // After it, and once the window of consent in front has left: the same window at the same address.
+          // After it, with the window of consent behind it: the same window at the same address.
           await page.evaluate(() => localStorage.clear()).catch(() => {})
           expect((await page.goto(path))?.status(), path).toBe(404)
-          await page.getByRole('button', { name: decline }).click()
+          await expect(page.locator('#window-cookies')).toBeAttached()
           await expect(front(page)).toHaveText(title)
           await expect(page).toHaveURL(path)
           await page.reload()

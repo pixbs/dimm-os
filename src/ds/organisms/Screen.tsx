@@ -66,6 +66,8 @@ export type Shortcut = {
   icon: IconName
   tile: Tile | null
   lang?: string
+  // The address of the file it offers, which makes it a file on the desk.
+  file?: string
   // Shown on one kind of screen only.
   screen?: 'phone' | 'desk'
 }
@@ -80,7 +82,7 @@ export function Apps(props: {
 }) {
   return (
     <nav aria-label={props.label} className="apps" data-layout={props.layout} inert={props.inert}>
-      {props.apps.map(({ tile, ...app }) => (
+      {props.apps.map(({ tile, file: _, ...app }) => (
         <App key={`${app.screen}${app.href}`} {...app} tile={tile ?? undefined} />
       ))}
     </nav>
@@ -95,6 +97,8 @@ export type Task = {
   tile?: Tile | null
   front?: boolean
   minimised?: boolean
+  // It waits for an answer where it cannot be seen: the signal dot.
+  signal?: boolean
 }
 
 const TaskButton = m.create(Button)
@@ -120,11 +124,14 @@ function Tasks(props: {
           key={task.id ?? index}
           label={task.name}
           lead={
-            <span
-              className="mark"
-              data-surface={task.tile ?? undefined}
-              data-tone={task.minimised ? 'off' : undefined}
-            />
+            <>
+              <span
+                className="mark"
+                data-surface={task.tile ?? undefined}
+                data-tone={task.minimised ? 'off' : undefined}
+              />
+              {task.signal && <span className="dot" data-tone="signal" />}
+            </>
           }
           onClick={props.onPick && ((event) => props.onPick!(index, event.currentTarget))}
           size={props.size}

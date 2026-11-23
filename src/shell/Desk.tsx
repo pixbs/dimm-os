@@ -2,6 +2,7 @@
 
 import {
   type MouseEvent,
+  type PointerEvent,
   startTransition,
   useEffect,
   useEffectEvent,
@@ -26,7 +27,7 @@ import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration, reduced } from '@/ds/motion/vocabulary'
 import { Stamping } from '@/ds/organisms/Live'
-import { MenuBar, MenuButton } from '@/ds/organisms/Menu'
+import { ContextMenu, MenuBar, MenuButton } from '@/ds/organisms/Menu'
 import { type FormWords, Submit } from '@/ds/organisms/Form'
 import { RecordFoot } from '@/ds/organisms/Record'
 import { Screen, Skip, Taskbar } from '@/ds/organisms/Screen'
@@ -45,6 +46,7 @@ import { Page } from './Aside'
 import { Clock } from './Clock'
 import { type Chosen, filtered } from './filtered'
 import { commandsOf } from './commands'
+import { menuOf, type Place, placeOf } from './context'
 import { commandAction, keyAction, pressed } from './keys'
 import { type Action, front, manager, phone, showing, start, windowOf } from './manager'
 import { languageMenu, legalLinks, menus, themeMenu } from './menus'
@@ -111,6 +113,12 @@ const invitation = () => (invite ??= invited())
 let login: boolean | undefined
 const entering = () => (login ??= atLogin())
 const never = () => () => {}
+
+// A click the page should not take.
+const swallow = (event: Event) => {
+  event.preventDefault()
+  event.stopPropagation()
+}
 
 const pad = (number: number) => String(number).padStart(2, '0')
 
@@ -492,7 +500,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     const of = all
       ? desk.open.map((one) => one.path)
       : action.type === 'alone'
-        ? desk.open.map((one) => one.path).filter((path) => path !== front(desk))
+        ? desk.open.filter((one) => !one.covered && one.path !== front(desk)).map((one) => one.path)
         : [('path' in action && action.path) || front(desk)]
     if (away && of.some((path) => path && windowOf(path) === '/cookies') && !answered()) decide([])
     dispatch(action)
@@ -507,10 +515,22 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }
 
   // A window opens at once and fills when its view arrives; without one, the address is the browser's to show.
-  async function open(to: typeof act, path: string, opener: Element | null, lost: () => void) {
+  async function open(
+    to: typeof act,
+    path: string,
+    opener: Element | null,
+    lost: () => void,
+    behind?: boolean,
+  ) {
     // Drawing it is a transition, so a slow device still answers the press that asked for it within a frame.
     startTransition(() =>
-      to({ type: 'open', path, opener, alone: document.documentElement.dataset.single === 'on' }),
+      to({
+        type: 'open',
+        path,
+        opener,
+        alone: document.documentElement.dataset.single === 'on',
+        behind,
+      }),
     )
     unloaded.current.delete(windowOf(path))
     if (desk.open.some((entry) => entry.view?.path === path)) return
@@ -538,11 +558,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   }
 
   // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
-  // the start stand on the measured desk, so the question opens in front of them.
+  // the start stand on the measured desk, so the question opens in front of them. The window an address names stays
+  // in front, and the question waits behind it.
   const asking = useRef(false)
   const ask = useEffectEvent(() => {
     const here = view.window && windowOf(view.window.path) === '/cookies'
-    if (!view.visitor && !here && !answered()) void open(dispatch, '/cookies', null, () => {})
+    if (!view.visitor && !here && !answered())
+      void open(dispatch, '/cookies', null, () => {}, !!view.window)
   })
   useEffect(() => {
     if (!asking.current || !desk.desk || desk.starting.length) return
@@ -637,8 +659,67 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   useEffect(() => {
     const switched = single === 'on' && was.current === 'off'
     was.current = single
-    if (single === 'on' && restored.current && (switched || desk.open.length > 1)) alone()
+    const shown = desk.open.filter((one) => !one.covered)
+    if (single === 'on' && restored.current && (switched || shown.length > 1)) alone()
   }, [desk, single])
+
+  // The menu of what a right click, a long press or Shift F10 landed on, where that has one: at the pointer, or at the
+  // middle of what has the focus. Each opens anew.
+  const [context, setContext] = useState<{
+    place: Place
+    subject: HTMLElement
+    at: { x: number; y: number }
+    key: number
+  } | null>(null)
+  function point(target: EventTarget | null, at?: { x: number; y: number }) {
+    const found = target instanceof Element && placeOf(target, desk, view.shortcuts, language)
+    if (!found) return false
+    const box = found.subject.getBoundingClientRect()
+    const middle = { x: box.left + box.width / 2, y: box.top + box.height / 2 }
+    setContext((was) => ({ ...found, at: at ?? middle, key: (was?.key ?? 0) + 1 }))
+    return true
+  }
+  // A finger that rests is a long press, and lifting it after is no press; one that strays drags or scrolls instead.
+  const resting = useRef<{
+    timer?: ReturnType<typeof setTimeout>
+    long?: boolean
+    from?: { x: number; y: number }
+  }>({})
+  function rest(event: PointerEvent<HTMLDivElement>) {
+    clearTimeout(resting.current.timer)
+    resting.current = {}
+    removeEventListener('click', swallow, true)
+    if (event.pointerType !== 'touch') return
+    const { target, clientX: x, clientY: y } = event
+    resting.current.from = { x, y }
+    resting.current.timer = setTimeout(
+      () => {
+        if (!point(target, { x, y })) return
+        resting.current.long = true
+        addEventListener('click', swallow, { capture: true, once: true })
+      },
+      duration('press') * 1000,
+    )
+  }
+  const lift = () => clearTimeout(resting.current.timer)
+  function stray(event: PointerEvent<HTMLDivElement>) {
+    const { from } = resting.current
+    const reach = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--s-2'))
+    if (from && Math.hypot(event.clientX - from.x, event.clientY - from.y) > reach) lift()
+  }
+  const clock = useSetting('clock')
+  const shown =
+    context &&
+    menuOf(context.place, {
+      t: dictionary,
+      language,
+      desk,
+      act,
+      commands,
+      subject: context.subject,
+      site: view.site.place,
+      clock,
+    })
 
   // What a key or a row of the hotkeys window does; a key opens its window as the menu's link to it does.
   function run(action: Action | 'search' | null, opener: Element | null) {
@@ -661,6 +742,13 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The keys act from wherever the focus is; the switch on the root is read at each press.
   const keyDown = useEffectEvent((event: KeyboardEvent) => {
     if (waiting) return
+    if ((event.key === 'F10' && event.shiftKey) || event.key === 'ContextMenu') {
+      const focus = document.activeElement
+      if (point(focus === document.body ? document.querySelector('.screen__desk') : focus)) {
+        event.preventDefault()
+      }
+      return
+    }
     const { shortcuts, keys } = document.documentElement.dataset
     const single = shortcuts !== 'off'
     const action = keyAction(event, view.keys, single, desk, keys === 'apple')
@@ -704,7 +792,21 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   return (
     <>
-      <Screen fill inert={waiting !== null} onClick={follow}>
+      <Screen
+        fill
+        inert={waiting !== null}
+        onClick={follow}
+        onContextMenu={(event) => {
+          clearTimeout(resting.current.timer)
+          const { target, clientX: x, clientY: y } = event
+          const mine = resting.current.long || (target as Element).closest('.menu__point')
+          if (mine || point(target, { x, y })) event.preventDefault()
+        }}
+        onPointerCancel={lift}
+        onPointerDown={rest}
+        onPointerMove={stray}
+        onPointerUp={lift}
+      >
         <Analytics visitor={view.visitor !== null} />
         <header data-surface="desktop">
           {front(desk) && <Skip label={dictionary.skip} to={idOf(front(desk)!)} />}
@@ -891,6 +993,19 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           opener={searching?.opener ?? null}
           t={dictionary}
         />
+        {context && shown && (
+          <ContextMenu
+            at={context.at}
+            drawer={phone(desk)}
+            items={shown.items}
+            key={context.key}
+            label={shown.label}
+            onClose={() => setContext((was) => (was?.key === context.key ? null : was))}
+            size="chrome"
+            subject={context.subject}
+            t={dictionary}
+          />
+        )}
       </Screen>
       {waiting && <WaitingScreen at={waiting} go={go} t={dictionary} view={view} />}
     </>
