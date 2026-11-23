@@ -16,6 +16,7 @@ import * as migration_20261119_182115_alt_per_language from './20261119_182115_a
 import * as migration_20261119_185659_drop_unused from './20261119_185659_drop_unused';
 import * as migration_20261122_174946_icons_for_settings from './20261122_174946_icons_for_settings';
 import * as migration_20261123_043755_seo_meta from './20261123_043755_seo_meta';
+import * as migration_20261123_060216_og_card from './20261123_060216_og_card';
 
 export const migrations = [
   {
@@ -106,6 +107,11 @@ export const migrations = [
   {
     up: migration_20261123_043755_seo_meta.up,
     down: migration_20261123_043755_seo_meta.down,
-    name: '20261123_043755_seo_meta'
+    name: '20261123_043755_seo_meta',
+  },
+  {
+    up: migration_20261123_060216_og_card.up,
+    down: migration_20261123_060216_og_card.down,
+    name: '20261123_060216_og_card'
   },
 ];

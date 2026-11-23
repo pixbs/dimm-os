@@ -534,7 +534,13 @@ describe('the view of a window', () => {
 
   it('gives cards their words, picture and buttons, and tiles no frame, leaving out a card that leads to a window the viewer may not see', async () => {
     const picture = (
-      await payload.find({ collection: 'media', limit: 1, ...trusted, locale: 'en' })
+      await payload.find({
+        collection: 'media',
+        limit: 1,
+        where: { alt: { equals: 'A sun setting over two hills' } },
+        ...trusted,
+        locale: 'en',
+      })
     ).docs[0] as Media
     const { id } = await payload.create({
       collection: 'windows',
@@ -696,7 +702,13 @@ describe('the view of a window', () => {
     // What a Listing leaves empty comes from the item's first Header and its first picture; a list or cards of a
     // window the viewer may not see are absent.
     const picture = (
-      await payload.find({ collection: 'media', limit: 1, ...trusted, locale: 'en' })
+      await payload.find({
+        collection: 'media',
+        limit: 1,
+        where: { alt: { equals: 'A sun setting over two hills' } },
+        ...trusted,
+        locale: 'en',
+      })
     ).docs[0] as Media
     const { id } = await payload.create({
       collection: 'windows',
@@ -1036,7 +1048,7 @@ describe('German that is not written yet', () => {
     expect(hello.window?.sections[0]).toMatchObject({ items: [{ picture: english }, {}] })
     expect(index(work)?.items[0].preview).toMatchObject({ picture: english })
     expect(gallery(grow)).toMatchObject({ items: [english] })
-    expect(grow.window?.meta?.image).toMatchObject({ alt: english.alt })
+    expect(grow.window?.meta?.image).toMatchObject({ alt: 'Grow' })
     expect(about.window?.about?.inside.picture).toMatchObject({ alt: 'Eine Sonne aus Punkten' })
     expect(about.window?.about?.inside.picture?.lang).toBeUndefined()
     expect(gallery(await view('/work/grow', 'en'))).not.toMatchObject({ items: [{ lang: 'en' }] })

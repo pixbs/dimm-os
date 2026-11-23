@@ -17,7 +17,8 @@ export const Media: CollectionConfig = {
     update: signedIn,
     delete: signedIn,
   },
-  admin: { group: 'Content' },
+  // A card the system drew is not listed, here or where a picture is picked.
+  admin: { group: 'Content', baseFilter: () => ({ drawn: { exists: false } }) },
   authorship: false,
   fields: [
     {
@@ -36,6 +37,13 @@ export const Media: CollectionConfig = {
         { label: 'Portrait', value: 'portrait' },
       ],
       admin: { description: 'Drawn by the system over the file, which is its still.' },
+    },
+    {
+      // What a card was drawn from, which marks it as one: only the system writes it, and the list filters by it.
+      name: 'drawn',
+      type: 'json',
+      access: { create: () => false, update: () => false },
+      admin: { hidden: true },
     },
   ],
   hooks: {

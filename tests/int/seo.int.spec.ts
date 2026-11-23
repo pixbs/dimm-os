@@ -165,26 +165,29 @@ describe('the SEO tab of a window', () => {
 
 describe('the SEO group of Site', () => {
   it('stands in the title, description and picture of the desk at /, in that language only', async () => {
-    expect(await meta('/', 'en')).toEqual(empty)
+    // With nothing written the desk has its card alone.
+    const before = { en: await meta('/', 'en'), de: await meta('/', 'de') }
+    expect(before.en).toEqual({ ...empty, image: expect.objectContaining({ alt: 'Dimm OS' }) })
 
     await writeSite('en', { ...written, image: picture.id })
     expect(await meta('/', 'en')).toMatchObject({
       ...written,
       image: { url: picture.variants?.share?.url, width: 1200, height: 630 },
     })
-    expect(await meta('/', 'de')).toEqual(empty)
+    expect(await meta('/', 'de')).toEqual(before.de)
 
     await writeSite('en', empty)
-    expect(await meta('/', 'en')).toEqual(empty)
+    expect(await meta('/', 'en')).toEqual(before.en)
   })
 
-  it('generates what the desk shows, nothing beside the site name, and its address', async () => {
+  it('generates what the desk shows, no words beside the site name, its card and its address', async () => {
     for (const language of languages) {
       const doc = await payload.findGlobal({ slug: 'site', ...trusted, locale: language })
       const body = { globalSlug: 'site', doc, locale: language }
       expect(await generate('title', body)).toBe('')
       expect(await generate('description', body)).toBe('')
-      expect(await generate('image', body)).toBe('')
+      expect(doc.meta?.image).toEqual(expect.any(Number))
+      expect(await generate('image', body)).toBe(doc.meta?.image)
       expect(await generate('url', body)).toBe(
         `http://localhost:3000/${language === 'en' ? '' : 'de'}`,
       )
