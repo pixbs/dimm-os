@@ -95,7 +95,9 @@ export function ShareCard({ title, text, window }: Shown) {
             flex: 1,
             margin: edge,
             backgroundColor: t.value(bg),
-            boxShadow: `${t.value('--e-window')}, 0 0 0 ${t.value('--b-1')} ${line}`,
+            // Its shadow is the ground's own colour in the dark theme, and a card's renderer draws its blur as a
+            // lighter slab, so the window keeps its ring alone.
+            boxShadow: `0 0 0 ${t.value('--b-1')} ${line}`,
           }}
         >
           <div
