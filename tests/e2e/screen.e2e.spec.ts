@@ -310,7 +310,7 @@ test.describe('Wallpaper', () => {
     const last = (name: string) =>
       page.evaluate((name) => (Reflect.get(window, name) as unknown[]).at(-1), name)
 
-    await page.getByRole('link', { name: 'Services' }).hover()
+    await page.getByRole('option', { name: 'Services' }).hover()
     expect(await last('pointers')).toHaveLength(2)
     const box = (await page.locator('main article').boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + 10)
