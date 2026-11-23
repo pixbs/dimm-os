@@ -168,6 +168,7 @@
     grid-auto-flow: column;
     place-items: start;
     gap: var(--s-2);
+    position: relative;
 
     & > .app {
       grid-area: var(--row, auto) / var(--col, auto);
@@ -184,6 +185,15 @@
   place-self: stretch;
   background-image: var(--pattern);
   background-size: var(--s-2) var(--s-2);
+}
+
+/* The box a drag over the empty desk draws to select: square, a hairline in the foreground at the strength of a line,
+   filled at the strength of hover. */
+.apps__box {
+  position: absolute;
+  border: var(--b-1) solid var(--line);
+  background: var(--hover);
+  pointer-events: none;
 }
 
 /* A window that waits covered: the signal dot pops beside the mark of its button, the one part that overshoots. */

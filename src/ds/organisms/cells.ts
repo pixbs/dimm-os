@@ -67,15 +67,20 @@ export function arrange(order: string[], wanted: Cells | null, grid: Grid): Cell
   return placed
 }
 
-// Where an app let go over a cell settles: there if it is free, else in the free cell nearest; over the edge of the
-// desk, in the free cell nearest the edge. Its own cell is free.
-export function settles(app: string, over: Cell, cells: Cells, grid: Grid): Cell {
+// Where apps let go over cells settle, the first first: each there if it is free, else in the free cell nearest; over
+// the edge of the desk, in the free cell nearest the edge. Their own cells are free.
+export function settles(over: Cells, cells: Cells, grid: Grid): Cells {
   const taken = new Set(
     Object.entries(cells)
-      .filter(([one]) => one !== app)
+      .filter(([one]) => !(one in over))
       .map(([, cell]) => keyOf(cell)),
   )
-  return nearest(clamped(over, grid), taken, grid) ?? cells[app]
+  const placed: Cells = {}
+  for (const [app, cell] of Object.entries(over)) {
+    placed[app] = nearest(clamped(cell, grid), taken, grid) ?? cells[app]
+    taken.add(keyOf(placed[app]))
+  }
+  return placed
 }
 
 // One step with an arrow: to the next free cell that way, over those taken; at the edge of the desk it stays.
@@ -87,4 +92,20 @@ export function stepped(app: string, [x, y]: [number, number], cells: Cells, gri
     row += y
   } while (within([col, row], grid) && taken.has(keyOf([col, row])))
   return within([col, row], grid) ? [col, row] : cells[app]
+}
+
+// One step with an arrow for apps moved together: each a cell that way, into the free cell nearest; where one would
+// leave the desk, they stay.
+export function steppedTogether(
+  apps: string[],
+  [x, y]: [number, number],
+  cells: Cells,
+  grid: Grid,
+) {
+  const over: Cells = Object.fromEntries(
+    apps.map((app) => [app, [cells[app][0] + x, cells[app][1] + y]]),
+  )
+  return Object.values(over).every((cell) => within(cell, grid))
+    ? settles(over, cells, grid)
+    : Object.fromEntries(apps.map((app) => [app, cells[app]]))
 }

@@ -71,6 +71,9 @@ export function OnDesk(props: {
   // Where the apps stand once one has been moved, and how one is moved.
   cells?: Cells | null
   place?: (cells: Cells) => void
+  // The apps selected, and how the selection changes.
+  selected?: string[]
+  select?: (apps: string[]) => void
   label?: string
   // Drawers opened in front of the windows, such as menus on a phone.
   over?: number
@@ -121,6 +124,8 @@ export function OnDesk(props: {
         label={props.label}
         layout="screen"
         onPlace={compact(desk) ? undefined : props.place}
+        onSelect={compact(desk) ? undefined : props.select}
+        selected={props.selected}
       />
       <AnimatePresence>
         {desk.open.map((entry) => {

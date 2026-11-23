@@ -45,6 +45,8 @@ function rows(place: Place, desk: Windows) {
     subject,
     site: 'Berlin',
     clock: null,
+    open: noop,
+    copy: noop,
   })
   return menu?.items.map((item) =>
     item === 'rule'
@@ -76,6 +78,11 @@ describe('a right-click menu', () => {
       '-',
       'Close all windows',
     ])
+  })
+
+  it('on apps selected together opens them all, and copies their links', () => {
+    const hrefs = ['/en/work', '/en/lab', '/en/cv']
+    expect(rows({ kind: 'apps', hrefs }, measured(null))).toEqual(['Open 3', '-', 'Copy links'])
   })
 
   it('on an app opens it and shares it, and a file downloads too', () => {
@@ -151,6 +158,8 @@ describe('a right-click menu', () => {
         subject,
         site: 'Berlin',
         clock: 'yours',
+        open: noop,
+        copy: noop,
       },
     )
     expect(menu?.items).toMatchObject([
