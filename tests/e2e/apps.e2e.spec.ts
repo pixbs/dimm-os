@@ -185,8 +185,19 @@ test.describe('Apps selected together', () => {
     await page.waitForLoadState('networkidle')
     const boxes = await page
       .locator('article')
-      .evaluateAll((windows) => windows.map((one) => one.getBoundingClientRect().y))
-    for (const nth of [1, 2, 3]) expect(boxes[nth]).toBeGreaterThan(boxes[nth - 1])
+      .evaluateAll((windows) =>
+        windows.map((one) => `${one.getBoundingClientRect().x} ${one.getBoundingClientRect().y}`),
+      )
+    expect(new Set(boxes).size).toBe(4)
+    // A step off the one before, so every title bar shows.
+    for (const bar of await page.locator('article .window__bar').all()) {
+      const { x, y, height } = (await bar.boundingBox())!
+      const hit = await bar.evaluate(
+        (element, [x, y]) => element.contains(document.elementFromPoint(x, y)),
+        [x + height / 2, y + height / 2],
+      )
+      expect(hit).toBe(true)
+    }
   })
 
   test('with keys alone: select all, move them a cell, select none', async ({ page }) => {
