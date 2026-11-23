@@ -23,6 +23,7 @@ import { Button, ButtonGroup, ButtonLink } from '@/ds/molecules/Button'
 import { Heading } from '@/ds/molecules/Heading'
 import { Key } from '@/ds/molecules/Key'
 import { Tag } from '@/ds/molecules/Tag'
+import type { Cells } from '@/ds/organisms/cells'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
 import { duration, reduced } from '@/ds/motion/vocabulary'
@@ -56,7 +57,7 @@ import { chapters, numberOf, type Placed, Sections } from './Sections'
 import { atLogin, invited, legalOf, shutDown, type Waiting, WaitingScreen } from './Waiting'
 
 const STORE = 'windows'
-// Where the windows stand, kept on the device while windows are remembered.
+// Where the windows and the apps stand, kept on the device while windows are remembered.
 const PLACES = 'places'
 
 // A window that moved has a view at another path, which the browser's own load of the address redirects to.
@@ -80,14 +81,22 @@ function stored(): string[] | null {
   }
 }
 
-// The places remembered last time, or none.
-function places(): { at: string; box: Box }[] {
+// The places remembered last time, or none: a window's by its path, an app's by the path it opens.
+function remembered() {
   try {
     const kept: unknown = JSON.parse(localStorage.getItem(PLACES) ?? '[]')
-    return Array.isArray(kept) ? kept.filter((one) => typeof one?.at === 'string' && one.box) : []
+    return Array.isArray(kept) ? kept : []
   } catch {
     return []
   }
+}
+const places = (): { at: string; box: Box }[] =>
+  remembered().filter((one) => typeof one?.at === 'string' && one.box)
+function cellsOf(language: Language): Cells | null {
+  const apps = remembered().filter((one) => typeof one?.app === 'string' && Array.isArray(one.cell))
+  return apps.length
+    ? Object.fromEntries(apps.map(({ app, cell }) => [toAddress(language, app), cell]))
+    : null
 }
 
 function store(paths: string[]) {
@@ -433,6 +442,8 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
   // The first render takes its window from the view alone, so it matches the server's HTML at any address.
   const [desk, dispatch] = useReducer(manager, view.window, start)
   const restored = useRef(false)
+  // Where the apps stand once one has been moved, for the visit.
+  const [cells, setCells] = useState<Cells | null>(null)
   // The remembered windows in the taskbar whose views wait until they are brought back.
   const unloaded = useRef(new Set<string>())
   const top = showing(desk)
@@ -487,6 +498,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     replay: () => go('boot'),
     shutDown: () => void shutDown(go),
     copied: () => setNoted((count) => count + 1),
+    cleanUp: () => setCells(null),
   })
 
   // The address follows what the window in front shows: picking a window, or a path in it, adds an entry, and
@@ -595,6 +607,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
       const kept = places()
       for (const { at } of kept) unloaded.current.add(windowOf(at))
       dispatch({ type: 'remember', windows: kept })
+      setCells(cellsOf(language))
     }
     const saved = stored()
     if (!saved) {
@@ -633,24 +646,28 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
 
   // Places are written once the desk is measured, only while windows are remembered, and forgotten when they are not;
   // a phone has none to keep. A window is kept by its own path, and only once its view says it is not hidden, so the
-  // taskbar names nothing a later viewer may not see.
+  // taskbar names nothing a later viewer may not see; an app by the path it opens, in any language.
   const remember = useSetting('remember')
   useEffect(() => {
     if (!restored.current || remember === null || !desk.desk || phone(desk)) return
     const kept = desk.open.filter(
       (one) => one.placed && (one.view ? !one.view.hidden : unloaded.current.has(one.path)),
     )
+    const apps = Object.entries(cells ?? {}).map(([href, cell]) => ({
+      app: fromAddress(href).path,
+      cell,
+    }))
     try {
       if (remember === 'on')
         localStorage.setItem(
           PLACES,
-          JSON.stringify(kept.map(({ path, box }) => ({ at: path, box }))),
+          JSON.stringify([...kept.map(({ path, box }) => ({ at: path, box })), ...apps]),
         )
       else localStorage.removeItem(PLACES)
     } catch {
       // A tab without storage remembers nothing past itself.
     }
-  }, [desk, remember])
+  }, [desk, remember, cells])
 
   // Switched on, one window at a time acts on the windows already open, and on those a reload brings back.
   const single = useSetting('single')
@@ -897,10 +914,12 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
           >
             <OnDesk
               apps={apps}
+              cells={cells}
               desk={desk}
               dispatch={act}
               label={dictionary.apps}
               over={phone(desk) ? unfolded + filtering : 0}
+              place={setCells}
               t={dictionary}
             >
               {(opened, width) =>
@@ -924,6 +943,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
                         site: view.site,
                         path: opened.path,
                         close: () => act({ type: 'close', path: opened.path }),
+                        cleanUp: commands.cleanUp.run,
                       })
                     : opened.path === '/accessibility'
                       ? accessibilityWindow({

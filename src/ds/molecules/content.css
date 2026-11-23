@@ -289,6 +289,13 @@
   .app:is(:active, [data-state='pressed']) > & {
     --state: var(--pressed);
   }
+  /* Carried, it looks as it does under the pointer, and casts the shadow of what floats. */
+  .app[data-state='carried'] > & {
+    --state: var(--hover);
+    --app-carried: var(--app-tile), var(--e-popover);
+
+    box-shadow: var(--app-carried);
+  }
   [data-size='compact'] > &,
   &[data-size='compact'] {
     flex: none;

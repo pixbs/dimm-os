@@ -87,7 +87,8 @@ test.describe('Menus on a desk', () => {
   }) => {
     await top(page, 'View').focus()
     await page.keyboard.press('ArrowUp')
-    expect((await focused(page)).title).toBe('Next wallpaper')
+    expect((await focused(page)).title).toBe('Clean up')
+    await page.keyboard.press('ArrowUp')
     await page.keyboard.press('ArrowUp')
     expect((await focused(page)).title).toBe('Dot')
     await page.keyboard.press('ArrowRight')
@@ -98,6 +99,7 @@ test.describe('Menus on a desk', () => {
     expect((await focused(page)).title).toBe('Dot')
     await page.keyboard.press('Tab')
     expect((await focused(page)).title).toBe('Next wallpaper')
+    await page.keyboard.press('Tab')
     await page.keyboard.press('Tab')
     expect((await focused(page)).title).toBe('Full screen')
     await page.keyboard.press('ArrowLeft')

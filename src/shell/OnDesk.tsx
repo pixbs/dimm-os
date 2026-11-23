@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useEffectEvent, useRef } from 'react'
 
 import type { WindowView } from '@/data/views'
 import { useSetting } from '@/ds/atoms/useSetting'
+import type { Cells } from '@/ds/organisms/cells'
 import { Apps, type Shortcut, type Task } from '@/ds/organisms/Screen'
 import { type Box, Window } from '@/ds/organisms/Window'
 import type { Dictionary } from '@/i18n/en'
@@ -50,10 +51,11 @@ export const tasksOf = (desk: Windows): Task[] =>
     signal: entry.covered,
   }))
 
-// Windows open beside the apps, and keep the gap of the desk's top from its far edge.
+// Windows open beside the first column of apps, wherever they were moved, and keep the gap of the desk's top from
+// its far edge.
 function roomOf(desk: HTMLElement) {
   const apps = desk.querySelector<HTMLElement>(':scope > .apps')
-  const x = apps ? apps.offsetLeft + apps.offsetWidth : 0
+  const x = apps ? apps.offsetLeft + parseFloat(getComputedStyle(apps).gridTemplateColumns) : 0
   const gap = parseFloat(getComputedStyle(desk).paddingTop)
   return { x, w: Math.max(0, desk.clientWidth - x - gap) }
 }
@@ -63,6 +65,9 @@ export function OnDesk(props: {
   desk: Windows
   dispatch: (action: Action) => void
   apps: Shortcut[]
+  // Where the apps stand once one has been moved, and how one is moved.
+  cells?: Cells | null
+  place?: (cells: Cells) => void
   label?: string
   // Drawers opened in front of the windows, such as menus on a phone.
   over?: number
@@ -104,11 +109,15 @@ export function OnDesk(props: {
 
   return (
     <main className="screen__desk" ref={ground}>
+      {/* A phone's apps stand in their grid, and with one window at a time nothing drags. */}
       <Apps
+        above={desk.open.length + 1}
         apps={props.apps}
+        cells={props.cells}
         inert={covering >= 0 || !!drawers?.length}
         label={props.label}
         layout="screen"
+        onPlace={compact(desk) || still ? undefined : props.place}
       />
       <AnimatePresence>
         {desk.open.map((entry) => {

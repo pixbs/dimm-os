@@ -34,6 +34,7 @@ function rows(place: Place, desk: Windows) {
     replay: noop,
     shutDown: noop,
     copied: noop,
+    cleanUp: noop,
   })
   const menu = menuOf(place, {
     t: en,
@@ -57,11 +58,12 @@ function rows(place: Place, desk: Windows) {
 describe('a right-click menu', () => {
   it('on the desk offers what belongs to the desk, and only what can apply', () => {
     const none = measured(null)
-    expect(rows({ kind: 'desk' }, none)).toEqual(['Next wallpaper', 'Preferences…'])
+    expect(rows({ kind: 'desk' }, none)).toEqual(['Next wallpaper', 'Preferences…', 'Clean up'])
     const open = measured(view('/work'))
     expect(rows({ kind: 'desk' }, open)).toEqual([
       'Next wallpaper',
       'Preferences…',
+      'Clean up',
       '-',
       'Minimise all windows',
       'Close all windows',
@@ -70,6 +72,7 @@ describe('a right-click menu', () => {
     expect(rows({ kind: 'desk' }, away)).toEqual([
       'Next wallpaper',
       'Preferences…',
+      'Clean up',
       '-',
       'Close all windows',
     ])

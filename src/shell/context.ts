@@ -90,6 +90,7 @@ export function menuOf(
           [
             command('nextWallpaper'),
             { label: `${t.preferences}…`, href: toAddress(props.language, '/preferences') },
+            command('cleanUp'),
           ],
           [command('minimiseAll'), command('closeAll')],
         ),

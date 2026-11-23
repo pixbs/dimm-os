@@ -896,10 +896,10 @@ const en = {
     ],
     app: [
       'App icon',
-      'size: regular 48 · compact 32 | tile: raised · paper · orange · blue · mint | state: default · hover · pressed · selected · focus · open',
-      'An icon on a tile with a name under it. The admin picks icon, name and tile colour. Selected inverts the name. Open adds the signal dot. Compact drops the name and lives in a bar.',
+      'size: regular 48 · compact 32 | tile: raised · paper · orange · blue · mint | state: default · hover · pressed · selected · focus · open · carried',
+      'An icon on a tile with a name under it. The admin picks icon, name and tile colour. Selected inverts the name. Open adds the signal dot. Carried, on its way to another cell of the desk, it keeps the fill it has under the pointer and casts the shadow of a raised surface. Compact drops the name and lives in a bar.',
     ],
-    appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
+    appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open', 'carried'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'tile: raised · orange · blue · mint · paper',
     tileCap: 'compact tile alone, leading a row of settings',
@@ -1365,7 +1365,7 @@ const en = {
     apps: [
       'App grid',
       'layout: column · four across',
-      'The apps the admin has defined, on the desk. The desk is not a window, so the limit of three columns does not apply to it.',
+      'The apps the admin has defined, on the desk. The desk is not a window, so the limit of three columns does not apply to it. On a desk they stand in square cells on the 8 px step, down the first column and then the next. A press that strays carries an app to another cell, as Shift and an arrow do; the cell it would settle into shows the dot grid of an empty box, and Clean up puts every app back.',
     ],
     appsCaps: ['desktop: a column from the top', 'compact screen: four across'],
     windows: [

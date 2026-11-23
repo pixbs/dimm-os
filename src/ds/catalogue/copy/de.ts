@@ -933,10 +933,10 @@ const de: Copy = {
     ],
     app: [
       'App-Symbol',
-      'Größe: regular 48 · compact 32 | Kachel: raised · paper · orange · blue · mint | Zustand: default · hover · pressed · selected · focus · open',
-      'Ein Icon auf einer Kachel, darunter ein Name. Icon, Name und Farbe der Kachel wählt die Redaktion. Selected kehrt den Namen um. Open fügt den Signalpunkt hinzu. Compact lässt den Namen weg und steht in einer Leiste.',
+      'Größe: regular 48 · compact 32 | Kachel: raised · paper · orange · blue · mint | Zustand: default · hover · pressed · selected · focus · open · carried',
+      'Ein Icon auf einer Kachel, darunter ein Name. Icon, Name und Farbe der Kachel wählt die Redaktion. Selected kehrt den Namen um. Open fügt den Signalpunkt hinzu. Carried, auf dem Weg in eine andere Zelle des Desktops, behält es die Füllung unter dem Zeiger und wirft den Schatten einer erhabenen Fläche. Compact lässt den Namen weg und steht in einer Leiste.',
     ],
-    appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open'],
+    appStates: ['default', 'hover', 'pressed', 'selected', 'focus', 'open', 'carried'],
     appSizes: ['regular', 'compact'],
     tilesCap: 'Kachel: raised · orange · blue · mint · paper',
     tileCap: 'kompakte Kachel allein, vor einer Zeile der Einstellungen',
@@ -1405,7 +1405,7 @@ const de: Copy = {
     apps: [
       'App-Raster',
       'Anordnung: Spalte · vier nebeneinander',
-      'Die Apps, die die Redaktion angelegt hat, auf dem Desktop. Der Desktop ist kein Fenster, also gilt die Grenze von drei Spalten für ihn nicht.',
+      'Die Apps, die die Redaktion angelegt hat, auf dem Desktop. Der Desktop ist kein Fenster, also gilt die Grenze von drei Spalten für ihn nicht. Auf einem Desktop stehen sie in quadratischen Zellen im 8-px-Raster, die erste Spalte hinab, dann die nächste. Ein Druck, der wandert, trägt eine App in eine andere Zelle, wie Umschalt und ein Pfeil; die Zelle, in der sie landen würde, zeigt das Punktraster einer leeren Box, und Aufräumen stellt alle Apps zurück.',
     ],
     appsCaps: ['Desktop: eine Spalte von oben', 'kompakter Bildschirm: vier nebeneinander'],
     windows: [
