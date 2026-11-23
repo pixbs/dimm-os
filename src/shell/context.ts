@@ -9,10 +9,11 @@ import { type Action, compact, type Windows } from './manager'
 import { idOf } from './OnDesk'
 
 // The places a right click opens a menu at, each about one thing: a window by its path, an app or an item by its
-// address.
+// address, or the apps selected together.
 export type Place =
   | { kind: 'desk' | 'clock' }
   | { kind: 'app'; href: string; file?: string }
+  | { kind: 'apps'; hrefs: string[] }
   | { kind: 'window' | 'task'; path: string }
   | { kind: 'item'; href: string }
 
@@ -25,6 +26,7 @@ export function placeOf(
   desk: Windows,
   apps: Shortcut[],
   language: Language,
+  selected: string[],
 ): { place: Place; subject: HTMLElement } | null {
   const at = (selector: string) => target.closest<HTMLElement>(selector)
   const windowOf = (element: Element | null | undefined, prefix = '') =>
@@ -39,6 +41,10 @@ export function placeOf(
   const barred = windowOf(bar?.closest('article'))
   if (bar && barred) return { place: { kind: 'window', path: barred }, subject: bar }
   const app = at('.apps > a.app') as HTMLAnchorElement | null
+  const hrefOf = app?.getAttribute('href')
+  if (app && selected.length > 1 && selected.includes(hrefOf!)) {
+    return { place: { kind: 'apps', hrefs: selected }, subject: app }
+  }
   if (app) {
     const file = apps.find((one) => one.href === app.getAttribute('href'))?.file
     const href = file && new URL(file, location.origin).href
@@ -68,6 +74,9 @@ export function menuOf(
     subject: HTMLElement
     site: string
     clock: string | null
+    // Opens the windows of apps, and copies text.
+    open: (hrefs: string[]) => void
+    copy: (text: string) => void
   },
 ): { label: string; items: Item[] } | null {
   const { t, desk, act, commands, subject } = props
@@ -103,6 +112,27 @@ export function menuOf(
           [command('copyLink', place.href)],
         ),
       }
+    case 'apps': {
+      const { hrefs } = place
+      return {
+        label: t.apps,
+        items: groups(
+          [
+            {
+              label: t.openCount.replace('{count}', String(hrefs.length)),
+              act: () => props.open(hrefs),
+            },
+          ],
+          [
+            {
+              label: t.copyLinks,
+              act: () =>
+                props.copy(hrefs.map((href) => new URL(href, location.origin).href).join('\n')),
+            },
+          ],
+        ),
+      }
+    }
     case 'item':
       return {
         label: named,

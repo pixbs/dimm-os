@@ -45,7 +45,15 @@ export type Action =
   | ({ type: 'desk'; room?: Room } & Size)
   // It opens at once, in front, and its view follows; alone, it closes the ones before. Behind, it opens under the
   // window in front, which keeps the front and the focus.
-  | { type: 'open'; path: string; opener?: Element | null; alone?: boolean; behind?: boolean }
+  | {
+      type: 'open'
+      path: string
+      opener?: Element | null
+      alone?: boolean
+      behind?: boolean
+      // It opens as the windows of the start do, without taking the focus.
+      quiet?: boolean
+    }
   | { type: 'fill'; window: WindowView }
   // Windows of an earlier load, back to front, go behind the ones already open.
   | { type: 'restore'; windows: WindowView[] }
@@ -289,7 +297,8 @@ export function manager(state: Windows, action: Action): Windows {
         : measured
     }
     case 'open': {
-      const { path, opener = null, alone } = action
+      const { path, alone } = action
+      const opener = action.quiet ? undefined : (action.opener ?? null)
       const window = windowOf(path)
       // Behind goes under the window in front, one restored from this tab too; alone, it waits in the taskbar, or on
       // a phone, which has none, as the drawer behind.

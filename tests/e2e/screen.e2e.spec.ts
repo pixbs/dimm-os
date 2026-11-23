@@ -113,7 +113,8 @@ test.describe('Screen', () => {
     await page.setViewportSize(desk)
     await page.goto('/')
     const taskbar = page.locator('footer[data-for="desk"]')
-    const apps = page.getByRole('navigation', { name: 'Apps' })
+    // A list to select from on a desk, links on a phone.
+    const apps = page.locator('.screen__desk > .apps')
 
     for (const [width, onDesk] of [
       [1280, true],
@@ -189,8 +190,8 @@ test.describe('Screen', () => {
     await page.setViewportSize(desk)
     await page.goto('/work')
     await page
-      .getByRole('navigation', { name: 'Apps' })
-      .getByRole('link', { name: 'Services' })
+      .getByRole('listbox', { name: 'Apps' })
+      .getByRole('option', { name: 'Services' })
       .click()
     const taskbar = page.locator('footer[data-for="desk"] button')
     await expect(taskbar).toHaveText(['work', 'services'])
@@ -309,7 +310,7 @@ test.describe('Wallpaper', () => {
     const last = (name: string) =>
       page.evaluate((name) => (Reflect.get(window, name) as unknown[]).at(-1), name)
 
-    await page.getByRole('link', { name: 'Services' }).hover()
+    await page.getByRole('option', { name: 'Services' }).hover()
     expect(await last('pointers')).toHaveLength(2)
     const box = (await page.locator('main article').boundingBox())!
     await page.mouse.move(box.x + box.width / 2, box.y + 10)

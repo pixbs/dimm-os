@@ -108,17 +108,19 @@ test.describe('The commands for the wallpaper, all windows and links', () => {
     await page.goto('/de', { waitUntil: 'networkidle' })
     await page.keyboard.press('Control+k')
     await page.keyboard.type('Alle Fenster')
-    await expect(page.getByRole('option')).toHaveCount(0)
+    await expect(page.getByRole('dialog').getByRole('option')).toHaveCount(0)
     await page.keyboard.press('Escape')
     await page.keyboard.type('Hintergrund')
-    await expect(page.getByRole('option', { name: /Nächster Hintergrund/ })).toHaveCount(1)
+    await expect(
+      page.getByRole('dialog').getByRole('option', { name: /Nächster Hintergrund/ }),
+    ).toHaveCount(1)
     await page.keyboard.press('Escape')
     await page.keyboard.press('Escape')
 
     await page.goto('/work', { waitUntil: 'networkidle' })
     await page.keyboard.press('Control+k')
     await page.keyboard.type('kopieren')
-    await expect(page.getByRole('option')).toHaveText([/^Copy link/])
+    await expect(page.getByRole('dialog').getByRole('option')).toHaveText([/^Copy link/])
     await page.keyboard.press('Enter')
     await expect.poll(() => clipboard(page)).toBe(`${baseURL}/work`)
   })
@@ -137,7 +139,7 @@ test.describe('Copy link on a phone', () => {
     // The phone's menu holds no File menu: search runs the command.
     await page.locator('header').getByRole('button', { name: 'Search' }).click()
     await page.keyboard.type('Copy link')
-    await expect(page.getByRole('option')).toHaveText([/^Copy link/])
+    await expect(page.getByRole('dialog').getByRole('option')).toHaveText([/^Copy link/])
     await page.keyboard.press('Enter')
     await expect.poll(() => clipboard(page)).toBe(`${baseURL}/work`)
     await expect(page.getByRole('status').filter({ hasText: 'Link copied' })).toHaveCount(1)

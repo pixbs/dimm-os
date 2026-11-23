@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { arrange, settles, stepped } from '@/ds/organisms/cells'
+import { arrange, settles, stepped, steppedTogether } from '@/ds/organisms/cells'
 
 const apps = ['/work', '/services', '/lab', '/cv', '/contact']
 const grid = { cols: 4, rows: 3 }
@@ -18,16 +18,34 @@ describe('the apps on a desk', () => {
   })
 
   it('let go over a free cell, settle into it; over a taken one or off the desk, into the nearest free one', () => {
-    expect(settles('/work', [3, 2], start, grid)).toEqual([3, 2])
-    expect(settles('/work', [1, 1], start, grid)).toEqual([1, 2])
-    expect(settles('/work', [9, -4], start, grid)).toEqual([3, 0])
-    expect(settles('/work', [0, 0], start, grid)).toEqual([0, 0])
+    expect(settles({ '/work': [3, 2] }, start, grid)).toEqual({ '/work': [3, 2] })
+    expect(settles({ '/work': [1, 1] }, start, grid)).toEqual({ '/work': [1, 2] })
+    expect(settles({ '/work': [9, -4] }, start, grid)).toEqual({ '/work': [3, 0] })
+    expect(settles({ '/work': [0, 0] }, start, grid)).toEqual({ '/work': [0, 0] })
   })
 
   it('step a cell with an arrow, over those taken, and stay at the edge of the desk', () => {
     expect(stepped('/work', [1, 0], start, grid)).toEqual([2, 0])
     expect(stepped('/work', [0, 1], start, grid)).toEqual([0, 0])
     expect(stepped('/work', [-1, 0], start, grid)).toEqual([0, 0])
+  })
+
+  it('moved together, keep their places among each other and settle into free cells of their own', () => {
+    const moved = settles({ '/work': [2, 0], '/services': [2, 1], '/lab': [1, 1] }, start, grid)
+    expect(moved).toEqual({ '/work': [2, 0], '/services': [2, 1], '/lab': [0, 1] })
+    const after = Object.values({ ...start, ...moved }).map(String)
+    expect(new Set(after).size).toBe(apps.length)
+  })
+
+  it('step a cell together, and all stay where one would leave the desk', () => {
+    expect(steppedTogether(['/cv', '/contact'], [1, 0], start, grid)).toEqual({
+      '/cv': [2, 0],
+      '/contact': [2, 1],
+    })
+    expect(steppedTogether(['/work', '/cv'], [0, -1], start, grid)).toEqual({
+      '/work': [0, 0],
+      '/cv': [1, 0],
+    })
   })
 
   it('never share a cell, and keep within a smaller desk', () => {

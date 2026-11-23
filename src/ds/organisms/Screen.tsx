@@ -6,6 +6,7 @@ import {
   type ComponentProps,
   type CSSProperties,
   type KeyboardEvent,
+  type MouseEvent,
   type PointerEvent,
   type ReactNode,
   useEffect,
@@ -18,9 +19,9 @@ import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
 import { Bar, BarSpace } from '../molecules/Bar'
 import { Button, ButtonLink } from '../molecules/Button'
-import { rise, settle } from '../motion/Travels'
+import { fade, rise, settle } from '../motion/Travels'
 import { usePainted } from '../motion/vocabulary'
-import { arrange, arrows, type Cell, type Cells, settles, stepped } from './cells'
+import { arrange, arrows, type Cell, type Cells, settles, stepped, steppedTogether } from './cells'
 import { Wallpaper } from './Wallpaper'
 
 export type Tile = 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
@@ -101,7 +102,8 @@ function measure(nav: HTMLElement) {
 
 // The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for. On a
 // desk they stand in cells, and where it can be moved an app is carried to another by a press that strays, or by
-// Shift and an arrow.
+// Shift and an arrow; where they can be selected, a drag over the empty desk selects those it touches, and the
+// selected move together.
 export function Apps(props: {
   apps: Shortcut[]
   layout: 'column' | 'grid' | 'screen'
@@ -113,11 +115,18 @@ export function Apps(props: {
   onPlace?: (cells: Cells) => void
   // The level a carried app lies at, over everything else on the desk.
   above?: number
+  // The apps selected, by address, and how the selection changes.
+  selected?: string[]
+  onSelect?: (apps: string[]) => void
 }) {
-  const { onPlace } = props
+  const { onPlace, onSelect } = props
+  const selected = props.selected ?? []
   const nav = useRef<HTMLElement>(null)
+  const boxed = useRef<HTMLSpanElement>(null)
   const [grid, setGrid] = useState<ReturnType<typeof measure> | null>(null)
-  const [carried, setCarried] = useState<{ app: string; spot: Cell } | null>(null)
+  // The cell each carried app would settle into.
+  const [carried, setCarried] = useState<Cells | null>(null)
+  const [box, setBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   const order = props.apps.filter((app) => app.screen !== 'phone').map((app) => app.href)
   const cells = grid && arrange(order, props.cells ?? null, grid)
   // Until one moves they stand as CSS puts them, which is where they start.
@@ -133,26 +142,28 @@ export function Apps(props: {
     return () => sized.disconnect()
   }, [screen])
 
-  // Moved, it settles into its cell from where it was let go.
-  function place(element: HTMLElement, app: string, cell: Cell) {
-    settle(element, () =>
+  // The apps of the desk as drawn, by their addresses.
+  const drawn = (of?: string[]) =>
+    [...nav.current!.querySelectorAll<HTMLElement>('.app:not([data-for="phone"])')].filter(
+      (element) => !of || of.includes(element.getAttribute('href')!),
+    )
+
+  // Moved, they settle into their cells from where they were let go.
+  function place(elements: HTMLElement[], moved: Cells) {
+    settle(elements, () =>
       flushSync(() => {
         setCarried(null)
-        onPlace!({ ...cells!, [app]: cell })
+        onPlace!({ ...cells!, ...moved })
       }),
     )
   }
 
-  // A press that strays past the reach picks the app up, and it follows the pointer; one that does not opens it.
-  function press(event: PointerEvent<HTMLElement>) {
-    const element = (event.target as Element).closest<HTMLElement>('.app')
-    if (!onPlace || !cells || !element || event.button !== 0 || event.pointerType === 'touch')
-      return
-    const app = element.getAttribute('href')!
-    const { clientX, clientY, pointerId } = event
-    const reach = parseFloat(getComputedStyle(element).getPropertyValue('--s-1'))
-    const [col, row] = cells[app]
-    let spot: Cell | null = null
+  // Following a pointer until it is lifted.
+  function follow(
+    pointerId: number,
+    move: (event: globalThis.PointerEvent) => void,
+    end: () => void,
+  ) {
     const released = new AbortController()
     const listen = (
       type: 'pointermove' | 'pointerup' | 'pointercancel',
@@ -161,34 +172,125 @@ export function Apps(props: {
       addEventListener(type, (event) => event.pointerId === pointerId && then(event), {
         signal: released.signal,
       })
-    const over = (dx: number, dy: number): Cell => [
-      Math.round((col * grid!.across + dx) / grid!.across),
-      Math.round((row * grid!.down + dy) / grid!.down),
-    ]
-    listen('pointermove', ({ clientX: x, clientY: y }) => {
-      const [dx, dy] = [x - clientX, y - clientY]
-      if (!spot && Math.hypot(dx, dy) <= reach) return
-      if (!spot) {
-        element.setPointerCapture(pointerId)
-        getSelection()?.removeAllRanges()
-      }
-      element.style.transform = `translate(${dx}px, ${dy}px)`
-      const next = settles(app, over(dx, dy), cells, grid!)
-      if (next[0] !== spot?.[0] || next[1] !== spot?.[1]) setCarried({ app, spot: (spot = next) })
-    })
-    const end = () => {
+    listen('pointermove', move)
+    const done = () => {
       released.abort()
-      if (!spot) return
-      // The press that carried it is not a press on it.
-      addEventListener('click', swallow, { capture: true, once: true })
-      setTimeout(() => removeEventListener('click', swallow, true))
-      place(element, app, spot)
+      end()
     }
-    listen('pointerup', end)
-    listen('pointercancel', end)
+    listen('pointerup', done)
+    listen('pointercancel', done)
   }
 
-  // Shift and an arrow move the app that has the focus a cell, over those taken.
+  // A press that strays past the reach picks the app up, with the others selected, and they follow the pointer; one
+  // that does not opens it. A drag over the empty desk draws the box that selects.
+  function press(event: PointerEvent<HTMLElement>) {
+    if (!onPlace || !cells || event.button !== 0 || event.pointerType === 'touch') return
+    const element = (event.target as Element).closest<HTMLElement>('.app')
+    if (!element) {
+      if (onSelect && event.target === event.currentTarget) draw(event)
+      return
+    }
+    if (toggles(event)) return
+    const app = element.getAttribute('href')!
+    const ours = selected.includes(app)
+    if (!ours && selected.length) onSelect?.([])
+    const group = ours ? [app, ...selected.filter((one) => one !== app)] : [app]
+    const elements = drawn(group)
+    const { clientX, clientY, pointerId } = event
+    const reach = parseFloat(getComputedStyle(element).getPropertyValue('--s-1'))
+    let spots: Cells | null = null
+    const over = (dx: number, dy: number): Cells =>
+      Object.fromEntries(
+        group.map((one) => [
+          one,
+          [
+            Math.round((cells[one][0] * grid!.across + dx) / grid!.across),
+            Math.round((cells[one][1] * grid!.down + dy) / grid!.down),
+          ],
+        ]),
+      )
+    follow(
+      pointerId,
+      ({ clientX: x, clientY: y }) => {
+        const [dx, dy] = [x - clientX, y - clientY]
+        if (!spots && Math.hypot(dx, dy) <= reach) return
+        if (!spots) {
+          element.setPointerCapture(pointerId)
+          getSelection()?.removeAllRanges()
+        }
+        for (const one of elements) one.style.transform = `translate(${dx}px, ${dy}px)`
+        const next = settles(over(dx, dy), cells, grid!)
+        if (JSON.stringify(next) !== JSON.stringify(spots)) setCarried((spots = next))
+      },
+      () => {
+        if (!spots) return
+        // The press that carried them is not a press on one.
+        addEventListener('click', swallow, { capture: true, once: true })
+        setTimeout(() => removeEventListener('click', swallow, true))
+        place(elements, spots)
+      },
+    )
+  }
+
+  // The box is drawn from where the drag started to the pointer, and selects every app it touches while it is drawn;
+  // a press that does not stray selects none. The focus is on the desk.
+  function draw(event: PointerEvent<HTMLElement>) {
+    event.preventDefault()
+    ;(document.activeElement as HTMLElement | null)?.blur()
+    if (selected.length) onSelect!([])
+    const origin = event.currentTarget.getBoundingClientRect()
+    const from = { x: event.clientX - origin.x, y: event.clientY - origin.y }
+    const apps = drawn().map((element) => {
+      const tile = element.getBoundingClientRect()
+      return {
+        app: element.getAttribute('href')!,
+        x: tile.x - origin.x,
+        y: tile.y - origin.y,
+        r: tile.right - origin.x,
+        b: tile.bottom - origin.y,
+      }
+    })
+    for (const fading of boxed.current?.getAnimations() ?? []) fading.cancel()
+    let touched = ''
+    follow(
+      event.pointerId,
+      ({ clientX, clientY }) => {
+        // It keeps to the desk.
+        const x = Math.min(Math.max(clientX - origin.x, 0), origin.width)
+        const y = Math.min(Math.max(clientY - origin.y, 0), origin.height)
+        const drawing = {
+          x: Math.min(x, from.x),
+          y: Math.min(y, from.y),
+          w: Math.abs(x - from.x),
+          h: Math.abs(y - from.y),
+        }
+        setBox(drawing)
+        const within = apps
+          .filter(
+            (one) =>
+              one.x <= drawing.x + drawing.w &&
+              one.r >= drawing.x &&
+              one.y <= drawing.y + drawing.h &&
+              one.b >= drawing.y,
+          )
+          .map((one) => one.app)
+        if (within.join() !== touched) onSelect!(within)
+        touched = within.join()
+      },
+      () => boxed.current && fade(boxed.current, () => setBox(null)),
+    )
+  }
+
+  // Shift, or the key that adds to a selection, and a press on an app adds it or takes it out, and does not open it.
+  function pick(event: MouseEvent<HTMLElement>) {
+    const element = (event.target as Element).closest<HTMLElement>('.app')
+    if (!element || !toggles(event)) return
+    event.preventDefault()
+    const app = element.getAttribute('href')!
+    onSelect!(selected.includes(app) ? selected.filter((one) => one !== app) : [...selected, app])
+  }
+
+  // Shift and an arrow move the app that has the focus a cell, over those taken, and the others selected with it.
   function key(event: KeyboardEvent<HTMLElement>) {
     const element = (event.target as Element).closest<HTMLElement>('.app')
     const to = arrows[event.key]
@@ -196,7 +298,9 @@ export function Apps(props: {
     if (event.metaKey || event.ctrlKey) return
     event.preventDefault()
     const app = element.getAttribute('href')!
-    place(element, app, stepped(app, to, cells, grid!))
+    const group = selected.includes(app) && selected.length > 1 ? selected : null
+    if (group) place(drawn(group), steppedTogether(group, to, cells, grid!))
+    else place([element], { [app]: stepped(app, to, cells, grid!) })
   }
 
   const at = (cell?: Cell) =>
@@ -205,34 +309,55 @@ export function Apps(props: {
   return (
     <nav
       aria-label={props.label}
+      aria-multiselectable={onSelect ? true : undefined}
       className="apps"
       data-layout={props.layout}
       data-moves={onPlace ? '' : undefined}
       inert={props.inert}
+      onClick={onSelect && pick}
       onDragStart={onPlace && ((event) => event.preventDefault())}
       onKeyDown={onPlace && key}
       onPointerDown={onPlace && press}
       ref={nav}
+      role={onSelect ? 'listbox' : undefined}
     >
       {props.apps.map(({ tile, file: _, ...app }) => {
-        const lifted = carried?.app === app.href && app.screen !== 'phone'
+        const desk = app.screen !== 'phone'
+        const lifted = desk && !!carried?.[app.href]
         return (
           <App
             key={`${app.screen}${app.href}`}
             {...app}
+            role={onSelect && desk ? 'option' : undefined}
+            selected={desk && selected.includes(app.href)}
             state={lifted ? 'carried' : undefined}
             style={{
-              ...at(app.screen === 'phone' ? undefined : shown?.[app.href]),
+              ...at(desk ? shown?.[app.href] : undefined),
               zIndex: lifted ? props.above : undefined,
             }}
             tile={tile ?? undefined}
           />
         )
       })}
-      {carried && <span aria-hidden className="apps__spot" style={at(carried.spot)} />}
+      {Object.entries(carried ?? {}).map(([app, spot]) => (
+        <span aria-hidden className="apps__spot" key={app} style={at(spot)} />
+      ))}
+      {box && (
+        <span
+          aria-hidden
+          className="apps__box"
+          ref={boxed}
+          style={{ left: box.x, top: box.y, width: box.w, height: box.h }}
+        />
+      )}
     </nav>
   )
 }
+
+// Shift, or Ctrl (⌘ on a Mac), with a press adds to a selection.
+const toggles = (event: { shiftKey: boolean; ctrlKey: boolean; metaKey: boolean }) =>
+  event.shiftKey ||
+  (document.documentElement.dataset.keys === 'apple' ? event.metaKey : event.ctrlKey)
 
 // A click the page should not take.
 function swallow(event: Event) {

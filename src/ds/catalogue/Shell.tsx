@@ -319,6 +319,24 @@ export function Shell(props: Props) {
           </div>
         </Specs>
       </Entry>
+      <Entry text={t.selectionBox}>
+        <div
+          className="stage box"
+          data-surface="desktop"
+          style={{ ...sized(30), ...desk, position: 'relative' }}
+        >
+          <Apps
+            apps={apps(t.name, ['raised', 'orange', 'mint', 'blue'])}
+            layout="column"
+            selected={apps(t.name, ['raised', 'orange']).map((app) => app.href)}
+          />
+          <span
+            aria-hidden
+            className="apps__box"
+            style={{ left: u(2), top: u(2), width: u(14), height: u(26) }}
+          />
+        </div>
+      </Entry>
       <Windows {...props} />
       <Entry text={t.handled}>
         <Specs caps={t.handledCaps}>

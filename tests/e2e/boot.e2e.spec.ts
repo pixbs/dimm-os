@@ -118,7 +118,7 @@ test.describe('Boot, login and shut down', () => {
     const run = async (typed: string, title: string) => {
       await page.keyboard.press('Control+k')
       await page.getByRole('combobox').fill(typed)
-      await expect(page.getByRole('option')).toHaveCount(1)
+      await expect(page.getByRole('dialog').getByRole('option')).toHaveCount(1)
       await expect(system.getByRole('option')).toContainText(title)
       await page.keyboard.press('Enter')
     }
