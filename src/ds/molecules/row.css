@@ -46,7 +46,8 @@
     --state: var(--hover);
   }
   &:is(a, button):active,
-  &[data-state='pressed'] {
+  &[data-state='pressed'],
+  &[data-held] {
     --state: var(--pressed);
   }
   &:focus-visible,
