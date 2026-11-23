@@ -417,7 +417,7 @@ const de: Copy = {
     durationRows: [
       ['160 ms', 'Menüs, Tooltips, Schalter, Zeilen, Farbe.'],
       ['320 ms', 'Fenster, Schubladen, Dialoge, Inhalt, der in einem Fenster ersetzt wird.'],
-      ['960 ms', 'Die Übergabe beim Start; was schwingt oder fällt.'],
+      ['960 ms', 'Die Zeilen des Starts; was schwingt oder fällt.'],
       ['80 ms', 'Was mit fast gekommen ist und geht.'],
       ['160 ms', 'Was mit slow gekommen ist und geht.'],
       ['240 ms', 'Eine Schublade, die geht, wie sie gekommen ist.'],
@@ -431,6 +431,10 @@ const de: Copy = {
         'Ein Fenster, das zu seiner Taste in der Taskleiste oder zu seinem Auslöser zurückgeht.',
       ],
       ['40 ms', 'Die Pause, bevor ein Fenster zurückgeht, nachdem sein Inhalt gegangen ist.'],
+      [
+        '40 ms',
+        'Ein Schritt einer Übergabe zwischen einem wartenden Bildschirm und dem Schreibtisch.',
+      ],
     ],
     curve: [
       'Kurve',
@@ -492,6 +496,30 @@ const de: Copy = {
       'Was von einem Platz zu einem anderen geht, ist ein Element, das wandert und den Platz, die Größe und die Fläche seines Ziels annimmt. Es geht auf einer Kurve hinüber und auf einer anderen hinauf, also in einem Bogen, während Größe und Fläche auf der Standardkurve wechseln. Seine Buchstaben gehen von der einen Größe zur anderen, und die alten blenden in der mittleren Hälfte der Bewegung in die neuen über. Bei reduzierter Bewegung wandert nichts: Es blendet aus, wo es war, und ein, wo es landet. Ein Fenster ist ein Kasten, der wandert: von seinem Auslöser an seinen Platz über slow auf der Standardkurve, sein Inhalt ungesehen, bis drei Viertel der Bewegung getan sind, und zurück zu seiner Taste in der Taskleiste oder zu seinem Auslöser einen Moment, nachdem sein Inhalt gegangen ist, über back auf der Kurve exit. Bei reduzierter Bewegung blendet es, wo es steht.',
     ],
     travelLetters: 'OS',
+    handOver: [
+      'Übergabe',
+      'in Schritten von: step | geht: fast, einen halben Schritt nacheinander | kommt: slow, einen Schritt nacheinander | eine App wächst aus: 0.6 | reduziert: eine Blende über fast',
+      'Vom wartenden Bildschirm zum Schreibtisch ist eine Folge, gezählt in Schritten ab dem Druck; Titel und Sprache sind sofort die des Schreibtischs, und das Hintergrundbild, das die ganze Zeit dahinter stand, läuft weiter. Vom Start folgt dieselbe Ankunft, wenn seine Zeilen und seine Leiste gegangen sind. Beim Sperren geht der Schreibtisch zusammen über die Hälfte von fast, und die Teile der Anmeldung kommen nacheinander, wie sie gegangen sind. Beim Ausschalten gehen die Fenster zu ihren Tasten in der Taskleiste, dann gehen Apps, Taskleiste und Menüleiste in umgekehrter Folge ihrer Ankunft, alles innerhalb von slow, und die Teile des Endes kommen nacheinander. Nichts auf dem Schreibtisch lässt sich drücken, bevor es angekommen ist. Bei reduzierter Bewegung ist jede Übergabe eine Blende über fast.',
+    ],
+    handOverHead: ['Schritt', 'Teil', 'Bewegung'],
+    handOverRows: [
+      [
+        '0',
+        'Was der Bildschirm hält',
+        'Blendet aus und steigt 8 px über fast, einen halben Schritt nacheinander.',
+      ],
+      ['0', 'Der Avatar', 'Wandert in das Tag.'],
+      ['2', 'Die Sprache', 'Gleitet über anderthalbmal slow an ihren Platz.'],
+      [
+        '3',
+        'Die Menüleiste',
+        'Jeder Eintrag fällt über slow 8 px an seinen Platz, einen Schritt nacheinander.',
+      ],
+      ['6', 'Die Taskleiste', 'Steigt über slow von unten.'],
+      ['8', 'Die Apps', 'Jede wächst aus 0.6, während sie einblendet, einen Schritt nacheinander.'],
+      ['11', 'Die Fenster', 'Wandern aus ihren Tasten in der Taskleiste; eine Schublade steigt.'],
+      ['14', 'Name und Uhr', 'Fallen über fast 8 px an ihren Platz.'],
+    ],
     decipher: [
       'Entziffern',
       'Buchstabe: 16 ms | höchstens: 480 ms | Lauf: 6 | ein Zähler neben einem Titel: 2/5 seiner Zeit',

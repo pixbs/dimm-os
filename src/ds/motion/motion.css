@@ -100,12 +100,12 @@
 [data-travels='awaited'] {
   visibility: hidden;
 }
-/* Where nothing travels, it fades out where it was and in where it lands. */
+/* Where nothing travels, it fades out where it was and in where it lands, within the one fade of a hand-over. */
 [data-travels='out'] {
-  animation: var(--m-slow-exit) var(--m-exit) forwards travels-out;
+  animation: var(--m-fast) var(--m-exit) forwards travels-out;
 }
 [data-travels='in'] {
-  animation: var(--m-slow) var(--m-enter) backwards travels-in;
+  animation: var(--m-fast) var(--m-enter) backwards travels-in;
 }
 @keyframes travels-out {
   to {

@@ -38,7 +38,8 @@ export function Screen({
   fill?: boolean
   // A screen that waits (starting up, locked, shut down) stands over the desk until it hands over.
   waiting?: boolean
-  // Its wallpaper is drawn once it arrives.
+  // Its wallpaper is drawn once it arrives. A screen that waits draws none: it shows the desk's, which goes on as the
+  // desk takes over, or covers it.
   wallpaper?: boolean
 }) {
   return (
@@ -47,9 +48,9 @@ export function Screen({
       className={className ? `screen ${className}` : 'screen'}
       data-fill={fill ? '' : undefined}
       data-surface="desktop"
-      data-waiting={waiting ? '' : undefined}
+      data-waiting={waiting ? (wallpaper ? 'clear' : 'covers') : undefined}
     >
-      {wallpaper && <Wallpaper />}
+      {wallpaper && !waiting && <Wallpaper />}
       {children}
     </div>
   )

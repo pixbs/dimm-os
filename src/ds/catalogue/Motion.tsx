@@ -16,6 +16,7 @@ const times = [
   'travel',
   'back',
   'lag',
+  'step',
 ]
 // Each curve is shown at the duration it is used with.
 const curves = [
@@ -113,6 +114,14 @@ export function Motion({ t }: { t: Copy['motion'] }) {
       </Entry>
       <Entry text={t.travel}>
         <Travelled label={t.play} letters={t.travelLetters} />
+      </Entry>
+      <Entry text={t.handOver}>
+        <Table
+          classes={['t-mono c-muted', 't-medium', 'c-muted']}
+          columns="6 16 1fr"
+          head={t.handOverHead}
+          rows={t.handOverRows}
+        />
       </Entry>
       <Entry text={t.decipher}>
         <Deciphers heading={t.decipherHeading} label={t.change} texts={t.decipherTexts} />
