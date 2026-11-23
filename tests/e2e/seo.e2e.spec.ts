@@ -133,9 +133,11 @@ test.describe('The SEO tab', () => {
       twitter: 'summary_large_image',
     })
 
+    // A picture of the fixture is listed under the name its upload was given.
+    const { filename } = await picture(page, 'A sun setting over two hills')
     await page.goto('/admin/collections/media?limit=100')
     const list = page.locator('.collection-list')
-    await expect(list.getByText('picture.jpg', { exact: true })).toBeVisible()
+    await expect(list.getByText(filename, { exact: true })).toBeVisible()
     await expect(list.getByText(/card-/)).toHaveCount(0)
   })
 
