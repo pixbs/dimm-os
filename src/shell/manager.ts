@@ -19,6 +19,8 @@ type Entry = {
   box: Box
   placed: boolean
   pulled?: boolean
+  // It waits behind the window in front, which covers it: its taskbar button signals it.
+  covered?: boolean
 }
 
 // Where windows open: the span of the desk beside its apps.
@@ -39,8 +41,9 @@ export type Windows = {
 
 export type Action =
   | ({ type: 'desk'; room?: Room } & Size)
-  // It opens at once, in front, and its view follows; alone, it closes the ones before.
-  | { type: 'open'; path: string; opener?: Element | null; alone?: boolean }
+  // It opens at once, in front, and its view follows; alone, it closes the ones before. Behind, it opens under the
+  // window in front, which keeps the front and the focus.
+  | { type: 'open'; path: string; opener?: Element | null; alone?: boolean; behind?: boolean }
   | { type: 'fill'; window: WindowView }
   // Windows of an earlier load, back to front, go behind the ones already open.
   | { type: 'restore'; windows: WindowView[] }
@@ -143,6 +146,27 @@ function placed(state: Windows): Windows {
   return { ...state, open }
 }
 
+// A window opened behind the one in front stands beside it at the far end of the room, or, where the room has no
+// space beside it, behind it and marked; a drawer has no place.
+function beside(state: Windows, path: string, under: string): Windows {
+  const room = roomIn(state)
+  const one = find(state, path)!
+  const front = find(state, under)!
+  if (!room || !state.desk) return state
+  const desk = state.desk
+  const { w, h } = fit(one.box, desk)
+  const x = room.x + room.w - w
+  const ahead = fit(front.box, desk)
+  const free = front.mode === 'float' && front.placed && ahead.x + ahead.w <= x
+  const to: Partial<Entry> = free
+    ? { box: { ...one.box, x, y: Math.round((desk.h - h) / 2) }, placed: true, covered: false }
+    : { covered: true }
+  return {
+    ...state,
+    open: state.open.map((entry) => (entry === one ? { ...entry, ...to } : entry)),
+  }
+}
+
 // The window of a path: its first segment.
 export const windowOf = (path: string) => `/${path.split('/')[1]}`
 
@@ -242,6 +266,28 @@ export function manager(state: Windows, action: Action): Windows {
     case 'open': {
       const { path, opener = null, alone } = action
       const window = windowOf(path)
+      // Behind goes under the window in front, one restored from this tab too; alone, it waits in the taskbar, or on
+      // a phone, which has none, as the drawer behind.
+      const under = action.behind ? front(state) : undefined
+      if (under && under !== window) {
+        const waits = alone && !phone(state)
+        // It takes no focus, which would bring it forward.
+        const asked = { ...(target ?? entry(path, null, undefined)), at: path, covered: alone }
+        const kept: Entry = waits
+          ? { ...asked, mode: 'min', was: asked.mode === 'min' ? asked.was : asked.mode }
+          : { ...asked, mode: asked.mode === 'min' ? asked.was : asked.mode }
+        // The window in front takes the focus, as one the visitor opened.
+        const open = (
+          target ? state.open.map((one) => (one === target ? kept : one)) : [...state.open, kept]
+        ).map((one) => (one.path === under ? { ...one, opener: one.opener ?? null } : one))
+        const rest = others(window).filter((path) => path !== under)
+        const behind = placed({
+          ...state,
+          open,
+          z: waits ? [window, ...rest, under] : [...rest, window, under],
+        })
+        return waits ? behind : beside(behind, window, under)
+      }
       // An open window comes forward where it stands in the page, back from the taskbar as what it was, and
       // what brought it is now its opener; given another path of its own, it goes there.
       const open = target
@@ -256,10 +302,14 @@ export function manager(state: Windows, action: Action): Windows {
               : one,
           )
         : [...state.open, entry(path, null, opener)]
+      // Alone, it closes the others, but not one that waits for an answer.
+      const kept = open.filter((one) => one.path === window || one.covered)
       return placed({
         ...state,
-        open: alone ? open.filter((one) => one.path === window) : open,
-        z: alone ? [window] : [...others(window), window],
+        open: alone ? kept : open,
+        z: alone
+          ? [...kept.map((one) => one.path).filter((one) => one !== window), window]
+          : [...others(window), window],
       })
     }
     // A view that comes after its window went elsewhere is not shown.
@@ -372,10 +422,12 @@ export function manager(state: Windows, action: Action): Windows {
       const kept = state.open.find((one) => one.path === front(state))
       if (!kept) return manager(state, { type: 'closeAll' })
       const box = kept.view ? { ...kept.box, ...sizeOf(kept.view) } : kept.box
+      // A window that waits for an answer stays behind.
+      const waiting = state.open.filter((one) => one.covered && one !== kept)
       return placed({
         ...state,
-        open: [{ ...kept, placed: false, pulled: false, box }],
-        z: [kept.path],
+        open: [{ ...kept, placed: false, pulled: false, box }, ...waiting],
+        z: [...waiting.map((one) => one.path), kept.path],
         sizing: null,
       })
     }

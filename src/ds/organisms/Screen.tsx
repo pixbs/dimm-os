@@ -97,6 +97,8 @@ export type Task = {
   tile?: Tile | null
   front?: boolean
   minimised?: boolean
+  // It waits for an answer where it cannot be seen: the signal dot.
+  signal?: boolean
 }
 
 const TaskButton = m.create(Button)
@@ -122,11 +124,14 @@ function Tasks(props: {
           key={task.id ?? index}
           label={task.name}
           lead={
-            <span
-              className="mark"
-              data-surface={task.tile ?? undefined}
-              data-tone={task.minimised ? 'off' : undefined}
-            />
+            <>
+              <span
+                className="mark"
+                data-surface={task.tile ?? undefined}
+                data-tone={task.minimised ? 'off' : undefined}
+              />
+              {task.signal && <span className="dot" data-tone="signal" />}
+            </>
           }
           onClick={props.onPick && ((event) => props.onPick!(index, event.currentTarget))}
           size={props.size}

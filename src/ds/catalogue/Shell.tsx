@@ -213,7 +213,7 @@ export function Shell(props: Props) {
   const { t, words } = props
   const tasks = (minimised = false): Task[] => [
     { name: t.window, tile: 'orange', front: true },
-    { name: t.window, tile: 'blue' },
+    { name: t.window, tile: 'blue', signal: true },
     { name: t.window, minimised },
   ]
   const fill = (children: ReactNode) => <div style={{ width: '100%' }}>{children}</div>

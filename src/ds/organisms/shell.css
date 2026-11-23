@@ -169,6 +169,18 @@
   }
 }
 
+/* A window that waits covered: the signal dot pops beside the mark of its button, the one part that overshoots. */
+.btn > .mark + .dot {
+  transition-property: var(--m-moves);
+  transition-duration: var(--m-fast);
+  transition-timing-function: var(--m-swing);
+
+  @starting-style {
+    transform: scale(0);
+    opacity: 0;
+  }
+}
+
 /* Window: a frame the visitor handles. Where it lies in a page it is as high as what it holds. */
 .window {
   display: flex;
