@@ -125,7 +125,8 @@ test.describe('Screen', () => {
       await expect(taskbar).toBeVisible({ visible: onDesk })
       // A phone has nothing at its foot.
       await expect(page.locator('footer:visible')).toHaveCount(onDesk ? 1 : 0)
-      await expect(apps).toHaveCSS('display', onDesk ? 'flex' : 'grid')
+      // Cells down a column on a desk, four across on a phone.
+      await expect(apps).toHaveCSS('grid-auto-flow', onDesk ? 'column' : 'row')
     }
   })
 

@@ -137,6 +137,7 @@ export function menus(props: {
         })),
     },
     command('nextWallpaper'),
+    command('cleanUp'),
   ]
   const window: Item[] = [
     {

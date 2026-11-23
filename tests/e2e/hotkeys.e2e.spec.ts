@@ -25,7 +25,7 @@ test.describe('The hotkeys window on a desk', () => {
 
     // What a reader sees: the device's names only.
     const rows = hotkeys(page).locator('.row:not(.list__head):visible')
-    await expect(rows).toHaveCount(13)
+    await expect(rows).toHaveCount(14)
     expect(
       await rows.evaluateAll((all) =>
         all.map((one) => (one as HTMLElement).innerText.replace(/\s+/g, ' ')),
@@ -44,6 +44,7 @@ test.describe('The hotkeys window on a desk', () => {
       'Next window N',
       'Move, with the bar in focus Arrows',
       'Resize, with the bar in focus ⇧ Arrows',
+      'Move an app, with the app in focus ⇧ Arrows',
     ])
     await expect(hotkeys(page).getByText('Not while you type in a field')).toBeVisible()
     expect((await hotkeys(page).boundingBox())!.width).toBe(400)

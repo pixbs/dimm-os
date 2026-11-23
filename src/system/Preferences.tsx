@@ -195,7 +195,9 @@ function Body({ t, language, site, path }: Props) {
 }
 
 // Preferences: every setting a visitor can change, kept on the device, and at its foot a reset, a restart and done.
-export function preferencesWindow(props: Props & { close: () => void }): Parts {
+export function preferencesWindow(
+  props: Props & { close: () => void; cleanUp: () => void },
+): Parts {
   const { t, language } = props
   return {
     body: <Body {...props} />,
@@ -203,7 +205,11 @@ export function preferencesWindow(props: Props & { close: () => void }): Parts {
       <ButtonGroup cells>
         <Button
           label={t.factoryReset}
-          onClick={() => change(Object.fromEntries(settings.map((name) => [name, null])))}
+          // The apps go back to their places at the start as well.
+          onClick={() => {
+            change(Object.fromEntries(settings.map((name) => [name, null])))
+            props.cleanUp()
+          }}
           tone="outline"
         />
         <ButtonLink

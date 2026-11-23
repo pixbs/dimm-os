@@ -139,7 +139,7 @@ function Stats({ t }: Props) {
   )
 }
 
-const states = [undefined, 'hover', 'pressed', 'selected', 'focus', 'open'] as const
+const states = [undefined, 'hover', 'pressed', 'selected', 'focus', 'open', 'carried'] as const
 
 function Apps({ t }: Props) {
   const tiles = [
@@ -153,7 +153,7 @@ function Apps({ t }: Props) {
   return (
     <Entry text={t.app}>
       <div className="stage box" data-surface="desktop">
-        <div className="matrix" style={{ gridTemplateColumns: 'repeat(7, max-content)' }}>
+        <div className="matrix" style={{ gridTemplateColumns: 'repeat(8, max-content)' }}>
           <span />
           {t.appStates.map((state) => (
             <p className="cap__label" key={state}>
@@ -164,8 +164,8 @@ function Apps({ t }: Props) {
             <Fragment key={size}>
               <p className="cap__label">{size}</p>
               {states.map((state) =>
-                // A compact icon has no name to invert.
-                row && state === 'selected' ? (
+                // A compact icon has no name to invert, and lives in a bar, where nothing is carried.
+                row && (state === 'selected' || state === 'carried') ? (
                   <span key={state} />
                 ) : (
                   <App

@@ -96,6 +96,7 @@ function Body({ t, language, name, apps, lit, run, light }: Props) {
             {windows.map(command)}
             {row('move', t.hotkeysMove, ['arrows'], null)}
             {row('resize', t.hotkeysResize, ['shift', 'arrows'], null)}
+            {row('moveApp', t.hotkeysMoveApp, ['shift', 'arrows'], null)}
           </List>
         </Section>
       </div>

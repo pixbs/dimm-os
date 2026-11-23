@@ -2,14 +2,25 @@
 
 import { AnimatePresence } from 'motion/react'
 import * as m from 'motion/react-m'
-import type { ComponentProps, ReactNode } from 'react'
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
+import { flushSync } from 'react-dom'
 
 import type { IconName } from '../atoms/Icon'
 import { App } from '../molecules/App'
 import { Bar, BarSpace } from '../molecules/Bar'
 import { Button, ButtonLink } from '../molecules/Button'
-import { rise } from '../motion/Travels'
+import { rise, settle } from '../motion/Travels'
 import { usePainted } from '../motion/vocabulary'
+import { arrange, arrows, type Cell, type Cells, settles, stepped } from './cells'
 import { Wallpaper } from './Wallpaper'
 
 export type Tile = 'raised' | 'paper' | 'orange' | 'blue' | 'mint'
@@ -73,21 +84,160 @@ export type Shortcut = {
   screen?: 'phone' | 'desk'
 }
 
-// The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for.
+// The grid of a desk as CSS lays it out: how many cells fit, and how far apart they stand.
+function measure(nav: HTMLElement) {
+  const style = getComputedStyle(nav)
+  const across = parseFloat(style.gridTemplateColumns) + parseFloat(style.columnGap)
+  const down = parseFloat(style.gridTemplateRows) + parseFloat(style.rowGap)
+  const fit = (room: number, step: number, gap: number) =>
+    Math.max(1, Math.floor((room + gap) / step))
+  return {
+    cols: fit(nav.clientWidth, across, parseFloat(style.columnGap)),
+    rows: fit(nav.clientHeight, down, parseFloat(style.rowGap)),
+    across,
+    down,
+  }
+}
+
+// The apps the admin has defined, on the desk: a column, four across, or the one the screen's width asks for. On a
+// desk they stand in cells, and where it can be moved an app is carried to another by a press that strays, or by
+// Shift and an arrow.
 export function Apps(props: {
   apps: Shortcut[]
   layout: 'column' | 'grid' | 'screen'
   label?: string
   // Covered by a window in full screen, they cannot be reached.
   inert?: boolean
+  // Where each stands once one has been moved; without, as at the start.
+  cells?: Cells | null
+  onPlace?: (cells: Cells) => void
+  // The level a carried app lies at, over everything else on the desk.
+  above?: number
 }) {
+  const { onPlace } = props
+  const nav = useRef<HTMLElement>(null)
+  const [grid, setGrid] = useState<ReturnType<typeof measure> | null>(null)
+  const [carried, setCarried] = useState<{ app: string; spot: Cell } | null>(null)
+  const order = props.apps.filter((app) => app.screen !== 'phone').map((app) => app.href)
+  const cells = grid && arrange(order, props.cells ?? null, grid)
+  // Until one moves they stand as CSS puts them, which is where they start.
+  const shown = props.cells || carried ? (cells ?? props.cells) : null
+
+  // The screen's own grid is measured whenever it changes, so moved apps keep to the desk.
+  const screen = props.layout === 'screen'
+  useEffect(() => {
+    if (!screen) return
+    const element = nav.current!
+    const sized = new ResizeObserver(() => setGrid(measure(element)))
+    sized.observe(element)
+    return () => sized.disconnect()
+  }, [screen])
+
+  // Moved, it settles into its cell from where it was let go.
+  function place(element: HTMLElement, app: string, cell: Cell) {
+    settle(element, () =>
+      flushSync(() => {
+        setCarried(null)
+        onPlace!({ ...cells!, [app]: cell })
+      }),
+    )
+  }
+
+  // A press that strays past the reach picks the app up, and it follows the pointer; one that does not opens it.
+  function press(event: PointerEvent<HTMLElement>) {
+    const element = (event.target as Element).closest<HTMLElement>('.app')
+    if (!onPlace || !cells || !element || event.button !== 0 || event.pointerType === 'touch')
+      return
+    const app = element.getAttribute('href')!
+    const { clientX, clientY, pointerId } = event
+    const reach = parseFloat(getComputedStyle(element).getPropertyValue('--s-1'))
+    const [col, row] = cells[app]
+    let spot: Cell | null = null
+    const released = new AbortController()
+    const listen = (
+      type: 'pointermove' | 'pointerup' | 'pointercancel',
+      then: (event: globalThis.PointerEvent) => void,
+    ) =>
+      addEventListener(type, (event) => event.pointerId === pointerId && then(event), {
+        signal: released.signal,
+      })
+    const over = (dx: number, dy: number): Cell => [
+      Math.round((col * grid!.across + dx) / grid!.across),
+      Math.round((row * grid!.down + dy) / grid!.down),
+    ]
+    listen('pointermove', ({ clientX: x, clientY: y }) => {
+      const [dx, dy] = [x - clientX, y - clientY]
+      if (!spot && Math.hypot(dx, dy) <= reach) return
+      if (!spot) {
+        element.setPointerCapture(pointerId)
+        getSelection()?.removeAllRanges()
+      }
+      element.style.transform = `translate(${dx}px, ${dy}px)`
+      const next = settles(app, over(dx, dy), cells, grid!)
+      if (next[0] !== spot?.[0] || next[1] !== spot?.[1]) setCarried({ app, spot: (spot = next) })
+    })
+    const end = () => {
+      released.abort()
+      if (!spot) return
+      // The press that carried it is not a press on it.
+      addEventListener('click', swallow, { capture: true, once: true })
+      setTimeout(() => removeEventListener('click', swallow, true))
+      place(element, app, spot)
+    }
+    listen('pointerup', end)
+    listen('pointercancel', end)
+  }
+
+  // Shift and an arrow move the app that has the focus a cell, over those taken.
+  function key(event: KeyboardEvent<HTMLElement>) {
+    const element = (event.target as Element).closest<HTMLElement>('.app')
+    const to = arrows[event.key]
+    if (!onPlace || !cells || !element || !to || !event.shiftKey || event.altKey) return
+    if (event.metaKey || event.ctrlKey) return
+    event.preventDefault()
+    const app = element.getAttribute('href')!
+    place(element, app, stepped(app, to, cells, grid!))
+  }
+
+  const at = (cell?: Cell) =>
+    cell && ({ '--col': cell[0] + 1, '--row': cell[1] + 1 } as CSSProperties)
+
   return (
-    <nav aria-label={props.label} className="apps" data-layout={props.layout} inert={props.inert}>
-      {props.apps.map(({ tile, file: _, ...app }) => (
-        <App key={`${app.screen}${app.href}`} {...app} tile={tile ?? undefined} />
-      ))}
+    <nav
+      aria-label={props.label}
+      className="apps"
+      data-layout={props.layout}
+      data-moves={onPlace ? '' : undefined}
+      inert={props.inert}
+      onDragStart={onPlace && ((event) => event.preventDefault())}
+      onKeyDown={onPlace && key}
+      onPointerDown={onPlace && press}
+      ref={nav}
+    >
+      {props.apps.map(({ tile, file: _, ...app }) => {
+        const lifted = carried?.app === app.href && app.screen !== 'phone'
+        return (
+          <App
+            key={`${app.screen}${app.href}`}
+            {...app}
+            state={lifted ? 'carried' : undefined}
+            style={{
+              ...at(app.screen === 'phone' ? undefined : shown?.[app.href]),
+              zIndex: lifted ? props.above : undefined,
+            }}
+            tile={tile ?? undefined}
+          />
+        )
+      })}
+      {carried && <span aria-hidden className="apps__spot" style={at(carried.spot)} />}
     </nav>
   )
+}
+
+// A click the page should not take.
+function swallow(event: Event) {
+  event.preventDefault()
+  event.stopPropagation()
 }
 
 // A window as the taskbar shows it: the window in front is selected, one minimised has a hollow mark.

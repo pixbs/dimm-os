@@ -1,5 +1,7 @@
 'use client'
 
+import type { CSSProperties } from 'react'
+
 import { Icon, type IconName } from '../atoms/Icon'
 import { usePainted } from '../motion/vocabulary'
 
@@ -19,10 +21,12 @@ type Props = {
   selected?: boolean
   // Its window is open: the signal dot.
   open?: boolean
-  // A state shown at rest, for the catalogue.
-  state?: 'hover' | 'pressed' | 'focus'
+  // A state shown at rest, for the catalogue; carried, it is on its way to another cell.
+  state?: 'hover' | 'pressed' | 'focus' | 'carried'
   // Shown on one kind of screen only.
   screen?: 'phone' | 'desk'
+  // Its cell on a desk.
+  style?: CSSProperties
 }
 
 // An icon on a tile with its name under it; the admin picks icon, name and tile.
@@ -38,6 +42,7 @@ export function App({
   open,
   state,
   screen,
+  style,
 }: Props) {
   // A dot the server painted is there already; one that comes later pops.
   const painted = usePainted()
@@ -53,6 +58,7 @@ export function App({
       href={href}
       lang={lang}
       onClick={onClick}
+      style={style}
       type={href ? undefined : 'button'}
     >
       {/* What a window it opens travels from, and back to. */}

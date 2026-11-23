@@ -96,7 +96,8 @@ test.describe('Window properties on a tablet', () => {
   test('opens a window beside the apps, at the room there at most', async ({ page }) => {
     await emptyDesk(page)
     await page.goto('/welcome', { waitUntil: 'networkidle' })
-    const apps = (await page.locator('.apps').boundingBox())!
+    // The first column of apps, which is as wide as an app.
+    const apps = (await page.locator('.apps > .app:visible').first().boundingBox())!
     const welcome = win(page, 'Welcome')
 
     await expect.poll(async () => (await welcome.boundingBox())?.width).toBe(698)
