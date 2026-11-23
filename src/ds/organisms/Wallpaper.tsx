@@ -18,14 +18,17 @@ function start(box: HTMLElement, copy: boolean) {
   // A copy follows neither the pointer nor the desk it stands on.
   const screen = copy ? null : canvas.closest('.screen')
   const desk = screen?.querySelector('.screen__desk')
+  // A screen that waits over the desk stands beside it, and the pointer over its open ground is over the wallpaper.
+  const room = screen?.parentElement
   const send = (setting: Partial<Setting>) => worker.postMessage(setting)
   let seen = true
   let drawn: string | undefined
 
   // The apps lie on the desk, so a window in full screen covers the wallpaper when it covers them.
   const ground = desk?.querySelector('.apps') ?? desk ?? canvas
-  // It holds still while the tab is hidden, the desk covered, or the screen off screen.
-  const runs = () => !document.hidden && !ground.closest('[inert]') && seen
+  // It holds still while the tab is hidden, the desk covered, or the screen off screen; a screen that waits over the
+  // desk leaves it seen.
+  const runs = () => !document.hidden && [null, screen].includes(ground.closest('[inert]')) && seen
   function set() {
     const style = getComputedStyle(canvas)
     // The step in force is the setting of the nearest part that names one: the root, as Preferences sets it.
@@ -60,7 +63,9 @@ function start(box: HTMLElement, copy: boolean) {
 
   // It reads the pointer over the desk, not through a window, and a press there until it is let go anywhere.
   const open = (over: Element) =>
-    over === screen || (!!desk?.contains(over) && !over.closest('article, section'))
+    over === screen ||
+    over.matches('.screen[data-waiting], .screen[data-waiting] > .screen__main') ||
+    (!!desk?.contains(over) && !over.closest('article, section'))
   function point(event: PointerEvent) {
     const box = canvas.getBoundingClientRect()
     send({
@@ -89,9 +94,9 @@ function start(box: HTMLElement, copy: boolean) {
   })
   watcher.observe(canvas)
   document.addEventListener('visibilitychange', wake)
-  screen?.addEventListener('pointermove', point as EventListener)
-  screen?.addEventListener('pointerleave', away)
-  screen?.addEventListener('pointerdown', press as EventListener)
+  room?.addEventListener('pointermove', point as EventListener)
+  room?.addEventListener('pointerleave', away)
+  room?.addEventListener('pointerdown', press as EventListener)
   for (const type of ['pointerup', 'pointercancel']) addEventListener(type, release)
 
   return () => {
@@ -100,9 +105,9 @@ function start(box: HTMLElement, copy: boolean) {
     covered.disconnect()
     watcher.disconnect()
     document.removeEventListener('visibilitychange', wake)
-    screen?.removeEventListener('pointermove', point as EventListener)
-    screen?.removeEventListener('pointerleave', away)
-    screen?.removeEventListener('pointerdown', press as EventListener)
+    room?.removeEventListener('pointermove', point as EventListener)
+    room?.removeEventListener('pointerleave', away)
+    room?.removeEventListener('pointerdown', press as EventListener)
     for (const type of ['pointerup', 'pointercancel']) removeEventListener(type, release)
     worker.terminate()
     canvas.remove()

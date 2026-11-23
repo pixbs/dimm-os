@@ -7,11 +7,13 @@ import {
   useEffect,
   useEffectEvent,
   useId,
+  useLayoutEffect,
   useReducer,
   useRef,
   useState,
   useSyncExternalStore,
 } from 'react'
+import { flushSync } from 'react-dom'
 
 import type { ListView } from '@/blocks/list/view'
 import { Analytics } from '@/consent/Analytics'
@@ -26,6 +28,7 @@ import { Tag } from '@/ds/molecules/Tag'
 import type { Cells } from '@/ds/organisms/cells'
 import type { Box } from '@/ds/organisms/Window'
 import { Decipher } from '@/ds/motion/Decipher'
+import { ended } from '@/ds/motion/handover'
 import { duration, reduced } from '@/ds/motion/vocabulary'
 import { Stamping } from '@/ds/organisms/Live'
 import { ContextMenu, MenuBar, MenuButton } from '@/ds/organisms/Menu'
@@ -52,9 +55,10 @@ import { commandAction, keyAction, pressed } from './keys'
 import { type Action, compact, front, manager, phone, showing, start, windowOf } from './manager'
 import { languageMenu, legalLinks, menus, themeMenu } from './menus'
 import { idOf, OnDesk, type Parts, tasksOf } from './OnDesk'
+import { deskLeaves, handOver, playing, playOut, screenArrives, screenGoes } from './handover'
 import { Search } from './Search'
 import { chapters, numberOf, type Placed, Sections } from './Sections'
-import { atLogin, invited, legalOf, shutDown, type Waiting, WaitingScreen } from './Waiting'
+import { atLogin, invited, legalOf, type Waiting, WaitingScreen } from './Waiting'
 
 const STORE = 'windows'
 // Where the windows and the apps stand, kept on the device while windows are remembered.
@@ -122,6 +126,8 @@ const invitation = () => (invite ??= invited())
 let login: boolean | undefined
 const entering = () => (login ??= atLogin())
 const never = () => () => {}
+const screens = (which: string) =>
+  document.querySelector<HTMLElement>(`.screen[data-fill]${which}`)!
 
 // A click the page should not take.
 const swallow = (event: Event) => {
@@ -476,11 +482,51 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               ? 'login'
               : 'other'
             : null
-  function go(next: Waiting | null) {
+  // How the desk stands to a screen that waits: leaving it, with its windows gone to the taskbar or not, or arriving
+  // with its windows let go while the screen still stands. Between hand-overs the screen holds the windows, and once
+  // shut down the wallpaper is covered for good.
+  const [handing, setHanding] = useState<'away' | 'held' | 'let' | null>(null)
+  const held = handing === 'held' || (waiting !== null && handing !== 'let')
+  const [off, setOff] = useState(false)
+  // A screen that comes by itself, as at the first load, stands over a desk that shows its wallpaper alone.
+  useLayoutEffect(() => {
+    if (waiting && !playing()) document.documentElement.dataset.intro = 'play'
+  }, [waiting])
+
+  // From the desk to a screen that waits, from one to another, and back: each hand-over plays to its end first.
+  async function go(next: Waiting | null) {
     const linking = next === null && waiting === 'boot' && linked && asked === undefined
-    // The desk that follows the login has the desk's address.
-    if (next === null && atLogin()) write('replaceState', toAddress(language, '/'))
-    setWaiting(linking ? 'link' : next === 'boot' && reduced() ? null : next)
+    const to = linking ? 'link' : next === 'boot' && reduced() ? null : next
+    if (to === waiting) return
+    const root = document.documentElement.dataset
+    const desk = screens(':not([data-waiting])')
+    const over = () => screens('[data-waiting]')
+    return playOut(async () => {
+      if (to === null) {
+        // The desk that follows the login has the desk's address.
+        if (atLogin()) write('replaceState', toAddress(language, '/'))
+        const boot = waiting === 'boot'
+        await handOver(over(), desk, boot ? 'mark' : 'visitor', boot, () => setHanding('let'))
+        setHanding(null)
+        return setWaiting(null)
+      }
+      let moves: Animation[] = []
+      if (waiting === null) {
+        flushSync(() => setHanding(to === 'shutdown' ? 'held' : 'away'))
+        moves = deskLeaves(desk, to === 'shutdown')
+        if (!reduced()) await ended(moves)
+      } else if (to === 'shutdown') await screenGoes(over())
+      flushSync(() => {
+        setWaiting(to)
+        setHanding(null)
+      })
+      const comes = waiting === null || to === 'shutdown' ? screenArrives(over(), desk) : null
+      await ended(reduced() ? moves : [])
+      root.intro = 'play'
+      for (const move of moves) move.cancel()
+      await comes
+      if (to === 'shutdown') setOff(true)
+    })
   }
 
   // A link copied is said in the taskbar for a moment, in place of its hint; each copy counts the moment again.
@@ -496,9 +542,9 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     desk,
     language,
     act,
-    lock: () => go('login'),
-    replay: () => go('boot'),
-    shutDown: () => void shutDown(go),
+    lock: () => void go('login'),
+    replay: () => void go('boot'),
+    shutDown: () => void go('shutdown'),
     copied: () => setNoted((count) => count + 1),
     cleanUp: () => setCells(null),
   })
@@ -855,7 +901,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     <>
       <Screen
         fill
-        inert={waiting !== null}
+        inert={waiting !== null || handing !== null}
         onClick={follow}
         onContextMenu={(event) => {
           clearTimeout(resting.current.timer)
@@ -867,6 +913,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         onPointerDown={rest}
         onPointerMove={stray}
         onPointerUp={lift}
+        wallpaper={!off}
       >
         <Analytics visitor={view.visitor !== null} />
         <header data-surface="desktop">
@@ -883,7 +930,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               commands,
               legal: legalLinks(dictionary, language, view.search),
               visitor: view.visitor?.name ?? null,
-              login: () => go('login'),
+              login: () => void go('login'),
               theme,
               languages: languageChoices,
               // Once the menu has closed and given the focus back to its button, which gets it again after.
@@ -928,7 +975,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
                 t={dictionary}
               />
             </span>
-            <span data-for="desk">
+            <span data-for="desk" data-language>
               <MenuButton
                 button={{ 'aria-label': dictionary.language, label: language.toUpperCase() }}
                 end
@@ -942,7 +989,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               data-visitor
               label={view.visitor?.name ?? dictionary.guest}
               lead={<Tag lands="visitor">{(view.visitor?.name ?? dictionary.guest)[0]}</Tag>}
-              onClick={() => go('login')}
+              onClick={() => void go('login')}
               size="chrome"
             />
             <Clock language={language} zone={view.site.timezone} />
@@ -961,6 +1008,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
               cells={cells}
               desk={desk}
               dispatch={act}
+              held={held}
               label={dictionary.apps}
               over={phone(desk) ? unfolded + filtering : 0}
               place={setCells}
