@@ -86,6 +86,34 @@ test.describe('Lists', () => {
     expect(await style(row, '--row-line')).toBe('transparent')
   })
 
+  test('inset a headed group on the keyline at every size, where a plain list runs past it', async ({
+    page,
+  }) => {
+    // How far a list stands past the content box of what holds it, at its start and at its end.
+    const overhang = (list: Locator) =>
+      list.evaluate((element) => {
+        const [own, parent] = [element, element.parentElement!].map((node) =>
+          node.getBoundingClientRect(),
+        )
+        const { paddingLeft, paddingRight } = getComputedStyle(element.parentElement!)
+        return [
+          parent.left + parseFloat(paddingLeft) - own.left,
+          own.right - (parent.right - parseFloat(paddingRight)),
+        ]
+      })
+    for (const [width, height] of [
+      [390, 844],
+      [800, 1000],
+      [1440, 900],
+    ]) {
+      await page.setViewportSize({ width, height })
+      await page.goto('/cv')
+      const groups = win(page, 'cv').locator('.list[data-headed]')
+      await expect(groups.first()).toBeVisible()
+      for (const group of await groups.all()) expect(await overhang(group)).toEqual([0, 0])
+    }
+  })
+
   test('show a share as dots that read as one, in the language of the page', async ({ page }) => {
     await page.goto('/work/grow')
     const meter = win(page, 'work').getByRole('img', { name: '9 of 12', exact: true })
