@@ -52,12 +52,15 @@ export const tasksOf = (desk: Windows): Task[] =>
   }))
 
 // Windows open beside the first column of apps, wherever they were moved, and keep the gap of the desk's top from
-// its far edge.
+// its far edge. They stack a title bar apart, whose height a fine pointer makes compact.
 function roomOf(desk: HTMLElement) {
   const apps = desk.querySelector<HTMLElement>(':scope > .apps')
   const x = apps ? apps.offsetLeft + parseFloat(getComputedStyle(apps).gridTemplateColumns) : 0
-  const gap = parseFloat(getComputedStyle(desk).paddingTop)
-  return { x, w: Math.max(0, desk.clientWidth - x - gap) }
+  const style = getComputedStyle(desk)
+  const gap = parseFloat(style.paddingTop)
+  const fine = matchMedia('(pointer: fine)').matches
+  const bar = parseFloat(style.getPropertyValue(fine ? '--h-compact' : '--h-regular'))
+  return { x, w: Math.max(0, desk.clientWidth - x - gap), bar }
 }
 
 // What lies on the desk: the apps, and the windows its manager keeps.
