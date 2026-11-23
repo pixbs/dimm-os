@@ -21,12 +21,16 @@ export async function generateMetadata({
   const found = await getView(lang, path)
   if (!found || 'moved' in found) return { robots: { index: false } }
   const { window } = found
-  // The desk at / has no window, and keeps the site's own title.
-  const meta = window?.meta
+  // The desk at / has no window and takes what Site holds; with nothing written it keeps the site's own title.
+  const meta = window ? window.meta : found.meta
+  const words = {
+    ...(meta?.title && { title: meta.title }),
+    ...(meta?.description && { description: meta.description }),
+  }
   const address = `/${(path ?? []).join('/')}`
   const image = meta?.image
   return {
-    ...(meta && { title: meta.title, description: meta.description }),
+    ...words,
     alternates: {
       canonical: toAddress(lang, address),
       languages: {
@@ -39,7 +43,7 @@ export async function generateMetadata({
       siteName: 'Dimm OS',
       locale: lang,
       url: toAddress(lang, address),
-      ...(meta && { title: meta.title, description: meta.description ?? undefined }),
+      ...words,
       images: image ? [image] : undefined,
     },
     twitter: { card: image ? 'summary_large_image' : 'summary' },

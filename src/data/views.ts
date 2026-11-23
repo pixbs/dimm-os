@@ -35,6 +35,7 @@ import type { Shortcut, Tile } from '@/ds/organisms/Screen'
 import { hasLanguage, type Language, languages, toAddress } from '@/i18n/address'
 import { getDictionary } from '@/i18n/dictionaries'
 import type { Media, Visitor, Window } from '@/payload-types'
+import { firsts } from '@/seo'
 import { shared } from '@/shell/filtered'
 import type { AppKey } from '@/shell/keys'
 import type { Found } from '@/shell/palette'
@@ -92,7 +93,7 @@ export type FootButton = {
 
 // What a search engine and a shared link see of a window: the picture is its stored share size.
 export type Meta = {
-  title: string
+  title: string | null
   description: string | null
   image: { url: string; width: number; height: number; alt: string } | null
 }
@@ -163,6 +164,8 @@ export type View = {
   // The window of the address; at / there is none, and the windows marked to open at start.
   window: WindowView | null
   start: WindowView[]
+  // At /, what Site holds for search, as the desk has no window.
+  meta?: Meta
 }
 
 // Null is a guest; a visitor carries the hidden windows the invitation opens.
@@ -206,6 +209,7 @@ const fields = {
   note: true,
   facts: true,
   related: true,
+  meta: true,
   paper: true,
   stamp: true,
   width: true,
@@ -320,6 +324,7 @@ const site = async (language: Language, viewer: Viewer) => {
         focalX: true,
         focalY: true,
         live: true,
+        variants: { share: true },
       },
       windows: { slug: true },
     },
@@ -332,6 +337,7 @@ const site = async (language: Language, viewer: Viewer) => {
       boot: true,
       about: true,
       inside: true,
+      meta: true,
     },
   })
 }
@@ -409,43 +415,35 @@ async function views(language: Language, viewer: Viewer) {
         ? [{ href: to.href, label: to.title, lang: to.lang }]
         : []
     })
+  // Only a picture with an address can be shown.
+  const addressed = (files: unknown[]) =>
+    files.filter((file): file is Media => typeof file === 'object' && !!(file as Media)?.url)
   // A window's Listing, where what it leaves empty comes from its first Header and its first picture.
-  const firsts = (doc: Doc) => {
-    const header = doc.sections?.find((block) => block.blockType === 'header')
-    const pictures = (doc.sections ?? []).flatMap((block) =>
-      block.blockType === 'media' ? block.items.map(({ picture }) => picture) : [],
-    )
-    return {
-      title: doc.headline || header?.title || doc.title,
-      text: doc.description || header?.text || null,
-      pictures: [doc.cover, ...pictures].filter(
-        (file): file is Media => typeof file === 'object' && !!file?.url,
-      ),
-    }
+  const firstsOf = (doc: Doc) => {
+    const { pictures, ...words } = firsts(doc)
+    return { ...words, pictures: addressed(pictures) }
   }
   // The share size is stored at upload, so the first picture that has one is shared.
-  const metaOf = (doc: Doc): Meta => {
-    const { title, text, pictures } = firsts(doc)
-    const shared = pictures.find((file) => file.variants?.share?.url)
+  const shareOf = (files: unknown[]): Meta['image'] => {
+    const shared = addressed(files).find((file) => file.variants?.share?.url)
     const size = shared?.variants?.share
+    return shared && size?.url
+      ? { url: size.url, width: size.width ?? 0, height: size.height ?? 0, alt: show(shared)!.alt }
+      : null
+  }
+  // What the SEO tab holds stands first, and an empty field keeps what the window shows.
+  const metaOf = (doc: Doc): Meta => {
+    const { title, text, pictures } = firstsOf(doc)
     return {
-      title,
-      description: text,
-      image:
-        shared && size?.url
-          ? {
-              url: size.url,
-              width: size.width ?? 0,
-              height: size.height ?? 0,
-              alt: show(shared)!.alt,
-            }
-          : null,
+      title: doc.meta?.title || title,
+      description: doc.meta?.description || text,
+      image: shareOf([doc.meta?.image, ...pictures]),
     }
   }
   // An item as its parent's lists show it.
   const listed = (one: Seen): Listed => {
     const { doc } = one
-    const { title, text, pictures } = firsts(doc)
+    const { title, text, pictures } = firstsOf(doc)
     const [picture] = pictures
     const { href, lang } = link(one)
     return {
@@ -766,7 +764,14 @@ async function views(language: Language, viewer: Viewer) {
     // What a path shows: its window, the desk with the windows that open at start, or the one it moved to.
     at(path: string): View | { moved: string } | null {
       if (path === '/')
-        return at(null, shown.filter((one) => !one.parent && one.doc.openAtStart).map(view))
+        return {
+          ...at(null, shown.filter((one) => !one.parent && one.doc.openAtStart).map(view)),
+          meta: {
+            title: own.meta?.title || null,
+            description: own.meta?.description || null,
+            image: shareOf([own.meta?.image]),
+          },
+        }
       const found = byPath.get(path)
       if (found && found.doc.slug !== missing) return at(view(found))
       // Slugs are unique, so a known window under an old parent is found by its own.

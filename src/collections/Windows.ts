@@ -1,4 +1,11 @@
 import {
+  MetaDescriptionField,
+  MetaImageField,
+  MetaTitleField,
+  OverviewField,
+  PreviewField,
+} from '@payloadcms/plugin-seo/fields'
+import {
   type Access,
   APIError,
   type CollectionBeforeOperationHook,
@@ -157,6 +164,7 @@ export const Windows: CollectionConfig = {
     '- Write the English window first. For German, read the English window, write the German one section for section, and publish it.',
     `- The two legal windows, ${legal.join(' and ')}, go the other way round: German first.`,
     '- A link to a window has no label of its own.',
+    '- meta is written only where search needs other words than the window has.',
   ),
   fields: [
     { name: 'title', type: 'text', localized: true, maxLength: 24, required: true },
@@ -320,7 +328,7 @@ export const Windows: CollectionConfig = {
               maxLength: 160,
               admin: {
                 description:
-                  'For previews, search and sharing. Empty, the text of the first Header.',
+                  'The text of previews, and of search where the SEO tab is empty. Empty, the text of the first Header.',
               },
             },
             {
@@ -345,6 +353,17 @@ export const Windows: CollectionConfig = {
               hasMany: true,
               admin: { condition: onItem },
             },
+          ],
+        },
+        {
+          name: 'meta',
+          label: 'SEO',
+          fields: [
+            OverviewField({}),
+            MetaTitleField({ hasGenerateFn: true }),
+            MetaDescriptionField({ hasGenerateFn: true }),
+            MetaImageField({ hasGenerateFn: true, relationTo: 'media' }),
+            PreviewField({ hasGenerateFn: true }),
           ],
         },
       ],

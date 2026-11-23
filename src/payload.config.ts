@@ -2,6 +2,7 @@ import { postgresAdapter } from '@payloadcms/db-postgres'
 import { resendAdapter } from '@payloadcms/email-resend'
 import { formBuilderPlugin } from '@payloadcms/plugin-form-builder'
 import { mcpPlugin } from '@payloadcms/plugin-mcp'
+import { seoPlugin } from '@payloadcms/plugin-seo'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
 import { vercelBlobStorage } from '@payloadcms/storage-vercel-blob'
 import { sharpTransformer } from '@payloadcms/transformer-sharp'
@@ -16,6 +17,7 @@ import { Users } from './collections/Users'
 import { Visitors } from './collections/Visitors'
 import { Windows } from './collections/Windows'
 import { mcp } from './mcp'
+import { seo } from './seo'
 import { Site } from './globals/Site'
 
 const filename = fileURLToPath(import.meta.url)
@@ -94,7 +96,7 @@ export default buildConfig({
     const { createFirstAdmin } = await import('./data/first-admin')
     await createFirstAdmin(payload)
   },
-  plugins: [formBuilderPlugin(forms), mcpPlugin(mcp)],
+  plugins: [formBuilderPlugin(forms), seoPlugin(seo), mcpPlugin(mcp)],
   // Without a token, as in a local sandbox, files stay on the disk.
   storage: [
     vercelBlobStorage({

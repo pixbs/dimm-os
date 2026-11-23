@@ -30,6 +30,7 @@
     "@payloadcms/next": "4.0.0-beta.10",
     "@payloadcms/plugin-form-builder": "4.0.0-beta.10",
     "@payloadcms/plugin-mcp": "4.0.0-beta.10",
+    "@payloadcms/plugin-seo": "4.0.0-beta.10",
     "@payloadcms/richtext-lexical": "4.0.0-beta.10",
     "@payloadcms/storage-vercel-blob": "4.0.0-beta.10",
     "@payloadcms/transformer-sharp": "4.0.0-beta.10",
