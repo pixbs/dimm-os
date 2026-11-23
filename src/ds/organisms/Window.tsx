@@ -29,6 +29,7 @@ import { useArrival } from '../motion/enters'
 import { carry } from '../motion/Travels'
 import { curve, duration, reduced, usePainted } from '../motion/vocabulary'
 import { dims, Handle, rises, trap } from './Drawer'
+import { arrows } from './cells'
 import { follow } from './follow'
 
 export type Box = { x: number; y: number; w: number; h: number }
@@ -89,12 +90,6 @@ type Props = {
 
 const edges = ['n', 's', 'w', 'e', 'nw', 'ne', 'sw'] as const
 const byId = (id?: string) => (id ? document.getElementById(id) : null)
-const arrows: Record<string, [number, number]> = {
-  ArrowLeft: [-1, 0],
-  ArrowRight: [1, 0],
-  ArrowUp: [0, -1],
-  ArrowDown: [0, 1],
-}
 
 // A press on a control of a window behind does what the control says without bringing it forward, so closing it
 // leaves the address alone; the keyboard reaching a control brings its window forward as any focus does.

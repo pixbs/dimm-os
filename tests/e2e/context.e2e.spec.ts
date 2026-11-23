@@ -32,7 +32,14 @@ test.describe('right-click menus on a desk', () => {
     const places: [ReturnType<Page['locator']>, (string | null)[], object?][] = [
       [
         page.locator('main.screen__desk'),
-        ['Next wallpaper', 'Preferences…', '-', 'Minimise all windows', 'Close all windows'],
+        [
+          'Next wallpaper',
+          'Preferences…',
+          'Clean up',
+          '-',
+          'Minimise all windows',
+          'Close all windows',
+        ],
         { position: { x: 200, y: 700 } },
       ],
       [work, ['Open', '-', 'Copy link']],

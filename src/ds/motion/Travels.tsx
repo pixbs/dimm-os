@@ -352,6 +352,20 @@ export function carry(
   }
 }
 
+// A thing let go settles from where it is into the place it is given, over fast on the standard curve; with reduced
+// motion it is there at once.
+export function settle(thing: HTMLElement, place: () => void) {
+  const from = thing.getBoundingClientRect()
+  thing.style.transform = ''
+  place()
+  if (reduced()) return
+  const to = thing.getBoundingClientRect()
+  thing.animate(
+    { transform: [`translate(${from.x - to.x}px, ${from.y - to.y}px)`, 'none'] },
+    { duration: ms('fast'), easing: `cubic-bezier(${curve('standard')})` },
+  )
+}
+
 // What comes and goes with a box that travels, as its button in the taskbar: it rises into its bar over slow as the
 // box sets off, and sinks out of it in half the time; with reduced motion it fades where it stands.
 export const rise = {

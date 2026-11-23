@@ -4,7 +4,7 @@ import { following } from '@/ds/organisms/wallpapers'
 import { type Language, toAddress } from '@/i18n/address'
 import type { systemCommands } from '@/system/windows'
 
-import { type Action, front, type Windows } from './manager'
+import { type Action, front, phone, type Windows } from './manager'
 
 export type SystemCommand = keyof typeof systemCommands
 
@@ -34,6 +34,7 @@ export function commandsOf(props: {
   replay: () => void
   shutDown: () => void
   copied: () => void
+  cleanUp: () => void
 }): Record<SystemCommand, Command> {
   const { desk, language, act } = props
   const always = () => true
@@ -57,6 +58,8 @@ export function commandsOf(props: {
       can: () => desk.open.some((one) => one.mode !== 'min'),
     },
     closeAll: { run: () => act({ type: 'closeAll' }), can: () => desk.open.length > 0 },
+    // Every app back to its place at the start; a phone's never left it.
+    cleanUp: { run: props.cleanUp, can: () => !phone(desk) },
     copyLink: {
       run: (subject) => {
         const href = address(subject)

@@ -44,6 +44,7 @@ export const systemCommands = {
   replay: 'play',
   shutDown: 'power',
   nextWallpaper: 'image',
+  cleanUp: 'grid',
   minimiseAll: 'minus',
   closeAll: 'close',
   copyLink: 'link',
