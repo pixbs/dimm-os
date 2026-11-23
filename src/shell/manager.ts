@@ -19,12 +19,14 @@ type Entry = {
   box: Box
   placed: boolean
   pulled?: boolean
+  // Placed a step from the window before it, so its view's size keeps its top corner rather than its middle.
+  stacked?: boolean
   // It waits behind the window in front, which covers it: its taskbar button signals it.
   covered?: boolean
 }
 
-// Where windows open: the span of the desk beside its apps.
-type Room = { x: number; w: number }
+// Where windows open: the span of the desk beside its apps, and the height of a title bar, a step of the stack.
+type Room = { x: number; w: number; bar?: number }
 
 export type Windows = {
   // In the order they opened, which is their order in the page: coming forward moves no element.
@@ -70,7 +72,8 @@ const MIN = { w: 360, h: 200 }
 const REACH = 80
 // Until a window brings its own size, and how far each new one stands from the one before.
 const SIZE = { w: 720, h: 480 }
-const CASCADE = 24
+// A title bar under a fine pointer, until the desk says how high its bars are.
+const BAR = 32
 // Under 600 px a screen is compact: its windows are drawers, so none has a place to be moved from.
 const COMPACT = 600
 // A stack of three drawers at most: the one in front and two behind it.
@@ -120,29 +123,46 @@ const sizeOf = (view: WindowView | null): Size => ({
 const roomIn = (state: Windows): Room | null =>
   state.desk && !compact(state) ? (state.room ?? { x: 0, w: state.desk.w }) : null
 
-// A window that has no place yet stands in the middle of the room beside the apps, at the room's width at most, a
-// step further for each one before it.
+// A window of the stack keeps its top corner, unless it would reach past the room there: then it starts a new row,
+// a step in from the room's top corner. One too wide to step aside stands at the room's end and steps down only;
+// one too high to step down stands at the room's foot and steps aside only.
+function inStack({ x, y, w, h }: Box, room: Room, desk: Size): Pick<Box, 'x' | 'y'> {
+  const bar = room.bar ?? BAR
+  const end = Math.min(room.x + room.w, desk.w)
+  const past = (y + h > desk.h && bar + h <= desk.h) || (x + w > end && room.x + bar + w <= end)
+  return {
+    x: clamp(past ? room.x + bar : x, 0, Math.max(0, end - w)),
+    y: clamp(past ? bar : y, 0, desk.h - h),
+  }
+}
+
+// A window that has no place yet stands a step to the end and a step down from the window opened last that still
+// floats on the desk, where that one stands now; on an empty desk, in the middle of the room beside the apps. Either
+// way at the room's width at most. A phone has drawers and no stack.
 function placed(state: Windows): Windows {
   const { desk } = state
   if (!desk) return state
   const room = roomIn(state)
   const at = room ?? { x: 0, w: desk.w }
 
-  const open = state.open.map((entry, nth) => {
-    if (entry.placed) return entry
+  const open = state.open.reduce<Entry[]>((done, entry) => {
+    if (entry.placed) return [...done, entry]
     const kept = { ...entry.box, w: Math.min(entry.box.w, room?.w ?? entry.box.w) }
     const { w, h } = fit(kept, desk)
-    const step = nth * CASCADE
-    return {
-      ...entry,
-      placed: true,
-      box: {
-        ...kept,
-        x: clamp(at.x + Math.round((at.w - w) / 2) + step, 0, desk.w - w),
-        y: clamp(Math.round((desk.h - h) / 2) + step, 0, desk.h - h),
-      },
+    const before = room && done.filter((one) => one.placed && one.mode === 'float').at(-1)
+    if (before) {
+      const step = room.bar ?? BAR
+      const { x, y } = fit(before.box, desk)
+      const box = { ...kept, ...inStack({ x: x + step, y: y + step, w, h }, room, desk) }
+      return [...done, { ...entry, placed: true, stacked: true, box }]
     }
-  })
+    const box = {
+      ...kept,
+      x: clamp(at.x + Math.round((at.w - w) / 2), 0, desk.w - w),
+      y: clamp(Math.round((desk.h - h) / 2), 0, desk.h - h),
+    }
+    return [...done, { ...entry, placed: true, stacked: false, box }]
+  }, [])
   return { ...state, open }
 }
 
@@ -159,7 +179,12 @@ function beside(state: Windows, path: string, under: string): Windows {
   const ahead = fit(front.box, desk)
   const free = front.mode === 'float' && front.placed && ahead.x + ahead.w <= x
   const to: Partial<Entry> = free
-    ? { box: { ...one.box, x, y: Math.round((desk.h - h) / 2) }, placed: true, covered: false }
+    ? {
+        box: { ...one.box, x, y: Math.round((desk.h - h) / 2) },
+        placed: true,
+        stacked: false,
+        covered: false,
+      }
     : { covered: true }
   return {
     ...state,
@@ -317,7 +342,8 @@ export function manager(state: Windows, action: Action): Windows {
       const one = find(state, action.window.path)
       if (one?.at !== action.window.path) return state
       if (one.pulled) return change(one.path, { view: action.window })
-      // Until the visitor sizes it, the window takes the size its view asks for, about the same middle once placed.
+      // Until the visitor sizes it, the window takes the size its view asks for, about the same middle once placed,
+      // or in the stack at the same top corner.
       const asked = sizeOf(action.window)
       const { desk } = state
       if (!desk || !one.placed)
@@ -326,11 +352,14 @@ export function manager(state: Windows, action: Action): Windows {
       const kept = { ...one.box, ...asked, w: Math.min(asked.w, room?.w ?? asked.w) }
       const was = fit(one.box, desk)
       const { w, h } = fit(kept, desk)
-      const box = {
-        ...kept,
-        x: clamp(was.x + Math.round((was.w - w) / 2), 0, desk.w - w),
-        y: clamp(was.y + Math.round((was.h - h) / 2), 0, desk.h - h),
-      }
+      const box =
+        one.stacked && room
+          ? { ...kept, ...inStack({ x: was.x, y: was.y, w, h }, room, desk) }
+          : {
+              ...kept,
+              x: clamp(was.x + Math.round((was.w - w) / 2), 0, desk.w - w),
+              y: clamp(was.y + Math.round((was.h - h) / 2), 0, desk.h - h),
+            }
       return change(one.path, { view: action.window, box })
     }
     case 'restore': {
