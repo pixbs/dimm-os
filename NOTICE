@@ -62,3 +62,14 @@ It was made with fontTools 4.68.0:
   pyftsubset fonts/ttf/JetBrainsMono-Regular.ttf \
     --unicodes=U+2190,U+2192,U+21E7,U+2318,U+2325,U+23CE \
     --no-hinting --flavor=woff2 --output-file=jetbrains-mono-keys.woff2
+
+The picture of a shared link is drawn by a tool that reads neither woff2 nor
+a variable font, so src/ds/atoms/faces/ holds the latin and Latin Extended
+subsets of Inter Tight and JetBrains Mono above as woff, Inter Tight once at
+each of its weights 400 and 500. They were made with fontTools 4.68.0:
+
+  from fontTools.ttLib import TTFont
+  from fontTools.varLib.instancer import instantiateVariableFont
+  face = instantiateVariableFont(TTFont('inter-tight-latin.woff2'), {'wght': 400})
+  face.flavor = 'woff'
+  face.save('inter-tight-latin-400.woff')

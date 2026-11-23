@@ -21,6 +21,18 @@ async function head(page: Page, path: string) {
       image: meta('og:image'),
       alt: meta('og:image:alt'),
     },
+    twitter: meta('twitter:card'),
+  }
+}
+
+// The card the image field of a window holds in a language.
+async function card(page: Page, id: number, language = 'en') {
+  const response = await page.request.get(`/api/windows/${id}?locale=${language}&depth=1`)
+  const { image } = (await response.json()).meta
+  return {
+    filename: image.filename as string,
+    share: image.variants.share.url as string,
+    size: [image.width, image.height],
   }
 }
 
@@ -37,9 +49,9 @@ async function picture(page: Page, alt: string) {
   }
 }
 
-// The overview, the title, the description, the picture and the search preview.
+// The overview, which counts the card as its picture, the title, the description, the picture and the search preview.
 async function fiveParts(scope: Locator) {
-  await expect(scope.getByText('0/3 checks are passing')).toBeVisible()
+  await expect(scope.getByText('1/3 checks are passing')).toBeVisible()
   for (const part of ['title', 'description', 'image'])
     await expect(scope.locator(`#field-meta__${part}`)).toBeVisible()
   await expect(scope.getByText('Exact result listings may vary')).toBeVisible()
@@ -101,6 +113,32 @@ test.describe('The SEO tab', () => {
     return { id: id as number, cover }
   }
 
+  test('holds the card of a published window without a picture, which the page shares large and the list of Media leaves out', async ({
+    page,
+  }) => {
+    const response = await page.request.post('/api/windows?locale=en', {
+      data: {
+        title: `SEO ${stamp}`,
+        slug,
+        description: 'Words of the card.',
+        _status: 'published',
+      },
+    })
+    const { id } = (await response.json()).doc
+    made.push(id)
+    const drawn = await card(page, id)
+    expect(drawn.size).toEqual([1200, 630])
+    expect(await head(page, `/${slug}`)).toMatchObject({
+      og: { image: `${origin}${drawn.share}`, alt: `SEO ${stamp}` },
+      twitter: 'summary_large_image',
+    })
+
+    await page.goto('/admin/collections/media?limit=100')
+    const list = page.locator('.collection-list')
+    await expect(list.getByText('picture.jpg', { exact: true })).toBeVisible()
+    await expect(list.getByText(/card-/)).toHaveCount(0)
+  })
+
   test("of a window shows the five parts, generates what the page showed and previews the window's address", async ({
     page,
   }) => {
@@ -124,9 +162,12 @@ test.describe('The SEO tab', () => {
     )
     await generate.nth(1).click()
     await expect(page.locator('#field-meta__description')).toHaveValue(before.description!)
+    // The picture is the card drawn at the publish, which shows the cover in its window.
+    const drawn = await card(page, id)
+    expect(drawn.filename).not.toBe(cover.filename)
     await generate.nth(2).click()
-    await expect(page.locator('#field-meta__image')).toContainText(cover.filename)
-    expect(before.og.image).toBe(`${origin}${cover.share}`)
+    await expect(page.locator('#field-meta__image')).toContainText(drawn.filename)
+    expect(before.og.image).toBe(`${origin}${drawn.share}`)
 
     await toGerman(page)
     await openTab(page, 'SEO')
@@ -164,6 +205,7 @@ test.describe('The SEO tab', () => {
       title: `${written.title} · Dimm OS`,
       description: written.description,
       og: { ...written, image: `${origin}${shared.share}`, alt: 'A sun drawn in dots' },
+      twitter: 'summary_large_image',
     }
 
     // A window saves by PATCH and publishes per language; Site saves by POST.

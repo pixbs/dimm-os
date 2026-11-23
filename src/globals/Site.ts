@@ -7,6 +7,7 @@ import { buttons } from '@/fields/link'
 import { dropBareIdsOfGlobal } from '@/hooks/relations'
 import { revalidateGlobal } from '@/hooks/revalidate'
 import { forAgents } from '@/mcp'
+import { drawSiteCard } from '@/seo'
 
 // The values the whole system shares. One document that saves directly.
 export const Site: GlobalConfig = {
@@ -80,6 +81,6 @@ export const Site: GlobalConfig = {
       ],
     },
   ],
-  hooks: { afterChange: [revalidateGlobal], afterRead: [dropBareIdsOfGlobal] },
+  hooks: { afterChange: [drawSiteCard, revalidateGlobal], afterRead: [dropBareIdsOfGlobal] },
   versions: false,
 }

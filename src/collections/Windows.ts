@@ -36,6 +36,7 @@ import { noteDraft, revalidateChange, revalidateDelete } from '@/hooks/revalidat
 import { languages } from '@/i18n/address'
 import { systemKeys } from '@/i18n/keys'
 import { forAgents } from '@/mcp'
+import { deleteWindowCards, drawWindowCard } from '@/seo'
 import { systemWindows } from '@/system/windows'
 
 // The names a window's slug may not take: the system's paths, the language codes and the site's own routes.
@@ -424,8 +425,8 @@ export const Windows: CollectionConfig = {
   ],
   hierarchy: { parentFieldName: 'parent', slugField: 'slug' },
   hooks: {
-    afterChange: [revalidateChange],
-    afterDelete: [revalidateDelete],
+    afterChange: [drawWindowCard, revalidateChange],
+    afterDelete: [deleteWindowCards, revalidateDelete],
     afterRead: [dropBareIds],
     beforeOperation: [keepLegalPublished, noteDraft],
   },

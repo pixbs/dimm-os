@@ -507,6 +507,15 @@ export interface Media {
    * Drawn by the system over the file, which is its still.
    */
   live?: ('not-found' | 'postmark' | 'portrait') | null;
+  drawn?:
+    | {
+        [k: string]: unknown;
+      }
+    | unknown[]
+    | string
+    | number
+    | boolean
+    | null;
   prefix?: string | null;
   _objectKey?: string | null;
   updatedAt: string;
@@ -1683,6 +1692,7 @@ export interface FormBlockSelect<T extends boolean = true> {
 export interface MediaSelect<T extends boolean = true> {
   alt?: T;
   live?: T;
+  drawn?: T;
   prefix?: T;
   _objectKey?: T;
   updatedAt?: T;
