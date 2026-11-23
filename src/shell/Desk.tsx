@@ -581,6 +581,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     opener: Element | null,
     lost: () => void,
     behind?: boolean,
+    quiet?: boolean,
   ) {
     // Drawing it is a transition, so a slow device still answers the press that asked for it within a frame.
     startTransition(() =>
@@ -590,6 +591,7 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
         opener,
         alone: document.documentElement.dataset.single === 'on',
         behind,
+        quiet,
       }),
     )
     unloaded.current.delete(windowOf(path))
@@ -617,15 +619,20 @@ export function Desk({ dictionary, view }: { dictionary: Dictionary; view: View 
     void open(act, path, inside ? null : anchor, () => location.replace(anchor.href))
   }
 
-  // Each app of a selection opens its window as a press on it does, a step off the one before.
-  const openAll = (hrefs: string[]) =>
-    hrefs.forEach((href) =>
-      document
-        .querySelector<HTMLElement>(
-          `.apps > .app:not([data-for="phone"])[href="${CSS.escape(href)}"]`,
-        )
-        ?.click(),
+  // The apps of a selection open one after another, each once the one before has its view, so each stands a step off
+  // it; only the last takes the focus, and the address with it.
+  const [queued, setQueued] = useState<string[]>([])
+  const openAll = (hrefs: string[]) => setQueued(hrefs)
+  const openNext = useEffectEvent(([href, ...rest]: string[]) => {
+    const app = document.querySelector(
+      `.apps > .app:not([data-for="phone"])[href="${CSS.escape(href)}"]`,
     )
+    const path = fromAddress(href).path
+    void open(act, path, app, () => {}, false, rest.length > 0).then(() => setQueued(rest))
+  })
+  useEffect(() => {
+    if (queued.length) openNext(queued)
+  }, [queued])
 
   // A guest who has not answered, or whose answer has run out, is asked before anything else: once the windows of
   // the start stand on the measured desk, so the question opens in front of them. The window an address names stays

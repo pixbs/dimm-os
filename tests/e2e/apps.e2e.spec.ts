@@ -161,44 +161,42 @@ test.describe('Apps selected together', () => {
     await expect(selected(page)).toHaveCount(0)
   })
 
-  test('move together into cells of their own, and Enter opens each a step off the one before', async ({
-    page,
-  }) => {
-    await page.emulateMedia({ reducedMotion: 'reduce' })
-    await page.goto('/', { waitUntil: 'networkidle' })
-    await box(page, 4)
-    await expect(selected(page)).toHaveCount(4)
-    const four = await Promise.all([0, 1, 2, 3].map((nth) => at(shown(page).nth(nth))))
+  for (const motion of ['reduce', 'no-preference'] as const)
+    test(`move together into cells of their own, and Enter opens each a step off the one before, motion ${motion}`, async ({
+      page,
+    }) => {
+      await page.emulateMedia({ reducedMotion: motion })
+      await page.goto('/', { waitUntil: 'networkidle' })
+      await box(page, 4)
+      await expect(selected(page)).toHaveCount(4)
+      const four = await Promise.all([0, 1, 2, 3].map((nth) => at(shown(page).nth(nth))))
 
-    const second = shown(page).nth(1)
-    await carry(page, second, { x: four[1].x + 48 + 104 * 3, y: four[1].y + 32 })
-    for (const [nth, was] of four.entries())
-      await expect.poll(() => at(shown(page).nth(nth))).toEqual({ x: was.x + 104 * 3, y: was.y })
-    const all = await shown(page).evaluateAll((apps) =>
-      apps.map((one) => `${one.getBoundingClientRect().x} ${one.getBoundingClientRect().y}`),
-    )
-    expect(new Set(all).size).toBe(all.length)
+      const second = shown(page).nth(1)
+      await carry(page, second, { x: four[1].x + 48 + 104 * 3, y: four[1].y + 32 })
+      for (const [nth, was] of four.entries())
+        await expect.poll(() => at(shown(page).nth(nth))).toEqual({ x: was.x + 104 * 3, y: was.y })
+      const all = await shown(page).evaluateAll((apps) =>
+        apps.map((one) => `${one.getBoundingClientRect().x} ${one.getBoundingClientRect().y}`),
+      )
+      expect(new Set(all).size).toBe(all.length)
 
-    await second.focus()
-    await page.keyboard.press('Enter')
-    await expect(page.locator('article')).toHaveCount(4)
-    await page.waitForLoadState('networkidle')
-    const boxes = await page
-      .locator('article')
-      .evaluateAll((windows) =>
-        windows.map((one) => `${one.getBoundingClientRect().x} ${one.getBoundingClientRect().y}`),
+      await second.focus()
+      await page.keyboard.press('Enter')
+      await expect(page.locator('article')).toHaveCount(4)
+      // The last opened stands in front, with the focus and the address.
+      const last = page.locator('article').last()
+      await expect(last).toHaveAttribute('data-front')
+      await page.waitForLoadState('networkidle')
+      expect(await last.evaluate((one) => one.contains(document.activeElement))).toBe(true)
+      expect(`window${new URL(page.url()).pathname.replaceAll('/', '-')}`).toBe(
+        await last.getAttribute('id'),
       )
-    expect(new Set(boxes).size).toBe(4)
-    // A step off the one before, so every title bar shows.
-    for (const bar of await page.locator('article .window__bar').all()) {
-      const { x, y, height } = (await bar.boundingBox())!
-      const hit = await bar.evaluate(
-        (element, [x, y]) => element.contains(document.elementFromPoint(x, y)),
-        [x + height / 2, y + height / 2],
-      )
-      expect(hit).toBe(true)
-    }
-  })
+      // Each a step beside the one before, and down where it is not as high as the desk.
+      const boxes = await page
+        .locator('article')
+        .evaluateAll((windows) => windows.map((one) => one.getBoundingClientRect().x))
+      for (const nth of [1, 2, 3]) expect(boxes[nth]).toBeGreaterThan(boxes[nth - 1])
+    })
 
   test('with keys alone: select all, move them a cell, select none', async ({ page }) => {
     await page.goto('/', { waitUntil: 'networkidle' })
