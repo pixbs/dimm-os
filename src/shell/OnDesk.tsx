@@ -112,7 +112,7 @@ export function OnDesk(props: {
 
   return (
     <main className="screen__desk" ref={ground}>
-      {/* A phone's apps stand in their grid, and with one window at a time nothing drags. */}
+      {/* A phone's apps stand in their grid. */}
       <Apps
         above={desk.open.length + 1}
         apps={props.apps}
@@ -120,7 +120,7 @@ export function OnDesk(props: {
         inert={covering >= 0 || !!drawers?.length}
         label={props.label}
         layout="screen"
-        onPlace={compact(desk) || still ? undefined : props.place}
+        onPlace={compact(desk) ? undefined : props.place}
       />
       <AnimatePresence>
         {desk.open.map((entry) => {
