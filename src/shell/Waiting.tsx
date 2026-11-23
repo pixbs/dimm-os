@@ -12,8 +12,7 @@ import { Heading } from '@/ds/molecules/Heading'
 import { Dots } from '@/ds/molecules/Dots'
 import { Avatar } from '@/ds/molecules/Media'
 import { Row } from '@/ds/molecules/Row'
-import { travel } from '@/ds/motion/Travels'
-import { curve, duration, reduced } from '@/ds/motion/vocabulary'
+import { duration } from '@/ds/motion/vocabulary'
 import { Card } from '@/ds/organisms/Card'
 import { MenuButton } from '@/ds/organisms/Menu'
 import { Screen } from '@/ds/organisms/Screen'
@@ -31,7 +30,7 @@ export type Waiting = 'boot' | 'login' | 'link' | 'other' | 'shutdown'
 type Props = {
   view: View
   t: Dictionary
-  // Where the desk goes next: another waiting screen, or the desk itself.
+  // Where the desk goes next: another waiting screen, or the desk itself, which plays the hand-over.
   go: (next: Waiting | null) => void
 }
 
@@ -40,8 +39,6 @@ const locales = { en: 'en-GB', de: 'de' }
 
 const say = (text: string, values: Record<string, string | number>) =>
   text.replace(/\{(\w+)\}/g, (_, key: string) => String(values[key]))
-
-const wait = (seconds: number) => new Promise((done) => setTimeout(done, seconds * 1000))
 
 // The legal links, which a phone holds in the bottom bar of every screen.
 export const legalOf = (t: Dictionary, language: Language) =>
@@ -87,33 +84,6 @@ function Legal({ t, language }: { t: Dictionary; language: Language }) {
   ))
 }
 
-// The desk takes over from a waiting screen: what travels under the id goes to its place in the menu bar, the screen
-// fades, and from the boot the bars, the apps and the windows arrive in turn, all within a long move.
-async function handOver(screen: HTMLElement, id: string, boot: boolean) {
-  const root = document.documentElement.dataset
-  if (boot) root.intro = 'hand'
-  travel(id)
-  screen.animate([{ opacity: 1 }, { opacity: 0 }], {
-    duration: duration('slow') * 1000,
-    delay: duration('fast') * 1000,
-    easing: `cubic-bezier(${curve('exit')})`,
-    fill: 'forwards',
-  })
-  await wait(duration(boot ? 'long' : 'travel'))
-  delete root.intro
-}
-
-// Shutting down is the start in reverse: the windows go to the taskbar, then the apps, then the bars.
-export async function shutDown(go: Props['go']) {
-  const root = document.documentElement.dataset
-  if (!reduced()) {
-    root.intro = 'leave'
-    await wait(duration('long'))
-  }
-  go('shutdown')
-  delete root.intro
-}
-
 // Turning on again begins a new session of this tab, as a restart does: its windows close and the intro plays.
 function turnOn() {
   try {
@@ -133,7 +103,7 @@ function Boot({ view, t, go }: Props) {
   const ended = useRef(false)
 
   // Any key, press or scroll ends it at once and hands over to the desk, except in its menu bar.
-  const end = useEffectEvent(async (event?: Event) => {
+  const end = useEffectEvent((event?: Event) => {
     const top = screen.current?.querySelector(':scope > header')
     if (ended.current || top?.contains(event?.target as Node)) return
     ended.current = true
@@ -143,7 +113,6 @@ function Boot({ view, t, go }: Props) {
     } catch {
       // A tab without storage plays it again on its next visit to the desk.
     }
-    await handOver(screen.current!, 'mark', true)
     go(null)
   })
 
@@ -266,7 +235,7 @@ function Top(props: {
 }) {
   const { t, view } = props
   return (
-    <header>
+    <header data-surface="desktop">
       <Bar line="below" size="chrome">
         <BarTitle>
           <span
@@ -296,7 +265,6 @@ function Top(props: {
 // Who comes in: a guest, a signed-in visitor, by a personal link or not, or another user with a password.
 function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) {
   const { language, site } = view
-  const screen = useRef<HTMLDivElement>(null)
   const [answer, setAnswer] = useState<'wrong' | 'limited' | null>(null)
   const [busy, setBusy] = useState(false)
   const [shown, setShown] = useState(false)
@@ -308,10 +276,6 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
       : new Intl.DateTimeFormat(locales[language], { timeZone, ...options }).format(minute * 60000)
   const visitor = at === 'other' ? null : view.visitor
 
-  const enter = async () => {
-    await handOver(screen.current!, 'visitor', false)
-    go(null)
-  }
   // Signing in or out reloads the page, as the server draws the desk for whoever asks; from the login's own address
   // the desk comes next.
   const reload = () => (atLogin() ? location.replace(toAddress(language, '/')) : location.reload())
@@ -355,16 +319,18 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
   useEffect(() => linked(), [])
 
   return (
-    <Screen fill ref={screen} waiting>
+    <Screen fill waiting>
       <Top name={site.name} t={t} view={view}>
-        <MenuButton
-          button={{ 'aria-label': t.language, label: language.toUpperCase() }}
-          end
-          items={languageMenu(language, '/')}
-          label={t.prefsLanguage}
-          size="chrome"
-          t={t}
-        />
+        <span data-language>
+          <MenuButton
+            button={{ 'aria-label': t.language, label: language.toUpperCase() }}
+            end
+            items={languageMenu(language, '/')}
+            label={t.prefsLanguage}
+            size="chrome"
+            t={t}
+          />
+        </span>
       </Top>
       <div className="screen__main cq">
         <Section>
@@ -424,7 +390,7 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
               }
               title={visitor?.name ?? t.guest}
             />
-            <Button end="arrow-right" label={t.loginEnter} onClick={enter} tone="solid" />
+            <Button end="arrow-right" label={t.loginEnter} onClick={() => go(null)} tone="solid" />
           </Splash>
         )}
         <div className="screen__foot">
@@ -450,7 +416,7 @@ function Login({ at, view, t, go }: Props & { at: 'login' | 'link' | 'other' }) 
               name={t.accessibility}
             />
             <App icon="play" name={t.replay} onClick={() => go('boot')} />
-            <App icon="power" name={t.shutDown} onClick={() => void shutDown(go)} />
+            <App icon="power" name={t.shutDown} onClick={() => go('shutdown')} />
           </nav>
         </div>
       </div>

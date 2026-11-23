@@ -405,7 +405,7 @@ const en = {
     durationRows: [
       ['160 ms', 'Menus, tooltips, switches, rows, colour.'],
       ['320 ms', 'Windows, drawers, dialogs, content replaced in a window.'],
-      ['960 ms', 'The start hand-over; what swings or falls.'],
+      ['960 ms', 'The rows of the start; what swings or falls.'],
       ['80 ms', 'What took fast to arrive, leaving.'],
       ['160 ms', 'What took slow to arrive, leaving.'],
       ['240 ms', 'A drawer leaving the way it came.'],
@@ -413,6 +413,7 @@ const en = {
       ['640 ms', 'A thing that travels from one place to another.'],
       ['200 ms', 'A window going back to its taskbar button or to what opened it.'],
       ['40 ms', 'The wait before a window sets off back, once what it holds has left.'],
+      ['40 ms', 'A step of a hand-over between a screen that waits and the desk.'],
     ],
     curve: [
       'Curve',
@@ -471,6 +472,22 @@ const en = {
       'A thing that goes from one place to another is one element that travels, and takes the place, the size and the surface of where it lands. It goes across on one curve and up on another, so it moves in an arc, while its size and its surface change on the standard curve. Its letters go from one size to the other, and the old fade into the new during the middle half of the move. With reduced motion nothing travels: it fades out where it was and in where it lands. A window is one box that travels: from what opened it to its place over slow on the standard curve, what it holds unseen until three quarters of the move are done, and back to its taskbar button or to what opened it a lag after what it holds has left, over back on the exit curve. With reduced motion it fades where it stands.',
     ],
     travelLetters: 'OS',
+    handOver: [
+      'Hand-over',
+      'in steps of: step | leaves: fast, half a step apart | arrives: slow, a step apart | an app grows from: 0.6 | reduced: one fade over fast',
+      'From a screen that waits to the desk is a sequence, counted in steps from the press; its title and its language are the desk’s at once, and the wallpaper, there behind it all along, goes on. From the start the same arrival follows once its rows and its bar have left. Locking, the desk leaves together over half of fast, and the parts of the login arrive in turn as they left. Shutting down, the windows go to their taskbar buttons, then the apps, the taskbar and the menu bar leave in the reverse of their arrival, inside slow in all, and the parts of the end arrive in turn. Nothing on the desk can be pressed before it has arrived. With reduced motion each hand-over is one fade over fast.',
+    ],
+    handOverHead: ['Step', 'Part', 'Move'],
+    handOverRows: [
+      ['0', 'What the screen holds', 'Fades and rises 8 px over fast, half a step apart.'],
+      ['0', 'The avatar', 'Travels into the tag.'],
+      ['2', 'The language', 'Slides to its place over slow and a half.'],
+      ['3', 'The menu bar', 'Each item drops 8 px into place over slow, a step apart.'],
+      ['6', 'The taskbar', 'Rises from below over slow.'],
+      ['8', 'The apps', 'Each grows from 0.6 as it fades in, a step apart.'],
+      ['11', 'The windows', 'Travel out of their taskbar buttons; a drawer rises.'],
+      ['14', 'Name and clock', 'Drop 8 px into place over fast.'],
+    ],
     decipher: [
       'Decipher',
       'letter: 16 ms | at most: 480 ms | run: 6 | a count beside a title: 2/5 of its time',

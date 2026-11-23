@@ -193,6 +193,10 @@
   --m-back: calc(var(--m-fast) * 1.25);
   /* the size a part opens from at its own place */
   --m-start: 0.96;
+  /* a hand-over between a screen that waits and the desk goes in steps: what leaves goes half a step apart, what
+     arrives a step apart; an app grows into place from this size */
+  --m-step: 40ms;
+  --m-grow: 0.6;
   /* a screw: the angle of its slot, and how far it turns and grows as it comes out */
   --screw-slot: -32deg;
   --screw-turn: -540deg;

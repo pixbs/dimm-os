@@ -70,6 +70,8 @@ export function OnDesk(props: {
   label?: string
   // Drawers opened in front of the windows, such as menus on a phone.
   over?: number
+  // While a screen waits over the desk, the windows wait in the taskbar, as if put away.
+  held?: boolean
   t: Dictionary
   // A window's parts from its view, at the width it stands.
   children: (view: WindowView, width: number) => Parts
@@ -124,7 +126,7 @@ export function OnDesk(props: {
               after={(gesture) =>
                 shown(manager(desk, { ...gesture, path: entry.path }), entry.path) as Box
               }
-              away={entry.mode === 'min'}
+              away={entry.mode === 'min' || props.held}
               back={back(entry)}
               box={box}
               content={entry.view?.path}

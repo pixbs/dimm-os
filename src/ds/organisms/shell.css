@@ -711,12 +711,18 @@
 }
 
 /* A screen that waits stands over the desk, the whole browser's window, until it hands over. Between its bars it holds
-   sections and a splash. */
+   sections and a splash. It shows the desk's wallpaper through it, or covers it; as the last row of the start passes,
+   the wallpaper comes through. */
 .screen[data-waiting] {
   position: fixed;
   inset: 0;
   z-index: var(--z-above);
   height: auto;
+  transition: background-color var(--m-slow) var(--m-standard);
+
+  &[data-waiting='clear'] {
+    background-color: transparent;
+  }
 
   & > .screen__main {
     display: flex;
@@ -845,55 +851,7 @@
   }
 }
 
-/* The start: until the boot screen stands over it, the desk the server drew is not shown. As it hands over, the bars
-   arrive first, then the apps, then the windows grow from the taskbar, all within a long move; shutting down plays the
-   same in reverse. */
+/* While a screen waits over the desk, the desk shows its wallpaper alone; the hand-over brings the rest. */
 :root[data-intro='play'] .screen[data-fill]:not([data-waiting]) > :not(.wallpaper) {
   visibility: hidden;
-}
-:root[data-intro='hand'] .screen[data-fill]:not([data-waiting]) {
-  & > :is(header, footer) {
-    animation: var(--m-slow) var(--m-enter) both arrive;
-  }
-  & .apps {
-    animation: var(--m-slow) var(--m-enter) var(--m-slow) both arrive;
-  }
-  & .screen__desk > .window {
-    transform-origin: bottom;
-    animation: var(--m-slow) var(--m-enter) calc(var(--m-slow) * 2) both grow;
-  }
-}
-:root[data-intro='leave'] .screen[data-fill]:not([data-waiting]) {
-  & .screen__desk > .window {
-    transform-origin: bottom;
-    animation: var(--m-slow) var(--m-exit) both shrink;
-  }
-  & .apps {
-    animation: var(--m-slow) var(--m-exit) var(--m-slow) both leave;
-  }
-  & > :is(header, footer) {
-    animation: var(--m-slow) var(--m-exit) calc(var(--m-slow) * 2) both leave;
-  }
-}
-@keyframes arrive {
-  from {
-    opacity: 0;
-  }
-}
-@keyframes grow {
-  from {
-    opacity: 0;
-    scale: 0;
-  }
-}
-@keyframes leave {
-  to {
-    opacity: 0;
-  }
-}
-@keyframes shrink {
-  to {
-    opacity: 0;
-    scale: 0;
-  }
 }

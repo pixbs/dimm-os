@@ -25,7 +25,7 @@ test.describe('What travels from the login into the menu bar', () => {
   for (const [name, size] of Object.entries(sizes)) {
     test(`the avatar lands as the tag, one box all the way, on a ${name}`, async ({ page }) => {
       await page.setViewportSize(size)
-      await page.goto('/imprint', { waitUntil: 'networkidle' })
+      await page.goto('/', { waitUntil: 'networkidle' })
       const direct = (await tag(page).boundingBox())!
       const avatar = await login(page)
 
@@ -68,7 +68,7 @@ test.describe('What travels from the login into the menu bar', () => {
   }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
     await page.setViewportSize(sizes.desktop)
-    await page.goto('/imprint', { waitUntil: 'networkidle' })
+    await page.goto('/', { waitUntil: 'networkidle' })
     await login(page)
 
     const way = await travelled(page, tag(page), () =>
