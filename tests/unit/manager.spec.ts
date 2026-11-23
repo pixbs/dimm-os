@@ -141,8 +141,8 @@ describe('the window manager', () => {
       expect([w, h]).toEqual([720, 480])
       expect(x >= 0 && y >= 0 && x + w <= 1440 && y + h <= 820).toBe(true)
     }
-    // Each new window stands a step from the one before, so neither hides the other.
-    expect(box(state, '/work').x).toBe(box(state, '/welcome').x + 24)
+    // Each new window stands a title bar from the one before, so neither hides the other.
+    expect(box(state, '/work').x).toBe(box(state, '/welcome').x + 32)
 
     const small = manager(state, { type: 'desk', w: 640, h: 400 })
     expect(box(small, '/welcome')).toEqual({ x: 0, y: 0, w: 640, h: 400 })
@@ -162,16 +162,23 @@ describe('the window manager', () => {
     })
     expect(box(tablet, '/cv')).toEqual({ x: 112, y: 0, w: 698, h: 1098 })
 
-    // A view that arrives once its window is open brings its size, about the same middle.
+    // A view that arrives once its window is open brings its size: in the stack, at the same top corner.
     const opened = after(tablet, { type: 'open', path: '/contact' })
     const before = box(opened, '/contact')
     const filled = box(
       after(opened, { type: 'fill', window: sized('/contact', 640, 512) }),
       '/contact',
     )
-    expect([filled.w, filled.h]).toEqual([640, 512])
-    expect(filled.x + filled.w / 2).toBe(before.x + before.w / 2)
-    expect(filled.y + filled.h / 2).toBe(before.y + before.h / 2)
+    expect(filled).toEqual({ x: before.x, y: before.y, w: 640, h: 512 })
+    // On an empty desk, about the same middle.
+    const first = after(tablet, { type: 'close', path: '/cv' }, { type: 'open', path: '/contact' })
+    const middle = box(first, '/contact')
+    const centred = box(
+      after(first, { type: 'fill', window: sized('/contact', 640, 512) }),
+      '/contact',
+    )
+    expect(centred.x + centred.w / 2).toBe(middle.x + middle.w / 2)
+    expect(centred.y + centred.h / 2).toBe(middle.y + middle.h / 2)
 
     // Once the visitor has sized it, the size is theirs.
     const pulled = after(opened, { type: 'pull', path: '/contact', edge: 'se', dx: 80, dy: 0 })
@@ -181,6 +188,87 @@ describe('the window manager', () => {
     const put = after(opened, { type: 'put', where: 'left' })
     const filled2 = after(put, { type: 'fill', window: sized('/contact', 640, 512) })
     expect(box(filled2, '/contact')).toEqual(box(put, '/contact'))
+  })
+
+  it('stacks each new window a title bar beside and below the one opened before it, whatever its size', () => {
+    const sized = (path: string, w: number, h: number): WindowView => ({
+      ...view(path),
+      frame: { ...view(path).frame, size: { w, h } },
+    })
+    const room = { x: 112, w: 1296, bar: 32 }
+    const open = (state: Windows, path: string, w: number, h: number) =>
+      after(state, { type: 'open', path }, { type: 'fill', window: sized(path, w, h) })
+    const empty = after(start(null), { type: 'desk', w: 1440, h: 820, room })
+    const sizes: [string, number, number][] = [
+      ['/work', 960, 640],
+      ['/contact', 480, 400],
+      ['/blog', 720, 520],
+      ['/cv', 640, 480],
+      ['/notes', 560, 360],
+    ]
+    const five = sizes.reduce((state, [path, w, h]) => open(state, path, w, h), empty)
+    // The first stands in the middle of the room; each after it a step from the top corner of the one before.
+    expect(box(five, '/work')).toEqual({ x: 112 + (1296 - 960) / 2, y: 90, w: 960, h: 640 })
+    const corners = sizes.map(([path]) => box(five, path)).map(({ x, y }) => [x, y])
+    expect(corners).toEqual([0, 1, 2, 3, 4].map((nth) => [280 + nth * 32, 90 + nth * 32]))
+
+    // The step is taken from the window opened last, where it stands now: moving the first changes nothing.
+    const moved = after(five, { type: 'move', path: '/work', dx: -200, dy: 80 })
+    const sixth = open(moved, '/sixth', 480, 320)
+    expect(box(sixth, '/sixth')).toMatchObject({ x: 280 + 5 * 32, y: 90 + 5 * 32 })
+    // A window moved by the visitor keeps its place.
+    expect(box(sixth, '/work')).toMatchObject({ x: 80, y: 170 })
+    const followed = after(
+      five,
+      { type: 'move', path: '/notes', dx: -100, dy: -40 },
+      { type: 'open', path: '/sixth' },
+    )
+    expect(box(followed, '/sixth')).toMatchObject({
+      x: 280 + 4 * 32 - 100 + 32,
+      y: 90 + 4 * 32 - 40 + 32,
+    })
+
+    // One that would reach past the desk starts a new row a step in from the room's top corner.
+    const tall = open(five, '/tall', 640, 600)
+    expect(box(tall, '/tall')).toEqual({ x: 112 + 32, y: 32, w: 640, h: 600 })
+    for (const path of paths(tall)) {
+      const { x, y, w, h } = box(tall, path)
+      expect(x >= 0 && y >= 0 && x + w <= 1440 && y + h <= 820).toBe(true)
+    }
+
+    // One as high as the desk cannot step down: it steps aside only, so two in a row do not pile up.
+    const high = open(open(five, '/high', 800, 820), '/higher', 800, 820)
+    expect(box(high, '/high')).toEqual({ x: 280 + 5 * 32, y: 0, w: 800, h: 820 })
+    expect(box(high, '/higher')).toEqual({ x: 280 + 6 * 32, y: 0, w: 800, h: 820 })
+
+    // In a room too narrow to step aside, a window steps down only, at the room's end.
+    const narrow = after(start(sized('/contact', 640, 512)), {
+      type: 'desk',
+      w: 820,
+      h: 1100,
+      room: { x: 112, w: 690, bar: 32 },
+    })
+    const wide = open(narrow, '/work', 720, 480)
+    expect(box(wide, '/work')).toEqual({ x: 112, y: box(wide, '/contact').y + 32, w: 690, h: 480 })
+
+    // A window in full screen or put away gives no place: the next follows the one before it.
+    const full = after(five, { type: 'full', path: '/notes' })
+    expect(box(open(full, '/sixth', 480, 320), '/sixth')).toMatchObject({
+      x: 280 + 4 * 32,
+      y: 90 + 4 * 32,
+    })
+    const away = after(five, { type: 'minimise', path: '/notes' })
+    expect(box(open(away, '/sixth', 480, 320), '/sixth')).toMatchObject({
+      x: 280 + 4 * 32,
+      y: 90 + 4 * 32,
+    })
+
+    // One window at a time has no stack.
+    const alone = after(five, { type: 'open', path: '/sixth', alone: true })
+    expect(box(open(alone, '/sixth', 480, 320), '/sixth')).toMatchObject({
+      x: 112 + (1296 - 480) / 2,
+      y: 250,
+    })
   })
 
   it('keeps a window its own size on a phone, where the room beside the apps is none', () => {
@@ -216,6 +304,69 @@ describe('the window manager', () => {
     // The top edge stops within a step of the top, and no size is larger than the desk.
     expect(pulled.y >= 0 && pulled.y < 8).toBe(true)
     expect(pulled.w).toBe(1440)
+  })
+
+  it('opens a window behind the one in front: beside it where the room has space, else covered', () => {
+    const wide = after(start(view('/accessibility')), {
+      type: 'desk',
+      w: 1920,
+      h: 1000,
+      room: { x: 112, w: 1784 },
+    })
+    const beside = after(wide, { type: 'open', path: '/cookies', behind: true })
+    expect(beside.z).toEqual(['/cookies', '/accessibility'])
+    expect(front(beside)).toBe('/accessibility')
+    const own = box(beside, '/accessibility')
+    const asked = box(beside, '/cookies')
+    expect(asked.x).toBe(112 + 1784 - 440)
+    expect(asked.x).toBeGreaterThanOrEqual(own.x + own.w)
+
+    const narrow = after(
+      start(view('/accessibility')),
+      { type: 'desk', w: 1440, h: 820, room: { x: 112, w: 1304 } },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(front(narrow)).toBe('/accessibility')
+    expect(narrow.open.find((one) => one.path === '/cookies')?.covered).toBe(true)
+
+    // On a phone the drawer is the one behind; with no window in front it opens in front.
+    const drawer = after(
+      start(view('/accessibility')),
+      { type: 'desk', w: 390, h: 760 },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(stack(drawer)).toEqual(['/cookies', '/accessibility'])
+    // One restored from the tab stays behind as well.
+    const restored = after(
+      start(view('/about')),
+      { type: 'restore', windows: [view('/cookies')] },
+      { type: 'desk', w: 1440, h: 820, room: { x: 112, w: 1304 } },
+      { type: 'open', path: '/cookies', behind: true },
+    )
+    expect(front(restored)).toBe('/about')
+    const empty = after(start(null), { type: 'open', path: '/cookies', behind: true })
+    expect(front(empty)).toBe('/cookies')
+  })
+
+  it('keeps a window that waits for an answer when one window at a time closes the others', () => {
+    const desk = { type: 'desk' as const, w: 1440, h: 820, room: { x: 112, w: 1304 } }
+    const asking = { type: 'open' as const, path: '/cookies', behind: true, alone: true }
+    const waits = after(start(view('/accessibility')), desk, asking)
+    expect(waits.open.find((one) => one.path === '/cookies')).toMatchObject({
+      mode: 'min',
+      covered: true,
+    })
+    expect(after(waits, { type: 'alone' }).open.map((one) => one.path)).toEqual([
+      '/accessibility',
+      '/cookies',
+    ])
+    expect(
+      after(waits, { type: 'open', path: '/cv', alone: true }).open.map((one) => one.path),
+    ).toEqual(['/cookies', '/cv'])
+
+    // On a phone, which has no taskbar, it is the drawer behind.
+    const phone = after(start(view('/accessibility')), { type: 'desk', w: 390, h: 760 }, asking)
+    expect(stack(phone)).toEqual(['/cookies', '/accessibility'])
   })
 
   it('opens one window at a time when asked, closing the ones before', () => {

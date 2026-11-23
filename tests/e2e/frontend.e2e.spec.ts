@@ -163,6 +163,73 @@ test.describe('Frontend', () => {
     expect(await phone.evaluate(() => document.activeElement === document.body)).toBe(true)
   })
 
+  for (const size of [
+    { width: 1440, height: 1080 },
+    { width: 820, height: 1180 },
+  ]) {
+    test(`stacks windows of three sizes a title bar apart at ${size.width} px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize(size)
+      await page.emulateMedia({ reducedMotion: 'reduce' })
+      await emptyDesk(page)
+      await page.goto('/')
+      const inFront = page.locator('article[data-front]')
+      const boxes = []
+      // Contact, Work and the consent: three sizes.
+      for (const open of [
+        () => app(page, 'Contact').click(),
+        () => app(page, 'Work').click(),
+        async () => {
+          await page.getByRole('menuitem', { name: 'Legal' }).click()
+          await page.getByRole('menuitem', { name: 'Cookies' }).click()
+        },
+      ]) {
+        const before = await page.locator('article').count()
+        await open()
+        await expect(page.locator('article')).toHaveCount(before + 1)
+        await expect(inFront.locator('.window__bar')).toBeInViewport({ ratio: 1 })
+        await page.waitForLoadState('networkidle')
+        boxes.push((await inFront.boundingBox())!)
+      }
+      const step = (await inFront.locator('.window__bar').boundingBox())!.height
+      const desk = (await page.locator('main').boundingBox())!
+      expect(new Set(boxes.map(({ width, height }) => `${width}×${height}`)).size).toBe(3)
+      // Each stands one title bar below the one before, and beside it where the room is wide enough, whatever their
+      // sizes, inside the desk; so every bar shows.
+      for (const nth of [1, 2]) {
+        if (size.width > 1000) expect(boxes[nth].x - boxes[nth - 1].x).toBeCloseTo(step, 0)
+        expect(boxes[nth].y - boxes[nth - 1].y).toBeCloseTo(step, 0)
+      }
+      const bars = await page.locator('article .window__bar').all()
+      for (const bar of bars) {
+        const { x, y, width } = (await bar.boundingBox())!
+        const hit = await bar.evaluate(
+          (element, [x, y]) => element.contains(document.elementFromPoint(x, y)),
+          [x + width / 2, y + step / 2],
+        )
+        expect(hit).toBe(true)
+      }
+      for (const box of boxes) {
+        expect(box.x >= desk.x && box.x + box.width <= desk.x + desk.width + 1).toBe(true)
+        expect(box.y >= desk.y && box.y + box.height <= desk.y + desk.height + 1).toBe(true)
+      }
+
+      // After the first is moved, the next still follows the last.
+      const first = page.getByRole('article', { name: 'Contact' }).locator('.window__bar')
+      await first.dragTo(page.locator('main'), {
+        sourcePosition: { x: 16, y: step / 2 },
+        targetPosition: { x: boxes[0].x - desk.x - 24, y: boxes[0].y - desk.y + 80 },
+      })
+      await app(page, 'Services').click()
+      await expect(page.locator('article')).toHaveCount(4)
+      await page.waitForLoadState('networkidle')
+      const fourth = (await inFront.boundingBox())!
+      if (size.width > 1000) expect(fourth.x - boxes[2].x).toBeCloseTo(step, 0)
+      expect(fourth.y - boxes[2].y).toBeCloseTo(step, 0)
+    })
+  }
+
   test('closes a window behind by its control without touching the address or the history', async ({
     page,
   }) => {
@@ -339,14 +406,14 @@ test.describe('Frontend at an address without a window', () => {
       }) => {
         await page.setViewportSize(viewport)
         const theirs = 'This page could not be found'
-        for (const [path, title, decline] of [
-          ['/does-not-exist', 'Not found', 'Decline'],
-          ['/de/gibt-es-nicht', 'Nicht gefunden', 'Ablehnen'],
+        for (const [path, title] of [
+          ['/does-not-exist', 'Not found'],
+          ['/de/gibt-es-nicht', 'Nicht gefunden'],
           // No file and no window: an address with a dot outside a language, and a page the catalogue has not.
-          ['/nothing.html', 'Not found', 'Decline'],
-          ['/catalogue/nothing', 'Not found', 'Decline'],
+          ['/nothing.html', 'Not found'],
+          ['/catalogue/nothing', 'Not found'],
           // What the platform keeps for its own page.
-          ['/404', 'Not found', 'Decline'],
+          ['/404', 'Not found'],
         ]) {
           // Before script: the answer is the desk with the window, in its language.
           const answer = await request.get(path)
@@ -356,10 +423,10 @@ test.describe('Frontend at an address without a window', () => {
           expect(markup, path).toContain(`>${title}</h1>`)
           expect(markup, path).not.toContain(theirs)
 
-          // After it, and once the window of consent in front has left: the same window at the same address.
+          // After it, with the window of consent behind it: the same window at the same address.
           await page.evaluate(() => localStorage.clear()).catch(() => {})
           expect((await page.goto(path))?.status(), path).toBe(404)
-          await page.getByRole('button', { name: decline }).click()
+          await expect(page.locator('#window-cookies')).toBeAttached()
           await expect(front(page)).toHaveText(title)
           await expect(page).toHaveURL(path)
           await page.reload()
