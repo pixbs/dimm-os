@@ -35,9 +35,12 @@ const near = (one: { x: number; y: number; width: number; height: number }, othe
     expect(Math.abs(one[side] - other[side]), side).toBeLessThanOrEqual(1)
 }
 const control = (window: Locator, name: string) => window.getByRole('button', { name })
-// A shortcut on the desk, apart from the links inside the windows.
+// A shortcut on the desk, an option to select, or on a phone a link; apart from the links inside the windows.
 const app = (page: Page, name: string) =>
-  page.getByRole('navigation', { name: 'Apps' }).getByRole('link', { name })
+  page
+    .getByRole('listbox', { name: 'Apps' })
+    .getByRole('option', { name })
+    .or(page.getByRole('navigation', { name: 'Apps' }).getByRole('link', { name }))
 const drag = async (page: Page, from: Locator, dx: number, dy: number, at = { x: 8, y: 8 }) => {
   const box = (await from.boundingBox())!
   await page.mouse.move(box.x + at.x, box.y + at.y)

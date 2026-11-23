@@ -7,9 +7,12 @@ const windows = (page: Page) => page.locator('article h1')
 const front = (page: Page) => page.locator('article[data-front] h1')
 const closeFront = (page: Page) =>
   page.locator('article[data-front]').getByRole('button', { name: 'Close' }).click()
-// The shortcuts on the desk, apart from the links inside the windows.
+// The shortcuts on the desk, a list to select from, or on a phone links; apart from the links inside the windows.
 const app = (page: Page, name: string) =>
-  page.getByRole('navigation', { name: 'Apps' }).getByRole('link', { name })
+  page
+    .getByRole('listbox', { name: 'Apps' })
+    .getByRole('option', { name })
+    .or(page.getByRole('navigation', { name: 'Apps' }).getByRole('link', { name }))
 
 // A mark on the document tells a page load from a window the desk opened: only a load removes it.
 const mark = (page: Page) => page.evaluate(() => void Object.assign(window, { marked: true }))

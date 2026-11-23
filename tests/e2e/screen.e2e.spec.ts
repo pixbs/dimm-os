@@ -113,7 +113,8 @@ test.describe('Screen', () => {
     await page.setViewportSize(desk)
     await page.goto('/')
     const taskbar = page.locator('footer[data-for="desk"]')
-    const apps = page.getByRole('navigation', { name: 'Apps' })
+    // A list to select from on a desk, links on a phone.
+    const apps = page.locator('.screen__desk > .apps')
 
     for (const [width, onDesk] of [
       [1280, true],
@@ -189,8 +190,8 @@ test.describe('Screen', () => {
     await page.setViewportSize(desk)
     await page.goto('/work')
     await page
-      .getByRole('navigation', { name: 'Apps' })
-      .getByRole('link', { name: 'Services' })
+      .getByRole('listbox', { name: 'Apps' })
+      .getByRole('option', { name: 'Services' })
       .click()
     const taskbar = page.locator('footer[data-for="desk"] button')
     await expect(taskbar).toHaveText(['work', 'services'])
