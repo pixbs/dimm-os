@@ -246,7 +246,10 @@
 }
 
 /* Headed: the head names the rows and their end in mono, over one line in the foreground from edge to edge; a group
-   that is read needs no line between its rows. */
+   that is read needs no line between its rows. It stands inset on the keyline, so its line ends where the text does. */
+.list[data-headed=''] {
+  margin-inline: 0;
+}
 .list[data-headed] > .row,
 .list[data-headed] > .list__rows > .list__item > .row {
   --row-line: transparent;
